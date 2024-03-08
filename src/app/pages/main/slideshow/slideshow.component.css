@@ -1,0 +1,99 @@
+
+.slideshow-container {
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.slideshow {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  width: 400%;
+  transition: transform 1s ease;
+}
+
+.transition {
+  transition: transform 1s ease;
+}
+
+.slide {
+  position: relative;
+  min-width: 25%;
+  max-width: 25%;
+  height: 100%;
+  display: inline;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.slide > img {
+  object-fit: cover;
+  object-position: center;
+}
+
+button {
+  position: relative;
+  pointer-events: all;
+  font-size: 0.8rem;
+  color: white;
+  letter-spacing: 1px;
+  line-height: 1.4rem;
+  border: 1px solid white;
+  border-radius: 0.7rem;
+  background: rgba(255,255,255,0.25);
+  transition: all 0.3s ease 0s;
+  margin-bottom: 0.6rem;
+}
+
+.slideshow-button:hover {
+  color: #FFF;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid white;
+  cursor: pointer;
+}
+
+.slideshow-textbox-outer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  margin-bottom: 3em;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  background-color: var(--banner-colour);
+  pointer-events: none;
+}
+
+.slideshow-textbox-inner {
+  margin-inline: 15vw;
+}
+
+.slideshow-textbox-inner.right {
+  text-align: end;
+}
+
+.slideshow-textbox-inner.middle {
+  text-align: center;
+}
+
+.slideshow-textbox-inner.left {
+  text-align: start;
+}
+
+.arrow {
+  z-index: 20;
+  position: absolute;
+  top: 50%;
+  cursor: pointer;
+  padding: 1em;
+  transform: translateY(-50%);
+}
+
+.arrow.left {
+  left: 0;
+}
+
+.arrow.right {
+  right: 0;
+}

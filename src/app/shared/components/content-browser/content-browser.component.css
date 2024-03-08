@@ -1,0 +1,64 @@
+
+
+.insta-feed {
+  scroll-margin-top: var(--header-height);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+  grid-template-rows: repeat(4, auto);
+  justify-content: space-around;
+  opacity: 0;
+}
+
+.show {
+  opacity: 1;
+}
+.insta-feed-small {
+  grid-template-rows: auto auto auto auto;
+}
+
+.ckbtn-group {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  line-height: 1.6rem;
+}
+.ckbtn-group > span {
+  margin-right: 1rem;
+}
+
+.ckbtn {
+  overflow: hidden;
+  width: 90px;
+  font-size: smaller;
+  position: relative;
+  text-align: center;
+  background-color:#DDDDDD;
+  display:block;
+  cursor: pointer;
+  height: 120%;
+}
+
+.insta:hover {
+  color:#fff;
+}
+.insta.clicked {
+  background-color:green;
+  color:#fff;
+}
+.insta.clicked:hover {
+  color: var(--text-colour);
+}
+
+.article:hover {
+  color:#fff;
+}
+.article.clicked {
+  background-color:navy;
+  color:#fff;
+}
+.article.clicked:hover {
+  color: var(--text-colour);
+}

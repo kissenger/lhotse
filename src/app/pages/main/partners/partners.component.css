@@ -1,0 +1,26 @@
+
+.logo-roller {
+  justify-content: center;
+  overflow-x: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1em;
+  margin-top: 1em;
+  width: 100%;
+}
+
+.logo-holder {
+  padding: 1rem;
+}
+
+.logo-holder > img {
+  transition: all 0.25s;
+  height: auto;
+  width: auto;
+}
+
+.logo-holder > img:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}

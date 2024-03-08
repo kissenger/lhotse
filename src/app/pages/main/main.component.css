@@ -1,0 +1,43 @@
+
+
+/* ===================================== */
+/* styling used on some child components */
+/* ===================================== */
+
+.main-content-image {
+  position: sticky;
+  top: 75px;
+  left: 0px;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  padding-bottom: 1rem;
+  margin: auto;
+  margin-top: 0;
+}
+
+.main-content-grid {
+  display: block;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto;
+  grid-gap: 1.5rem;
+  grid-auto-flow: column;
+}
+
+.grid-position-left {
+  grid-column: 1;
+}
+
+.grid-position-right {
+  grid-column: 2;
+}
+
+@media (min-width: 768px) {
+  .main-content-grid {
+    display: grid;
+  }
+  .main-content-image {
+    margin-top: 2rem;
+  }
+}
+

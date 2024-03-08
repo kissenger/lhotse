@@ -1,0 +1,73 @@
+
+<div class="slideshow-container">
+  <div #slideshow class="slideshow" [ngClass]="{'transition': showTransition}">
+
+    <!-- slide 1 -->
+
+    <div #firstSlide class="slide">
+      <img
+        [ngSrc]="images.orientedImage('slideshow-child').url"
+        [alt]="images.orientedImage('slideshow-child').alt"
+        priority
+        fill
+      />
+      <div class="slideshow-textbox-outer">
+        <div class="slideshow-textbox-inner">
+          <h1 class="zero-margin">Welcome to Snorkelology</h1>
+          <p class="zero-margin">Discover the wonders of British snorkelling for all the family</p>
+          <button (click)="navigate.to('about')">About Snorkelology</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- slide 2 -->
+
+    <div class="slide">
+      <img
+        [ngSrc]="images.orientedImage('slideshow-drone').url"
+        [alt]="images.orientedImage('slideshow-drone').alt"
+        fill
+      />
+      <div class="slideshow-textbox-outer">
+        <div class="slideshow-textbox-inner middle">
+          <h1 class="zero-margin">Snorkelling in Britain</h1>
+          <p class="zero-margin">Marine Explorers - our new book about snorkelling in Britain</p>
+          <button (click)="navigate.to('book')">Find out more</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- slide 3 -->
+
+    <div class="slide">
+      <img
+        [ngSrc]="images.orientedImage('slideshow-kids').url"
+        [alt]="images.orientedImage('slideshow-kids').alt"
+        fill
+        />
+        <div class="slideshow-textbox-outer">
+          <div class="slideshow-textbox-inner middle">
+            <h1 class="zero-margin">Learn about British snorkelling</h1>
+            <p class="zero-margin">Explore our content to discover the fascinating underwater world</p>
+            <button (click)="navigate.to('explore')">Explore our content</button>
+          </div>
+        </div>
+    </div>
+
+  </div>
+
+  <svg #overlay class="arrow left overlay" viewBox="-20 -30 40 60" height="40px" width="20px" opacity="0.6" (click)="onClick(false)">
+    <animate attributeName="opacity" from="0.6" to="1" dur="0.25s" begin="mouseover" fill="freeze"></animate>
+    <animate attributeName="opacity" from="1" to="0.6" dur="0.25s" begin="mouseout" fill="freeze"></animate>
+    <line x1="10" y1="-20" x2="-10" y2="0" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
+    <line x1="-10" y1="0" x2="10" y2="20" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
+  </svg>
+
+  <svg #overlay class="arrow right overlay" viewBox="-20 -30 40 60" height="40px" width="20px" opacity="0.6" (click)="onClick(true)">
+    <animate attributeName="opacity" from="0.6" to="1" dur="0.25s" begin="mouseover" fill="freeze"></animate>
+    <animate attributeName="opacity" from="1" to="0.6" dur="0.25s" begin="mouseout" fill="freeze"></animate>
+    <line x1="-10" y1="-20" x2="10" y2="0" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
+    <line x1="10" y1="0" x2="-10" y2="20" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
+  </svg>
+
+</div>

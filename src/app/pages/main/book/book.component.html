@@ -1,0 +1,40 @@
+
+<div class="dynamic-container">
+  <div class="main-content-grid">
+    <div class="grid-position-right">
+
+      <h2>Snorkelling Adventures in Britain </h2>
+
+      <p>
+        Snorkelling is the perfect family adventure for people who love the water and the natural world.  It is free and accessible
+        to people of all ages and abilities, but there is a skill in selecting safe sites with abundant underwater life.
+      </p>
+
+      <p class="blockquote">
+        We are working with <app-ext-link text="Wild Things Publishing" link="https://wildthingspublishing.com/"></app-ext-link>
+        to release a book all about Snorkelling around our stunning British coastline.
+      </p>
+
+      <p>
+        The book will be packed with information on the best sites to snorkel across Britain, complimented with inspiring
+        photography, clear site finding advice and vital tips to get you started.  While there is no publication date yet
+        decided, we are hoping for release around the spring of 2025, so watch this space...
+      </p>
+
+      <p>
+        <span (click)="navigate.to('subscribe')" class="html-link">Subscribe to our mailing list to get book updates </span>
+      </p>
+
+    </div>
+
+    <img class="main-content-image grid-position-left"
+      [ngSrc]  = "images.sizedImage('content-kids', 'small').url"
+      [alt]    = "images.sizedImage('content-kids', 'small').alt"
+      [width]  = "images.sizedImage('content-kids', 'small').width"
+      [height] = "images.sizedImage('content-kids', 'small').height"
+    />
+
+
+  </div>
+</div>
+

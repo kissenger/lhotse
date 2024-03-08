@@ -1,0 +1,26 @@
+
+<div *ngIf="instas.length > 0" class="ckbtn-group">
+  <span>Filter:</span>
+    <div #ckInsta class="ckbtn insta" [ngClass]="ckbtns['insta'].clicked ? 'clicked' : '' " (click)="onFilterClick('insta')">
+      Instagram
+    </div>
+    <div #ckArticle class="ckbtn article" [ngClass]="ckbtns['article'].clicked ? 'clicked' : '' "  (click)="onFilterClick('article')"> 
+      Article
+    </div>
+</div>
+
+<div class="insta-feed" [ngClass]="{'show': isLoaded}">
+
+  @for (card of cards; track card) {
+    <app-ui-card
+      imageURL="{{card.media_url}}"
+      link="{{card.permalink }}"
+      text="{{card.caption}}"
+      header="{{card.header}}"
+      category="{{card.category}}"
+      timestamp="{{card.timestamp}}"
+    ></app-ui-card>
+  }
+
+</div>
+

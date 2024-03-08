@@ -5,6 +5,40 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 
+// **** API setup - added gst
+import 'dotenv/config'
+import { MongoClient, ServerApiVersion } from 'mongodb';
+// import ContactsModel from './schema/contact';
+
+
+const pwd = process.env['MONGODB_PASSWORD'];
+const db = process.env['MONGODB_DBNAME'];
+const cs = `mongodb+srv://root:${pwd}@cluster0-5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority`;
+
+try {
+  // const client = new MongoClient(cs, {
+  //   serverApi: ServerApiVersion.v1
+  // });
+} catch(e) {
+  // console.log(e)
+}
+
+let conn;
+
+try {
+  // client.connect().then( (conn) => {
+  //   console.log('MongoDB connected')
+  // });
+} catch(e) {
+  console.error(e);
+  console.log('MongoDB Error')
+}
+// mongoose.connection
+//   .on('error', console.error.bind(console, 'connection error:'))
+//   .on('close', () => console.log('MongoDB disconnected'))
+//   .once('open', () => console.log('MongoDB connected') );
+// **** End of API setup
+
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
@@ -17,9 +51,26 @@ export function app(): express.Express {
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
-  // Example Express Rest API endpoints
-  // server.get('/api/**', (req, res) => { });
-  // Serve static files from /browser
+  
+  // *** API Endpoints
+    
+  server.use(express.json());
+  server.get('/api/ping/', (req, res) => {
+    res.status(201).json({hello: 'world'});
+  })
+
+  // server.post('/api/store-email', async (req, res) => {
+  //   try {
+  //     const newDocument = await ContactsModel.create( {email: req.body.email} );
+  //     res.status(201).json({_id: newDocument});
+  //   } catch (error: any) {
+  //     res.status(500).send(error.message);
+  //   }
+  // });
+
+// *** End of API Endpoints
+
+
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
   }));
