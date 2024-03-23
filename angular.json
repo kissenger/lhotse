@@ -37,13 +37,13 @@
             
             
             "production": {
-              "outputPath": "prod",              
+              "outputPath": "dist/prod",              
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
                 {
                   "glob": "robots.txt",
-                  "input": "src/config/prod",
+                  "input": "src/config/dist/prod",
                   "output": "/"
                 }              
               ],              
