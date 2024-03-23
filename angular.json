@@ -12,22 +12,17 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
-          "options": {
-
+          "options": {       
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "tsconfig.app.json",
             "styles": [
               "src/styles.css"
             ],
             "scripts": [],
             "server": "src/main.server.ts",
             "prerender": true,
-            "ssr": {
-              "entry": "server.ts"
-            },
             "allowedCommonJsDependencies": [
                 "mongodb",
                 "dotenv"
@@ -37,6 +32,10 @@
             
             
             "production": {
+              "ssr": {
+                "entry": "server.prod.ts"
+              },
+              "tsConfig": "tsconfig.prod.json",                     
               "outputPath": "dist/prod",              
               "assets": [
                 "src/favicon.ico",
@@ -69,7 +68,11 @@
               "outputHashing": "all"
             },
 
-            "beta": {            
+            "beta": {          
+              "ssr": {
+                "entry": "server.beta.ts"
+              },        
+              "tsConfig": "tsconfig.beta.json",                
               "outputPath": "dist/beta",
               "assets": [
                 "src/favicon.ico",
@@ -104,6 +107,8 @@
 
 
             "development": {
+
+              "tsConfig": "tsconfig.beta.json",                     
               "outputPath": "dev",              
               "optimization": true,               
               "extractLicenses": false,
