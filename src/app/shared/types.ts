@@ -27,7 +27,7 @@ export type Article = {
   href: string
 }
 
-export type ImageType = 'partner' | 'social' | 'article' | 'slideshow' | 'content' | 'parallax';
+export type ImageType = 'partner' | 'social' | 'article' | 'slideshow' | 'content' | 'parallax' | 'banner';
 
 export type Image = {
   type: ImageType,
@@ -41,6 +41,7 @@ export type Image = {
   size?: {
     large?: {height: number, width: number},
     small: {height: number, width: number},
+    extended?: {height: number, width: number},
   }
 }
 
@@ -54,4 +55,4 @@ export type ImageCollection = {
 
 export type DeviceOrientation = 'landscape' | 'portrait';
 
-export type WidthDescriptor = 'large' | 'small';
+export type WidthDescriptor = 'large' | 'small' | 'extended';

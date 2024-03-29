@@ -2,14 +2,15 @@
   <nav class="menubar">
 
     <div class="brandbox" (click)="onMenuItemClick('/')">
-      <!-- <img
-        ngSrc="../assets/logos/sn-test4.webp"
-        class="image"
-        height="74"
-        width="520"
-        alt="Snorkelology Logo"
-        priority
-      /> -->
+      <img
+        [ngSrc]    = "bannerImg.url"
+        [alt]      = "bannerImg.alt"
+        [width]    = "bannerImg.width"
+        [height]   = "bannerImg.height"
+        (click)    = "navigate.to(bannerImg.href)"
+        aria-label = "bannerImg.alt"
+        role       = "link"
+      />      
     </div>
 
     <svg id="hamburger" class="hamburger" viewBox="-55 -55 110 110" height="30px" width="30px" fill=var(--sn-colour) (click)="onHamburgerClick()">

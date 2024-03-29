@@ -15,20 +15,36 @@ header {
 
 .menubar {
   display: flex;
+  /* border: 1px red solid; */
   flex-direction: row;
   align-items: center;
+  justify-items: center;
   height: 100%;
-  padding-inline: 1rem;
+  /* padding-inline: 1rem; */
 }
 
+
 .brandbox {
-  margin-top: 1rem;
+  /* margin-top: 1rem; */
+  flex-direction: row;
+  display: flex;
+  height: 100%;
+  /* border: 1px yellow solid; */
+  align-items: center;
+
 }
 .brandbox:hover {
   cursor: pointer;
 }
+.brandbox > img {
+  margin: 5px;
+  /* border: 1px green solid; */
+}
 
 .menu {
+  position: absolute;
+  top: 0px;
+  right: 0px;
   margin-left: auto;
   padding: 0;
 }
@@ -53,6 +69,9 @@ header {
 
 .hamburger {
   display: none;
+  position: absolute;
+  top: 0px;
+  right: 0px;
   padding: 0;
   margin-left: auto;
 }

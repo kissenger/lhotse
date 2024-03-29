@@ -256,6 +256,23 @@ export const imageCollection: ImageCollection = {
     size: {
       small: { height: 100, width: 100}
     }
+  },
+  
+// ***********
+// Banner logos
+// ***********
+
+  "snorkelology": {
+    type: 'banner',
+    url: "./assets/banner/Snorkelology_Logo_without_text",
+    ext: 'webp',
+    href: 'https://snorkelology.co.uk/',
+    alt: 'Snorkelology Banner Logo', 
+    size: {
+      small: { height: 60, width: 130},
+      extended: { height: 80, width: 800},
+    }
   }
+
 }
 

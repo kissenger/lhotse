@@ -4,10 +4,12 @@ import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { ImageService } from '@shared/services/image.service';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgOptimizedImage],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -33,12 +35,16 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   public menuItemsFiltered: Array<{text: string, link: string, show: boolean}> | undefined;
   public showDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
+  public bannerImg;
 
   constructor(
-    private _navigate: NavService,
+    public navigate: NavService,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-  ) {      
+    private _image: ImageService
+  ) {
+
+    this.bannerImg = _image.sizedImage('snorkelology', 'extended');
     
     // observed elements are set in main component and tracked in scrollspy
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
@@ -48,7 +54,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     })
 
     // update menu items on route change
-    this._navSubs = this._navigate.end.subscribe( (url) => {
+    this._navSubs = this.navigate.end.subscribe( (url) => {
       let urlSplit = url.split('/');
 
       if ( urlSplit[1] === '' ) { this.menuItemsFiltered = this.filterMenu(['About', 'Explore', 'Book', 'FAQs', 'Friends', 'Articles']) }
@@ -80,7 +86,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   }
 
   onMenuItemClick(elemName: string) {
-    this._navigate.to(elemName);
+    this.navigate.to(elemName);
     if (this.showDropdownMenu) {
       this.showDropdownMenu = false;
       this.animateHamburger();
