@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ScreenService } from '@shared/services/screen.service';
 import { DeviceOrientation, ImageCollection, WidthDescriptor, Image } from '@shared/types';
 import { imageCollection } from '@shared/db-images';
+import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -16,12 +17,13 @@ export class ImageService {
   ) {}
 
   orientedImage(_shortName: string) {
+
     let _img: Image = this._images[_shortName];
     let _dor: DeviceOrientation = this._screen.deviceOrientation;
     let _height: number = 0;
     let _width: number = 0;    
 
-    if (_img.orientation) {
+    if (_img.orientation && _dor) {
       _height = _img.orientation[_dor].height;
       _width = _img.orientation[_dor].width;
     } else {

@@ -1,28 +1,27 @@
-import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef, afterRender, afterNextRender } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ImageService } from '@shared/services/image.service';
+import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef, afterNextRender} from '@angular/core';
+import { CommonModule, NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { NavService } from '@shared/services/nav.service';
 import { interval, timer } from 'rxjs';
 
 @Component({
   standalone: true,
   imports: [NgOptimizedImage, CommonModule],
+  providers: provideImgixLoader('https://snorkelology.imgix.net'),
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
   styleUrls: ['./slideshow.component.css']
 })
 export class SlideshowComponent implements AfterViewInit{
 
-  @ViewChild('slideshow') slideshowElement!: ElementRef; 
-  @ViewChild('firstSlide') firstSlide!: ElementRef; 
+  @ViewChild('slideshow') slideshowElement!: ElementRef;
+  @ViewChild('firstSlide') firstSlide!: ElementRef;
   @ViewChildren('overlay') overlayElements!: QueryList<ElementRef>;
-  
+
   public showTransition = true;
   private _delta = 0;
   private _mouseOver: boolean = false;
 
   constructor(
-    public images: ImageService,
     public navigate: NavService
   ) {
     // auto advance - important that this is applied after rendering or hydration fails
@@ -33,14 +32,12 @@ export class SlideshowComponent implements AfterViewInit{
         }
       })
     })
+
   }
 
   async ngAfterViewInit() {
 
-    // duplicate slide 1 and add as a child of slideshow
-    this.slideshowElement.nativeElement.appendChild(
-      this.firstSlide.nativeElement.cloneNode(true)
-    );
+    this.duplicateFirstSlide();
 
     // inhibit autoscroll if mouse is over the slideshow (or arrow) element(s)
     this.overlayElements.toArray().forEach( (elem) => {
@@ -48,6 +45,11 @@ export class SlideshowComponent implements AfterViewInit{
       elem.nativeElement.addEventListener('mouseout', () =>  { this._mouseOver = false; });
     })
 
+  }
+
+  duplicateFirstSlide() {
+    let clone = this.firstSlide.nativeElement.cloneNode(true);
+    this.slideshowElement.nativeElement.appendChild(clone);
   }
 
   private _sleep(ms: number) {

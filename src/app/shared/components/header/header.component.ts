@@ -1,21 +1,22 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { NavService } from '../../services/nav.service';
 import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser, isPlatformServer, provideImgixLoader } from '@angular/common';
 import { ImageService } from '@shared/services/image.service';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   standalone: true,
+  providers: provideImgixLoader('https://snorkelology.imgix.net'),
   imports: [CommonModule, NgOptimizedImage],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
 
-export class HeaderComponent implements AfterViewInit, OnDestroy {
+export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
 
   @ViewChildren('menuItem') menuElements!: QueryList<ElementRef>; 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
@@ -35,16 +36,20 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   public menuItemsFiltered: Array<{text: string, link: string, show: boolean}> | undefined;
   public showDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
-  public bannerImg;
+  public isLoaded: boolean = false;
+  // public bannerImg;
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: any,
     public navigate: NavService,
     private _scrollSpy: ScrollspyService,
-    private _screen: ScreenService,
-    private _image: ImageService
+    public screen: ScreenService,
+    public image: ImageService
   ) {
 
-    this.bannerImg = _image.sizedImage('snorkelology', 'extended');
+    // this.bannerImg = _image.sizedImage('snorkelology', 'extended');
+    // console.log(this.screen.widthDescriptor)
+
     
     // observed elements are set in main component and tracked in scrollspy
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
@@ -74,11 +79,23 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    if (this._screen.widthDescriptor === 'large') {
+    if (this.screen.widthDescriptor === 'large') {
       this.showDropdownMenu = false;
     }
+    // console.log(this.screen.widthDescriptor)
   }
   
+  ngAfterContentChecked() {
+    // console.log(isPlatformBrowser(this.platformId));
+    // console.log(isPlatformServer(this.platformId));
+    // console.log(PLATFORM_ID)
+    // console.log(this.platformId);
+
+    if (!isPlatformBrowser(PLATFORM_ID)) {
+      this.isLoaded = true;
+
+    }
+  }
 
   onHamburgerClick() {
     this.showDropdownMenu = !this.showDropdownMenu;

@@ -1,7 +1,8 @@
-import { EventEmitter, Injectable, NgZone, OnDestroy } from '@angular/core';
+import { EventEmitter, Inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { DeviceOrientation, WidthDescriptor } from '../types';
 import { ViewportRuler } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +15,8 @@ export class ScreenService implements OnDestroy{
   private _screenWidth: number = 0;
   private _screenHeight: number = 0;
   private _widthThreshold = 768;
-  private _deviceOrientation: DeviceOrientation = 'portrait';
-  private _widthDescriptor: WidthDescriptor = 'large';
+  private _deviceOrientation?: DeviceOrientation = undefined;
+  private _widthDescriptor?: WidthDescriptor = undefined;
   private _aspectRatio = 0;
   private _containerWidth: number = 0;
   private _numberUIPosts: number = 0;
@@ -23,10 +24,13 @@ export class ScreenService implements OnDestroy{
   private _hasOrientationChanged: boolean = false;
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
     private viewportRuler: ViewportRuler,
     private ngZone: NgZone
   ) {
-    this.onResize();
+    if (isPlatformBrowser(this.platformId)) {
+      this.onResize();
+    }
     this._viewportChangeSubs = this.viewportRuler.change(200).subscribe(() => {
       this.ngZone.run(() => {
         this.onResize();
@@ -43,6 +47,7 @@ export class ScreenService implements OnDestroy{
     this._deviceOrientation = (height / width) > 1.4 ? 'portrait' : 'landscape';
     this._hasOrientationChanged = lastOrientation != this._deviceOrientation;
     this._widthDescriptor = (width < this._widthThreshold) ? 'small' : 'large';
+    // console.log(this._widthDescriptor);
     this._aspectRatio = height / width;
 
     if      ( this._screenWidth < 575 )  { this._containerWidth = this._screenWidth - 20 }

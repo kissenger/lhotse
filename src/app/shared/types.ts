@@ -21,7 +21,7 @@ export type ArticlePreview = {
 }
 
 export type Article = {
-  imageShortName: string,
+  imagePath: string,
   header: string,
   caption: string,
   href: string
@@ -53,6 +53,6 @@ export type ImageCollection = {
   [shortName: string]: Image | LinkImage
 }
 
-export type DeviceOrientation = 'landscape' | 'portrait';
+export type DeviceOrientation = 'landscape' | 'portrait' | undefined;
 
-export type WidthDescriptor = 'large' | 'small' | 'extended';
+export type WidthDescriptor = 'large' | 'small' | 'extended' | null;

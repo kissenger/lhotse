@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { NavService } from '../../../shared/services/nav.service';
 import { ImageService } from '../../../shared/services/image.service';
 import { ExtLinkComponent } from '../../../shared/components/ext-link/ext-link.component';
 
 @Component({
   standalone: true,
+  providers: provideImgixLoader('https://snorkelology.imgix.net'),
   imports: [NgOptimizedImage, ExtLinkComponent],
   selector: 'app-science-part-one',
   templateUrl: './science-part-one.component.html',

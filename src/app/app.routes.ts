@@ -12,5 +12,5 @@ export const routes: Routes = [
   { path: 'snorkelling-in-britain/beginners-guide', component: BeginnersGuideComponent},
   { path: 'snorkelling-in-britain/the-science-of-snorkelling-part-1', component: SciencePartOneComponent},
   { path: 'privacy-policy', component: PrivacyComponent},
-  { path: 'subscribe', component: SubscribeComponent},
+  { path: 'subscribe', component: SubscribeComponent}
 ];

@@ -66,7 +66,7 @@ export class ContentBrowserComponent implements OnDestroy {
         caption: article.caption,
         header: article.header,
         category: 'Article',
-        media_url: this._images.sizedImage(article.imageShortName, 'small').url,
+        media_url: article.imagePath,
         permalink: article.href,
         timestamp: '',
         media_type: ''

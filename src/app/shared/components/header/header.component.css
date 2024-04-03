@@ -23,7 +23,6 @@ header {
   /* padding-inline: 1rem; */
 }
 
-
 .brandbox {
   /* margin-top: 1rem; */
   flex-direction: row;
@@ -35,10 +34,6 @@ header {
 }
 .brandbox:hover {
   cursor: pointer;
-}
-.brandbox > img {
-  margin: 5px;
-  /* border: 1px green solid; */
 }
 
 .menu {
@@ -70,8 +65,8 @@ header {
 .hamburger {
   display: none;
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: 20px;
+  right: 20px;
   padding: 0;
   margin-left: auto;
 }
@@ -104,6 +99,8 @@ header {
     margin: 0;
     transition: max-height 0.5s ease-in-out;
     overflow: hidden;
+  border-bottom: 2px white solid;
+
   }
 
   .show {
