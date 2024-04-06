@@ -1,15 +1,16 @@
-import { AfterContentChecked, AfterViewInit, Component, ElementRef, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { NavService } from '../../services/nav.service';
 import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
-import { CommonModule, isPlatformBrowser, isPlatformServer, provideImgixLoader } from '@angular/common';
+import { CommonModule, isPlatformBrowser, provideImgixLoader } from '@angular/common';
 import { ImageService } from '@shared/services/image.service';
+import { environment } from '@environments/environment';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   standalone: true,
-  providers: provideImgixLoader('https://snorkelology.imgix.net'),
+  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   imports: [CommonModule, NgOptimizedImage],
   selector: 'app-header',
   templateUrl: './header.component.html',

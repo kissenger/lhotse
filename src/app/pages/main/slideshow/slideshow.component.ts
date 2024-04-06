@@ -2,11 +2,12 @@ import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementR
 import { CommonModule, NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { NavService } from '@shared/services/nav.service';
 import { interval, timer } from 'rxjs';
+import { environment } from '@environments/environment';
 
 @Component({
   standalone: true,
   imports: [NgOptimizedImage, CommonModule],
-  providers: provideImgixLoader('https://snorkelology.imgix.net'),
+  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
   styleUrls: ['./slideshow.component.css']

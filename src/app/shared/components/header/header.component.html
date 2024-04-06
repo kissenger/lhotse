@@ -5,6 +5,7 @@
       <div class="brandbox" (click)="onMenuItemClick('/')">
 
         @if (screen.widthDescriptor === 'small') {
+          {{screen.widthDescriptor}}
           <img
             ngSrc    = "banner/sn_sm.webp"
             alt      = "Snorkelology logo for smaller screens"
@@ -14,6 +15,7 @@
           />  
         } 
         @if (screen.widthDescriptor === 'large') {
+          {{screen.widthDescriptor}}
           <img
             ngSrc    = "banner/sn_lg.webp"
             alt      = "Snorkelology logo for larger screens"
