@@ -51,7 +51,9 @@ export class MainComponent implements AfterViewInit {
     this.windows.forEach( (w) => {
       // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
       if (isPlatformBrowser(this.platformId)) {
-        w.nativeElement.style.backgroundImage = this.plxImgs[w.nativeElement.id];
+        // w.nativeElement.style.backgroundImage = this.plxImgs[w.nativeElement.id];
+        let url = this._images.orientedImage(this.plxImgs[w.nativeElement.id]).url;        
+        w.nativeElement.style.backgroundImage = `url('${url}')`;        
         w.nativeElement.style.backgroundAttachment = 'fixed';
         w.nativeElement.style.backgroundSize = 'cover';
         w.nativeElement.style.backgroundPosition = 'center';
