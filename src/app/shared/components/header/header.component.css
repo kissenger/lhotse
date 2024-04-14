@@ -13,6 +13,13 @@ header {
   border-bottom: 2px white solid;
 }
 
+.sn-title {
+  margin-left: 1rem;
+  font-size: 40px;
+  letter-spacing: 0.2rem;
+  font-family: 'arial';
+}
+
 .menubar {
   display: flex;
   /* border: 1px red solid; */
@@ -25,6 +32,7 @@ header {
 
 .brandbox {
   /* margin-top: 1rem; */
+  /* margin: 1rem; */
   flex-direction: row;
   display: flex;
   height: 100%;
@@ -99,7 +107,7 @@ header {
     margin: 0;
     transition: max-height 0.5s ease-in-out;
     overflow: hidden;
-  border-bottom: 2px white solid;
+    border-bottom: 2px white solid;
 
   }
 

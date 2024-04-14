@@ -5,9 +5,8 @@
       <div class="brandbox" (click)="onMenuItemClick('/')">
 
         @if (screen.widthDescriptor === 'small') {
-          {{screen.widthDescriptor}}
           <img
-            ngSrc    = "banner/sn_sm.webp"
+            ngSrc    = "banner/sn_sm.jpg"
             alt      = "Snorkelology logo for smaller screens"
             width    = "800"
             height   = "80"
@@ -15,15 +14,17 @@
           />  
         } 
         @if (screen.widthDescriptor === 'large') {
-          {{screen.widthDescriptor}}
           <img
-            ngSrc    = "banner/sn_lg.webp"
+            ngSrc    = "banner/sn_lg.jpg"
             alt      = "Snorkelology logo for larger screens"
-            width    = "475"
-            height   = "80"
+            width    = "156"
+            height   = "79"
             priority
           />  
         }
+        <span class="sn-title">
+          SNORKELOLOGY
+        </span>
       </div>
 
       <svg id="hamburger" class="hamburger" viewBox="-55 -55 110 110" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
