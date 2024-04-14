@@ -8,8 +8,8 @@
   --header-height: 80px;
 
   /* Theme */
-  --sn-colour: #1b3d59;
-  /* --sn-colour: #294146; */
+  /* --sn-colour: #1b3d59; */
+  --sn-colour: #294146;
   --text-colour: var(--sn-colour);
   --text-colour-header: #FFFF;
   --text-colour-link: #009AF7;
