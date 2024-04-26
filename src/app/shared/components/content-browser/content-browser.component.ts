@@ -122,6 +122,7 @@ export class ContentBrowserComponent implements OnDestroy {
     }
 
     this.cards = this.cards.slice(0, nPosts);
+    console.log(this.cards);
 
   }
 
