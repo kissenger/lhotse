@@ -1,6 +1,5 @@
 {
     "name": "Snorkelology",
-    "short_name": "Snorkelology",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -12,7 +11,5 @@
             "sizes": "256x256",
             "type": "image/png"
         }
-    ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff"
+    ]
 }
