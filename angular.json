@@ -42,7 +42,7 @@
                 "src/assets",
                 {
                   "glob": "robots.txt",
-                  "input": "src/config/dist/prod",
+                  "input": "src/config/prod",
                   "output": "/"
                 }              
               ],              
