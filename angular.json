@@ -44,7 +44,12 @@
                   "glob": "robots.txt",
                   "input": "src/config/prod",
                   "output": "/"
-                }              
+                },
+                {
+                  "glob": "sitemap.txt",
+                  "input": "src/config/prod",
+                  "output": "/"
+                }        
               ],              
               "budgets": [
                 {
