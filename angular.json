@@ -42,9 +42,14 @@
                 "src/assets",
                 {
                   "glob": "robots.txt",
-                  "input": "src/config/dist/prod",
+                  "input": "src/config/prod",
                   "output": "/"
-                }              
+                },
+                {
+                  "glob": "sitemap.txt",
+                  "input": "src/config/prod",
+                  "output": "/"
+                }        
               ],              
               "budgets": [
                 {
