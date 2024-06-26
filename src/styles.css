@@ -5,11 +5,13 @@
                   Variables
    ===================================================*/
 
-  --header-height: 105px;
+  --header-height: 75px;
 
   /* Theme */
   /* --sn-colour: #1b3d59; */
-  --sn-colour: #294146;
+  --sn-colour: #1D3D59;
+
+  /* --sn-colour: #294146; */
   --text-colour: var(--sn-colour);
   --text-colour-header: #FFFF;
   --text-colour-link: #009AF7;
@@ -87,6 +89,16 @@ p {
 
 .zero-margin {
   margin: 0;
+}
+
+.stealth-html-link {
+  text-decoration: none;
+  /* color: auto; */
+}
+
+a.link.stealth-html-link , a.visited.stealth-html-link {
+  text-decoration: none;
+  color: var(--text-colour);
 }
 
 .html-link {

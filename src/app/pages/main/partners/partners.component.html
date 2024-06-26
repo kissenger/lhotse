@@ -8,14 +8,15 @@
 
   <div #feedContainer class="logo-roller">
     @for(image of partnerImages; track image) {
-      <div class="logo-holder" (click)="navigate.to(image.href)" role="link">
+      <!-- <div class="logo-holder" (click)="navigate.to(image.href)" role="link"> -->
+      <a class="logo-holder" href={{image.href}}>
         <img
           [ngSrc]="image.url"
           [height]="image.height"
           [width]="image.width"
           [alt]="image.alt"
         />
-      </div>
+      </a>
     }
   </div>
 </div>

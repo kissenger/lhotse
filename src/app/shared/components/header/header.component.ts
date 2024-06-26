@@ -26,15 +26,15 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   private _navSubs: Subscription;
 
   public menuItems = [
-    {text: 'Home',     link: '/',        show: false},
-    {text: 'About',    link: 'about',    show: false},
-    {text: 'Explore',  link: 'explore',  show: false},
-    {text: 'Book',     link: 'book',     show: false},
-    {text: 'FAQs',     link: 'faqs',     show: false},
-    {text: 'Friends',  link: 'friends',  show: false},
-    {text: 'Articles', link: 'snorkelling-in-britain', show: false}
+    {text: 'Home',     link: '/',        show: false,   reload: false},
+    {text: 'About',    link: 'about',    show: false,   reload: false},
+    {text: 'Explore',  link: 'explore',  show: false,   reload: false},
+    {text: 'Book',     link: 'book',     show: false,   reload: false},
+    {text: 'FAQs',     link: 'faqs',     show: false,   reload: false},
+    {text: 'Friends',  link: 'friends',  show: false,   reload: false},
+    {text: 'Articles', link: 'snorkelling-in-britain', show: false,   reload: true}
   ];
-  public menuItemsFiltered: Array<{text: string, link: string, show: boolean}> | undefined;
+  public menuItemsFiltered: Array<{text: string, link: string, show: boolean, reload: boolean}> | undefined;
   public showDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
   public isLoaded: boolean = false;

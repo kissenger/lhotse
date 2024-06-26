@@ -1,5 +1,6 @@
 .main-container {
-    height: calc(100dvh - var(--header-height));
+    height: 100dvh;
+    /* height: calc(100dvh - var(--header-height)); */
     overflow-y: scroll;
     overflow-x: hidden;
     display: flex;

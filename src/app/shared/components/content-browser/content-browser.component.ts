@@ -26,7 +26,7 @@ export class ContentBrowserComponent implements OnDestroy {
   private _httpSubs: Subscription | undefined;
   private _screenSubs: Subscription | undefined;
   private _navSubs: Subscription;
-  private _limitPosts: boolean = false;
+  private _limitPosts: boolean = false;   //gets changed below if needed
   private _previews: Array<ArticlePreview> = [];
 
   public isLoaded: boolean = false;
@@ -78,7 +78,9 @@ export class ContentBrowserComponent implements OnDestroy {
     });
 
     this._navSubs = this._navigate.end.subscribe( (url) => {
+      
       this._limitPosts = url === '/';
+      console.log(this._limitPosts)
       this.updateFeed();
     })
 
@@ -101,6 +103,7 @@ export class ContentBrowserComponent implements OnDestroy {
     
     const nPosts = this._limitPosts ? this._screen.numberUIPosts : 99;
 
+
     // if there are no instas or theyve been filtered out, the only show articles
     if ( this.instas.length === 0  || this.ckbtns['article'].clicked && !this.ckbtns['insta'].clicked) {
       this.cards = [...this._previews];
@@ -122,7 +125,6 @@ export class ContentBrowserComponent implements OnDestroy {
     }
 
     this.cards = this.cards.slice(0, nPosts);
-    console.log(this.cards);
 
   }
 

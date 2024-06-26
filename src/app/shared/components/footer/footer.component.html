@@ -1,31 +1,31 @@
 
 <footer #footer id="footer">
 
-    <div class="footer-logos">
-      @for (img of logos; track img) {
-        <img
-          [ngSrc]    = "img.url"
-          [alt]      = "img.alt"
-          [width]    = "img.width" 
-          [height]   = "img.height"
-          (click)    = "navigate.to(img.href)"
-          aria-label = "img.alt"
-          role       = "link"
-        />
-      }
-    </div>
+  <div class="footer-logos">
+    @for (img of logos; track img) {
+      <img
+        [ngSrc]    = "img.url"
+        [alt]      = "img.alt"
+        [width]    = "img.width" 
+        [height]   = "img.height"
+        (click)    = "navigate.to(img.href)"
+        aria-label = "img.alt"
+        role       = "link"
+      />
+    }
+  </div>
 
-    <div class="footer-text">
-      &copy; Snorkelology 2022-{{fullYear}} 
+  <div class="footer-text">
+    &copy; Snorkelology 2022-{{fullYear}} 
 
-      @if (screen.widthDescriptor === 'small') {
-        <br />
-      } @else {
-        &middot;
-      }
+    @if (screen.widthDescriptor === 'small') {
+      <br />
+    } @else {
+      &middot;
+    }
 
-      All Rights Reserved <br />
-      <a class="html-link" (click)="navigate.to('privacy-policy')" role="link">Privacy Policy</a>
-    </div>
+    All Rights Reserved <br />
+    <a class="html-link" (click)="navigate.to('privacy-policy')" role="link">Privacy Policy</a>
+  </div>
 
-  </footer>
+</footer>

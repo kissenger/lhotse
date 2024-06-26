@@ -1,47 +1,46 @@
 
 header {
-  /* position: fixed; */
-
+  position: fixed;
   z-index: 99;
   margin: 0;
+  padding: 0;
+  display: flex;  
+  flex-direction: row;
+  width: 100%;
   height: var(--header-height);
-  background-color: var(--sn-colour);
   color: var(--text-colour-header);
-  border-bottom: 2px white solid;
+  background-color: var(--sn-colour);
+  border-bottom: 2px white solid;   
+}  
+
+.brandbox {
+  position: absolute;
+  left: calc( (100vw - var(--container-width) ) / 2 );
+  /* left: calc( (100vw - 100px) / 2 ); */
+  top: 10px;
 }
 
-@media (min-width: 767px) {
-  .header {
-    position: fixed; 
-    top: 0;
-    left: 0;
-    right: 0;
+svg {
+  z-index: 100;
+}
+
+img {
+  z-index: 300;
+}
+
+@media (max-width: 767px) {
+  .navbar {
+    margin-right: calc( (100vw - var(--container-width) ) / 2 );
   }
 }
 
 
 
 .navbar {
-  display: flex;
-  /* border: 1px red solid; */
-  flex-direction: row;
-  /* align-items: center; */
-  /* justify-items: center; */
-  height: 100%;
-
+  height: var(--header-height);
+  margin-inline: auto;
 }
 
-.brandbox {
-  /* margin-top: 1rem; */
-  /* margin: 1rem; */
-  margin: 10px;
-  flex-direction: column;
-  display: flex;
-  /* height: 100%; */
-  /* border: 1px yellow solid; */
-  /* align-items: center; */
-
-}
 .brandbox:hover {
   cursor: pointer;
 }
@@ -57,7 +56,7 @@ header {
   line-height: 1.2rem;
 
 }
-
+/* 
 @media (max-width: 991px) {
   .sn-title {
     font-size: 30px;
@@ -67,7 +66,7 @@ header {
   .sn-title {
     font-size: 22px;
   }
-}
+} */
 
 .menu {
   /* position: absolute; */
@@ -99,7 +98,7 @@ header {
   display: none;
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: calc( (100vw - var(--container-width) ) / 2 );
   padding: 0;
   margin-left: auto;
   z-index: 99;
@@ -116,30 +115,30 @@ header {
     display: block;
   }
 
-  .brandbox {
+  /* .brandbox {
     margin: 0;
-  }
+  } */
 
   .menu {
     max-height: 0px;
+    width: 100vw;
     display: flex;
     flex-direction: column;
     /* align-items: center; */
-    /* position: absolute; */
-    top: 0;
+    position: absolute;
+    top: 75px;
     left: 0;
     right: 0;
     top: 100;
     background-color: var(--sn-colour);
     border-top: none;
-    border-radius: 0 0 5px 5px;
     box-shadow: var(--box-shadow-bottom-only);
     padding: 0;
     margin: 0;
     transition: max-height 0.5s ease-in-out;
     overflow: hidden;
     border-bottom: 2px white solid;
-    z-index: 89;
+    z-index: 200;
 
   }
 
