@@ -6,6 +6,7 @@
    ===================================================*/
 
   --header-height: 75px;
+  --content-offset: 25px;
 
   /* Theme */
   /* --sn-colour: #1b3d59; */
@@ -56,7 +57,7 @@ body {
   overflow: hidden;
   width: 100vw;
   /* border: 1px red solid; */
-  margin: 0;
+  margin: 0px;
   padding: 0;
   font-size: 1.3rem;
 }
@@ -91,15 +92,22 @@ p {
   margin: 0;
 }
 
-.stealth-html-link {
+header .stealth-html-link {
   text-decoration: none;
+  color: white;
   /* color: auto; */
 }
 
-a.link.stealth-html-link , a.visited.stealth-html-link {
+.stealth-html-link {
   text-decoration: none;
   color: var(--text-colour);
+  /* color: auto; */
 }
+
+/* a.link.stealth-html-link  , a.visited.stealth-html-link {
+  text-decoration: none;
+  color: white;
+} */
 
 .html-link {
   text-decoration: none;

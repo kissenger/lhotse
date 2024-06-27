@@ -13,85 +13,43 @@ header {
   border-bottom: 2px white solid;   
 }  
 
+.navbar {
+  margin-inline: auto;
+}
+
 .brandbox {
   position: absolute;
-  left: calc( (100vw - var(--container-width) ) / 2 );
-  /* left: calc( (100vw - 100px) / 2 ); */
   top: 10px;
-}
-
-svg {
-  z-index: 100;
-}
-
-img {
-  z-index: 300;
-}
-
-@media (max-width: 767px) {
-  .navbar {
-    margin-right: calc( (100vw - var(--container-width) ) / 2 );
-  }
-}
-
-
-
-.navbar {
-  height: var(--header-height);
-  margin-inline: auto;
 }
 
 .brandbox:hover {
   cursor: pointer;
 }
 
-
-.sn-title {
-  margin-left: 5px;
-  font-size: 40px;
-  /* letter-spacing: -1px; */
-  /* font-family: 'Lato'; */
-  font: 'Montserrat', sans-serif;
-  font-weight: 450;
-  line-height: 1.2rem;
-
-}
-/* 
-@media (max-width: 991px) {
-  .sn-title {
-    font-size: 30px;
-  }
-}
-@media (max-width: 767px) {
-  .sn-title {
-    font-size: 22px;
-  }
-} */
-
 .menu {
-  /* position: absolute; */
-  top: 0px;
-  right: 0px;
-  margin-left: auto;
-  padding-inline: 10px;
+  margin-left: 100px;
+  padding-left: 20px;
 }
 
 .menu > li {
   display: inline;
-  margin: 0.25rem;
+  margin: 0.5rem;
   border-bottom: 2px transparent solid;
   transition: border-bottom 0.5s ease-in-out;
   text-align: center;
 }
 
-
 .menu > li:hover, .menu > li.active {
   cursor: pointer;
-    border-bottom: 2px white solid;
+  border-bottom: 2px white solid;
 }
 
-.menu > span {
-  margin-inline: 0.25em;
+svg {
+  z-index: 250;
+}
+
+img {
+  z-index: 300;
 }
 
 .hamburger {
@@ -115,9 +73,9 @@ img {
     display: block;
   }
 
-  /* .brandbox {
-    margin: 0;
-  } */
+  .navbar {
+    margin-inline: calc( (100vw - var(--container-width) ) / 2 );
+  }
 
   .menu {
     max-height: 0px;
@@ -135,25 +93,30 @@ img {
     box-shadow: var(--box-shadow-bottom-only);
     padding: 0;
     margin: 0;
-    transition: max-height 0.5s ease-in-out;
+    transition: max-height 0.5s;
     overflow: hidden;
     border-bottom: 2px white solid;
     z-index: 200;
-
   }
 
+  
+
   .show {
-    max-height: 500px;
+    max-height: 700px;
   }
 
   .menu > li {
     display: block;
     text-align: center;
-    width: auto;
-  }
+    width: 150px;
+    padding-block: 0.75em;
+    /* margin-left: calc((100vw - 100px) / 2); */
+    margin: auto;
+    /* margin-right: calc( (100vw - var(--container-width) ) / 2 ); */
+  } 
 
   .menu > li:last-child {
-    margin-bottom: 1em;
+    margin-bottom: 1.5em;
   }
 
   .menu > span {

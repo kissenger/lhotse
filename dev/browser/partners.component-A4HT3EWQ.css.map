@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/main/partners/partners.component.css"],
+  "sourcesContent": ["\r\n.logo-roller {\r\n  justify-content: center;\r\n  overflow-x: hidden;\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  flex-direction: row;\r\n  gap: 1em;\r\n  margin-top: 1em;\r\n  width: 100%;\r\n}\r\n\r\n.logo-holder {\r\n  padding: 1rem;\r\n}\r\n\r\n.logo-holder > img {\r\n  transition: all 0.25s;\r\n  height: auto;\r\n  width: auto;\r\n}\r\n\r\n.logo-holder > img:hover {\r\n  cursor: pointer;\r\n  transform: scale(1.05);\r\n}\r\n"],
+  "mappings": "AACA,CAAC,YACC,gBAAiB,OACjB,WAAY,OACZ,QAAS,KACT,UAAW,KACX,eAAgB,IAChB,IAAK,IACL,WAAY,IACZ,MAAO,IACT,CAEA,CAAC,YAZD,QAaW,IACX,CAEA,CAJC,WAIY,CAAE,IACb,WAAY,IAAI,KAChB,OAAQ,KACR,MAAO,IACT,CAEA,CAVC,WAUY,CAAE,GAAG,OAChB,OAAQ,QACR,UAAW,MAAM,KACnB",
+  "names": []
+}
