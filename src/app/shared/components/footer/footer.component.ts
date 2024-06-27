@@ -15,7 +15,7 @@ export class FooterComponent{
 
   public fullYear?: number;
   public logos;
-  private _logoNames = ['youtube', 'instagram', 'email'];
+  private _logoNames = ['instagram', 'email'];
 
   constructor(
     public navigate: NavService,

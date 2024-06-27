@@ -80,7 +80,6 @@ export class ContentBrowserComponent implements OnDestroy {
     this._navSubs = this._navigate.end.subscribe( (url) => {
       
       this._limitPosts = url === '/';
-      console.log(this._limitPosts)
       this.updateFeed();
     })
 
@@ -102,7 +101,6 @@ export class ContentBrowserComponent implements OnDestroy {
   updateFeed() {
     
     const nPosts = this._limitPosts ? this._screen.numberUIPosts : 99;
-
 
     // if there are no instas or theyve been filtered out, the only show articles
     if ( this.instas.length === 0  || this.ckbtns['article'].clicked && !this.ckbtns['insta'].clicked) {

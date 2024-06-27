@@ -9,7 +9,7 @@ import { ExtLinkComponent } from '../ext-link/ext-link.component';
   imports: [NgOptimizedImage, CommonModule, ExtLinkComponent],
   selector: 'app-ui-card',
   template: `
-    <a href={{link}} class="ui-card stealth-html-link">
+    <div class="ui-card stealth-html-link" (click)="navigate.to(link)">
       <div class="ui-card-photo">
         <img
           ngSrc="{{imageURL}}"
@@ -32,11 +32,11 @@ import { ExtLinkComponent } from '../ext-link/ext-link.component';
           @if (category==='Instagram') {
             <app-ext-link link="{{link}}" text="Read more on Instagram"></app-ext-link>
           } @else {
-            <a class="ext-link html-link" (click)="navigate.to(link)" role="link">Read more...</a>
+            <a href={{link}} class="ext-link html-link" role="link">Read more...</a>
           }
         </div>
       </div>
-   </a>
+    </div>
   `,
   styleUrls: ['./ui-card.component.css'],
   encapsulation: ViewEncapsulation.None,
