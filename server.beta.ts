@@ -9,20 +9,27 @@ import bootstrap from './src/main.server';
 
 // **** API setup - added gst
 import 'dotenv/config'
-import { MongoClient, ServerApiVersion } from 'mongodb';
+// import { MongoClient, ServerApiVersion } from 'mongodb';
 // import ContactsModel from './schema/contact';
+import { MongoClient, ServerApiVersion } from 'mongodb';
 
 
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
-const cs = `mongodb+srv://root:${pwd}@cluster0-5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority`;
+const cs = `mongodb+srv://root:Gudd5QfVXUMI2uzS@cluster0-5h6di.gcp.mongodb.net/snorkelology?retryWrites=true&w=majority&appName=Cluster0`;
 console.log(cs);
 
 console.log('boobies')
-
+const client = new MongoClient(cs, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 // try {
 //   const client = new MongoClient(cs, {
-//     serverApi: ServerApiVersion.v1
+//     // serverApi: ServerApiVersion.v1
 //   });
 //   client.connect().then( (conn) => {
 //     console.log('MongoDB connected')
@@ -76,25 +83,25 @@ export function app(): express.Express {
 // *** End of API Endpoints
 
 
-  server.get('*.*', express.static(browserDistFolder, {
-    maxAge: '1y'
-  }));
+//   server.get('*.*', express.static(browserDistFolder, {
+//     maxAge: '1y'
+//   }));
 
-  // All regular routes use the Angular engine
-  server.get('*', (req, res, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
+//   // All regular routes use the Angular engine
+//   server.get('*', (req, res, next) => {
+//     const { protocol, originalUrl, baseUrl, headers } = req;
 
-    commonEngine
-      .render({
-        bootstrap,
-        documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
-        publicPath: browserDistFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-      })
-      .then((html) => res.send(html))
-      .catch((err) => next(err));
-  });
+//     commonEngine
+//       .render({
+//         bootstrap,
+//         documentFilePath: indexHtml,
+//         url: `${protocol}://${headers.host}${originalUrl}`,
+//         publicPath: browserDistFolder,
+//         providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+//       })
+//       .then((html) => res.send(html))
+//       .catch((err) => next(err));
+//   });
 
   return server;
 }
