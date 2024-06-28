@@ -10,11 +10,11 @@ import 'dotenv/config'
 import { MongoClient, ServerApiVersion } from 'mongodb';
 // import ContactsModel from './schema/contact';
 
-
+console.log('hello')
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
 const cs = `mongodb+srv://root:${pwd}@cluster0-5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority`;
-
+console.log('cs')
 try {
   // const client = new MongoClient(cs, {
   //   serverApi: ServerApiVersion.v1

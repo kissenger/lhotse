@@ -4,6 +4,8 @@ import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
+// import { MongoClient } from 'mongodb'
+
 
 // **** API setup - added gst
 import 'dotenv/config'
@@ -14,25 +16,29 @@ import { MongoClient, ServerApiVersion } from 'mongodb';
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
 const cs = `mongodb+srv://root:${pwd}@cluster0-5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority`;
+console.log(cs);
 
-try {
-  // const client = new MongoClient(cs, {
-  //   serverApi: ServerApiVersion.v1
-  // });
-} catch(e) {
-  // console.log(e)
-}
+console.log('boobies')
 
-let conn;
+// try {
+//   const client = new MongoClient(cs, {
+//     serverApi: ServerApiVersion.v1
+//   });
+//   client.connect().then( (conn) => {
+//     console.log('MongoDB connected')
+//   });
+// } catch(e) {
+//   // console.log(e)
+// }
 
-try {
-  // client.connect().then( (conn) => {
-  //   console.log('MongoDB connected')
-  // });
-} catch(e) {
-  console.error(e);
-  console.log('MongoDB Error')
-}
+// let conn; 
+
+// try {
+
+// } catch(e) {
+//   console.error(e);
+//   console.log('MongoDB Error')
+// }
 // mongoose.connection
 //   .on('error', console.error.bind(console, 'connection error:'))
 //   .on('close', () => console.log('MongoDB disconnected'))
@@ -47,7 +53,6 @@ export function app(): express.Express {
   const indexHtml = join(serverDistFolder, 'index.server.html');
 
   const commonEngine = new CommonEngine();
-
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
@@ -95,7 +100,7 @@ export function app(): express.Express {
 }
 
 function run(): void {
-  const port = process.env['PORT'] || 4000;
+  const port = 4000;
 
   // Start up the Node server
   const server = app();

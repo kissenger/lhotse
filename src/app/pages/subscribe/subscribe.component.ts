@@ -38,7 +38,7 @@ export class SubscribeComponent implements OnDestroy {
         this.email = "";
       },
       error: (error: any ) => {
-        window.alert("Oops, something didn't work out.  Please try again.");
+        window.alert("Oops, something didn't work out... If the issue persists, you can still keep in the loop by following our insta feed.");
         this._document.body.style.cursor = "default";
         console.log(error);
       }

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["angular:styles/component:css;17e8c660a9c35d1e286144ba37c755ec86ba06f718d01bdc57de118491983cf7;D:/Files/Coding/Angular/lhotse/src/app/shared/components/ext-link/ext-link.component.ts"],
-  "sourcesContent": [".ext-link {display: inline-flex; flex-direction: row;}"],
-  "mappings": "AAAA,CAAC,SAAU,QAAS,YAAa,eAAgB,GAAI",
-  "names": []
-}
