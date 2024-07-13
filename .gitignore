@@ -5,6 +5,7 @@
 
 # Compiled output
 /dist
+/dev
 /tmp
 /out-tsc
 /bazel-out
