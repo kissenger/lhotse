@@ -4,30 +4,18 @@ import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
-// import { MongoClient } from 'mongodb'
-// import mongoose from 'mongoose';
-
-
-// **** API setup - added gst
-// import 'dotenv/config'
-// import { MongoClient, ServerApiVersion } from 'mongodb';
-// import ContactsModel from './schema/contact';
-import { MongoClient, ServerApiVersion } from 'mongodb';
-
+import mongoose from 'mongoose';
+import 'dotenv/config'
+import ContactsModel from './schema/contact';
 
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
-const cs = `mongodb+srv://root:Gudd5QfVXUMI2uzS@cluster0.5h6di.gcp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
-
-const client = new MongoClient(cs, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-console.log(client)
-
+const cs = `mongodb+srv://root:${pwd}@cluster0.5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority&appName=Cluster0`
+mongoose.connect(cs);
+mongoose.connection
+  .on('error', console.error.bind(console, 'connection error:'))
+  .on('close', () => console.log('MongoDB disconnected'))
+  .once('open', () => console.log('MongoDB connected') );
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
@@ -39,22 +27,21 @@ export function app(): express.Express {
   const commonEngine = new CommonEngine();
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
-
+   
+  server.use(express.json());
   
-    
-//   server.use(express.json());
-//   server.get('/api/ping/', (req, res) => {
-//     res.status(201).json({hello: 'world'});
-//   })
+  server.get('/api/ping/', (req, res) => {
+    res.status(201).json({hello: 'world'});
+  })
 
-  // server.post('/api/store-email', async (req, res) => {
-  //   try {
-  //     const newDocument = await ContactsModel.create( {email: req.body.email} );
-  //     res.status(201).json({_id: newDocument});
-  //   } catch (error: any) {
-  //     res.status(500).send(error.message);
-  //   }
-  // });
+  server.post('/api/store-email', async (req, res) => {
+    try {
+      const newDocument = await ContactsModel.create( {email: req.body.email} );
+      res.status(201).json({_id: newDocument});
+    } catch (error: any) {
+      res.status(500).send(error.message);
+    }
+  });
 
 // *** End of API Endpoints
 

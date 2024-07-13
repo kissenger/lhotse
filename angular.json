@@ -12,7 +12,10 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
-          "options": {       
+          "options": {   
+            "externalDependencies": [
+              "mongoose"
+            ],    
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -113,7 +116,10 @@
 
             "development": {
 
-              "tsConfig": "tsconfig.beta.json",                     
+              "tsConfig": "tsconfig.beta.json",  
+              "ssr": {
+                "entry": "server.beta.ts"
+              },                                         
               "outputPath": "dev",              
               "optimization": true,               
               "extractLicenses": false,

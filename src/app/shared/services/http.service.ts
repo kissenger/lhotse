@@ -22,6 +22,7 @@ export class HttpService {
   }
 
   storeEmail(contact: {email: string}) {
+    console.log(`${this._backendURL}/store-email/`)
     return this.http.post<any>(`${this._backendURL}/store-email/`, contact);
   }
 
