@@ -166,6 +166,26 @@ export const imageCollection: ImageCollection = {
       small: { height: 100, width: 100}
     }
   },
+  "macduff": {
+    type: 'partner',
+    url: "./assets/partners/aquarium-logo",
+    ext: 'jpg',
+    href: 'https://www.macduff-aquarium.org.uk/',
+    alt: 'Macduff Marine Aquarium Logo', 
+    size: {
+      small: { height: 100, width: 100}
+    }
+  },  
+  "seabird": {
+    type: 'partner',
+    url: "./assets/partners/logo-seabird-centre",
+    ext: 'png',
+    href: 'https://www.seabird.org/',
+    alt: 'Scottish Seabird Centre Logo', 
+    size: {
+      small: { height: 100, width: 100}
+    }
+  },
 
 }
 

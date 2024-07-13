@@ -1,0 +1,10 @@
+{
+  "routes": [
+    "/",
+    "/privacy-policy",
+    "/snorkelling-in-britain",
+    "/snorkelling-in-britain/beginners-guide",
+    "/snorkelling-in-britain/the-science-of-snorkelling-part-1",
+    "/subscribe"
+  ]
+}

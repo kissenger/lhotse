@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/app.component.css"],
+  "sourcesContent": [".main-container {\r\n    /* height: 100dvh; */\r\n    margin-top: var(--header-height);\r\n    height: calc(100dvh - var(--header-height));\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n    display: flex;\r\n    flex-direction: column;\r\n}\r\n\r\n.content {\r\n    flex-grow: 1;\r\n}"],
+  "mappings": "AAAA,CAAC,eAEG,WAAY,IAAI,iBAChB,OAAQ,KAAK,OAAO,EAAE,IAAI,kBAC1B,WAAY,OACZ,WAAY,OACZ,QAAS,KACT,eAAgB,MACpB,CAEA,CAAC,QACG,UAAW,CACf",
+  "names": []
+}

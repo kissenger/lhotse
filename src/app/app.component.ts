@@ -47,7 +47,7 @@ export class AppComponent {
     ).subscribe(data => {
 
       // update index meta data, title and canonincal link for SEO
-      let canonicalUrl = 'https://snorkelology.co.uk' + this.router.url.toString();
+      let canonicalUrl = 'https://snorkelology.com' + this.router.url.toString();
       this.updateCanonicalUrl(canonicalUrl);
       this.title.setTitle(data['title']);
       let nkw = data['keywords'];
