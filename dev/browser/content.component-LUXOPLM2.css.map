@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/content/content.component.css"],
-  "sourcesContent": ["\r\n.blockquote {\r\n  margin-bottom: 1rem;;\r\n}\r\n.article-image-container {\r\n  overflow: hidden;\r\n  max-width: 100%;\r\n  width: 100%;\r\n  height: 500px;\r\n  position: relative;\r\n  display: block;\r\n}\r\n\r\n.article-image-container > img {\r\n  width: 100%;\r\n  height: 100%;\r\n  object-fit: cover;\r\n  object-position: center;\r\n}\r\n\r\n.article-image-container > div {\r\n  padding: 2rem;\r\n  position: absolute;\r\n  bottom: 10%;\r\n  left: 0;\r\n  background-color: var(--banner-colour);\r\n  color: white;\r\n}\r\n\r\n.article-image-container > div > h2 {\r\n  margin: 0px;\r\n}\r\n\r\n@media (max-width: 767px) {\r\n  .article-image-container > div {\r\n    text-align: center;\r\n    padding: 1rem;\r\n    width: 100%;\r\n  }\r\n\r\n}\r\n\r\n"],
-  "mappings": "AACA,CAAC,WACC,cAAe,IACjB,CACA,CAAC,wBACC,SAAU,OACV,UAAW,KACX,MAAO,KACP,OAAQ,MACR,SAAU,SACV,QAAS,KACX,CAEA,CATC,uBASwB,CAAE,IACzB,MAAO,KACP,OAAQ,KACR,WAAY,MACZ,gBAAiB,MACnB,CAEA,CAhBC,uBAgBwB,CAAE,IApB3B,QAqBW,KACT,SAAU,SACV,OAAQ,IACR,KAAM,EACN,iBAAkB,IAAI,iBACtB,MAAO,IACT,CAEA,CAzBC,uBAyBwB,CAAE,GAAI,CAAE,GA7BjC,OA8BU,CACV,CAEA,OAAO,CAAC,SAAS,EAAE,OACjB,CA9BD,uBA8B0B,CAAE,IACzB,WAAY,OAnChB,QAoCa,KACT,MAAO,IACT,CAEF",
-  "names": []
-}
