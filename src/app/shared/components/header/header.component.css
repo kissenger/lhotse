@@ -15,20 +15,24 @@ header {
 
 .navbar {
   margin-inline: auto;
+  /* margin-inline: calc( (100vw - var(--container-width) ) / 2 ); */
+  /* border: 1px red solid; */
 }
 
 .brandbox {
+  margin-inline: calc( (100vw - var(--container-width) ) / 2 );
   position: absolute;
   top: 10px;
 }
+
 
 .brandbox:hover {
   cursor: pointer;
 }
 
 .menu {
-  margin-left: 100px;
-  padding-left: 20px;
+  margin-left: 0px;
+  padding-left: 0px;
 }
 
 .menu > li {

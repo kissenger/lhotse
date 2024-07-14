@@ -64,11 +64,11 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
       let urlSplit = url.split('/');
 
       if ( urlSplit[1] === '' ) { this.menuItemsFiltered = this.filterMenu(['About', 'Explore', 'Book', 'FAQs', 'Friends', 'Articles']) }
-      else if ( urlSplit[1] === 'subscribe' ) { this.menuItemsFiltered = this.filterMenu(['Home']); }
-      else if ( urlSplit[1] === 'privacy-policy' ) { this.menuItemsFiltered = this.filterMenu(['Home']); }
+      else if ( urlSplit[1] === 'subscribe' ) { this.menuItemsFiltered = this.filterMenu([]); }
+      else if ( urlSplit[1] === 'privacy-policy' ) { this.menuItemsFiltered = this.filterMenu([]); }
       else if ( urlSplit[1] === 'snorkelling-in-britain' ) {
-        if ( urlSplit.length === 2 ) { this.menuItemsFiltered = this.filterMenu(['Home']); }
-        else  { this.menuItemsFiltered = this.filterMenu(['Home', 'Articles']); }
+        if ( urlSplit.length === 2 ) { this.menuItemsFiltered = this.filterMenu([]); }
+        else  { this.menuItemsFiltered = this.filterMenu([]); }
       }
 
     })

@@ -186,6 +186,16 @@ export const imageCollection: ImageCollection = {
       small: { height: 100, width: 100}
     }
   },
+  "swt": {
+    type: 'partner',
+    url: "./assets/partners/swt_logo",
+    ext: 'webp',
+    href: 'https://scottishwildlifetrust.org.uk/',
+    alt: 'Scottish Wildlife Trust Logo', 
+    size: {
+      small: { height: 100, width: 256}
+    }
+  },
 
 }
 

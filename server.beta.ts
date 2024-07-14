@@ -11,7 +11,7 @@ import ContactsModel from './schema/contact';
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
 const cs = `mongodb+srv://root:${pwd}@cluster0.5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority&appName=Cluster0`
-console.log(cs);
+
 mongoose.connect(cs);
 mongoose.connection
   .on('error', console.error.bind(console, 'connection error:'))
@@ -40,7 +40,7 @@ export function app(): express.Express {
       const newDocument = await ContactsModel.create( {email: req.body.email} );
       res.status(201).json({_id: newDocument});
     } catch (error: any) {
-      res.status(500).send(cs);
+      res.status(500).send(error);
     }
   });
 
