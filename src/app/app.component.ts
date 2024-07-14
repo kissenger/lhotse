@@ -50,7 +50,7 @@ export class AppComponent {
       // update index meta data, title and canonincal link for SEO
       let canonicalUrl = 'https://snorkelology.com' + this.router.url.toString();
       this.updateCanonicalUrl(canonicalUrl);
-      this.title.setTitle(environment.ISBETA ? 'BETA - ' : '' + data['title']);
+      this.title.setTitle(environment.STAGE === 'prod' ? data['title'] : environment.STAGE + ' - ' + data['title']);
       let nkw = data['keywords'];
       if (nkw) {
         let kw = this.meta.getTag('name=keywords');
