@@ -8,6 +8,7 @@ import { Router, RouterOutlet, NavigationEnd, ActivatedRoute } from '@angular/ro
 import { filter, map, mergeMap } from 'rxjs/operators'
 import { DOCUMENT } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
+import { environment } from '@environments/environment';
 
 @Component({
   standalone: true,
@@ -49,7 +50,7 @@ export class AppComponent {
       // update index meta data, title and canonincal link for SEO
       let canonicalUrl = 'https://snorkelology.com' + this.router.url.toString();
       this.updateCanonicalUrl(canonicalUrl);
-      this.title.setTitle(data['title']);
+      this.title.setTitle(environment.ISBETA ? 'BETA - ' : '' + data['title']);
       let nkw = data['keywords'];
       if (nkw) {
         let kw = this.meta.getTag('name=keywords');
