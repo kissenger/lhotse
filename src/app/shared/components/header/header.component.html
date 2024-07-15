@@ -28,39 +28,39 @@
 
     <nav class="navbar">
         
+      @if ( menuItemsFiltered && menuItemsFiltered.length > 0) {
+
+        <svg id="hamburger" class="hamburger" viewBox="-55 -55 110 110" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
+          <rect x="-50" y="-50" width="100" height="100" fill=var(--sn-colour) rx="10" stroke="#FFFFFF" stroke-width="6">
+            <animate #animate begin="click" id="startAnimation" />
+          </rect>
+          <line x1="-20" y1="-20" x2="20" y2="-20" stroke="#FFFFFF" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none">
+            <animate #animate attributeName="y2" from="20" to="-20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+          </line>
+          <line x1="-20" y1="0" x2="20" y2="0" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
+            <animate #animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+          </line>
+          <line x1="-20" y1="20" x2="20" y2="20" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
+            <animate #animate attributeName="y2" from="-20" to="20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+          </line>
+        </svg>
 
 
+        <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" >
 
-      <svg id="hamburger" class="hamburger" viewBox="-55 -55 110 110" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
-        <rect x="-50" y="-50" width="100" height="100" fill=var(--sn-colour) rx="10" stroke="#FFFFFF" stroke-width="6">
-          <animate #animate begin="click" id="startAnimation" />
-        </rect>
-        <line x1="-20" y1="-20" x2="20" y2="-20" stroke="#FFFFFF" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none">
-          <animate #animate attributeName="y2" from="20" to="-20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-        </line>
-        <line x1="-20" y1="0" x2="20" y2="0" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
-          <animate #animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-        </line>
-        <line x1="-20" y1="20" x2="20" y2="20" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
-          <animate #animate attributeName="y2" from="-20" to="20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-        </line>
-      </svg>
+          @for (menuItem of menuItemsFiltered; track menuItem) {
+            <li #menuItem [ngClass]="{'active': activeAnchor == menuItem.link}" >
+              @if (menuItem.reload) {
+                <a class="stealth-html-link" href={{menuItem.link}}>{{menuItem.text}}</a>
+              }
+              @else {
+                <span (click)="onMenuItemClick(menuItem.link)">{{menuItem.text}}</span>
+              }
+            </li>          
+          }
 
-      <ul class="menu" [ngClass]="showDropdownMenu ? 'show' : ''" >
-
-        @for (menuItem of menuItemsFiltered; track menuItem) {
-          <li #menuItem [ngClass]="{'active': activeAnchor == menuItem.link}" >
-            @if (menuItem.reload) {
-              <a class="stealth-html-link" href={{menuItem.link}}>{{menuItem.text}}</a>
-            }
-            @else {
-              <span (click)="onMenuItemClick(menuItem.link)">{{menuItem.text}}</span>
-            }
-          </li>          
-        }
-
-      </ul>
-
+        </ul>
+      }
     </nav>
   }
 

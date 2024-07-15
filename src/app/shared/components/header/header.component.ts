@@ -35,7 +35,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     {text: 'Articles', link: 'snorkelling-in-britain', show: false,   reload: true}
   ];
   public menuItemsFiltered: Array<{text: string, link: string, show: boolean, reload: boolean}> | undefined;
-  public showDropdownMenu: boolean = false;
+  public expandDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
   public isLoaded: boolean = false;
   // public bannerImg;
@@ -81,7 +81,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
 
   ngAfterViewInit() {
     if (this.screen.widthDescriptor === 'large') {
-      this.showDropdownMenu = false;
+      this.expandDropdownMenu = false;
     }
     // console.log(this.screen.widthDescriptor)
   }
@@ -99,14 +99,14 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   }
 
   onHamburgerClick() {
-    this.showDropdownMenu = !this.showDropdownMenu;
+    this.expandDropdownMenu = !this.expandDropdownMenu;
     this.animateHamburger();
   }
 
   onMenuItemClick(elemName: string) {
     this.navigate.to(elemName);
-    if (this.showDropdownMenu) {
-      this.showDropdownMenu = false;
+    if (this.expandDropdownMenu) {
+      this.expandDropdownMenu = false;
       this.animateHamburger();
     }
   }
