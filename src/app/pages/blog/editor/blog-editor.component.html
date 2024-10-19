@@ -2,8 +2,8 @@
 <div class="dynamic-container">
 
     <form>
-        <label for="select-post">Select a post to edit:</label>
-        <select #blogs (change)="onFormSelect(blogs.value)" name="select-post" id="select-post">
+        <label for="Select">Select a post to edit:</label>
+        <select #blogs (change)="onFormSelect(blogs.value)" name="select" id="select">
             @for(post of posts; track post) {
                 <option value="{{$index}}">{{post.slug}}</option>
             } 
@@ -13,13 +13,17 @@
     <form #blogForm="ngForm" (ngSubmit)="onSave()" (ngReset)="onReset()">
 
         <label for="slug">Slug:</label>
-        <span id="slug">{{slugMaker()}}</span><br><br> 
+        <span id="slug">{{makeSlug()}}</span><br><br> 
+        <!-- <span id="slug">{{selectedPost.title | kebaber}}</span><br><br>  -->
 
         <label for="title">Title:</label>
         <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title"><br><br> 
-        
-        <label for="title">Subtitle:</label>
+
+        <label for="subtitle">Subtitle:</label>
         <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"><br><br> 
+
+        <label for="keywords">Keywords:</label>
+        <input type="text" id="keywords" name="keywords" (ngModelChange)="keywords($event)" [ngModel]="selectedPost.keywords"><br><br> 
 
         <label for="fname">Image filename:</label>
         <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname"><br><br> 

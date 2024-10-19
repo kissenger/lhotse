@@ -1,12 +1,12 @@
 import { ScreenService } from '../../services/screen.service';
 import { Component} from '@angular/core';
 import { ImageService } from '../../services/image.service';
-import { NavService } from '../../services/nav.service';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, RouterLink],
   selector: 'app-footer',
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css']
@@ -18,7 +18,6 @@ export class FooterComponent{
   private _logoNames = ['instagram', 'email'];
 
   constructor(
-    public navigate: NavService,
     public screen: ScreenService,
     private _images: ImageService
   ) { 

@@ -1,14 +1,16 @@
 import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { NavService } from '@shared/services/nav.service';
 import { BlogPost } from '@shared/types';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, CommonModule],
+  imports: [NgOptimizedImage, CommonModule, RouterLink],
   selector: 'app-blog-card',
   template: `
-    <div class="blog-card stealth-html-link" (click)="navigate.to('blog/article/'+data.slug)">
+
+    <a class="blog-card stealth-html-link" [routerLink]="'snorkelling-in-britain/'+data.slug">
+
       <div class="photo">
         <img
           ngSrc="{{data.imgFname}}"
@@ -24,16 +26,15 @@ import { BlogPost } from '@shared/types';
           <a class="html-link" role="link">Read more...</a>
         </div>
       </div>
-    </div>
+    </a>
   `,
   styleUrls: ['./blog-card.component.css'],
-  encapsulation: ViewEncapsulation.None,
+  // encapsulation: ViewEncapsulation.None,
 })
 
 export class BlogCardComponent {
   @Input() public data: BlogPost = new BlogPost;
 
   constructor(
-    public navigate: NavService
   ) {}
 }

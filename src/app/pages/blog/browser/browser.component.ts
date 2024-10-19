@@ -4,7 +4,6 @@ import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { NavService } from '@shared/services/nav.service';
 import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
 import { NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
@@ -35,7 +34,6 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
-    public navigate: NavService,
   ) {
   }
 

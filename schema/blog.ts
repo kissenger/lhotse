@@ -3,6 +3,7 @@ import mongoose, {model} from 'mongoose';
 const blogSchema = new mongoose.Schema({
   slug: {type: String, required: true},
   title: {type: String, required: true},
+  keywords: {type: [String], required: true},
   subtitle: {type: String, required: true},
   intro: {type: String, required: true},
   imgFname: {type: String, required: true},
@@ -12,9 +13,9 @@ const blogSchema = new mongoose.Schema({
     question: {type: String },
     answer: {type: String} 
   }]},
-  callToAction: {type: String}
+  callToAction: {type: String, required: true}
 })
 
-const BlogModel = model('blog-posts', blogSchema);
+const BlogModel = model('post', blogSchema);
 
-export default BlogModel;
+export default BlogModel; 

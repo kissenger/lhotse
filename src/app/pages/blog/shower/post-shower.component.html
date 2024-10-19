@@ -28,7 +28,7 @@
             <ul>
                 @for(faq of post.faqs; track faq) {
                     <li>
-                        <span class="html-link" (click)="navigate.to('anchor'+$index)" role="link">{{faq.question}}</span>
+                        <a class="html-link" [routerLink]="'.'" [fragment]="faq.question | kebaber">{{faq.question}}</a>
                     </li>
                 } 
             </ul>
@@ -36,7 +36,7 @@
 
     <!-- Q and A section -->
         @for (faq of post.faqs; track faq) {
-            <a class="anchor" id="anchor{{$index}}"></a>
+            <a class="anchor" id="{{faq.question | kebaber}}"></a>
             <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                 <h4 itemprop="name">{{faq.question}}</h4>
                 <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
@@ -44,7 +44,7 @@
                         <app-blog-sanitizer content={{faq.answer}}></app-blog-sanitizer>
                     </div>
                 </div>
-                <div class="html-link contents-link" (click)="navigate.to('contents')" role="link">Back to contents</div>
+                <a class="html-link" [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
             </div>
         }
 

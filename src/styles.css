@@ -29,8 +29,6 @@
  ===================================================*/
 
  * {
-  /* transform-style: preserve-3d;
-  position: relative; */
   -webkit-touch-callout: none;
 
   /* Dont allow user to select text */
@@ -44,19 +42,20 @@
 html {
   /* min-height: 100%; */
   /* transform: translate3d(0, 0, 0); */
-  overflow: hidden;
+  /* overflow: hidden; */
   font-weight: 300;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  scroll-behavior: smooth;
   /* font-size is set in media queries */
 }
 
 body {
   /* min-height: 100%; */
+  overflow-x: hidden;  
+    /* border: 1px red solid; */
   color: var(--text-colour);
   line-height: var(--line-height);
-  overflow: hidden;
   width: 100vw;
-  /* border: 1px red solid; */
   margin: 0px;
   padding: 0;
   font-size: 1.3rem;
@@ -95,19 +94,17 @@ p {
 header .stealth-html-link {
   text-decoration: none;
   color: white;
-  /* color: auto; */
 }
 
 .stealth-html-link {
   text-decoration: none;
   color: var(--text-colour);
-  /* color: auto; */
 }
 
-/* a.link.stealth-html-link  , a.visited.stealth-html-link {
+a.link.stealth-html-link  , a.visited.stealth-html-link {
   text-decoration: none;
   color: white;
-} */
+}
 
 .html-link {
   text-decoration: none;
@@ -141,7 +138,6 @@ header .stealth-html-link {
   display: block;
   background-color: white;
   padding-inline: calc( (100vw - var(--container-width) ) / 2 );
-  /* Adding a small padding prevents margin collapse */
   padding-top: 1px;
   padding-bottom: 1rem;
 }
@@ -186,7 +182,7 @@ header .stealth-html-link {
 /* ===================================================
            Google Ads
  ===================================================*/
-
+/* 
 .adsense-right {
   width: 250px;
   background-color: greenyellow;
@@ -197,5 +193,5 @@ header .stealth-html-link {
   width: 100%;
   height: 100px;
   background-color: greenyellow;
-}
+} */
 

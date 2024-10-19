@@ -1,13 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { BlogEditorComponent } from '@pages/blog/editor/blog-editor.component';
 import { HttpService } from '@shared/services/http.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { NavService } from '@shared/services/nav.service';
 import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
-import { NgOptimizedImage, provideImgixLoader } from '@angular/common';
+import { DOCUMENT, NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
+import { SEOService } from '@shared/services/seo.service';
+import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 
 @Component({
   selector: 'app-post-shower',
@@ -15,7 +16,7 @@ import { environment } from '@environments/environment';
   providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [NgOptimizedImage, BlogEditorComponent, BlogSanitizerComponent]
+  imports: [NgOptimizedImage, BlogEditorComponent, BlogSanitizerComponent, RouterLink, KebaberPipe]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
@@ -24,10 +25,13 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   
 
   constructor(
+    @Inject(DOCUMENT) private dom: any,
     private _http: HttpService,
     private _route: ActivatedRoute,
-    public navigate: NavService
-  ) {}
+    private _seo: SEOService   
+  ) {
+
+  }
 
   async ngOnInit() {
     this._route.params.subscribe(params => {
@@ -35,6 +39,10 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         next: (result) => {
           this.post = result;
           this.isReadyToLoad = true;
+          this._seo.updateCanonincalUrl('https://snorkelology.com/' + this._route.snapshot.url.join('/'));
+          this._seo.updateTitle(this.post.title);
+          this._seo.updateKeywords(this.post.keywords.join(', '));
+          this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
         },
         error: (error) => {
           console.log(error);
@@ -43,6 +51,34 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     });
 
   }
+
+  // updateTitle() {
+  //   this._title.setTitle(environment.STAGE === 'prod' ? this.post.title : environment.STAGE + ' - ' + this.post.title);
+  // }
+
+  // updateKeywords() {
+  //   let nkw = this.post.keywords.join(', ');
+  //   if (nkw) {
+  //     let kw = this._meta.getTag('name=keywords');
+  //     if (kw) {
+  //       nkw = kw.content + ', ' + nkw
+  //     }
+  //     this._meta.updateTag({name: 'keywords', content: nkw});
+  //   }
+  // }
+  // // source: https://www.tektutorialshub.com/angular/angular-canonical-url/
+  // updateCanonicalUrl(){
+  //   let canonicalUrl = 'https://snorkelology.com/' + this._route.snapshot.url.join('/');
+  //   console.log(canonicalUrl);
+  //   const head = this.dom.getElementsByTagName('head')[0];
+  //   var element: HTMLLinkElement= this.dom.querySelector(`link[rel='canonical']`) || null
+  //   if (element==null) {
+  //     element= this.dom.createElement('link') as HTMLLinkElement;
+  //     head.appendChild(element);
+  //   }
+  //   element.setAttribute('rel','canonical')
+  //   element.setAttribute('href', canonicalUrl)
+  // }
 
   ngOnDestroy() {
     this._httpSubs?.unsubscribe();

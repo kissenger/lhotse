@@ -2,17 +2,22 @@ import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, V
 import { ImageService } from '@shared/services/image.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
-import { AboutUsComponent } from './about/about.component';
-import { SlideshowComponent } from './slideshow/slideshow.component';
-import { ExploreComponent } from './explore/explore.component';
-import { FAQComponent } from './faq/faq.component';
-import { PartnersComponent } from './partners/partners.component';
-import { BookComponent } from './book/book.component';
+import { AboutUsComponent } from '@pages/main/about/about.component';
+import { SlideshowComponent } from '@pages/main/slideshow/slideshow.component';
+import { ExploreComponent } from '@pages/main/explore/explore.component';
+import { FAQComponent } from '@pages/main/faq/faq.component';
+import { PartnersComponent } from '@pages/main/partners/partners.component';
+import { BookComponent } from '@pages/main/book/book.component';
 import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { SEOService } from '@shared/services/seo.service';
+import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
+import { HeaderComponent } from '@shared/components/header/header.component';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent],
+  imports: [
+    NgOptimizedImage, RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent,
+    SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent],
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']
@@ -33,9 +38,19 @@ export class MainComponent implements AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
     private _images: ImageService,
+    private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
-    private _screen: ScreenService
-  ) {}
+    private _screen: ScreenService,
+    private _seo: SEOService
+  ) {
+    this._seo.updateCanonincalUrl('https://snorkelology.com/' + this._route.snapshot.url.join('/'));
+    this._seo.updateTitle('Snorkelology - British Snorkelling For All The Family');
+    this._seo.updateKeywords(`snorkel, snorkeling, snorkling, snorkelling, britain, british, UK, united kingdom, great britain, north sea,
+    english channel, atlantic ocean, underwater, subsea, sea life, sealife, marine, life, wales, scotland, england, shore dive, shoredive,
+    uk snorkelling, snorkelling near me`);
+    this._seo.updateDescription(`Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful
+      British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.`);
+  }
   
   ngAfterViewInit() {
     this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component

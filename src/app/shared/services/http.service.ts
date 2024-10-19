@@ -28,6 +28,7 @@ export class HttpService {
   }
 
   getAllPosts() {
+    console.log("getAllPosts()");
     return this.http.get<Array<BlogPost>>(`${this._backendURL}/get-all-posts/`);
   }
 

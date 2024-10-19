@@ -3,7 +3,6 @@ import { NgOptimizedImage } from '@angular/common';
 import { ImageCollection } from '../../../shared/types';
 import { ImageService } from '../../../shared/services/image.service';
 import { imageCollection } from '../../../shared/db-images';
-import { NavService } from '../../../shared/services/nav.service';
 
 @Component({  
   standalone: true,
@@ -19,7 +18,6 @@ export class PartnersComponent {
   public partnerImages;
 
   constructor(
-    public navigate: NavService,
     private images: ImageService
   ) {
 

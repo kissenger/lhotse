@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ImageService } from '../../../shared/services/image.service';
-import { NavService } from '../../../shared/services/nav.service';
 import { NgOptimizedImage, provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
 import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
@@ -18,7 +17,6 @@ export class BookComponent implements OnInit {
 
   constructor(
     public images: ImageService,
-    public navigate: NavService
   ) { }
 
   ngOnInit(): void {

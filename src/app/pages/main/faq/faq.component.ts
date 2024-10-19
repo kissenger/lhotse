@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ImageService } from '../../../shared/services/image.service';
-import { NavService } from '../../../shared/services/nav.service';
 import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
@@ -13,8 +12,7 @@ import { ExternalLinkComponent } from '@shared/components/external-link/external
 export class FAQComponent implements OnInit {
 
   constructor(
-    public images: ImageService,
-    public navigate: NavService
+    public images: ImageService
 
   ) { }
 

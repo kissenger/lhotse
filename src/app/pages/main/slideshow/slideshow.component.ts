@@ -1,12 +1,12 @@
 import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef, afterNextRender} from '@angular/core';
 import { CommonModule, NgOptimizedImage, provideImgixLoader } from '@angular/common';
-import { NavService } from '@shared/services/nav.service';
 import { interval, timer } from 'rxjs';
 import { environment } from '@environments/environment';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, CommonModule],
+  imports: [NgOptimizedImage, CommonModule, RouterLink],
   providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
@@ -23,7 +23,6 @@ export class SlideshowComponent implements AfterViewInit{
   private _mouseOver: boolean = false;
 
   constructor(
-    public navigate: NavService
   ) {
     // auto advance - important that this is applied after rendering or hydration fails
     afterNextRender( () => {

@@ -1,7 +1,6 @@
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpService } from '../../shared/services/http.service';
-import { NavService } from '../../shared/services/nav.service';
 import { FormsModule } from '@angular/forms';
 import { DOCUMENT } from '@angular/common';
 
@@ -21,7 +20,6 @@ export class SubscribeComponent implements OnDestroy {
   private _window;
 
   constructor(
-    public navigate: NavService,
     private _http: HttpService,
     @Inject(DOCUMENT) private _document:Document
     ) {

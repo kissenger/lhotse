@@ -1,5 +1,4 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { NavService } from '@shared/services/nav.service';
 import { CommonModule } from '@angular/common';
 import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
@@ -23,7 +22,7 @@ import { ExternalLinkComponent } from '@shared/components/external-link/external
     }
   `,
   styles: [],
-  encapsulation: ViewEncapsulation.None
+  
 })
 
 export class BlogSanitizerComponent implements OnInit {
@@ -36,7 +35,6 @@ export class BlogSanitizerComponent implements OnInit {
   public splits: Array<Array<string>> = [];
 
   constructor(
-    public navigate: NavService
   ) { }
 
   ngOnInit() {

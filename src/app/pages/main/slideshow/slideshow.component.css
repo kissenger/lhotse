@@ -32,7 +32,7 @@
   object-position: center;
 }
 
-button {
+.button {
   position: relative;
   pointer-events: all;
   font-size: 0.8rem;

@@ -5,12 +5,13 @@ import { Subscription } from 'rxjs';
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { PostShowerComponent } from '../shower/post-shower.component';
+import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 
 @Component({
   selector: 'app-blog-editor',
   standalone: true,
-  imports: [NgClass, FormsModule, PostShowerComponent],  
-  providers: [CommonModule],
+  imports: [NgClass, FormsModule, PostShowerComponent, KebaberPipe],  
+  providers: [CommonModule, KebaberPipe],
   templateUrl: './blog-editor.component.html',
   styleUrl: './blog-editor.component.css'
 })
@@ -24,11 +25,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
   
-  // private isChanged: boolean = false;
-
   constructor(
       private _http: HttpService,
-      @Inject(DOCUMENT) private _document:Document
+      private _kebaber: KebaberPipe,
+      @Inject(DOCUMENT) private _document: Document
     ) {
       this._window = _document.defaultView;
     }
@@ -37,10 +37,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.getPosts();
   }
 
-  slugMaker() {
-    this.selectedPost.slug = this.selectedPost.title.replaceAll(/[^\p{L}\d\s]+/gu, '').replaceAll(' ', '-').toLowerCase();
-    return this.selectedPost.slug;
-  }
+  // slugMaker() {
+  //   this.selectedPost.slug = this.kebaber,
+  //   return this.selectedPost.slug;
+  // }
 
   getPosts() {
     this._httpSubs = this._http.getAllPosts()
@@ -53,6 +53,11 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
           this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
         }
       }) 
+  }
+
+  makeSlug() {
+    this.selectedPost.slug = this._kebaber.transform(this.selectedPost.title);
+    return this.selectedPost.slug;
   }
 
   onFormSelect(value: string) {
@@ -81,6 +86,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   deleteQA(index: number) {
     // this.isChanged = true;
     this.selectedPost.faqs.splice(index,1);
+  }
+
+  keywords(kws: string) {
+    this.selectedPost.keywords = kws.split(',').map(kw => kw.trim())
   }
 
   onSave() {

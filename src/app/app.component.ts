@@ -1,14 +1,10 @@
-import { Component, Injector, PLATFORM_ID, Inject} from '@angular/core';
+import { Component, Injector, PLATFORM_ID} from '@angular/core';
 import { createCustomElement } from '@angular/elements';
-import { ExtLinkComponent } from './shared/components/external-link/ext-link.componentonent';
 import { isPlatformBrowser } from '@angular/common';
-import { HeaderComponent } from './shared/components/header/header.component';
-import { FooterComponent } from './shared/components/footer/footer.component';
-import { Router, RouterOutlet, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { filter, map, mergeMap } from 'rxjs/operators'
-import { DOCUMENT } from '@angular/common';
-import { Meta, Title } from '@angular/platform-browser';
-import { environment } from '@environments/environment';
+import { HeaderComponent } from '@shared/components/header/header.component';
+import { FooterComponent } from '@shared/components/footer/footer.component';
+import { RouterOutlet } from '@angular/router';
+import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
   standalone: true,
@@ -21,57 +17,13 @@ export class AppComponent {
 
 
   constructor(
-    @Inject(DOCUMENT) private dom: any,
-    private injector: Injector,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private meta: Meta,
-    private title: Title
+    private injector: Injector
     
   ) {
     if (isPlatformBrowser(PLATFORM_ID)) {
-      const el = createCustomElement(ExtLinkComponent, {injector});
+      const el = createCustomElement(ExternalLinkComponent, {injector});
       customElements.define('ext-link', el);
     }
-
-    // get route data - not simple not sure i udnerstand it
-    // source: https://stackoverflow.com/questions/43512695/how-to-get-route-data-into-app-component-in-angular-2
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
-      map(() => this.activatedRoute),
-      map(route => {
-        while (route.firstChild) route = route.firstChild
-        return route
-      }),
-      filter(route => route.outlet === 'primary'),
-      mergeMap(route => route.data)
-    ).subscribe(data => {
-
-      // update index meta data, title and canonincal link for SEO
-      let canonicalUrl = 'https://snorkelology.com' + this.router.url.toString();
-      this.updateCanonicalUrl(canonicalUrl);
-      this.title.setTitle(environment.STAGE === 'prod' ? data['title'] : environment.STAGE + ' - ' + data['title']);
-      let nkw = data['keywords'];
-      if (nkw) {
-        let kw = this.meta.getTag('name=keywords');
-        if (kw) {
-          nkw = kw.content + ', ' + nkw
-        }
-        this.meta.updateTag({name: 'keywords', content: nkw});
-      }
-    })
-  }    
-
-  // source: https://www.tektutorialshub.com/angular/angular-canonical-url/
-  updateCanonicalUrl(url:string){
-    const head = this.dom.getElementsByTagName('head')[0];
-    var element: HTMLLinkElement= this.dom.querySelector(`link[rel='canonical']`) || null
-    if (element==null) {
-      element= this.dom.createElement('link') as HTMLLinkElement;
-      head.appendChild(element);
-    }
-    element.setAttribute('rel','canonical')
-    element.setAttribute('href',url)
   }
-}
 
+}

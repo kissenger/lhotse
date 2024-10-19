@@ -3,15 +3,16 @@
 
   <div class="footer-logos">
     @for (img of logos; track img) {
-      <img
-        [ngSrc]    = "img.url"
-        [alt]      = "img.alt"
-        [width]    = "img.width" 
-        [height]   = "img.height"
-        (click)    = "navigate.to(img.href)"
-        aria-label = "img.alt"
-        role       = "link"
-      />
+      <a class="stealth-html-link" [routerLink]="img.href">
+        <img
+          [ngSrc]    = "img.url"
+          [alt]      = "img.alt"
+          [width]    = "img.width" 
+          [height]   = "img.height"
+          aria-label = "img.alt"
+          role       = "link"
+        />
+      </a>
     }
   </div>
 
@@ -25,7 +26,7 @@
     }
 
     All Rights Reserved <br />
-    <a class="html-link" (click)="navigate.to('privacy-policy')" role="link">Privacy Policy</a>
+    <a class="stealth-html-link" [routerLink]="'privacy-policy'" role="link">Privacy Policy</a>
   </div>
 
 </footer>
