@@ -1,0 +1,13 @@
+
+.blog-grid {
+    scroll-margin-top: var(--header-height);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: grid;
+    width: 100%;
+    /* grid-template-columns: repeat(3);
+    grid-template-rows: repeat(4, auto); */
+    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(300px,350px));    
+    justify-content: space-around;
+  }

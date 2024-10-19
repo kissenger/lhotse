@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ImageService } from '../../../shared/services/image.service';
 import { NavService } from '../../../shared/services/nav.service';
-import { ExtLinkComponent } from '../../../shared/components/ext-link/ext-link.component';
+import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
   standalone: true,
-  imports: [ExtLinkComponent],
+  imports: [ExternalLinkComponent],
   selector: 'app-faq',
   templateUrl: './faq.component.html',
   styleUrls: ['../main.component.css']

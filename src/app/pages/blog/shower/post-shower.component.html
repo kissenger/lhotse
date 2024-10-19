@@ -1,0 +1,55 @@
+
+
+
+<!-- this is needed to avoid error where intro is not rendered  -->
+@defer (when isReadyToLoad) {
+    <div class="article-image-container">
+        <img
+            [ngSrc]="post.imgFname"
+            [alt]="post.imgAlt"
+            priority
+            fill
+            /> 
+        <div> 
+            <h1>{{post.title}}</h1>
+        </div>
+
+    </div>
+
+    <div class="dynamic-container">
+
+    <!-- Intro-->
+        <div>
+            <app-blog-sanitizer content={{post.intro}}></app-blog-sanitizer>
+        </div>
+
+    <!-- Create contents -->
+        <section class="anchor" id="contents">
+            <ul>
+                @for(faq of post.faqs; track faq) {
+                    <li>
+                        <span class="html-link" (click)="navigate.to('anchor'+$index)" role="link">{{faq.question}}</span>
+                    </li>
+                } 
+            </ul>
+        </section>
+
+    <!-- Q and A section -->
+        @for (faq of post.faqs; track faq) {
+            <a class="anchor" id="anchor{{$index}}"></a>
+            <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <h4 itemprop="name">{{faq.question}}</h4>
+                <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div itemprop="text">
+                        <app-blog-sanitizer content={{faq.answer}}></app-blog-sanitizer>
+                    </div>
+                </div>
+                <div class="html-link contents-link" (click)="navigate.to('contents')" role="link">Back to contents</div>
+            </div>
+        }
+
+        <!-- Wrap up-->
+        <app-blog-sanitizer content={{post.callToAction}}></app-blog-sanitizer>
+
+    </div>
+}

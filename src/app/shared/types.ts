@@ -1,5 +1,19 @@
 
 
+
+export class BlogPost {
+  _id: string = '';
+  slug: string = '';
+  title: string = 'New Post';
+  subtitle: string = '';
+  imgFname: string = '';
+  imgAlt: string = '';
+  intro: string = '';
+  timeStamp: string = '';
+  faqs: Array<{question: string, answer: string}> = [{question: '', answer: ''}]
+  callToAction: string = '';
+}
+
 export type InstaPost = {
   caption: string,
   media_url: string,

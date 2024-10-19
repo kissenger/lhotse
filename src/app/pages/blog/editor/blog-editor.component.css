@@ -1,0 +1,38 @@
+label {
+    width:200px;
+    display: inline-block;
+}
+
+input, textarea {
+    width: 100%;
+    display: inline-block;
+}
+
+textarea {
+    height: 100px;
+}
+
+.qaButton {
+    width: 150px;
+    height: 25px;
+    /* font-size: large; */
+}
+
+.formButton {
+    width: 100px;
+    height: 40px;
+    margin: 10px;
+    font-size: large;
+}
+
+.sureButton {
+    opacity: 0;
+}
+
+.showButton {
+    opacity: 1;
+}
+
+button:hover {
+    cursor: pointer;
+}

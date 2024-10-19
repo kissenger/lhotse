@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { MainComponent } from '../app/pages/main/main.component';
-import { PrivacyComponent } from '../app/pages/privacy-policy/privacy-policy.component';
-import { BeginnersGuideComponent } from './pages/content/beginners-guide/beginners-guide.component';
-import { ContentComponent } from './pages/content/content.component';
-import { SubscribeComponent } from './pages/subscribe/subscribe.component';
-import { SciencePartOneComponent } from './pages/content/science-part-one/science-part-one.component';
+import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
+import { BlogEditorComponent } from '@pages/blog/editor/blog-editor.component';
+import { PostShowerComponent } from '@pages/blog/shower/post-shower.component';
+import { MainComponent } from '@pages/main/main.component';
+import { PrivacyComponent } from '@pages/privacy-policy/privacy-policy.component';
+import { SubscribeComponent } from '@pages/subscribe/subscribe.component';
 
 export const routes: Routes = [
   { path: '', component: MainComponent, 
@@ -12,24 +12,14 @@ export const routes: Routes = [
       title: 'Snorkelology - British snorkelling for all the family'
     }
   },
-  { path: 'snorkelling-in-britain', component: ContentComponent, 
-    data: {
-      title: 'Snorkelology - Articles and posts',
-      keywords: 'articles, posts, instagram, content, insta, news'
+  { path: 'blog/article/:slug', component: PostShowerComponent, 
+    data: { 
+      title: 'Snorkelling Britain Blog Post',
+      keywords: 'blog, content, article, news, latest, snorkelling, britain'
     }
   },
-  { path: 'snorkelling-in-britain/beginners-guide', component: BeginnersGuideComponent, 
-    data: {
-      title: 'Snorkelology - Beginners Guide to Snorkelling',
-      keywords: 'science, article, post, content'
-    }
-    },
-  { path: 'snorkelling-in-britain/the-science-of-snorkelling-part-1', component: SciencePartOneComponent,
-    data: {
-      title: 'Snorkelology - The Science of Snorkelling Part 1',
-      keywords: 'science, article, post, content'
-    }
-  },
+  { path: 'blog/edit', component: BlogEditorComponent, 
+    data: { title: 'Snorkelling Britain Blog Editor'}},  
   { path: 'privacy-policy', component: PrivacyComponent,
     data: {
       title: 'Snorkelology - Privacy Policy',

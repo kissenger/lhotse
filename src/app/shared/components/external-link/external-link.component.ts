@@ -2,7 +2,7 @@ import { NavService } from '../../services/nav.service';
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'app-ext-link',
+  selector: 'app-external-link',
   standalone: true,
   template: `
     <span class="ext-link html-link" (click)="navigate.to(link)" role="link">
@@ -23,7 +23,7 @@ import { Component, Input } from '@angular/core';
   styles: [".ext-link {display: inline-flex; flex-direction: row;}"],
 })
 
-export class ExtLinkComponent  {
+export class ExternalLinkComponent  {
   @Input() public link = '';
   @Input() public text = '';
 

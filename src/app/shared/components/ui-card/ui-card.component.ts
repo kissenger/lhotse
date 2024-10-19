@@ -2,7 +2,7 @@ import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NavService } from '../../services/nav.service';
 import { ImageService } from '../../services/image.service';
-import { ExtLinkComponent } from '../ext-link/ext-link.component';
+import { ExtLinkComponent } from '../external-link/ext-link.componentonent';
 
 @Component({
   standalone: true,

@@ -1,6 +1,6 @@
 import { Component, Injector, PLATFORM_ID, Inject} from '@angular/core';
 import { createCustomElement } from '@angular/elements';
-import { ExtLinkComponent } from './shared/components/ext-link/ext-link.component';
+import { ExtLinkComponent } from './shared/components/external-link/ext-link.componentonent';
 import { isPlatformBrowser } from '@angular/common';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';

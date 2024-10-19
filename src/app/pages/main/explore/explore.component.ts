@@ -1,11 +1,11 @@
 import { Component} from '@angular/core';
-import { NavService } from '../../../shared/services/nav.service';
-import { ContentBrowserComponent } from '../../../shared/components/content-browser/content-browser.component';
-import { ExtLinkComponent } from '../../../shared/components/ext-link/ext-link.component';
+import { NavService } from '@shared/services/nav.service';
+import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
+import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
   standalone: true,
-  imports: [ContentBrowserComponent, ExtLinkComponent],
+  imports: [BlogBrowserComponent, ExternalLinkComponent],
   selector: 'app-explore',
   templateUrl: './explore.component.html',
   styleUrls: ['../main.component.css'],

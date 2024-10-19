@@ -6,7 +6,8 @@ import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
 import 'dotenv/config'
-import ContactsModel from './schema/contact';
+import ContactsModel from '@schema/contact';
+import BlogModel from '@schema/blog';
 
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
@@ -40,6 +41,70 @@ export function app(): express.Express {
       const newDocument = await ContactsModel.create( {email: req.body.email} );
       res.status(201).json({_id: newDocument});
     } catch (error: any) {
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Get all data for all posts
+    Returns: Array<BlogPost>
+  */
+  server.get('/api/get-all-posts/', async (req, res) => {
+    try {
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) { 
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Get post from provided slug
+    Returns: BlogPost
+  */
+  server.get('/api/get-post-by-slug/:slug', async (req, res) => {
+    try {
+      const result = await BlogModel.findOne({slug: req.params.slug});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Upsert a post with provided new post data, the do find all and return new database
+    Returns: Array<BlogPost>
+  */
+  server.post('/api/upsert-post/', async (req, res) => {
+    try {
+      if (req.body._id !=='') {
+        await BlogModel.findByIdAndUpdate(req.body._id, req.body);
+      } else {
+        delete req.body._id;
+        delete req.body.timeStamp;
+        await BlogModel.create(req.body);
+      }
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Get post specified by _id, and if successful return result of find all
+    Returns: Array<BlogPost>
+  */
+  server.get('/api/delete-post/:_id', async (req, res) => {
+    try {
+      await BlogModel.deleteOne({_id: req.params._id});
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
       res.status(500).send(error);
     }
   });
