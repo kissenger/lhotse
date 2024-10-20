@@ -11,7 +11,7 @@ export const routes: Routes = [
   { path: 'blog/edit', component: BlogEditorComponent },
   { path: 'privacy-policy', component: PrivacyComponent },
   { path: 'subscribe', component: SubscribeComponent  },
-  // { path: '**', redirectTo: ''}
+  { path: '**', redirectTo: ''}
 ];
 
 

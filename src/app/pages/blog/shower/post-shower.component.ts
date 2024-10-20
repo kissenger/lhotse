@@ -5,15 +5,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
 import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
-import { DOCUMENT, NgOptimizedImage, provideImgixLoader } from '@angular/common';
-import { environment } from '@environments/environment';
+import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 
 @Component({
   selector: 'app-post-shower',
   standalone: true,
-  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+  providers: [],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
   imports: [NgOptimizedImage, BlogEditorComponent, BlogSanitizerComponent, RouterLink, KebaberPipe]
@@ -39,7 +38,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         next: (result) => {
           this.post = result;
           this.isReadyToLoad = true;
-          this._seo.updateCanonincalUrl('https://snorkelology.com/' + this._route.snapshot.url.join('/'));
+          this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
           this._seo.updateTitle(this.post.title);
           this._seo.updateKeywords(this.post.keywords.join(', '));
           this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);

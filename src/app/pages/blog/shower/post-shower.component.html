@@ -28,7 +28,7 @@
             <ul>
                 @for(faq of post.faqs; track faq) {
                     <li>
-                        <a class="html-link" [routerLink]="'.'" [fragment]="faq.question | kebaber">{{faq.question}}</a>
+                        <a [routerLink]="'.'" [fragment]="faq.question | kebaber">{{faq.question}}</a>
                     </li>
                 } 
             </ul>
@@ -44,7 +44,7 @@
                         <app-blog-sanitizer content={{faq.answer}}></app-blog-sanitizer>
                     </div>
                 </div>
-                <a class="html-link" [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
+                <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
             </div>
         }
 

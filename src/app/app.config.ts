@@ -3,7 +3,8 @@ import { provideRouter, withDebugTracing, withHashLocation, withInMemoryScrollin
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { ScreenService } from '@shared/services/screen.service';
+import { provideImgixLoader } from '@angular/common';
+import { environment } from '@environments/environment';
 
 
 export const appConfig: ApplicationConfig = {
@@ -22,6 +23,6 @@ export const appConfig: ApplicationConfig = {
     ), 
     provideClientHydration(),
     provideHttpClient(withFetch()),
-    
+    provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };

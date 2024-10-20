@@ -13,6 +13,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 export class KebaberPipe implements PipeTransform {
   transform(value: string): string {
-    return value.replaceAll(/[^\p{L}\d\s]+/gu, '').replaceAll(' ', '-').toLowerCase();
+    return value.replaceAll(/[^\p{L}\d\s]+/gu, '').trim().replaceAll(' ', '-').toLowerCase();
   }
 }

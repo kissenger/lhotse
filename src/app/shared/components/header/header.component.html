@@ -48,7 +48,7 @@
 
         @for (menuItem of menuItems; track menuItem) {
           <li #menuItem [ngClass]="{'active': activeAnchor == menuItem.toLowerCase()}" >
-            <a class="stealth-html-link" [routerLink]="'.'" [fragment]="menuItem.toLowerCase()">{{menuItem}}</a>
+            <span class="stealth-html-link" [routerLink]="'.'" [fragment]="menuItem.toLowerCase()">{{menuItem}}</span>
           </li>          
         }
 

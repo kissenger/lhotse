@@ -5,14 +5,14 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
 import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
-import { NgOptimizedImage, provideImgixLoader } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { environment } from '@environments/environment';
 import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.component';
 
 @Component({
   selector: 'app-blog-browser',
   standalone: true,
-  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+  providers: [],
   template: `
     <div class="dynamic-container">
       <div class="blog-grid">

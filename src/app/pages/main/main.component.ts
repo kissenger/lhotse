@@ -43,7 +43,7 @@ export class MainComponent implements AfterViewInit {
     private _screen: ScreenService,
     private _seo: SEOService
   ) {
-    this._seo.updateCanonincalUrl('https://snorkelology.com/' + this._route.snapshot.url.join('/'));
+    this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - British Snorkelling For All The Family');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkling, snorkelling, britain, british, UK, united kingdom, great britain, north sea,
     english channel, atlantic ocean, underwater, subsea, sea life, sealife, marine, life, wales, scotland, england, shore dive, shoredive,

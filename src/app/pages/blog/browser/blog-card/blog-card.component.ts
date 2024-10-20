@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   selector: 'app-blog-card',
   template: `
 
-    <a class="blog-card stealth-html-link" [routerLink]="'snorkelling-in-britain/'+data.slug">
+    <div class="blog-card" [routerLink]="'snorkelling-in-britain/'+data.slug">
 
       <div class="photo">
         <img
@@ -26,10 +26,9 @@ import { RouterLink } from '@angular/router';
           <span class="html-link">Read more...</span>
         </div>
       </div>
-    </a>
+    </div>
   `,
   styleUrls: ['./blog-card.component.css'],
-  // encapsulation: ViewEncapsulation.None,
 })
 
 export class BlogCardComponent {

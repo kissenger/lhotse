@@ -2,15 +2,14 @@ import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDe
 import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
-import { CommonModule, isPlatformBrowser, provideImgixLoader } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ImageService } from '@shared/services/image.service';
-import { environment } from '@environments/environment';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 @Component({
   standalone: true,
-  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+  providers: [],
   imports: [RouterLink, CommonModule, NgOptimizedImage, RouterOutlet, RouterLinkActive],
   selector: 'app-header',
   templateUrl: './header.component.html',

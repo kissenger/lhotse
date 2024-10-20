@@ -1,13 +1,12 @@
 import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef, afterNextRender} from '@angular/core';
-import { CommonModule, NgOptimizedImage, provideImgixLoader } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { interval, timer } from 'rxjs';
-import { environment } from '@environments/environment';
 import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
   imports: [NgOptimizedImage, CommonModule, RouterLink],
-  providers: provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+  providers: [],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
   styleUrls: ['./slideshow.component.css']

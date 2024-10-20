@@ -91,7 +91,7 @@ p {
   margin: 0;
 }
 
-header .stealth-html-link {
+header .stealth-html-link, footer .stealth-html-link {
   text-decoration: none;
   color: white;
 }
@@ -106,15 +106,20 @@ a.link.stealth-html-link  , a.visited.stealth-html-link {
   color: white;
 }
 
-.html-link {
+a, .html-link {
   text-decoration: none;
   color: var(--text-colour-link);
 }
 
-.html-link:hover {
+a:hover, .html-link:hover {
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   cursor: pointer;
-  color: var(--link-colour);
+  color: var(--text-colour-link);
+}
+
+a:visited {
+  color: var(--text-colour-link);
 }
 
 .anchor {
