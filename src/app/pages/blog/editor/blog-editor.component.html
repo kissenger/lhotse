@@ -6,54 +6,60 @@
         <select #blogs (change)="onFormSelect(blogs.value)" name="select" id="select">
             @for(post of posts; track post) {
                 <option value="{{$index}}">{{post.slug}}</option>
-            } 
+            }
         </select>
     </form>
 
     <form #blogForm="ngForm" (ngSubmit)="onSave()" (ngReset)="onReset()">
 
         <label for="slug">Slug:</label>
-        <span id="slug">{{makeSlug()}}</span><br><br> 
+        <span id="slug">{{makeSlug()}}</span><br><br>
         <!-- <span id="slug">{{selectedPost.title | kebaber}}</span><br><br>  -->
 
+        <label for="publish">Publish:</label>
+        <select #publish [(ngModel)]="selectedPost.isPublished" name="publish" id="publish">
+            <option value="true">true</option>
+            <option value="false">false</option>
+        </select><br><br>
+
         <label for="title">Title:</label>
-        <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title"><br><br> 
+        <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title"><br><br>
 
         <label for="subtitle">Subtitle:</label>
-        <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"><br><br> 
+        <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"><br><br>
 
         <label for="keywords">Keywords:</label>
-        <input type="text" id="keywords" name="keywords" (ngModelChange)="keywords($event)" [ngModel]="selectedPost.keywords"><br><br> 
+        <input type="text" id="keywords" name="keywords" (ngModelChange)="keywords($event)" [ngModel]="selectedPost.keywords"><br><br>
 
         <label for="fname">Image filename:</label>
-        <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname"><br><br> 
-        
+        <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname"><br><br>
+
         <label for="alt">Image Alt Text:</label>
-        <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt"><br><br> 
+        <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt"><br><br>
 
         <label for="intro">Intro:</label>
-        <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea><br><br> 
-        
+        <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea><br><br>
+
         @for(faq of selectedPost.faqs; track faq) {
             <hr>
-            <h4>QA Block {{$index+1}}</h4> 
+            <h4>QA Block {{$index+1}}</h4>
             <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this block</button><br><br>
             <label for="question{{$index}}">Question:</label>
-            <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.faqs[$index].question"><br><br> 
+            <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.faqs[$index].question"><br><br>
             <label for="answer{{$index}}">Answer:</label>
             <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="selectedPost.faqs[$index].answer"></textarea><br><br>
             @if ($last) {
-                <button type="button" class="qaButton" (click)="addQA()">Add new block</button><br><br> 
+                <button type="button" class="qaButton" (click)="addQA()">Add new block</button><br><br>
                 <hr>
             }
-        } 
+        }
 
         <label for="callToAction">Call to action:</label>
-        <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.callToAction"></textarea><br><br>    
+        <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.callToAction"></textarea><br><br>
 
         <button type="submit" class="formButton">Save</button>
         <button type="reset" class="formButton">Reset</button>
         <button type="button" class="formButton" (click)="onDelete(false)">Delete</button>
         <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> Are you sure? <button type="button"  class="formButton" (click)="onDelete(true)">Yes</button></span>
     </form>
-</div>    
+</div>

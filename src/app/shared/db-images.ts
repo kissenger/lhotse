@@ -46,42 +46,6 @@ export const imageCollection: ImageCollection = {
       landscape: {height: 1333, width: 2000}
     }
   },
-  
-// ***********
-// Socials
-// ***********
-
-  "youtube": {
-    type: 'social',
-    url: "./assets/socials/youtube",
-    ext: "webp",
-    href: "https://www.youtube.com/channel/UCahtVWtV4eBCqFPVSfgdpbg",
-    alt: "Click to see our YouTube channel",
-    size: {
-      small: { height: 40, width: 40}
-    }
-  },
-  "instagram": {
-    type: 'social',
-    url: "./assets/socials/instagram",
-    ext: "webp",
-    href: "https://www.instagram.com/snorkelology/",
-    alt: "Click to see our instagram feed",
-    size: {
-      small: { height: 40, width: 40}
-    }
-  },
-  "email": {
-    type: 'social',
-    url: "./assets/socials/email",
-    ext: "webp",
-    href: "mailto:snorkelology@gmail.com",
-    alt: "Click to send us an email",
-    size: {
-      small: { height: 40, width: 40}
-    }
-  },
-
 // ***********
 // Partners
 // ***********

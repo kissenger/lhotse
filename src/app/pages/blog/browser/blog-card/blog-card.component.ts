@@ -23,7 +23,7 @@ import { RouterLink } from '@angular/router';
         <div class="title">{{data.title}}</div>
         <div class="subtitle">{{data.subtitle}}</div>
         <div class="footer">
-          <a class="html-link" role="link">Read more...</a>
+          <span class="html-link">Read more...</span>
         </div>
       </div>
     </a>

@@ -59,6 +59,20 @@ export function app(): express.Express {
     }
   });
 
+    /* 
+    Get all data for all posts
+    Returns: Array<BlogPost>
+  */
+    server.get('/api/get-published-posts/', async (req, res) => {
+      try {
+        const result = await BlogModel.find({isPublished: true});
+        res.status(201).json(result);
+      } catch (error: any) { 
+        console.log(error);
+        res.status(500).send(error);
+      }
+    });
+
   /* 
     Get post from provided slug
     Returns: BlogPost

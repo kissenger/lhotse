@@ -28,8 +28,11 @@ export class HttpService {
   }
 
   getAllPosts() {
-    console.log("getAllPosts()");
     return this.http.get<Array<BlogPost>>(`${this._backendURL}/get-all-posts/`);
+  }
+
+  getPublishedPosts() {
+    return this.http.get<Array<BlogPost>>(`${this._backendURL}/get-published-posts/`);
   }
 
   getPostBySlug(slug: string) {
@@ -43,4 +46,5 @@ export class HttpService {
   deletePost(postId: string) {
     return this.http.get<Array<BlogPost>>(`${this._backendURL}/delete-post/${postId}`);
   }
+
 }

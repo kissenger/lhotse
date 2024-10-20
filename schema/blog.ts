@@ -2,6 +2,7 @@ import mongoose, {model} from 'mongoose';
 
 const blogSchema = new mongoose.Schema({
   slug: {type: String, required: true},
+  isPublished: {type: Boolean, default: false},
   title: {type: String, required: true},
   keywords: {type: [String], required: true},
   subtitle: {type: String, required: true},

@@ -40,7 +40,7 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   async ngOnInit() {
 
     this._route.params.subscribe(params => {
-      this._httpSubs = this._http.getAllPosts().subscribe({
+      this._httpSubs = this._http.getPublishedPosts().subscribe({
         next: (result) => {
           this.posts = result;
           console.log(this.posts);

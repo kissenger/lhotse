@@ -5,6 +5,7 @@ export class BlogPost {
   _id: string = '';
   slug: string = '';
   title: string = 'New Post';
+  isPublished: boolean = false;
   keywords: Array<string> = [''];
   subtitle: string = '';
   imgFname: string = '';

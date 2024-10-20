@@ -63,7 +63,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   onFormSelect(value: string) {
     // if (this.isChanged) {
     //   this._window!.alert("Unsaved changed, use save or cancel button to leave");
-    // } else {
+    // } else {  
       this.selectedPost = this.posts[parseInt(value,10)];
     // }
   }
