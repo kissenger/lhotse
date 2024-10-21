@@ -1,6 +1,4 @@
 
-
-
 export class BlogPost {
   _id: string = '';
   slug: string = '';
@@ -14,33 +12,6 @@ export class BlogPost {
   timeStamp: string = '';
   faqs: Array<{question: string, answer: string}> = [{question: '', answer: ''}]
   callToAction: string = '';
-}
-
-export type InstaPost = {
-  caption: string,
-  media_url: string,
-  permalink: string,
-  media_type: string,
-  timestamp: string,
-  category: 'Instagram',
-  header: ''
-}
-
-export type ArticlePreview = {
-  caption: string,
-  media_url: string,
-  permalink: string,
-  category: 'Article',
-  header: string,
-  timestamp: '',
-  media_type: '',
-}
-
-export type Article = {
-  imagePath: string,
-  header: string,
-  caption: string,
-  href: string
 }
 
 export type ImageType = 'partner' | 'social' | 'article' | 'slideshow' | 'content' | 'parallax' | 'banner';

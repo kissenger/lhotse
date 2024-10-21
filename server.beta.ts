@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
-import 'dotenv/config'
+import 'dotenv/config';
 import ContactsModel from '@schema/contact';
 import BlogModel from '@schema/blog';
 

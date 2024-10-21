@@ -37,10 +37,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.getPosts();
   }
 
-  // slugMaker() {
-  //   this.selectedPost.slug = this.kebaber,
-  //   return this.selectedPost.slug;
-  // }
 
   getPosts() {
     this._httpSubs = this._http.getAllPosts()
