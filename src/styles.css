@@ -91,26 +91,19 @@ p {
   margin: 0;
 }
 
-header .stealth-html-link, footer .stealth-html-link {
+/* stealth links are used in header/footer and slideshow */
+.stealth-html-link, .stealth-html-link:hover {
   text-decoration: none;
   color: white;
 }
 
-.stealth-html-link {
-  text-decoration: none;
-  color: var(--text-colour);
-}
-
-a.link.stealth-html-link  , a.visited.stealth-html-link {
-  text-decoration: none;
-  color: white;
-}
 
 a, .html-link {
   text-decoration: none;
   color: var(--text-colour-link);
 }
 
+/* show external link after a tag with link */
 a[href^="http"]::after, a[href^="https://"]::after
 {
   content: "";

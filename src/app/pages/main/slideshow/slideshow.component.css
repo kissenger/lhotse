@@ -35,19 +35,21 @@
 .button {
   position: relative;
   pointer-events: all;
-  font-size: 0.8rem;
+  /* font-size: 1rem; */
   color: white;
   letter-spacing: 1px;
-  line-height: 1.4rem;
+  line-height: 3rem;
   border: 1px solid white;
-  border-radius: 0.7rem;
+  border-radius: 15px;
   background: rgba(255,255,255,0.25);
   transition: all 0.3s ease 0s;
-  margin-bottom: 0.6rem;
+  /* margin-bottom: 0.6rem; */
   cursor: pointer;
+  padding-inline: 10px;
+  padding-block: 3px
 }
 
-.slideshow-button:hover {
+.button:hover {
   color: #FFF;
   background: rgba(255,255,255,0.75);
   border: 1px solid white;
