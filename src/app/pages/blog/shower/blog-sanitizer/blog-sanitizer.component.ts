@@ -1,10 +1,9 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
   selector: 'app-blog-sanitizer',
-  imports: [CommonModule, ExternalLinkComponent],
+  imports: [CommonModule],
   standalone: true,
   template: `
     @for (split of splits; track split) {
@@ -15,7 +14,7 @@ import { ExternalLinkComponent } from '@shared/components/external-link/external
         }
         @else {
           @let linkAndText = splitLinkAndText(subsplit);
-          <app-external-link text={{linkAndText.text}} link="{{linkAndText.link}}"></app-external-link>
+          <a href="{{linkAndText.link}}">{{linkAndText.text}}</a>
         }
       }
     </p>

@@ -1,10 +1,9 @@
 import { Component} from '@angular/core';
 import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
-import { ExternalLinkComponent } from '@shared/components/external-link/external-link.component';
 
 @Component({
   standalone: true,
-  imports: [BlogBrowserComponent, ExternalLinkComponent],
+  imports: [BlogBrowserComponent],
   selector: 'app-explore',
   templateUrl: './explore.component.html',
   styleUrls: ['../main.component.css'],
