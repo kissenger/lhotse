@@ -3,12 +3,12 @@
   @if (isLoaded == true) {
 
     <svg
-    class="brandbox"
-    width="100"
-    height="100"
-    version="1.1"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:svg="http://www.w3.org/2000/svg">
+      class="brandbox"
+      width="100"
+      height="100"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:svg="http://www.w3.org/2000/svg">
   
     <circle cx="50" cy="50" r="50" fill="white"/>
     <rect height="65" width="100" fill=var(--sn-colour)>
@@ -17,14 +17,16 @@
 
   </svg>
 
-  <img
-    (click)="onMenuItemClick('/')"
-    class="brandbox"
-    src    = "./assets/banner/snround.webp" 
-    width    = "100" 
-    height   = "100"
-    role    = "link"
-  />
+  <a href="/">
+    <img
+      (click)="onMenuItemClick()"
+      class="brandbox"
+      src    = "./assets/banner/snround.webp" 
+      width  = "100" 
+      height = "100"
+      role   = "link"
+    />
+  </a>
 
     <nav class="navbar">
         
@@ -44,11 +46,11 @@
       </svg>
 
 
-      <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" >
+      <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
 
         @for (menuItem of menuItems; track menuItem) {
-          <li #menuItem [ngClass]="{'active': activeAnchor == menuItem.toLowerCase()}" >
-            <span class="stealth-html-link" [routerLink]="'.'" [fragment]="menuItem.toLowerCase()">{{menuItem}}</span>
+          <li #menuItem [routerLink]="'.'" [fragment]="menuItem.toLowerCase()" [ngClass]="{'active': activeAnchor == menuItem.toLowerCase()}">
+            <span class="stealth-html-link">{{menuItem}}</span>
           </li>          
         }
 

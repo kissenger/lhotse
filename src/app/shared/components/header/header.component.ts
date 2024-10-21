@@ -39,10 +39,6 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     public image: ImageService
   ) {
 
-    // this.bannerImg = _image.sizedImage('snorkelology', 'extended');
-    // console.log(this.screen.widthDescriptor)
-
-    
     // observed elements are set in main component and tracked in scrollspy
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
@@ -51,42 +47,17 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
       }
     })
 
-    // update menu items on route change
-    // this._navSubs = this.navigate.end.subscribe( (url) => {
-    //   let urlSplit = url.split('/');
-
-    //   if ( urlSplit[1] === '' ) { this.menuItemsFiltered = this.filterMenu(['About', 'Explore', 'Book', 'FAQs', 'Friends', 'Articles']) }
-    //   else if ( urlSplit[1] === 'subscribe' ) { this.menuItemsFiltered = this.filterMenu([]); }
-    //   else if ( urlSplit[1] === 'privacy-policy' ) { this.menuItemsFiltered = this.filterMenu([]); }
-    //   else if ( urlSplit[1] === 'snorkelling-in-britain' ) {
-    //     if ( urlSplit.length === 2 ) { this.menuItemsFiltered = this.filterMenu([]); }
-    //     else  { this.menuItemsFiltered = this.filterMenu([]); }
-    //   }
-
-    // })
-
   }
-
-  // filterMenu(items: Array<string>) {
-  //   return this.menuItems.filter( (item) => items.includes(item.text) );
-  // }
-
+  
   ngAfterViewInit() {
     if (this.screen.widthDescriptor === 'large') {
       this.expandDropdownMenu = false;
     }
-    // console.log(this.screen.widthDescriptor)
   }
   
   ngAfterContentChecked() {
-    // console.log(isPlatformBrowser(this.platformId));
-    // console.log(isPlatformServer(this.platformId));
-    // console.log(PLATFORM_ID)
-    // console.log(this.platformId);
-
     if (!isPlatformBrowser(PLATFORM_ID)) {
       this.isLoaded = true;
-
     }
   }
 
@@ -95,7 +66,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     this.animateHamburger();
   }
 
-  onMenuItemClick(elemName: string) {
+  onMenuItemClick() {
     if (this.expandDropdownMenu) {
       this.expandDropdownMenu = false;
       this.animateHamburger();
@@ -121,7 +92,6 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
 
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
-    // this._navSubs?.unsubscribe();
   }
 
 }
