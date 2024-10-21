@@ -19,9 +19,7 @@
     <div class="dynamic-container">
 
     <!-- Intro-->
-        <div>
-            <app-blog-sanitizer content={{post.intro}}></app-blog-sanitizer>
-        </div>
+        <div [innerHTML]="post.intro | blogSanitizer"></div>
 
     <!-- Create contents -->
         <section class="anchor" id="contents">
@@ -40,16 +38,14 @@
             <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
                 <h4 itemprop="name">{{faq.question}}</h4>
                 <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                    <div itemprop="text">
-                        <app-blog-sanitizer content={{faq.answer}}></app-blog-sanitizer>
-                    </div>
+                    <div itemprop="text" [innerHTML]="faq.answer | blogSanitizer"></div>
                 </div>
                 <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
             </div>
         }
 
         <!-- Wrap up-->
-        <app-blog-sanitizer content={{post.callToAction}}></app-blog-sanitizer>
+        <div [innerHTML]="post.callToAction | blogSanitizer"></div>
 
     </div>
 }

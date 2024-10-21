@@ -4,10 +4,10 @@ import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
 import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
+import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
 
 @Component({
   selector: 'app-post-shower',
@@ -15,7 +15,8 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
   providers: [],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [NgOptimizedImage, BlogEditorComponent, BlogSanitizerComponent, RouterLink, KebaberPipe]
+  imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, 
+    KebaberPipe, BlogSanitizerPipe]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;

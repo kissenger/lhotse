@@ -4,9 +4,7 @@ import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { BlogSanitizerComponent } from "@pages/blog/shower/blog-sanitizer/blog-sanitizer.component";
 import { NgOptimizedImage } from '@angular/common';
-import { environment } from '@environments/environment';
 import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.component';
 
 @Component({
@@ -17,14 +15,12 @@ import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.compo
     <div class="dynamic-container">
       <div class="blog-grid">
           @for (post of posts; track posts) {
-              <app-blog-card
-                  [data]="post"
-              ></app-blog-card>
+              <app-blog-card [data]="post"></app-blog-card>
           }
       </div>
     </div>`,
   styleUrl: './browser.component.css',
-  imports: [NgOptimizedImage, BlogEditorComponent, BlogSanitizerComponent, BlogCardComponent]
+  imports: [NgOptimizedImage, BlogEditorComponent, BlogCardComponent]
 })
 export class BlogBrowserComponent implements OnInit, OnDestroy {
   
