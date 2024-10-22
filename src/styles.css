@@ -6,7 +6,7 @@
    ===================================================*/
 
   --header-height: 75px;
-  --content-offset: 25px;
+  /* --content-offset: 25px; */
 
   /* Theme */
   /* --sn-colour: #1b3d59; */
@@ -136,8 +136,11 @@ a:visited {
   color: var(--text-colour-link);
 }
 
-.anchor {
-  scroll-margin-top: var(--header-height);
+.anchor::before {
+  content: "";
+  display: block;
+  height: var(--header-height);
+  margin: calc(0px - var(--header-height)) 0 0;  
 }
 
 .blockquote {
@@ -154,7 +157,7 @@ a:visited {
 
 .dynamic-container {
   position: relative;
-  display: block;
+  /* display: block; */
   background-color: white;
   padding-inline: calc( (100vw - var(--container-width) ) / 2 );
   padding-top: 1px;
