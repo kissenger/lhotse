@@ -6,6 +6,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ImageService } from '@shared/services/image.service';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { DataService } from '@shared/services/data.service';
 
 @Component({
   standalone: true,
@@ -22,21 +23,21 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
 
   private _scrSubs: Subscription;
-  // private _navSubs: Subscription;
+  private _dataSubs: Subscription;
 
 
   public menuItems = ['Home', 'About', 'Explore', 'Book', 'FAQs', 'Friends'];
-  // public menuItemsFiltered: Array<{text: string, link: string, show: boolean, reload: boolean}> | undefined = this.menuItems;
   public expandDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
   public isLoaded: boolean = false;
-  // public bannerImg;
+  public isBlogData: boolean = true;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
     private _scrollSpy: ScrollspyService,
     public screen: ScreenService,
-    public image: ImageService
+    public image: ImageService,
+    private _data: DataService
   ) {
 
     // observed elements are set in main component and tracked in scrollspy
@@ -47,8 +48,14 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
       }
     })
 
+    this._dataSubs = this._data.isBlogDataEmitter.subscribe( (value) => {
+      if (!value) {
+        this.menuItems = this.menuItems.filter( mi => mi !== 'Explore');
+      };
+    });
   }
   
+
   ngAfterViewInit() {
     if (this.screen.widthDescriptor === 'large') {
       this.expandDropdownMenu = false;
@@ -92,6 +99,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
 
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
+    this._dataSubs?.unsubscribe();
   }
 
 }

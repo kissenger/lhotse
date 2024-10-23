@@ -9,10 +9,12 @@
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  <div #anchor class="anchor" id="explore">
-    <app-explore></app-explore>
-    <div #window id="windowTwo" class="window"></div>
-  </div>
+  @if (isBlogData) {
+    <div #anchor class="anchor" id="explore">
+      <app-explore></app-explore>
+      <div #window id="windowTwo" class="window"></div>
+    </div>
+  }
 
   <div #anchor class="anchor" id="book">
     <app-book></app-book>

@@ -7,6 +7,7 @@ import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.compo
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule } from '@angular/common';
+import { DataService } from '@shared/services/data.service';
 
 @Component({
   selector: 'app-blog-browser',
@@ -19,10 +20,10 @@ import { CommonModule } from '@angular/common';
             <app-blog-card [data]="post"></app-blog-card>
           }
         </div>
-        <div #leftArrow class="arrow">
+        <div #leftArrow>
           <app-svg-arrow direction="left" (click)="onClickLeft()"></app-svg-arrow>
         </div>
-        <div #rightArrow class="arrow">        
+        <div #rightArrow>        
           <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
         </div>
       </div>
@@ -45,7 +46,8 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
-    private _screen: ScreenService
+    private _screen: ScreenService,
+    private _data: DataService
   ) {}
 
   async ngOnInit() {
@@ -54,9 +56,10 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
       this._httpSubs = this._http.getPublishedPosts().subscribe({
         next: (result) => {
           this.posts = result;
-          console.log(this.posts);
+          this._data.isBlogDataEmitter.emit(this.posts.length !== 0);
         },
         error: (error) => {
+          this._data.isBlogDataEmitter.emit(true);
           console.log(error);
         }
       }) 
@@ -65,16 +68,15 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.leftArrow.nativeElement.style.opacity = 0;
     this.browser.nativeElement.addEventListener("scrollend", (event: any) => {
       const maxScrollPosition = this.browser.nativeElement.scrollWidth - this._screen.width - 18;
       const scrollPosition = this.browser.nativeElement.scrollLeft;
-      this.leftArrow.nativeElement.style.opacity = 1;
-      this.rightArrow.nativeElement.style.opacity = 1;
+      this.leftArrow.nativeElement.style.pointerEvents = "auto"
+      this.rightArrow.nativeElement.style.pointerEvents = "auto"
       if (scrollPosition > 0.9*maxScrollPosition) {
-        this.rightArrow.nativeElement.style.opacity = 0;
+        this.rightArrow.nativeElement.style.pointerEvents = "none"
       } else if (scrollPosition === 0) {
-        this.leftArrow.nativeElement.style.opacity = 0;
+        this.leftArrow.nativeElement.style.pointerEvents = "none"
       }
     });
   }

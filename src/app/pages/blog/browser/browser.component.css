@@ -12,16 +12,14 @@
   flex-direction: row;  
   scroll-behavior: smooth;
   /* Hide scroll bar */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  /* IE and Edge */
+  /* -ms-overflow-style: none;   */
+  /* Firefox */
+  /* scrollbar-width: none;   */
   }
 
   /* Hide scroll bar */
-.browser::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-
-.arrow {
-  opacity: 1;
-  transition: opacity 0.25s;  
-}
+  /* Chrome, Safari and Opera */
+/* .browser::-webkit-scrollbar {
+    display: none; 
+  } */

@@ -8,15 +8,18 @@ import { ExploreComponent } from '@pages/main/explore/explore.component';
 import { FAQComponent } from '@pages/main/faq/faq.component';
 import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
-import { NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { HeaderComponent } from '@shared/components/header/header.component';
+import { DataService } from '@shared/services/data.service';
+import { Subscription } from 'rxjs';
+
 
 @Component({
   standalone: true,
   imports: [
-    NgOptimizedImage, RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent,
+    NgOptimizedImage, RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent, CommonModule,
     SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent],
   selector: 'app-main',
   templateUrl: './main.component.html',
@@ -27,6 +30,9 @@ export class MainComponent implements AfterViewInit {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
+
+  private _dataSubs: Subscription;
+  public isBlogData: boolean = true;
 
   private plxImgs: {[id: string]: string} = {
     'windowOne'  : 'scorpionfish',
@@ -41,7 +47,8 @@ export class MainComponent implements AfterViewInit {
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-    private _seo: SEOService
+    private _seo: SEOService,
+    private _data: DataService
   ) {
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - British Snorkelling For All The Family');
@@ -50,6 +57,11 @@ export class MainComponent implements AfterViewInit {
     uk snorkelling, snorkelling near me`);
     this._seo.updateDescription(`Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful
       British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.`);
+  
+    this._dataSubs = this._data.isBlogDataEmitter.subscribe( (value) => {
+      console.log(value)
+      this.isBlogData = value;
+    });
   }
   
   ngAfterViewInit() {
@@ -74,6 +86,10 @@ export class MainComponent implements AfterViewInit {
         w.nativeElement.style.backgroundPosition = 'center';
       }
     })
+  }
+
+  ngOnDestroy() {
+    this._dataSubs?.unsubscribe();
   }
 
 }
