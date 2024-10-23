@@ -5,11 +5,13 @@
   align-self: start;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 350px;
   overflow: hidden;
   border-radius: 10px;
   border: var(--border-colour) 1px solid; 
   transition: all 0.25s;
+  margin: 1em;
+  scroll-behavior: smooth;
 }
 
 .blog-card:hover {
@@ -48,12 +50,12 @@
 
 .blog-card >  .content > .subtitle {
   overflow: hidden;
-  height: calc( 1em * var(--line-height) * 5);
+  height: calc( 1em * var(--line-height) * 4);
   padding-bottom: auto;
   font-size: 0.9em;
 }
 
 .blog-card > .content > .footer {
   font-size: 0.9em;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.5rem; 
 }

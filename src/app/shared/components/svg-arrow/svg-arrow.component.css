@@ -1,0 +1,21 @@
+.arrow { 
+    z-index: 20;
+    position: absolute;
+    top: 50%;
+    cursor: pointer;
+    padding: 1em;
+    transform: translateY(-50%);
+  }
+  
+.arrow.left {
+    left: 0em;
+    margin-right: 1em;
+  }
+  
+.arrow.right {
+    right: 1em;
+  }
+
+svg.left {
+    transform: rotate(180deg);
+}

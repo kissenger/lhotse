@@ -57,18 +57,7 @@
 
   </div>
 
-  <svg #overlay class="arrow left overlay" viewBox="-20 -30 40 60" height="40px" width="20px" opacity="0.6" (click)="onClick(false)">
-    <animate attributeName="opacity" from="0.6" to="1" dur="0.25s" begin="mouseover" fill="freeze"></animate>
-    <animate attributeName="opacity" from="1" to="0.6" dur="0.25s" begin="mouseout" fill="freeze"></animate>
-    <line x1="10" y1="-20" x2="-10" y2="0" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
-    <line x1="-10" y1="0" x2="10" y2="20" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
-  </svg>
-
-  <svg #overlay class="arrow right overlay" viewBox="-20 -30 40 60" height="40px" width="20px" opacity="0.6" (click)="onClick(true)">
-    <animate attributeName="opacity" from="0.6" to="1" dur="0.25s" begin="mouseover" fill="freeze"></animate>
-    <animate attributeName="opacity" from="1" to="0.6" dur="0.25s" begin="mouseout" fill="freeze"></animate>
-    <line x1="-10" y1="-20" x2="10" y2="0" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
-    <line x1="10" y1="0" x2="-10" y2="20" stroke="white" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none" />
-  </svg>
+  <app-svg-arrow direction="left" (click)="onClick(false)"></app-svg-arrow>
+  <app-svg-arrow direction="right" (click)="onClick(true)"></app-svg-arrow>
 
 </div>

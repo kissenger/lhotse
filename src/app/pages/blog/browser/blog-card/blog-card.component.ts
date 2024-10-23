@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { BlogPost } from '@shared/types';
 import { RouterLink } from '@angular/router';
@@ -37,3 +37,4 @@ export class BlogCardComponent {
   constructor(
   ) {}
 }
+

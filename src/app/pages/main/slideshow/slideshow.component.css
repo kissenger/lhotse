@@ -42,6 +42,7 @@
   border: 1px solid white;
   border-radius: 15px;
   background: rgba(255,255,255,0.25);
+  
   transition: all 0.3s ease 0s;
   /* margin-bottom: 0.6rem; */
   cursor: pointer;
@@ -84,19 +85,3 @@
   text-align: start;
 }
 
-.arrow {
-  z-index: 20;
-  position: absolute;
-  top: 50%;
-  cursor: pointer;
-  padding: 1em;
-  transform: translateY(-50%);
-}
-
-.arrow.left {
-  left: 0;
-}
-
-.arrow.right {
-  right: 0;
-}

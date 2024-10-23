@@ -2,10 +2,11 @@ import { Component,  AfterViewInit, ViewChild, ViewChildren, QueryList, ElementR
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { interval, timer } from 'rxjs';
 import { RouterLink } from '@angular/router';
+import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, CommonModule, RouterLink],
+  imports: [NgOptimizedImage, CommonModule, RouterLink,SvgArrowComponent],
   providers: [],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
