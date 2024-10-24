@@ -23,6 +23,11 @@ export const appConfig: ApplicationConfig = {
     ), 
     provideClientHydration(),
     provideHttpClient(withFetch()),
-    provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+    // provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
+    provideCloudflareLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };
+function provideCloudflareLoader(arg0: string): import("@angular/core").Provider | import("@angular/core").EnvironmentProviders {
+  throw new Error('Function not implemented.');
+}
+
