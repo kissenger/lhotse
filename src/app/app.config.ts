@@ -23,8 +23,7 @@ export const appConfig: ApplicationConfig = {
     ), 
     provideClientHydration(),
     provideHttpClient(withFetch()),
-    // provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
-    provideCloudflareLoader(`https://${environment.IMGIX_DOMAIN}`),
+    provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };
 
