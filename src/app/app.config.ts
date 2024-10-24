@@ -3,7 +3,7 @@ import { provideRouter, withDebugTracing, withHashLocation, withInMemoryScrollin
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideImgixLoader } from '@angular/common';
+import { provideCloudflareLoader, provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
 
 
@@ -27,7 +27,5 @@ export const appConfig: ApplicationConfig = {
     provideCloudflareLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };
-function provideCloudflareLoader(arg0: string): import("@angular/core").Provider | import("@angular/core").EnvironmentProviders {
-  throw new Error('Function not implemented.');
-}
+
 
