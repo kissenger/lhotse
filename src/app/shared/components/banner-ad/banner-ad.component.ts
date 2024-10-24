@@ -8,7 +8,7 @@ import { Component} from '@angular/core';
   template: `
     <div class="">
       <img class=""
-        ngSrc = "photos/ads/snorkelling-britain-preorder-now-banner.jpg"
+        ngSrc = "photos/ads/snorkelling-britain-preorder-now-banner.png"
         alt   = "Snorkelling Britain: 100 Marine Adventures book cover"
         width = "728"
         height = "90"
