@@ -19,27 +19,47 @@ export class BlogSanitizerPipe implements PipeTransform {
         private sanitized: DomSanitizer
     ) {}
     
-    transform(value: string): SafeHtml {
+    transform(rawString: string): SafeHtml {
+        // this.outputString = rawString;
+        let outputString = this.insertLinks(rawString);
+        outputString = this.insertBlockQuotes(outputString);
+        outputString = this.insertParagraphs(outputString);
 
-        let paragraphs = value.split(/\r\n|\r|\n/).map( (s: string) => s.split(/\%(.*)\%/));
-
-        const html = paragraphs.map( para => {
-            return `<p>${this.insertLinks(para)}</p>`;
-        }).join('');
-
-        console.log(this.sanitized.bypassSecurityTrustHtml(html))
-        return this.sanitized.bypassSecurityTrustHtml(html);
+        return this.sanitized.bypassSecurityTrustHtml(outputString);
     }
-    insertLinks(para: Array<string>): string {
-        return para.map( (subpara, i) => {
+
+    insertLinks(input: string): string {
+        console.log(input.split(/\%(.*)\%/))
+        return input.split(/\[link:([^\][]*)]/).map( (s, i) => {
+            console.log(s);
             if (i % 2 == 0) {
-                return subpara;
+                console.log(s);
+                return s;
             } 
             else {
-                const [text, link] = subpara.split(',');
+                const [text, link] = s.split(',');
+                console.log(text, link);
                 return `<a href="${link}">${text}</a>`
             } 
         }).join('');
-
     }
+
+    insertBlockQuotes(input: string): string {
+        return input.split(/\[blockquote:(.*)\]/).map( (s, i) => {
+            if (i % 2 == 0) {
+                return s;
+            } 
+            else {
+                const [text, link] = s.split(',');
+                return `<div class="blockquote">${s}</div>`
+            } 
+        }).join('');
+    }
+
+    insertParagraphs(input: string): string {
+        return input.split(/\r\n|\r|\n/).map( s => {
+            return `<p>${s}</p>`;
+        }).join('');
+    }
+
 }

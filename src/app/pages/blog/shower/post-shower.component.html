@@ -19,7 +19,7 @@
     <div class="dynamic-container">
 
     <!-- Intro-->
-        <div [innerHTML]="post.intro | blogSanitizer"></div>
+        <div class="intro" [innerHTML]="post.intro | blogSanitizer"></div>
 
     <!-- Create contents -->
         <section class="anchor" id="contents">
@@ -46,6 +46,7 @@
 
         <!-- Wrap up-->
         <div [innerHTML]="post.callToAction | blogSanitizer"></div>
+        <app-banner-ad></app-banner-ad>
 
     </div>
 }

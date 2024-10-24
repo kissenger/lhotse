@@ -1,6 +1,6 @@
 
   .blockquote {
-    margin-bottom: 1rem;;
+    margin-bottom: 1rem;
   }
 
   .article-image-container {
@@ -22,8 +22,10 @@
   .article-image-container > div {
     padding: 2rem;
     position: absolute;
-    bottom: 10%;
+    top: 10%;
     left: 0;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
     background-color: var(--banner-colour);
     color: white;
   }
@@ -35,6 +37,10 @@
   .contents-link {
     width: 100%;
     text-align: right;
+  }
+
+  .intro {
+    margin-top: 2em;
   }
   
   @media (max-width: 767px) {

@@ -8,6 +8,7 @@ import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
+import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
 
 @Component({
   selector: 'app-post-shower',
@@ -16,7 +17,7 @@ import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
   imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, 
-    KebaberPipe, BlogSanitizerPipe]
+    KebaberPipe, BlogSanitizerPipe, BannerAdComponent]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;

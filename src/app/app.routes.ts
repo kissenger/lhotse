@@ -7,7 +7,7 @@ import { SubscribeComponent } from '@pages/subscribe/subscribe.component';
 
 export const routes: Routes = [
   { path: '', component: MainComponent },
-  { path: 'snorkelling-in-britain/:slug', component: PostShowerComponent },
+  { path: 'blog/:slug', component: PostShowerComponent },
   { path: 'blogeditor', component: BlogEditorComponent },
   { path: 'privacy-policy', component: PrivacyComponent },
   { path: 'subscribe', component: SubscribeComponent  },

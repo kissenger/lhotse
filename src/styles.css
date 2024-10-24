@@ -146,7 +146,7 @@ a:visited {
 
 .blockquote {
   border-left: 2px #566F70 solid;
-  margin: 0 0 0 0;
+  margin: 0 2rem 0 2rem;
   padding: 0em 1rem 0em 1rem;
   font-weight: 400;
 }
@@ -196,13 +196,19 @@ a:visited {
   .window { height: 80vh; }
   .slideshow{ height: 80vh; }
 }
-@media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 992px) {
   html {font-size: 16px;}
   :root{ --container-width: 960px; }
   .window { height: 80vh; }
   .slideshow{ height: 80vh; }
 }
-@media (min-width: 1200px) and (max-width: 1399px) {
+/* @media (min-width: 992px) and (max-width: 1199px) {
+  html {font-size: 16px;}
+  :root{ --container-width: 960px; }
+  .window { height: 80vh; }
+  .slideshow{ height: 80vh; }
+} */
+/* @media (min-width: 1200px) and (max-width: 1399px) {
   html {font-size: 16px;}
   :root{ --container-width: 1140px; }
   .window { height: 80vh; }
@@ -213,7 +219,7 @@ a:visited {
   :root{ --container-width: 1320px; }
   .window { height: 80vh; }
   .slideshow{ height: 80vh; }
-}
+} */
 
 /* ===================================================
            Google Ads

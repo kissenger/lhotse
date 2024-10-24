@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { BlogPost } from '@shared/types';
 import { RouterLink } from '@angular/router';
@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   selector: 'app-blog-card',
   template: `
 
-    <div class="blog-card" [routerLink]="'snorkelling-in-britain/'+data.slug">
+    <div class="blog-card" [routerLink]="'blog/'+data.slug">
 
       <div class="photo">
         <img
