@@ -13,7 +13,6 @@
         </form>
 
         <button type="submit" class="formButton" (click)="onSave()">Save</button>
-        <button type="reset" class="formButton" (click)="onReset()">Reset</button>
         <button type="button" class="formButton" (click)="onYesDelete(false)">Delete</button>
         <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> 
             Are you sure? 

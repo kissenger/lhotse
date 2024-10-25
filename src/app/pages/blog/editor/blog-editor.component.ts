@@ -70,11 +70,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     // this.isChanged = true;
   }
 
-  onReset() {
-    const slug = this.selectedPost.slug;
-    this.getPosts();
-    // this.isChanged = false;
-  }
 
   addQA() {
     // this.isChanged = true;
