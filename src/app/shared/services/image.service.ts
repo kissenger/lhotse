@@ -1,8 +1,7 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { ScreenService } from '@shared/services/screen.service';
 import { DeviceOrientation, ImageCollection, WidthDescriptor, Image } from '@shared/types';
 import { imageCollection } from '@shared/db-images';
-import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'

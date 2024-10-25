@@ -121,7 +121,7 @@ a[href^="http"]::after, a[href^="https://"]::after
 }
 
 /* dont show external link after parter logos */
-a.logo-holder::after
+a.suppress-external-link::after
 {
   display: none !important;
 }

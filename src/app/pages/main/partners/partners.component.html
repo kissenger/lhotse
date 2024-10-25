@@ -8,7 +8,7 @@
 
   <div #feedContainer class="logo-roller">
     @for(image of partnerImages; track image) {
-      <a class="logo-holder" href={{image.href}}>
+      <a class="logo-holder suppress-external-link" href={{image.href}}>
         <img
           [ngSrc]="image.url"
           [height]="image.height"
