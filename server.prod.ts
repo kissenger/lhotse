@@ -5,12 +5,14 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
-import 'dotenv/config'
-import ContactsModel from './schema/contact';
+import 'dotenv/config';
+import ContactsModel from '@schema/contact';
+import BlogModel from '@schema/blog';
 
 const pwd = process.env['MONGODB_PASSWORD'];
 const db = process.env['MONGODB_DBNAME'];
 const cs = `mongodb+srv://root:${pwd}@cluster0.5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority&appName=Cluster0`
+
 mongoose.connect(cs);
 mongoose.connection
   .on('error', console.error.bind(console, 'connection error:'))
@@ -25,31 +27,110 @@ export function app(): express.Express {
   const indexHtml = join(serverDistFolder, 'index.server.html');
 
   const commonEngine = new CommonEngine();
-
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
-  
+   
   server.use(express.json());
-
+  
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
 
-  server.post('/api/store-email', async (req, res) => {
+  server.post('/api/store-email/', async (req, res) => {
     try {
       const newDocument = await ContactsModel.create( {email: req.body.email} );
       res.status(201).json({_id: newDocument});
     } catch (error: any) {
-      res.status(500).send(error.message);
+      res.status(500).send(error);
     }
   });
+
+  /* 
+    Get all data for all posts
+    Returns: Array<BlogPost>
+  */
+  server.get('/api/get-all-posts/', async (req, res) => {
+    try {
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) { 
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+    /* 
+    Get all data for all posts
+    Returns: Array<BlogPost>
+  */
+    server.get('/api/get-published-posts/', async (req, res) => {
+      try {
+        const result = await BlogModel.find({isPublished: true});
+        res.status(201).json(result);
+      } catch (error: any) { 
+        console.log(error);
+        res.status(500).send(error);
+      }
+    });
+
+  /* 
+    Get post from provided slug
+    Returns: BlogPost
+  */
+  server.get('/api/get-post-by-slug/:slug', async (req, res) => {
+    try {
+      const result = await BlogModel.findOne({slug: req.params.slug});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Upsert a post with provided new post data, the do find all and return new database
+    Returns: Array<BlogPost>
+  */
+  server.post('/api/upsert-post/', async (req, res) => {
+    try {
+      if (req.body._id !=='') {
+        await BlogModel.findByIdAndUpdate(req.body._id, req.body);
+      } else {
+        delete req.body._id;
+        delete req.body.timeStamp;
+        await BlogModel.create(req.body);
+      }
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  /* 
+    Get post specified by _id, and if successful return result of find all
+    Returns: Array<BlogPost>
+  */
+  server.get('/api/delete-post/:_id', async (req, res) => {
+    try {
+      await BlogModel.deleteOne({_id: req.params._id});
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+// *** End of API Endpoints
+
 
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
   }));
 
   // All regular routes use the Angular engine
-
   server.get('*', (req, res, next) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
 
@@ -69,7 +150,7 @@ export function app(): express.Express {
 }
 
 function run(): void {
-  const port = process.env['PORT'] || 4001;
+  const port = 4000;
 
   // Start up the Node server
   const server = app();

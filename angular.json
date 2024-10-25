@@ -49,7 +49,7 @@
                   "output": "/"
                 },
                 {
-                  "glob": "sitemap.txt",
+                  "glob": "sitemap.xml",
                   "input": "src/config/prod",
                   "output": "/"
                 }        
