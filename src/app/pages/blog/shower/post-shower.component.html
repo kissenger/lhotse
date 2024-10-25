@@ -47,8 +47,10 @@
         }
 
         <!-- Wrap up-->
-        <div [innerHTML]="post.callToAction | blogSanitizer"></div>
         <app-banner-ad></app-banner-ad>
+        <h4>Conclusion</h4>
+        <div [innerHTML]="post.callToAction | blogSanitizer"></div>
+        
 
     </div>
 }

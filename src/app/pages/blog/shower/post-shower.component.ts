@@ -23,7 +23,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
   public isReadyToLoad: boolean = false;
   private _httpSubs: Subscription | undefined;  
-  
 
   constructor(
     @Inject(DOCUMENT) private dom: any,
@@ -52,34 +51,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     });
 
   }
-
-  // updateTitle() {
-  //   this._title.setTitle(environment.STAGE === 'prod' ? this.post.title : environment.STAGE + ' - ' + this.post.title);
-  // }
-
-  // updateKeywords() {
-  //   let nkw = this.post.keywords.join(', ');
-  //   if (nkw) {
-  //     let kw = this._meta.getTag('name=keywords');
-  //     if (kw) {
-  //       nkw = kw.content + ', ' + nkw
-  //     }
-  //     this._meta.updateTag({name: 'keywords', content: nkw});
-  //   }
-  // }
-  // // source: https://www.tektutorialshub.com/angular/angular-canonical-url/
-  // updateCanonicalUrl(){
-  //   let canonicalUrl = 'https://snorkelology.com/' + this._route.snapshot.url.join('/');
-  //   console.log(canonicalUrl);
-  //   const head = this.dom.getElementsByTagName('head')[0];
-  //   var element: HTMLLinkElement= this.dom.querySelector(`link[rel='canonical']`) || null
-  //   if (element==null) {
-  //     element= this.dom.createElement('link') as HTMLLinkElement;
-  //     head.appendChild(element);
-  //   }
-  //   element.setAttribute('rel','canonical')
-  //   element.setAttribute('href', canonicalUrl)
-  // }
 
   ngOnDestroy() {
     this._httpSubs?.unsubscribe();

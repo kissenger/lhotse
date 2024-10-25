@@ -1,65 +1,98 @@
 
-<div class="dynamic-container">
+<div class="wrapper">
 
-    <form>
-        <label for="Select">Select a post to edit:</label>
-        <select #blogs (change)="onFormSelect(blogs.value)" name="select" id="select">
-            @for(post of posts; track post) {
-                <option value="{{$index}}">{{post.slug}}</option>
-            }
-        </select>
-    </form>
+    <div class="static-div">
+        <form>
+            <label for="select">Select a post to edit:</label>
+            <select #blogs (change)="onFormSelect(blogs.value)" name="select" id="select">
+                @for(post of posts; track post) {
+                    <option value="{{$index}}">{{post.slug}}</option>
+                }
+            </select>
+            <a href="{{baseURL}}{{selectedPost.slug}}" target="_blank">preview</a> 
+        </form>
 
-    <form #blogForm="ngForm" (ngSubmit)="onSave()" (ngReset)="onReset()">
+        <button type="submit" class="formButton" (click)="onSave()">Save</button>
+        <button type="reset" class="formButton" (click)="onReset()">Reset</button>
+        <button type="button" class="formButton" (click)="onYesDelete(false)">Delete</button>
+        <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> 
+            Are you sure? 
+            <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+            <button type="button" class="formButton" (click)="onNoDelete()">No</button></span>
 
-        <label for="slug">Slug:</label>
-        <span id="slug">{{makeSlug()}}</span><br><br>
-        <!-- <span id="slug">{{selectedPost.title | kebaber}}</span><br><br>  -->
+    </div>
 
-        <label for="publish">Publish:</label>
-        <select #publish [(ngModel)]="selectedPost.isPublished" name="publish" id="publish">
-            <option value="true">true</option>
-            <option value="false">false</option>
-        </select><br><br>
+    <div class="scrolling-div">
 
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title"><br><br>
+        <form #blogForm="ngForm">
 
-        <label for="subtitle">Subtitle:</label>
-        <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"><br><br>
+            <div>
+                <label for="slug">Slug:</label>
+                <span name="slug" id="slug">{{makeSlug()}}</span>
+            </div>
 
-        <label for="keywords">Keywords:</label>
-        <input type="text" id="keywords" name="keywords" (ngModelChange)="keywords($event)" [ngModel]="selectedPost.keywords"><br><br>
+            <div>
+                <label for="publish">Publish:</label>
+                <select #publish [(ngModel)]="selectedPost.isPublished" name="publish" id="publish">
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+            </div>
 
-        <label for="fname">Image filename:</label>
-        <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname"><br><br>
+            <div>
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title">
+            </div>
+            
+            <div>
+                <label for="subtitle">Subtitle:</label>
+                <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle">
+            </div>
 
-        <label for="alt">Image Alt Text:</label>
-        <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt"><br><br>
+            <div>
+                <label for="keywords">Keywords:</label>
+                <input type="text" id="keywords" name="keywords" (ngModelChange)="keywords($event)" [ngModel]="selectedPost.keywords">
+            </div>
 
-        <label for="intro">Intro:</label>
-        <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea><br><br>
+            <div>
+                <label for="fname">Image filename:</label>
+                <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname">                   
+            </div>
 
-        @for(faq of selectedPost.faqs; track faq) {
-            <hr>
-            <h4>QA Block {{$index+1}}</h4>
-            <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this block</button><br><br>
-            <label for="question{{$index}}">Question:</label>
-            <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.faqs[$index].question"><br><br>
-            <label for="answer{{$index}}">Answer:</label>
-            <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="selectedPost.faqs[$index].answer"></textarea><br><br>
-            @if ($last) {
-                <button type="button" class="qaButton" (click)="addQA()">Add new block</button><br><br>
+            <div>
+                <label for="alt">Image Alt Text:</label>
+                <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt">
+            </div>
+
+            <div>
+                <label for="intro">Intro:</label>
+                <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea>
+            </div>
+
+            <div>
+                <label for="callToAction">Conclusion:</label>
+                <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.callToAction"></textarea>
+            </div>
+
+            @for(faq of selectedPost.faqs; track faq) {
                 <hr>
+                <div>
+                    <label>QA Block {{$index+1}}</label>
+                    <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this block</button>
+                </div>
+                <div>
+                    <label for="question{{$index}}">Question:</label>
+                    <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.faqs[$index].question">
+                </div>
+                <div>
+                    <label for="answer{{$index}}">Answer:</label>
+                    <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="selectedPost.faqs[$index].answer"></textarea>
+                </div>
+                @if ($last) {
+                    <button type="button" class="qaButton" (click)="addQA()">Add new block</button>
+                }
             }
-        }
 
-        <label for="callToAction">Call to action:</label>
-        <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.callToAction"></textarea><br><br>
-
-        <button type="submit" class="formButton">Save</button>
-        <button type="reset" class="formButton">Reset</button>
-        <button type="button" class="formButton" (click)="onDelete(false)">Delete</button>
-        <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> Are you sure? <button type="button"  class="formButton" (click)="onDelete(true)">Yes</button></span>
-    </form>
+        </form>
+    </div>
 </div>

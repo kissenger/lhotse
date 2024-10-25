@@ -6,6 +6,7 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { PostShowerComponent } from '../shower/post-shower.component';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-editor',
@@ -20,6 +21,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
 
   private _httpSubs: Subscription | undefined;
   private _window;
+  public baseURL:string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
 
   public selectedPost = new BlogPost;
   public askForConfirmation: boolean = false;
@@ -89,10 +91,13 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
+    const slug = this.selectedPost.slug;
     this._httpSubs = this._http.upsertPost(this.selectedPost)
       .subscribe({
         next: (result) => {
           this.refreshPostList(result);
+          this.selectedPost = this.posts.filter(p => p.slug == slug)[0];
+          console.log(this.posts)
           this._window!.alert("Post successfully updated!");
         },
         error: (error) => {
@@ -102,7 +107,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
       }) 
   }
 
-  onDelete(areYouSure: boolean = false) {
+  onYesDelete(areYouSure: boolean = false) {
     if (areYouSure === false) {
       this.askForConfirmation = true;
     }
@@ -121,6 +126,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
           }
         })    
     }
+  }
+
+  onNoDelete() {
+    this.askForConfirmation = false;
   }
 
   refreshPostList(newData: Array<BlogPost>) {

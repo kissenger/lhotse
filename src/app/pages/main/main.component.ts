@@ -14,13 +14,16 @@ import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@ang
 import { HeaderComponent } from '@shared/components/header/header.component';
 import { DataService } from '@shared/services/data.service';
 import { Subscription } from 'rxjs';
+import { BannerAdComponent } from "../../shared/components/banner-ad/banner-ad.component";
 
 
 @Component({
   standalone: true,
   imports: [
     NgOptimizedImage, RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent, CommonModule,
-    SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent],
+    SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent,
+    BannerAdComponent
+],
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']

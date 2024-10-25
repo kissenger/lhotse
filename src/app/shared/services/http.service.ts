@@ -10,17 +10,16 @@ import { BlogPost } from '@shared/types';
 
 export class HttpService {
 
-  private _backendURL = `${environment.PROTOCOL}://${environment.BACKEND_URL}`;
+  private _backendURL = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}`;
 
   constructor(
     private http: HttpClient
     ) {
   }
 
-  storeEmail(contact: {email: string}) {
-    console.log(`${this._backendURL}/store-email/`)
-    return this.http.post<any>(`${this._backendURL}/store-email/`, contact);
-  }
+  // storeEmail(contact: {email: string}) {
+  //   return this.http.post<any>(`${this._backendURL}/store-email/`, contact);
+  // }
 
   getAllPosts() {
     return this.http.get<Array<BlogPost>>(`${this._backendURL}/get-all-posts/`);

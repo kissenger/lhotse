@@ -1,5 +1,9 @@
 
-<app-header></app-header>
+<!-- @let url = router.url; -->
+
+@if (showHeaderFooter) {
+  <app-header></app-header>
+}
 
 <div class="main-container" id="container">
 
@@ -7,6 +11,8 @@
     <router-outlet></router-outlet>
   </div>
 
-  <app-footer></app-footer>
+  @if (showHeaderFooter) {
+    <app-footer></app-footer>
+  }
 
 </div>
