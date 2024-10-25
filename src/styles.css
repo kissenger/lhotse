@@ -164,22 +164,15 @@ a:visited {
   padding-bottom: 1rem;
 }
 
-.dynamic-container-left {
-  padding-left: calc( (100vw - var(--container-width) ) / 2 );
-  padding-right: 0px;
-  padding-top: 1px;
-  padding-bottom: 1rem;
-}
-
-.dynamic-container-right {
-  padding-right: calc( (100vw - var(--container-width) ) / 2 );
-  padding-left: 0px;
-  padding-top: 1px;
-  padding-bottom: 1rem;
+@media (hover: hover){
+  /* if not a touch screen then add an additional right margin to accouunt for scrollbar*/
+  .dynamic-container{
+    margin-right: 1em;
+  }
 }
 
 @media (max-width: 575px) {
-  :root{ --container-width: calc(100vw - 20px); }
+  :root{ --container-width: calc(100vw - 2em); }
   html {font-size: 14px;}
   .window{ height: 80vh; }
   .slideshow{ height: 60vh; }
