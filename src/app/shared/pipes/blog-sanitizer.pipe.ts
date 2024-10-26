@@ -29,16 +29,12 @@ export class BlogSanitizerPipe implements PipeTransform {
     }
 
     insertLinks(input: string): string {
-        console.log(input.split(/\%(.*)\%/))
         return input.split(/\[link:([^\][]*)]/).map( (s, i) => {
-            console.log(s);
             if (i % 2 == 0) {
-                console.log(s);
                 return s;
             } 
             else {
                 const [text, link] = s.split(',');
-                console.log(text, link);
                 return `<a href="${link}">${text}</a>`
             } 
         }).join('');

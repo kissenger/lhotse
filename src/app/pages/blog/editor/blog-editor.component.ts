@@ -92,7 +92,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
         next: (result) => {
           this.refreshPostList(result);
           this.selectedPost = this.posts.filter(p => p.slug == slug)[0];
-          console.log(this.posts)
           this._window!.alert("Post successfully updated!");
         },
         error: (error) => {
@@ -108,7 +107,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     }
     else {
       this.askForConfirmation = false;
-      console.log(this.selectedPost);
       this._httpSubs = this._http.deletePost(this.selectedPost._id)
         .subscribe({
           next: (result) => {

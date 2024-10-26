@@ -62,7 +62,6 @@ export class MainComponent implements AfterViewInit {
       British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.`);
   
     this._dataSubs = this._data.isBlogDataEmitter.subscribe( (value) => {
-      console.log(value)
       this.isBlogData = value;
     });
   }

@@ -12,7 +12,7 @@ import { Component} from '@angular/core';
           href="https://www.amazon.co.uk/Snorkelling-Britain-adventures-explorers-Adventures/dp/1910636479/ref=sr_1_1?crid=33Z6ZCOT2QQU3&dib=eyJ2IjoiMSJ9.-3C-N7lrE3HtGgcTR3BuH3E5up9BJHUb6NMZ-5sS19ubYtwem3-hCBbrX1bxDERnCAn62LN1bUv8KZGUUoHasaj0hwlwR0pL9hRrQXQr0E8.tlmqcT2BIzxscmZpcbUk3U6j_GSl0WsErdNeKaimPhY&dib_tag=se&keywords=snorkelling+britain&nsdOptOutParam=true&qid=1729858365&sprefix=snorkelling+britain%2Caps%2C93&sr=8-1">
           <div>
             <img
-            ngSrc = "ads/snorkelling-britain-preorder-now-banner.jpg"
+            ngSrc = "ads/snorkelling-britain-preorder-now-banner1.jpeg"
             alt   = "Snorkelling Britain: 100 Marine Adventures book cover"
             fill
           /> 

@@ -44,7 +44,6 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
         this.activeAnchor = isect.id;
-        console.log(this.activeAnchor)
       }
     })
 
