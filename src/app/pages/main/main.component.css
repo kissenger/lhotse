@@ -39,6 +39,12 @@
   grid-column: 2;
 }
 
+.background-img{
+  background-attachment: 'fixed';
+  background-size: 'cover';
+  background-position: 'center';
+}
+
 @media (min-width: 768px) {
   .main-content-grid {
     display: grid;
