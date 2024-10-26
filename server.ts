@@ -9,11 +9,13 @@ import 'dotenv/config';
 import ContactsModel from '@schema/contact';
 import BlogModel from '@schema/blog';
 
-const pwd = process.env['MONGODB_PASSWORD'];
-const db = process.env['MONGODB_DBNAME'];
-const cs = `mongodb+srv://root:${pwd}@cluster0.5h6di.gcp.mongodb.net/${db}?retryWrites=true&w=majority&appName=Cluster0`
+const PWD = process.env['MONGODB_PASSWORD'];
+const DB = process.env['MONGODB_DBNAME'];
+// if production then use port 4000; for beta and dev use 4000
+const PORT = import.meta.url.match('prod') ? '4001' : '4000';
+const CS = `mongodb+srv://root:${PWD}@cluster0.5h6di.gcp.mongodb.net/${DB}?retryWrites=true&w=majority&appName=Cluster0`
 
-mongoose.connect(cs);
+mongoose.connect(CS);
 mongoose.connection
   .on('error', console.error.bind(console, 'connection error:'))
   .on('close', () => console.log('MongoDB disconnected'))
@@ -25,6 +27,7 @@ export function app(): express.Express {
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
+  
 
   const commonEngine = new CommonEngine();
   server.set('view engine', 'html');
@@ -125,7 +128,6 @@ export function app(): express.Express {
 
 // *** End of API Endpoints
 
-
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
   }));
@@ -150,7 +152,7 @@ export function app(): express.Express {
 }
 
 function run(): void {
-  const port = 4000;
+  const port = PORT;
 
   // Start up the Node server
   const server = app();

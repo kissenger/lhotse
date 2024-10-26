@@ -78,7 +78,7 @@
 
             "beta": {          
               "ssr": {
-                "entry": "server.beta.ts"
+                "entry": "server.ts"
               },        
               "tsConfig": "tsconfig.beta.json",                
               "outputPath": "dist/beta",
@@ -115,10 +115,9 @@
 
 
             "dev": {
-
               "tsConfig": "tsconfig.beta.json",  
               "ssr": {
-                "entry": "server.beta.ts"
+                "entry": "server.ts"
               },                                         
               "outputPath": "dist/dev",              
               "optimization": true,               
