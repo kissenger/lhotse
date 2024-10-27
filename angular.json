@@ -38,7 +38,7 @@
               "ssr": {
                 "entry": "server.ts"
               },
-              "tsConfig": "tsconfig.prod.json",                     
+              "tsConfig": "tsconfig.json",                     
               "outputPath": "dist/prod",              
               "assets": [
                 "src/favicon.ico",
@@ -80,7 +80,7 @@
               "ssr": {
                 "entry": "server.ts"
               },        
-              "tsConfig": "tsconfig.beta.json",                
+              "tsConfig": "tsconfig.json",                
               "outputPath": "dist/beta",
               "assets": [
                 "src/favicon.ico",
@@ -115,7 +115,7 @@
 
 
             "dev": {
-              "tsConfig": "tsconfig.beta.json",  
+              "tsConfig": "tsconfig.json",  
               "ssr": {
                 "entry": "server.ts"
               },                                         

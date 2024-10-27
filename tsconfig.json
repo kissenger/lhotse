@@ -1,8 +1,12 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
-
-  "compileOnSave": false,
-  "compilerOptions": {
+    "compileOnSave": false,
+    "compilerOptions": {
+      "allowSyntheticDefaultImports": true,
+      "outDir": "./out-tsc/app",
+      "types": [
+        "node"
+      ],
     "baseUrl": "./",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -37,5 +41,13 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "files": [
+    "src/main.ts",
+    "src/main.server.ts",
+    "server.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts"
+  ]  
 }
