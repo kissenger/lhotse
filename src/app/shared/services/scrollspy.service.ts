@@ -32,7 +32,6 @@ export class ScrollspyService {
 
   intersectHandler(el: Array<IntersectionObserverEntry>) {
     el.forEach( (el) => {
-      // console.log(el.target.id, el.intersectionRatio)
       this.intersectionEmitter.emit({
         id: el.target.id, 
         class: el.target.className,

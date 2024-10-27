@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ImageService } from '../../../shared/services/image.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -12,8 +11,6 @@ import { RouterLink } from '@angular/router';
 export class FAQComponent implements OnInit {
 
   constructor(
-    public images: ImageService
-
   ) { }
 
   ngOnInit(): void {

@@ -1,8 +1,8 @@
 
 .logo-roller {
   justify-content: center;
-  overflow-x: hidden;
-  display: flex;
+  overflow: hidden;
+  display: inline-flex;
   flex-wrap: wrap;
   flex-direction: row;
   gap: 1em;
@@ -11,16 +11,11 @@
 }
 
 .logo-holder {
-  padding: 1rem;
-}
-
-.logo-holder > img {
+  padding: 0.5em;
   transition: all 0.25s;
-  height: auto;
-  width: auto;
 }
 
-.logo-holder > img:hover {
+.logo-holder:hover {
   cursor: pointer;
   transform: scale(1.05);
 }

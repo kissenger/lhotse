@@ -14,12 +14,7 @@ export class HttpService {
 
   constructor(
     private http: HttpClient
-    ) {
-  }
-
-  // storeEmail(contact: {email: string}) {
-  //   return this.http.post<any>(`${this._backendURL}/store-email/`, contact);
-  // }
+    ) {}
 
   getAllPosts() {
     return this.http.get<Array<BlogPost>>(`${this._backendURL}/get-all-posts/`);

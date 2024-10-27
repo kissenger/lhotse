@@ -1,5 +1,7 @@
+import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
-import { ImageService } from '@shared/services/image.service';
+import { Subscription } from 'rxjs';
 import { ScreenService } from '@shared/services/screen.service';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { AboutUsComponent } from '@pages/main/about/about.component';
@@ -8,13 +10,10 @@ import { ExploreComponent } from '@pages/main/explore/explore.component';
 import { FAQComponent } from '@pages/main/faq/faq.component';
 import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
-import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { HeaderComponent } from '@shared/components/header/header.component';
 import { DataService } from '@shared/services/data.service';
-import { Subscription } from 'rxjs';
-import { BannerAdComponent } from "../../shared/components/banner-ad/banner-ad.component";
+import { BannerAdComponent } from "@shared/components/banner-ad/banner-ad.component";
 
 
 @Component({
@@ -37,16 +36,15 @@ export class MainComponent implements AfterViewInit {
   private _dataSubs: Subscription;
   public isBlogData: boolean = true;
 
-  private plxImgs: {[id: string]: string} = {
-    'windowOne'  : 'scorpionfish',
-    'windowTwo'  : 'cuddlingcrabs',
-    'windowThree': 'sittingchild',
-    'windowFour' : 'anemone',
+  staticBackgrounds: {[windowOne: string]: string} = {
+    windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
+    windowTwo: "./assets/photos/parallax/cuddling-crabs-snorkelling-scotland-britain.webp",
+    windowThree: "./assets/photos/parallax/child-in-snorkelling-gear-scotland.webp",
+    windowFour: "./assets/photos/parallax/dahlia-anemone-snorkelling-dorset-britain.webp"
   }
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
-    private _images: ImageService,
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
@@ -80,8 +78,8 @@ export class MainComponent implements AfterViewInit {
     this.windows.forEach( (w) => {
       // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
       if (isPlatformBrowser(this.platformId)) {
-        // w.nativeElement.style.backgroundImage = this.plxImgs[w.nativeElement.id];
-        let url = this._images.orientedImage(this.plxImgs[w.nativeElement.id]).url;        
+        const elementId: string = w.nativeElement.id;
+        let url = this.staticBackgrounds[elementId].replace('.webp',`-${this._screen.deviceOrientation}.webp`);        
         w.nativeElement.style.backgroundImage = `url('${url}')`;        
         w.nativeElement.style.backgroundAttachment = 'fixed';
         w.nativeElement.style.backgroundSize = 'cover';

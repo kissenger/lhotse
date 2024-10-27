@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ImageService } from '../../../shared/services/image.service';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
@@ -13,7 +12,6 @@ import { NgOptimizedImage } from '@angular/common';
 export class AboutUsComponent implements OnInit {
 
   constructor(
-    public images: ImageService
   ) { }
 
   ngOnInit(): void {

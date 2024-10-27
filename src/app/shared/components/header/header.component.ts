@@ -3,7 +3,6 @@ import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ImageService } from '@shared/services/image.service';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { DataService } from '@shared/services/data.service';
@@ -36,7 +35,6 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     @Inject(PLATFORM_ID) private platformId: any,
     private _scrollSpy: ScrollspyService,
     public screen: ScreenService,
-    public image: ImageService,
     private _data: DataService
   ) {
 

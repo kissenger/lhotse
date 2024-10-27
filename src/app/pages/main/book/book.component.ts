@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ImageService } from '../../../shared/services/image.service';
 import { NgOptimizedImage } from '@angular/common';
 import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
 
@@ -15,7 +14,6 @@ import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.compon
 export class BookComponent implements OnInit {
 
   constructor(
-    public images: ImageService,
   ) { }
 
   ngOnInit(): void {
