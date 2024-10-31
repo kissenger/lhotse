@@ -117,7 +117,7 @@ export class PostShowerComponent implements OnDestroy, OnInit, AfterViewInit {
               "name": "${q.question}",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "${q.answer.split('\n')[0]}"}}`
+                "text": "${q.answer.split('</p>')[0]}"</p>}}`
             }).join(",");
 
             this._seo.addStructuredData(`
