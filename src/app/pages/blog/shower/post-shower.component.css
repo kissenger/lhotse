@@ -34,6 +34,10 @@
     margin: 0px;
   }
 
+  li {
+    list-style-type: none;
+  }
+
   .contents-link {
     width: 100%;
     text-align: right;

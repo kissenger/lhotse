@@ -39,6 +39,14 @@
             </div>
 
             <div>
+                <label for="type">Type:</label>
+                <select #type [(ngModel)]="selectedPost.type" name="type" id="type">
+                    <option value="faq">faq</option>
+                    <option value="article">article</option>
+                </select>
+            </div>
+
+            <div>
                 <label for="title">Title:</label>
                 <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title">
             </div>
@@ -70,25 +78,38 @@
 
             <div>
                 <label for="callToAction">Conclusion:</label>
-                <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.callToAction"></textarea>
+                <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.conclusion"></textarea>
             </div>
 
-            @for(faq of selectedPost.faqs; track faq) {
+            @for(section of selectedPost.sections; track section) {
                 <hr>
                 <div>
-                    <label>QA Block {{$index+1}}</label>
-                    <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this block</button>
+                    <label>Section {{$index+1}}</label>
+                    <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this section</button>
                 </div>
+
                 <div>
-                    <label for="question{{$index}}">Question:</label>
-                    <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.faqs[$index].question">
+                    <label for="question{{$index}}">Title:</label>
+                    <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="selectedPost.sections[$index].title">
                 </div>
+
                 <div>
-                    <label for="answer{{$index}}">Answer:</label>
-                    <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="selectedPost.faqs[$index].answer"></textarea>
+                    <label for="answer{{$index}}">Content:</label>
+                    <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="selectedPost.sections[$index].content"></textarea>
                 </div>
+
+                <div>
+                    <label for="fname{{$index}}">Image filename:</label>
+                    <input type="text" id="fname{{$index}}" name="fname{{$index}}" [(ngModel)]="selectedPost.sections[$index].imgFname">                   
+                </div>
+    
+                <div>
+                    <label for="alt{{$index}}">Image Alt Text:</label>
+                    <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="selectedPost.sections[$index].imgAlt">
+                </div>              
+
                 @if ($last) {
-                    <button type="button" class="qaButton" (click)="addQA()">Add new block</button>
+                    <button type="button" class="qaButton" (click)="addQA()">New section</button>
                 }
             }
 

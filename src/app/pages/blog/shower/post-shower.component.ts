@@ -47,8 +47,13 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             // htmlize blog entries to avoid doing it twice
             this.post = result
             this.post.intro = this._htmler.transform(result.intro);
-            this.post.callToAction = this._htmler.transform(result.callToAction);
-            this.post.faqs = result.faqs.map( f => { return {question: f.question, answer: this._htmler.transform(f.answer)}})
+            this.post.conclusion = this._htmler.transform(result.conclusion);
+            this.post.sections = result.sections.map( s => { return {
+              title: s.title, 
+              content: this._htmler.transform(s.content),
+              imgFname: s.imgFname,
+              imgAlt: s.imgAlt
+            }})
 
             this.isReadyToLoad = true;
 
@@ -57,12 +62,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this._seo.updateKeywords(this.post.keywords.join(', '));
             this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
 
-            const entity = this.post.faqs.map( (q:any) => { return `{
+            const entity = this.post.sections.map( (s:any) => { return `{
               "@type": "Question",
-              "name": "${q.question}",
+              "name": "${s.title}",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "${q.answer.replaceAll('\"','\'')}"}}`
+                "text": "${s.content.replaceAll('\"','\'')}"}}`
             }).join(",");
 
             this._seo.addStructuredData(`

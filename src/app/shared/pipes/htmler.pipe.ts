@@ -52,7 +52,7 @@ export class HtmlerPipe implements PipeTransform {
     insertParagraphs(input: string): string {
         return input.split(/\r\n|\r|\n/).map( s => {
             return `<p>${s}</p>`;
-        }).join('');
+        }).join('')
     }
 
 }

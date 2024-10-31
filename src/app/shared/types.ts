@@ -3,6 +3,7 @@ export class BlogPost {
   _id: string = '';
   slug: string = '';
   title: string = 'New Post';
+  type: 'faq' | 'article' = 'faq';
   isPublished: boolean = false;
   keywords: Array<string> = [''];
   subtitle: string = '';
@@ -10,8 +11,8 @@ export class BlogPost {
   imgAlt: string = '';
   intro: string = '';
   timeStamp: string = '';
-  faqs: Array<{question: string, answer: string}> = [{question: '', answer: ''}]
-  callToAction: string = '';
+  sections: Array<{title: string, content: string, imgFname: string, imgAlt: string}> = [{title: '', content: '', imgFname: '', imgAlt: ''}]
+  conclusion: string = '';
 }
 
 export type ImageType = 'partner' | 'social' | 'article' | 'slideshow' | 'content' | 'parallax' | 'banner';

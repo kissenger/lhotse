@@ -21,7 +21,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
 
   private _httpSubs: Subscription | undefined;
   private _window;
-  public baseURL:string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
+  public baseURL: string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
 
   public selectedPost = new BlogPost;
   public askForConfirmation: boolean = false;
@@ -63,6 +63,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     //   this._window!.alert("Unsaved changed, use save or cancel button to leave");
     // } else {  
       this.selectedPost = this.posts[parseInt(value,10)];
+      console.log(this.selectedPost)
     // }
   }
 
@@ -73,12 +74,12 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
 
   addQA() {
     // this.isChanged = true;
-    this.selectedPost.faqs.push({question: " ", answer: " "})
+    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: ""})
   }
 
   deleteQA(index: number) {
     // this.isChanged = true;
-    this.selectedPost.faqs.splice(index,1);
+    this.selectedPost.sections.splice(index,1);
   }
 
   keywords(kws: string) {

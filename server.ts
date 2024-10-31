@@ -6,7 +6,6 @@ import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
 import 'dotenv/config';
-import ContactsModel from '@schema/contact';
 import BlogModel from '@schema/blog';
 
 const PWD = process.env['MONGODB_PASSWORD'];
@@ -38,15 +37,6 @@ export function app(): express.Express {
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
-
-  server.post('/api/store-email/', async (req, res) => {
-    try {
-      const newDocument = await ContactsModel.create( {email: req.body.email} );
-      res.status(201).json({_id: newDocument});
-    } catch (error: any) {
-      res.status(500).send(error);
-    }
-  });
 
   /* 
     Get all data for all posts
