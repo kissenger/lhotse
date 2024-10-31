@@ -1,5 +1,7 @@
-import {Injectable} from '@angular/core'; 
-import { Meta, Title } from '@angular/platform-browser';
+import { DOCUMENT } from '@angular/common';
+import {Inject, Injectable, Renderer2, RendererFactory2} from '@angular/core'; 
+import { Meta, SafeHtml, Title } from '@angular/platform-browser';
+import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
 
 @Injectable({
   providedIn: 'root' // Add this to ensure your SEO service will be app-wide available
@@ -8,10 +10,15 @@ import { Meta, Title } from '@angular/platform-browser';
 export class SEOService {
 
   private _canonicalBaseUrl = 'https://snorkelology.co.uk/'
-
+  private _renderer: Renderer2;
+  
   constructor(
     private _title: Title, 
-    private _meta: Meta) { 
+    private _meta: Meta,
+    private _rendererFactory: RendererFactory2,
+    @Inject(DOCUMENT) private _document: Document,
+  ) { 
+      this._renderer = _rendererFactory.createRenderer(null, null);
     }
 
   updateTitle(title: string) {
@@ -26,7 +33,22 @@ export class SEOService {
     this._meta.updateTag({ name: 'description', content: desc})
   }
 
-  updateKeywords(kws: string) {
+  updateKeywords(kws: string) { 
     this._meta.updateTag({ name: 'keywords', content: kws})
   }  
+
+  addStructuredData(ldJson: string) {
+    const script = this._renderer.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = `
+        {
+            "@context": "https://test.org"
+            /* your test.org microdata goes here */
+        }
+    `;
+console.log(this._document.head)
+    this._renderer.appendChild(this._document.head, script);
+  }
+
 }
+

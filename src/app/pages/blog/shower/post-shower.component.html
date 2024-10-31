@@ -37,13 +37,12 @@
     <!-- Q and A section -->
         @for (faq of post.faqs; track faq) {
             <a class="anchor" id="{{faq.question | kebaber}}"></a>
-            <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                <h4 itemprop="name">{{faq.question}}</h4>
-                <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                    <div itemprop="text" [innerHTML]="faq.answer | blogSanitizer"></div>
-                </div>
-                <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
+            <div #qanda>
+                <div id="question"><h4>{{faq.question}}</h4></div>
+                <div id="answer" [innerHTML]="faq.answer | blogSanitizer"></div>
             </div>
+
+            <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
         }
 
         <!-- Wrap up-->

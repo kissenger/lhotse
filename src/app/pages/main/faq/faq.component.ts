@@ -8,12 +8,9 @@ import { RouterLink } from '@angular/router';
   templateUrl: './faq.component.html',
   styleUrls: ['../main.component.css']
 })
-export class FAQComponent implements OnInit {
+export class FAQComponent {
 
   constructor(
-  ) { }
-
-  ngOnInit(): void {
-  }
+  ) {}
 
 }
