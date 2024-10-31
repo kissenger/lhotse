@@ -41,7 +41,6 @@ export class SEOService {
     const script = this._renderer.createElement('script');
     script.type = 'application/ld+json';
     script.text = (ldJson);
-console.log(this._document.head)
     this._renderer.appendChild(this._document.head, script);
   }
 

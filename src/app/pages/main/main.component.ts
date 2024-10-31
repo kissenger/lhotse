@@ -63,8 +63,7 @@ export class MainComponent implements AfterViewInit {
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful
-      British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
+      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
       "sameAs": "https://instagram.com/snorkelology"
     }`)
 
