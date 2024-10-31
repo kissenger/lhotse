@@ -1,8 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
 
 @Pipe({
-    name: 'blogSanitizer',
+    name: 'htmler',
     standalone: true,
     pure: true
 })
@@ -14,18 +13,16 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
         - Link string in the form %text,link%, eg %BSAC,https:www.bsac.com%
 */
 
-export class BlogSanitizerPipe implements PipeTransform {
-    constructor(
-        private sanitized: DomSanitizer
-    ) {}
+export class HtmlerPipe implements PipeTransform {
+    constructor() {}
     
-    transform(rawString: string): SafeHtml {
+    transform(rawString: string): string {
         // this.outputString = rawString;
         let outputString = this.insertLinks(rawString);
         outputString = this.insertBlockQuotes(outputString);
         outputString = this.insertParagraphs(outputString);
 
-        return this.sanitized.bypassSecurityTrustHtml(outputString);
+        return outputString;
     }
 
     insertLinks(input: string): string {

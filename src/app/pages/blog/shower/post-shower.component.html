@@ -19,7 +19,7 @@
     <div class="dynamic-container">
 
     <!-- Intro-->
-        <div class="intro" [innerHTML]="post.intro | blogSanitizer"></div>
+        <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
 
     <!-- Create contents -->
         <section class="anchor" id="contents">
@@ -39,7 +39,7 @@
             <a class="anchor" id="{{faq.question | kebaber}}"></a>
             <div #qanda>
                 <div id="question"><h4>{{faq.question}}</h4></div>
-                <div id="answer" [innerHTML]="faq.answer | blogSanitizer"></div>
+                <div id="answer" [innerHTML]="faq.answer | sanitizer"></div>
             </div>
 
             <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
@@ -48,7 +48,7 @@
         <!-- Wrap up-->
         <app-banner-ad></app-banner-ad>
         <h4>Conclusion</h4>
-        <div [innerHTML]="post.callToAction | blogSanitizer"></div>
+        <div [innerHTML]="post.callToAction | sanitizer"></div>
         
 
     </div>

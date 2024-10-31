@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import {Inject, Injectable, Renderer2, RendererFactory2} from '@angular/core'; 
-import { Meta, SafeHtml, Title } from '@angular/platform-browser';
-import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
+import { Meta, Title } from '@angular/platform-browser';
+// import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
 
 @Injectable({
   providedIn: 'root' // Add this to ensure your SEO service will be app-wide available
