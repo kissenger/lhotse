@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import {Inject, Injectable, Renderer2, RendererFactory2} from '@angular/core'; 
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import {Inject, Injectable, PLATFORM_ID, Renderer2, RendererFactory2} from '@angular/core'; 
 import { Meta, Title } from '@angular/platform-browser';
 // import { BlogSanitizerPipe } from '@shared/pipes/blog-sanitizer.pipe';
 
@@ -17,6 +17,8 @@ export class SEOService {
     private _meta: Meta,
     private _rendererFactory: RendererFactory2,
     @Inject(DOCUMENT) private _document: Document,
+    @Inject(PLATFORM_ID) private platformId: Object
+
   ) { 
       this._renderer = _rendererFactory.createRenderer(null, null);
     }
@@ -38,10 +40,12 @@ export class SEOService {
   }  
 
   addStructuredData(ldJson: string) {
-    const script = this._renderer.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = (ldJson);
-    this._renderer.appendChild(this._document.head, script);
+    if (!isPlatformBrowser(this.platformId)) {
+      const script = this._renderer.createElement('script');
+      script.type = 'application/ld+json';
+      script.text = (ldJson);
+      this._renderer.appendChild(this._document.head, script);
+    }
   }
 
 }
