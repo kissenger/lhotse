@@ -40,12 +40,7 @@ export class SEOService {
   addStructuredData(ldJson: string) {
     const script = this._renderer.createElement('script');
     script.type = 'application/ld+json';
-    script.text = `
-        {
-            "@context": "https://test.org"
-            /* your test.org microdata goes here */
-        }
-    `;
+    script.text = (ldJson);
 console.log(this._document.head)
     this._renderer.appendChild(this._document.head, script);
   }
