@@ -105,7 +105,7 @@ a, .html-link {
 }
 
 /* show external link after a tag with link */
-a[href^="http"]::after, a[href^="https://"]::after
+a[href^="http"]::after, a[href^="https"]::after
 {
   content: "";
   width: 11px;

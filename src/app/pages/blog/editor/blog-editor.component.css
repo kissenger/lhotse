@@ -1,3 +1,8 @@
+
+.movespan {
+    margin-left: 2em;
+}
+
 .wrapper {
     display: flex;
     flex-direction: column;
@@ -62,7 +67,7 @@ textarea {
 
 .qaButton {
     width: 150px;
-    height: 25px;
+    /* height: 25px; */
     /* font-size: large; */
 }
 

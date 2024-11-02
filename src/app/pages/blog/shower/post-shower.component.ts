@@ -62,21 +62,13 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this._seo.updateKeywords(this.post.keywords.join(', '));
             this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
 
-            const entity = this.post.sections.map( (s:any) => { return `{
-              "@type": "Question",
-              "name": "${s.title}",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "${s.content.replaceAll('\"','\'')}"}}`
-            }).join(",");
-
-            this._seo.addStructuredData(`
-              {
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [${entity}]
-              }
-            `);
+            let entity: string;
+            if (this.post.type === 'faq') {
+              entity = this.makeFaqEntity();
+            } else {
+              entity = this.makeArticleEntity();
+            }
+            this._seo.addStructuredData(entity);
 
         },
         error: (error) => {
@@ -86,6 +78,63 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     }
     });
 
+  }
+
+  makeArticleEntity(): string {
+
+    return `
+    {
+      "@context": "https://schema.org/",
+      "@type": "Blog",
+      "@id": "https://snorkelology.co.uk/",
+      "mainEntityOfPage": "https://snorkelology.co.uk/",
+      "name": "Snorkelology Blog",
+      "description": "Snorkelology blog covering topics related to snorkelling around Britain",
+      "publisher": {
+        "@context": "http://schema.org",
+        "@type": "Organization",
+        "name": "Snorkelology",
+        "url": "https://snorkelology.co.uk",
+        "logo": "https://snorkelology.co.uk/banner/snround.webp",
+        "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
+        "sameAs": "https://instagram.com/snorkelology"},
+      "blogPost": [{
+        "@type": "BlogPosting",
+        "@id": "https://snorkelology.co.uk/blog/${this.post.slug}",
+        "mainEntityOfPage": "https://snorkelology.co.uk/blog/${this.post.slug}",
+        "headline": "${this.post.title}",
+        "name": "${this.post.title}",
+        "description": "A blog post authored by Snorkelogy. ${this.post.subtitle}",
+        "author": {
+          "@type": "organization",
+          "@id": "https://snorkelology.co.uk",
+          "name": "Snorkelology" },
+        "image": {
+          "@type": "ImageObject",
+          "@id": "https://snorkelology.co.uk/assets/${this.post.imgFname}",
+          "url": "https://snorkelology.co.uk/assets/${this.post.imgFname}" },
+        "url": "https://snorkelology.co.uk/blog/${this.post.slug}"
+        }
+        `
+  }
+
+  makeFaqEntity(): string {
+
+    const entity = this.post.sections.map( (q:any) => { return `{
+      "@type": "Question",
+      "name": "${q.title}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "${q.content.replaceAll('\"','\'')}"}}`
+    }).join(",");
+
+    return `
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [${entity}]
+      }
+    `
   }
 
   ngOnDestroy() {

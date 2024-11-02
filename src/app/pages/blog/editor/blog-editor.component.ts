@@ -11,6 +11,7 @@ import { environment } from '@environments/environment';
 @Component({
   selector: 'app-blog-editor',
   standalone: true,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, FormsModule, PostShowerComponent, KebaberPipe],  
   providers: [CommonModule, KebaberPipe],
   templateUrl: './blog-editor.component.html',
@@ -26,6 +27,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   public selectedPost = new BlogPost;
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
+  private _keywords: string = '';
   
   constructor(
       private _http: HttpService,
@@ -67,6 +69,11 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     // }
   }
 
+  onMoveSection(fromIndex: number, toIndex: string) {
+    const elementToMove = this.selectedPost.sections[fromIndex];
+    this.selectedPost.sections.splice(fromIndex,1);
+    this.selectedPost.sections.splice(parseInt(toIndex),0,elementToMove);
+  }
   onChange() {
     // this.isChanged = true;
   }
@@ -79,15 +86,16 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
 
   deleteQA(index: number) {
     // this.isChanged = true;
-    this.selectedPost.sections.splice(index,1);
+    this.selectedPost.sections.splice(index,1); 
   }
 
-  keywords(kws: string) {
-    this.selectedPost.keywords = kws.split(',').map(kw => kw.trim())
+  onKeywordsChange(kws: string) {
+    this._keywords = kws;
   }
 
   onSave() {
     const slug = this.selectedPost.slug;
+    this.selectedPost.keywords = this._keywords.split(',').map( kw => kw.trim());
     this._httpSubs = this._http.upsertPost(this.selectedPost)
       .subscribe({
         next: (result) => {
@@ -130,6 +138,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.selectedPost = new BlogPost;
     this.posts = [this.selectedPost];
     this.posts.push(...newData);    
+    console.log(this.posts)
   }
 
   ngOnDestroy() {
