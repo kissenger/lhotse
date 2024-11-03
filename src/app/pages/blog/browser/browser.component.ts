@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,7 +6,7 @@ import { BlogPost } from '@shared/types';
 import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { DataService } from '@shared/services/data.service';
 import { environment } from '@environments/environment';
 
@@ -24,7 +24,8 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   @ViewChild('leftArrow') leftArrow!: ElementRef;
   @ViewChild('rightArrow') rightArrow!: ElementRef;
 
-  private _httpSubs: Subscription | undefined;  
+  private _httpSubs: Subscription | undefined; 
+  private _window;   
   public posts: Array<BlogPost> = [];
 
   constructor(
@@ -32,7 +33,10 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
     private _route: ActivatedRoute,
     private _screen: ScreenService,
     private _data: DataService,
-  ) {}
+    @Inject(DOCUMENT) private _document: Document
+  ) {
+    this._window = _document.defaultView;
+  }
 
   async ngOnInit() {
 
@@ -55,10 +59,14 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
 
   ngAfterViewInit() {
 
-    // only position arrows if we are not on a mobile device...
-    if ( matchMedia('(pointer:fine)').matches ) {
+    // if on touchscreen then dont need mouseenter behaviour
+    if ( this._window &&  ('ontouchstart' in this._window || navigator.maxTouchPoints > 0 )) {
+      this.checkArrows();
+      this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+      
+    } else {
 
-      // when mouse enters element, check croll position and redo this each time scroll ends
+      // when mouse enters element, check scroll position and redo this each time scroll ends
       this.browser.nativeElement.addEventListener("mouseenter", () => {
         this.checkArrows();
         this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
@@ -72,9 +80,7 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
           this.browser.nativeElement.removeEventListener("scrollend", this.checkArrows);  
         }
       })
-    } else {
-      this.checkArrows();
-      this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+
     }
 
   }
