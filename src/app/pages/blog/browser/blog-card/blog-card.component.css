@@ -47,10 +47,10 @@
 }
 
 .blog-card > .content > .title {
-  color: burlywood;
-  font-weight: 600;
+  color: var(--sn-colour);
+  font-weight: 500;
   height: calc( 1em * var(--line-height) * 2);
-  align-content: center;
+  /* align-content: center; */
   /* font-size: large; */
 }
 
@@ -64,4 +64,11 @@
 .blog-card > .content > .footer {
   font-size: 0.9em;
   padding-bottom: 0.5rem; 
+}
+
+.kw {
+  border: 1px solid var(--border-colour);
+  padding: 0.25em;
+  margin: 0.25em 0.25em 0.25em 0em;
+  border-radius: 5px;
 }

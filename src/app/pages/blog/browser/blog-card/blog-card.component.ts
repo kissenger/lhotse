@@ -21,9 +21,16 @@ import { RouterLink } from '@angular/router';
 
       <div class="content">
         <div class="title">{{data.title}}</div>
-        <div class="subtitle">{{data.subtitle}}</div>
+        <div class="subtitle">
+          {{data.subtitle}}
+        </div>
         <div class="footer">
-          <span class="html-link">Read more...</span>
+          Published {{data.timeStamp | date : 'MMM YYYY'}}
+          <p>
+          @for (kw of data.keywords; track kw) {
+            <span class="kw">{{kw}}</span>
+          }
+        </p>
         </div>
       </div>
     </div>
@@ -36,5 +43,6 @@ export class BlogCardComponent {
 
   constructor(
   ) {}
+
 }
 

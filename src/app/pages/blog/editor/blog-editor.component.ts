@@ -96,6 +96,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   onSave() {
     const slug = this.selectedPost.slug;
     this.selectedPost.keywords = this._keywords.split(',').map( kw => kw.trim());
+    console.log(this.selectedPost.keywords)
     this._httpSubs = this._http.upsertPost(this.selectedPost)
       .subscribe({
         next: (result) => {

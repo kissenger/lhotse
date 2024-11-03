@@ -8,27 +8,13 @@ import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule } from '@angular/common';
 import { DataService } from '@shared/services/data.service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-browser',
   standalone: true,
   providers: [],
-  template: `
-      <div class="browser-container">
-        <div #browser class="browser dynamic-container">
-          @for (post of posts; track posts) {
-            <app-blog-card [data]="post"></app-blog-card>
-          }
-        </div>
-        <div #leftArrow>
-          <app-svg-arrow direction="left" (click)="onClickLeft()"></app-svg-arrow>
-        </div>
-        <div #rightArrow>        
-          <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
-        </div>
-      </div>
-
-  `,
+  templateUrl: './browser.component.html',
   styleUrl: './browser.component.css',
   imports: [ BlogCardComponent, SvgArrowComponent, CommonModule ]
 })
@@ -40,21 +26,21 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
 
   private _httpSubs: Subscription | undefined;  
   public posts: Array<BlogPost> = [];
-  public hideLeftArrow: boolean = false;
-  public hideRightArrow: boolean = false;
 
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
     private _screen: ScreenService,
-    private _data: DataService
+    private _data: DataService,
   ) {}
 
   async ngOnInit() {
 
     this._route.params.subscribe( () => {
-      this._httpSubs = this._http.getPublishedPosts().subscribe({
+      const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
+      this._httpSubs = getFunction.subscribe({
         next: (result) => {
+          console.log(result);
           this.posts = result;
           this._data.isBlogDataEmitter.emit(this.posts.length !== 0);
         },
@@ -68,17 +54,36 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.browser.nativeElement.addEventListener("scrollend", (event: any) => {
-      const maxScrollPosition = this.browser.nativeElement.scrollWidth - this._screen.width - 18;
-      const scrollPosition = this.browser.nativeElement.scrollLeft;
-      this.leftArrow.nativeElement.style.pointerEvents = "auto"
-      this.rightArrow.nativeElement.style.pointerEvents = "auto"
-      if (scrollPosition > 0.9*maxScrollPosition) {
-        this.rightArrow.nativeElement.style.pointerEvents = "none"
-      } else if (scrollPosition === 0) {
-        this.leftArrow.nativeElement.style.pointerEvents = "none"
-      }
-    });
+
+    // only position arrows if we are not on a mobile device...
+    if ( matchMedia('(pointer:fine)').matches ) {
+
+      // when mouse enters element, check croll position and redo this each time scroll ends
+      this.browser.nativeElement.addEventListener("mouseenter", () => {
+        this.checkArrows();
+        this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+      });
+
+      // when mouse leves onlto an element that isnt an arrow, remove scroll event listener
+      this.browser.nativeElement.addEventListener("mouseleave", (e: any) => {
+        if (e.toElement.id !== "arrow") {
+          this.leftArrow.nativeElement.style.opacity = "0";
+          this.rightArrow.nativeElement.style.opacity = "0";
+          this.browser.nativeElement.removeEventListener("scrollend", this.checkArrows);  
+        }
+      })
+    } else {
+      this.checkArrows();
+      this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+    }
+
+  }
+
+  checkArrows() {
+    const scrollPosition = this.browser.nativeElement.scrollLeft;
+    const maxScrollPosition = this.browser.nativeElement.scrollWidth - this._screen.width - 18;
+    this.leftArrow.nativeElement.style.opacity = this.browser.nativeElement.scrollLeft !== 0 ? "1" : "0";
+    this.rightArrow.nativeElement.style.opacity = scrollPosition < 0.9 * maxScrollPosition  ? "1" : "0";
   }
 
   public onClickLeft() {

@@ -1,25 +1,17 @@
-
-
 .browser-container {
   position:relative;
   scroll-behavior: smooth;
 }
-.browser {
 
+
+.arrow-container {
+  opacity: 0;
+}
+
+.browser {
   margin-left: -1em;
   overflow-x: scroll;
   display: flex;
   flex-direction: row;  
   scroll-behavior: smooth;
-  /* Hide scroll bar */
-  /* IE and Edge */
-  /* -ms-overflow-style: none;   */
-  /* Firefox */
-  /* scrollbar-width: none;   */
-  }
-
-  /* Hide scroll bar */
-  /* Chrome, Safari and Opera */
-/* .browser::-webkit-scrollbar {
-    display: none; 
-  } */
+}

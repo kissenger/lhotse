@@ -44,7 +44,7 @@ export function app(): express.Express {
   */
   server.get('/api/get-all-posts/', async (req, res) => {
     try {
-      const result = await BlogModel.find({});
+      const result = await BlogModel.find({}).sort({"timeStamp": "descending"});;
       res.status(201).json(result);
     } catch (error: any) { 
       console.log(error);
@@ -53,12 +53,12 @@ export function app(): express.Express {
   });
 
     /* 
-    Get all data for all posts
-    Returns: Array<BlogPost>
-  */
+      Get all data for all posts
+      Returns: Array<BlogPost>
+    */
     server.get('/api/get-published-posts/', async (req, res) => {
       try {
-        const result = await BlogModel.find({isPublished: true});
+        const result = await BlogModel.find({isPublished: true}).sort({"timeStamp": "descending"});
         res.status(201).json(result);
       } catch (error: any) { 
         console.log(error);
