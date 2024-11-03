@@ -46,7 +46,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
             // htmlize blog entries to avoid doing it twice
             this.post = result
-            console.log(result);
+            // console.log(result);
             this.post.intro = this._htmler.transform(result.intro);
             this.post.conclusion = this._htmler.transform(result.conclusion);
             this.post.sections = result.sections.map( s => { return {

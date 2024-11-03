@@ -65,7 +65,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     //   this._window!.alert("Unsaved changed, use save or cancel button to leave");
     // } else {  
       this.selectedPost = this.posts[parseInt(value,10)];
-      console.log(this.selectedPost)
+      // console.log(this.selectedPost)
     // }
   }
 
@@ -96,7 +96,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   onSave() {
     const slug = this.selectedPost.slug;
     this.selectedPost.keywords = this._keywords.split(',').map( kw => kw.trim());
-    console.log(this.selectedPost.keywords)
+    // console.log(this.selectedPost.keywords)
     this._httpSubs = this._http.upsertPost(this.selectedPost)
       .subscribe({
         next: (result) => {
@@ -139,7 +139,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.selectedPost = new BlogPost;
     this.posts = [this.selectedPost];
     this.posts.push(...newData);    
-    console.log(this.posts)
+    // console.log(this.posts)
   }
 
   ngOnDestroy() {

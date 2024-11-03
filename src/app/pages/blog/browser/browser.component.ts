@@ -44,7 +44,7 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
       const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
       this._httpSubs = getFunction.subscribe({
         next: (result) => {
-          console.log(result);
+          // console.log(result);
           this.posts = result;
           this._data.isBlogDataEmitter.emit(this.posts.length !== 0);
         },
@@ -60,7 +60,7 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   ngAfterViewInit() {
 
     // if on touchscreen then dont need mouseenter behaviour
-    if ( this._window &&  ('ontouchstart' in this._window || navigator.maxTouchPoints > 0 )) {
+    if ( this._window &&  ('ontouchstart' in this._window || this._window.navigator.maxTouchPoints > 0 )) {
       this.checkArrows();
       this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
       
