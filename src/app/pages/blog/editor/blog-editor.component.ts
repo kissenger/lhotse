@@ -11,7 +11,6 @@ import { environment } from '@environments/environment';
 @Component({
   selector: 'app-blog-editor',
   standalone: true,
-  // changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, FormsModule, PostShowerComponent, KebaberPipe],  
   providers: [CommonModule, KebaberPipe],
   templateUrl: './blog-editor.component.html',
