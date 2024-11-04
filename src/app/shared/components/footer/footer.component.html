@@ -1,8 +1,6 @@
+<!-- @if seems to destroy flex behaviour so dont be tempted to make this neater...  -->
 
-
-
-   <!-- @if seems to destroy flex bebah  -->
-  @if (screen.widthDescriptor === 'small') {
+@if (screen.widthDescriptor === 'small') {
   <footer #footer id="footer">
     <span>Follow us on <a href="https://www.instagram.com/snorkelology/">Instagram</a> </span> 
     <span>&copy; Snorkelology 2022-{{fullYear}}</span>
