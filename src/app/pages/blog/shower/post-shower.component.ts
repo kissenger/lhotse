@@ -4,7 +4,7 @@ import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
@@ -18,7 +18,7 @@ import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.compon
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
   imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, 
-    KebaberPipe, HtmlerPipe, SanitizerPipe, BannerAdComponent]
+    KebaberPipe, HtmlerPipe, SanitizerPipe, BannerAdComponent, CommonModule]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;

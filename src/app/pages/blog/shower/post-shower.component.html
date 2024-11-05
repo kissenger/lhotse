@@ -7,8 +7,16 @@
             [alt]="post.imgAlt"
             priority
             fill /> 
-        <div> 
+        <div class="title-image-caption"> 
             <h1>{{post.title}}</h1>
+            <div class="below-title-text">
+                <span>Published {{post.timeStamp | date : 'MMM YYYY'}}</span> <br />
+                <div>
+                @for (kw of post.keywords; track kw) {
+                    <span class="kw">{{kw}}</span>
+                }
+                </div>
+            </div>
         </div>
     </div>
 
@@ -41,6 +49,10 @@
                         [alt]="section.imgAlt"
                         fill
                     /> 
+                    <div class="image-caption">
+                        {{section.imgAlt}} <br />
+                        Photo credit: Snorkelology
+                    </div>
                 </div>
             }
             <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
