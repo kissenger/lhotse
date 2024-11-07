@@ -4,10 +4,10 @@
     <div class="static-div">
         <form>
             <label for="select">Select a post to edit:</label>
-            <select #blogs (change)="onFormSelect(blogs.value)" name="select" id="select">
+            <select #blogs [ngModel]="selectedPost.slug" (ngModelChange)="onFormSelect($event)" name="select" id="select">
                 @for(post of posts; track post) {
-                    <option value="{{$index}}">
-                        {{post.slug}} - {{post.isPublished ? 'published' : 'draft'}}
+                    <option value="{{post.slug}}">
+                        {{post.title}} - {{post.isPublished ? 'Published' : 'Draft'}}
                     </option>
                 }
             </select>
@@ -55,14 +55,22 @@
             
             <div>
                 <label for="subtitle">Subtitle:</label>
-                <input type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle">
+                <textarea type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"></textarea>
             </div>
 
             <div>
                 <label for="keywords">Keywords:</label>
-                <input type="text" id="keywords" name="keywords" (ngModelChange)="onKeywordsChange($event)" [ngModel]="selectedPost.keywords">
-            </div>
+                <input type="text" id="keywords" name="keywords" (change)="onKeywordsChange($event)" [ngModel]="selectedPost.keywords">
 
+            </div>          
+            <div>
+                <label for="kwList">Add from list:</label>
+                <select #kwList [ngModel]="uniqueKeywords" (ngModelChange)="onAddKW($event)" name="kwList" id="kwList">
+                    @for (kw of uniqueKeywords; track kw) {
+                        <option value="{{kw}}">{{kw}}</option>
+                    }
+                </select>
+            </div>
             <div>
                 <label for="fname">Image filename:</label>
                 <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname">                   

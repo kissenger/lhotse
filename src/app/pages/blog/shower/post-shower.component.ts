@@ -10,6 +10,7 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
+import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 
 @Component({
   selector: 'app-post-shower',
@@ -17,12 +18,15 @@ import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.compon
   providers: [HtmlerPipe, SanitizerPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, 
+  imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, SvgArrowComponent,
     KebaberPipe, HtmlerPipe, SanitizerPipe, BannerAdComponent, CommonModule]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
   public isReadyToLoad: boolean = false;
+  public nextSlug: string = '';
+  public lastSlug: string = '';
+
   private _httpSubs: Subscription | undefined;  
   private _routeSubs: Subscription | undefined;  
 
@@ -39,22 +43,27 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     // console.log(this.questions);
     this._routeSubs = this._route.params.subscribe(params => {
 
-      // this is a hack to avoid an error 
+        // this is a hack to avoid an error 
       if (!params['slug'].match('map')) {
         this._httpSubs = this._http.getPostBySlug(params['slug']).subscribe({
           next: (result) => {
 
             // htmlize blog entries to avoid doing it twice
-            this.post = result
-            // console.log(result);
-            this.post.intro = this._htmler.transform(result.intro);
-            this.post.conclusion = this._htmler.transform(result.conclusion);
-            this.post.sections = result.sections.map( s => { return {
+            this.post = result.article;
+            this.post.intro = this._htmler.transform(result.article.intro);
+            this.post.conclusion = this._htmler.transform(result.article.conclusion);
+            this.post.sections = result.article.sections.map( s => { return {
               title: s.title, 
               content: this._htmler.transform(s.content), 
               imgFname: s.imgFname,
               imgAlt: s.imgAlt
             }})
+
+            this.nextSlug = result.nextSlug;
+            this.lastSlug = result.lastSlug;
+
+            console.log(this.nextSlug)
+            console.log(this.lastSlug)
 
             this.isReadyToLoad = true;
 
@@ -71,12 +80,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             }
             this._seo.addStructuredData(entity);
 
-        },
-        error: (error) => {
-          console.log(error);
-        }
-      }) 
-    }
+          },
+          error: (error) => {
+            console.log(error);
+          }
+        }) 
+      }
     });
 
   }

@@ -5,7 +5,7 @@ export class BlogPost {
   title: string = 'New Post';
   type: 'faq' | 'article' = 'faq';
   isPublished: boolean = false;
-  keywords: Array<string> = [''];
+  keywords: Array<string> = [];
   subtitle: string = '';
   imgFname: string = '';
   imgAlt: string = '';

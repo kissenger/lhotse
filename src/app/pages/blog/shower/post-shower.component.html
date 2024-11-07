@@ -7,20 +7,33 @@
             [alt]="post.imgAlt"
             priority
             fill /> 
-        <div class="title-image-caption"> 
-            <h1>{{post.title}}</h1>
-            <div class="below-title-text">
-                <span>Published {{post.timeStamp | date : 'MMM YYYY'}}</span> <br />
-                <div>
-                @for (kw of post.keywords; track kw) {
-                    <span class="kw">{{kw}}</span>
-                }
-                </div>
+        <div class="image-caption">
+            {{post.imgAlt}} <br />
+            Photo credit: Snorkelology
+        </div>       
+            <div #leftArrow class="arrow-container"> 
+                <a href="blog/{{lastSlug}}"><app-svg-arrow direction="left"></app-svg-arrow></a>
             </div>
-        </div>
+            <div #rightArrow class="arrow-container">        
+                <a href="blog/{{nextSlug}}"><app-svg-arrow direction="right"></app-svg-arrow></a>
+            </div>  
     </div>
 
     <div class="dynamic-container">
+        <!-- <div class="last-next-nav">
+            <a href="blog/{{lastSlug}}"> &lt;Previous Post </a> | <a href="blog/{{nextSlug}}">Next Post&gt;</a>
+        </div> -->
+            <h1>{{post.title}}</h1>
+
+        <div class="below-title-text">
+            Published {{post.timeStamp | date : 'MMM YYYY'}} <br />
+            <div>
+                @for (kw of post.keywords; track kw) {
+                    <span class="kw">{{kw}}</span>
+                }
+            </div>
+            
+        </div>
 
         <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
 

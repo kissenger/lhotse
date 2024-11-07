@@ -12,7 +12,7 @@ import { environment } from '@environments/environment';
   selector: 'app-blog-editor',
   standalone: true,
   imports: [NgClass, FormsModule, PostShowerComponent, KebaberPipe],  
-  providers: [CommonModule, KebaberPipe],
+  providers: [CommonModule, KebaberPipe], 
   templateUrl: './blog-editor.component.html',
   styleUrl: './blog-editor.component.css'
 })
@@ -23,10 +23,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   private _window;
   public baseURL: string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
 
-  public selectedPost = new BlogPost;
+  public uniqueKeywords: Array<string> = [];
+  public selectedPost: BlogPost = new BlogPost;
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
-  private _keywords: string = '';
   
   constructor(
       private _http: HttpService,
@@ -40,6 +40,18 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.getPosts();
   }
 
+  getUniqueKeywords() {
+    let kws: Array<string> = [];
+    this.posts.forEach(p => {
+      p.keywords.forEach(kw => {
+        if(kw !== '' && !kws.includes(kw)) {
+          kws.push(kw);
+        }
+      })
+    })
+    this.uniqueKeywords = kws.sort();
+    console.log(kws);
+  }
 
   getPosts() {
     this._httpSubs = this._http.getAllPosts()
@@ -60,12 +72,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   }
 
   onFormSelect(value: string) {
-    // if (this.isChanged) {
-    //   this._window!.alert("Unsaved changed, use save or cancel button to leave");
-    // } else {  
-      this.selectedPost = this.posts[parseInt(value,10)];
-      // console.log(this.selectedPost)
-    // }
+    this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
   }
 
   onMoveSection(fromIndex: number, toIndex: string) {
@@ -73,34 +80,35 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.selectedPost.sections.splice(fromIndex,1);
     this.selectedPost.sections.splice(parseInt(toIndex),0,elementToMove);
   }
-  onChange() {
-    // this.isChanged = true;
-  }
-
 
   addQA() {
-    // this.isChanged = true;
     this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: ""})
   }
 
   deleteQA(index: number) {
-    // this.isChanged = true;
     this.selectedPost.sections.splice(index,1); 
   }
 
-  onKeywordsChange(kws: string) {
-    this._keywords = kws;
+  onAddKW(value: string) {
+    this.selectedPost.keywords = [...this.selectedPost.keywords, value];
   }
+
+  onKeywordsChange(event: any) {
+    this.selectedPost.keywords = event.target.value
+      .split(",")
+      .map( (kw: string) => kw.trim())
+      .filter( (kw: string) => kw !== '');
+  }
+
+  
 
   onSave() {
     const slug = this.selectedPost.slug;
-    this.selectedPost.keywords = this._keywords.split(',').map( kw => kw.trim());
-    // console.log(this.selectedPost.keywords)
     this._httpSubs = this._http.upsertPost(this.selectedPost)
       .subscribe({
         next: (result) => {
           this.refreshPostList(result);
-          this.selectedPost = this.posts.filter(p => p.slug == slug)[0];
+          this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
           this._window!.alert("Post successfully updated!");
         },
         error: (error) => {
@@ -137,8 +145,10 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   refreshPostList(newData: Array<BlogPost>) {
     this.selectedPost = new BlogPost;
     this.posts = [this.selectedPost];
-    this.posts.push(...newData);    
-    // console.log(this.posts)
+    this.posts.push(...newData);  
+    this.getUniqueKeywords();
+
+    console.log(this.uniqueKeywords)
   }
 
   ngOnDestroy() {

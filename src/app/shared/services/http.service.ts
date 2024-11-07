@@ -25,7 +25,7 @@ export class HttpService {
   }
 
   getPostBySlug(slug: string) {
-    return this.http.get<BlogPost>(`${this._backendURL}/get-post-by-slug/${slug}`);
+    return this.http.get<{article: BlogPost, nextSlug: string, lastSlug: string}>(`${this._backendURL}/get-post-by-slug/${slug}`);
   }
 
   upsertPost(post: BlogPost) {
