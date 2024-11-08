@@ -26,7 +26,7 @@ import { RouterLink } from '@angular/router';
         </div>
         <div class="footer">
           <div class="published-date">
-            Published {{data.timeStamp | date : 'MMM YYYY'}}
+            Published {{data.createdAt | date : 'MMM YYYY'}}
           </div>
           <div class="keywords">
             @for (kw of data.keywords; track kw) {

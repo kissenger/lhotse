@@ -10,9 +10,10 @@ export class BlogPost {
   imgFname: string = '';
   imgAlt: string = '';
   intro: string = '';
-  timeStamp: string = '';
   sections: Array<{title: string, content: string, imgFname: string, imgAlt: string}> = [{title: '', content: '', imgFname: '', imgAlt: ''}]
   conclusion: string = '';
+  createdAt: string = '';
+  updatedAt: string = '';
 }
 
 export type ImageType = 'partner' | 'social' | 'article' | 'slideshow' | 'content' | 'parallax' | 'banner';

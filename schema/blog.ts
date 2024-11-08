@@ -10,7 +10,6 @@ const blogSchema = new mongoose.Schema({
   intro: {type: String, required: true},
   imgFname: {type: String, required: true},
   imgAlt: {type: String, required: true},
-  timeStamp: {type: Date, default: Date.now},
   sections: {type: [{
     title: {type: String},
     content: {type: String},
@@ -18,7 +17,7 @@ const blogSchema = new mongoose.Schema({
     imgAlt: {type: String}
   }]},
   conclusion: {type: String, required: true}
-})
+}, {timestamps: true})
 
 const BlogModel = model('post', blogSchema);
 

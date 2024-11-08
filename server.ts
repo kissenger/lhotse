@@ -44,7 +44,7 @@ export function app(): express.Express {
   */
   server.get('/api/get-all-posts/', async (req, res) => {
     try {
-      const result = await BlogModel.find({}).sort({"timeStamp": "descending"});;
+      const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
       res.status(201).json(result);
     } catch (error: any) { 
       console.log(error);
@@ -58,7 +58,7 @@ export function app(): express.Express {
     */
     server.get('/api/get-published-posts/', async (req, res) => {
       try {
-        const result = await BlogModel.find({isPublished: true}).sort({"timeStamp": "descending"});
+        const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
         res.status(201).json(result);
       } catch (error: any) { 
         console.log(error);
@@ -87,7 +87,7 @@ export function app(): express.Express {
   server.get('/api/get-post-by-slug/:slug', async (req, res) => {
     try {
       
-      const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"timeStamp": "descending"});
+      const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
       const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
       const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
       const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
@@ -99,34 +99,38 @@ export function app(): express.Express {
     }
   });
 
-  /* 
-<?xml version="1.0" encoding="UTF-8"?> 
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> 
-    <url>
-        <loc>http://snorkelology.co.uk/</loc>
-    </url>
-    <url>
-        <loc>https://snorkelology.co.uk/blog/the-science-of-snorkelling-part-one</loc>
-    </url>
-    <url>
-        <loc>https://snorkelology.co.uk/blog/beginners-guide-to-snorkelling-in-britain</loc>
-    </url>
-    <url>
-        <loc>https://snorkelology.co.uk/blog/snorkelling-and-immersion-pulmonary-odema-ipo</loc>
-    </url>
-</urlset>
-  */
-  server.get('/api/sitemap/', async (req, res) => {
+  server.post('/api/upsert-post/', async (req, res) => {
     try {
-        const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"timeStamp": "descending"});
+      if (req.body._id !=='') {
+        await BlogModel.findByIdAndUpdate(req.body._id, req.body);
+      } else {
+        delete req.body._id;
+        delete req.body.createdAt;
+        await BlogModel.create(req.body);
+      }
+      const result = await BlogModel.find({});
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  server.get('/api/sitemap/', async (req, res) => {
+    // const today = new Date();
+    // const todayString = `${today.getFullYear}-${today.getMonth}-${today.getDate}`
+    try {
+        const listOfSlugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
         let outString = '&lt;?xml version="1.0" encoding="UTF-8"?&gt;<br />';
         outString += '&lt;urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"&gt;<br />';
         outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
         outString += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/&lt;/loc&gt;<br />';
+        outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${new Date().toISOString()}&lt;/loc&gt;<br />`;
         outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';
         listOfSlugs.forEach( s => {
           outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
           outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/blog/${s.slug}&lt;/loc&gt;<br />`;
+          outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${s.updatedAt.toISOString()}&lt;/loc&gt;<br />`;
           outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';          
         });
         outString += '&lt;/urlset&gt;';

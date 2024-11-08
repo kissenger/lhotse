@@ -26,7 +26,7 @@
             <h1>{{post.title}}</h1>
 
         <div class="below-title-text">
-            Published {{post.timeStamp | date : 'MMM YYYY'}} <br />
+            Published {{post.createdAt | date : 'MMM YYYY'}} <br />
             <div>
                 @for (kw of post.keywords; track kw) {
                     <span class="kw">{{kw}}</span>
