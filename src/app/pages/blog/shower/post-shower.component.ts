@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BlogEditorComponent } from '@pages/blog/editor/blog-editor.component';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -18,8 +17,8 @@ import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.compon
   providers: [HtmlerPipe, SanitizerPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [NgOptimizedImage, BlogEditorComponent, RouterLink, SvgArrowComponent,
-    KebaberPipe, HtmlerPipe, SanitizerPipe, BannerAdComponent, CommonModule]
+  imports: [NgOptimizedImage, RouterLink, SvgArrowComponent,
+    KebaberPipe, SanitizerPipe, BannerAdComponent, CommonModule]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
@@ -61,9 +60,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
             this.nextSlug = result.nextSlug;
             this.lastSlug = result.lastSlug;
-
-            console.log(this.nextSlug)
-            console.log(this.lastSlug)
 
             this.isReadyToLoad = true;
 

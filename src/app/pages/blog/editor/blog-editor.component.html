@@ -50,12 +50,12 @@
 
             <div>
                 <label for="title">Title:</label>
-                <input type="text" id="title" name="title" [(ngModel)]="selectedPost.title">
+                <input type="text" id="title" name="title" [class.alert]="wordCount(selectedPost.title, 7)" [(ngModel)]="selectedPost.title">
             </div>
             
             <div>
                 <label for="subtitle">Subtitle:</label>
-                <textarea type="text" id="subtitle" name="subtitle" [(ngModel)]="selectedPost.subtitle"></textarea>
+                <textarea type="text" id="subtitle" [class.alert]="wordCount(selectedPost.subtitle, 30)" name="subtitle" [(ngModel)]="selectedPost.subtitle"></textarea>
             </div>
 
             <div>

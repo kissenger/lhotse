@@ -4,14 +4,13 @@ import { BlogPost } from '@shared/types';
 import { Subscription } from 'rxjs';
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
-import { PostShowerComponent } from '../shower/post-shower.component';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-editor',
   standalone: true,
-  imports: [NgClass, FormsModule, PostShowerComponent, KebaberPipe],  
+  imports: [NgClass, FormsModule],  
   providers: [CommonModule, KebaberPipe], 
   templateUrl: './blog-editor.component.html',
   styleUrl: './blog-editor.component.css'
@@ -64,6 +63,11 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
           this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
         }
       }) 
+  }
+
+  wordCount(v: string, n: number) {
+    console.log(v.split(" ").length > n)
+    return v.split(" ").length > n;
   }
 
   makeSlug() {

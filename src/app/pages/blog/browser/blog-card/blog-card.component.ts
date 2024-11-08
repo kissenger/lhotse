@@ -20,17 +20,19 @@ import { RouterLink } from '@angular/router';
       </div>
 
       <div class="content">
-        <div class="title">{{data.title}}</div>
+        <h4>{{data.title}}</h4>
         <div class="subtitle">
           {{data.subtitle}}
         </div>
         <div class="footer">
-          Published {{data.timeStamp | date : 'MMM YYYY'}}
-          <p>
-          @for (kw of data.keywords; track kw) {
-            <span class="kw">{{kw}}</span>
-          }
-        </p>
+          <div class="published-date">
+            Published {{data.timeStamp | date : 'MMM YYYY'}}
+          </div>
+          <div class="keywords">
+            @for (kw of data.keywords; track kw) {
+              <span class="kw">{{kw}}</span>
+            }
+          </div>
         </div>
       </div>
     </div>

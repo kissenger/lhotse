@@ -77,8 +77,6 @@ export function app(): express.Express {
       const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
       const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
       const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
-      console.log(lastSlug);
-      console.log(nextSlug);
       const article = await BlogModel.findOne({slug: req.params.slug});
       res.status(201).json({article, lastSlug, nextSlug});
     } catch (error: any) {
