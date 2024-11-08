@@ -125,12 +125,12 @@ export function app(): express.Express {
         outString += '&lt;urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"&gt;<br />';
         outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
         outString += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/&lt;/loc&gt;<br />';
-        outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${new Date().toISOString()}&lt;/loc&gt;<br />`;
+        outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${new Date().toISOString()}&lt;/lastmod&gt;<br />`;
         outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';
         listOfSlugs.forEach( s => {
           outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
           outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/blog/${s.slug}&lt;/loc&gt;<br />`;
-          outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${s.updatedAt.toISOString()}&lt;/loc&gt;<br />`;
+          outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${s.updatedAt.toISOString()}&lt;/lastmod&gt;<br />`;
           outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';          
         });
         outString += '&lt;/urlset&gt;';
