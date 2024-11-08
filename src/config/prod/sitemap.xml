@@ -1,28 +1,27 @@
-<!-- https://beta.snorkelology.co.uk/api/sitemap -->
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
    <url>
       <loc>https://snorkelology.co.uk/</loc>
-      <lastmod>2024-11-08T20:18:27.074Z</loc>
+      <lastmod>2024-11-08T21:02:52.256Z</lastmod>
    </url>
    <url>
       <loc>https://snorkelology.co.uk/blog/the-importance-of-seagrass</loc>
-      <lastmod>2024-11-08T20:03:09.906Z</loc>
+      <lastmod>2024-11-08T20:03:09.906Z</lastmod>
    </url>
    <url>
       <loc>https://snorkelology.co.uk/blog/top-ten-reasons-to-try-snorkelling-in-britain</loc>
-      <lastmod>2024-11-08T20:03:27.300Z</loc>
+      <lastmod>2024-11-08T20:03:27.300Z</lastmod>
    </url>
    <url>
       <loc>https://snorkelology.co.uk/blog/snorkelling-and-immersion-pulmonary-odema-ipo</loc>
-      <lastmod>2024-11-08T20:03:23.713Z</loc>
+      <lastmod>2024-11-08T20:03:23.713Z</lastmod>
    </url>
    <url>
       <loc>https://snorkelology.co.uk/blog/the-science-of-snorkelling-part-one</loc>
-      <lastmod>2024-11-08T20:09:43.238Z</loc>
+      <lastmod>2024-11-08T20:09:43.238Z</lastmod>
    </url>
    <url>
       <loc>https://snorkelology.co.uk/blog/beginners-guide-to-snorkelling-in-britain</loc>
-      <lastmod>2024-11-08T20:03:16.536Z</loc>
+      <lastmod>2024-11-08T20:03:16.536Z</lastmod>
    </url>
 </urlset>
