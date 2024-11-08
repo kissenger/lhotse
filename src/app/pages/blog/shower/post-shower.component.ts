@@ -122,7 +122,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           "@id": "https://snorkelology.co.uk/assets/${this.post.imgFname}",
           "url": "https://snorkelology.co.uk/assets/${this.post.imgFname}" },
         "url": "https://snorkelology.co.uk/blog/${this.post.slug}"
-        }
+        }]
         `
   }
 
@@ -133,7 +133,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       "name": "${q.title}",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "${q.content.replaceAll('\"','\'')}"}}`
+        "text": "${q.content.replaceAll('\"','\'')}",
+        "datePublished": "${this.post.createdAt}",
+        "dateModified": "${this.post.updatedAt}"
+        }
+      }`
+        
     }).join(",");
 
     return `
