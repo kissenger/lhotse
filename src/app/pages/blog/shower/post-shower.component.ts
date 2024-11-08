@@ -110,6 +110,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         "mainEntityOfPage": "https://snorkelology.co.uk/blog/${this.post.slug}",
         "headline": "${this.post.title}",
         "name": "${this.post.title}",
+        "datePublished": "${this.post.createdAt}",
+        "dateModified": "${this.post.updatedAt}",
         "description": "A blog post authored by Snorkelogy. ${this.post.subtitle}",
         "author": {
           "@type": "organization",
