@@ -10,6 +10,7 @@ import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
+// import { Router } from 'express';
 
 @Component({
   selector: 'app-post-shower',
@@ -33,7 +34,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     private _http: HttpService,
     private _route: ActivatedRoute,
     private _seo: SEOService,
-    private _htmler: HtmlerPipe
+    private _htmler: HtmlerPipe,
+    // private _router: Router
   ) {
 
   }
@@ -45,8 +47,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         // this is a hack to avoid an error 
       if (!params['slug'].match('map')) {
         this._httpSubs = this._http.getPostBySlug(params['slug']).subscribe({
-          next: (result) => {
+          next: (result: {article: BlogPost, nextSlug: string, lastSlug:string}) => {
 
+            // console.log(result);
             // htmlize blog entries to avoid doing it twice
             this.post = result.article;
             this.post.intro = this._htmler.transform(result.article.intro);
@@ -79,6 +82,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           },
           error: (error) => {
             console.log(error);
+            // (<any>this._router).navigate("404"); 
           }
         }) 
       }

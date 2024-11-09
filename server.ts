@@ -70,31 +70,21 @@ export function app(): express.Express {
     Get post from provided slug
     Returns: BlogPost
   */
+
   server.get('/api/get-post-by-slug/:slug', async (req, res) => {
     try {
-      
-      const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"timeStamp": "descending"});
-      const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
-      const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
-      const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
-      const article = await BlogModel.findOne({slug: req.params.slug});
-      res.status(201).json({article, lastSlug, nextSlug});
-    } catch (error: any) {
-      console.log(error);
-      res.status(500).send(error);
-    }
-  });
-  server.get('/api/get-post-by-slug/:slug', async (req, res) => {
-    try {
-      
       const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
       const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
       const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
       const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
       const article = await BlogModel.findOne({slug: req.params.slug});
-      res.status(201).json({article, lastSlug, nextSlug});
+      if (article){
+        res.status(201).json({article, lastSlug, nextSlug});
+      } else {
+        // res.status(404).send(new Error('Not Found'));
+        throw new Error('Not Found')
+      }
     } catch (error: any) {
-      console.log(error);
       res.status(500).send(error);
     }
   });

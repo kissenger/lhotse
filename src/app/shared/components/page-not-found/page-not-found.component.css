@@ -1,0 +1,15 @@
+.four0four {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  margin-top: 5em;
+}
+.sorry-text {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  margin-top: 0.5em;
+  margin-bottom: 5em;
+}
