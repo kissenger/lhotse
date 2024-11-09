@@ -81,7 +81,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           },
           error: (error) => {
             console.log(error);
-            this._router.navigate(["404"]); 
+            this._router.navigate(["/","404"]); 
           }
         }) 
       }
