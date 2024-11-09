@@ -152,7 +152,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.posts.push(...newData);  
     this.getUniqueKeywords();
 
-    console.log(this.uniqueKeywords)
+    // console.log(this.uniqueKeywords)
   }
 
   ngOnDestroy() {

@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
@@ -18,8 +18,7 @@ import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.compon
   providers: [HtmlerPipe, SanitizerPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [NgOptimizedImage, RouterLink, SvgArrowComponent,
-    KebaberPipe, SanitizerPipe, BannerAdComponent, CommonModule]
+  imports: [SvgArrowComponent, KebaberPipe, SanitizerPipe, BannerAdComponent, CommonModule, RouterLink, NgOptimizedImage]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
@@ -32,10 +31,10 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   constructor(
     private _http: HttpService,
-    private _route: ActivatedRoute,
+    @Inject(ActivatedRoute) private _route: ActivatedRoute,
     private _seo: SEOService,
     private _htmler: HtmlerPipe,
-    // private _router: Router
+    @Inject(Router) private _router: Router
   ) {
 
   }
@@ -82,7 +81,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           },
           error: (error) => {
             console.log(error);
-            // (<any>this._router).navigate("404"); 
+            this._router.navigate(["404"]); 
           }
         }) 
       }
