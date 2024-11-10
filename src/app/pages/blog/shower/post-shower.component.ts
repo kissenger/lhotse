@@ -84,7 +84,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             console.log(error);
             
             if (isPlatformBrowser(this.platformId)) {
-              this._router.navigateByUrl('/page-not-found'); 
+              // this._router.navigateByUrl('/page-not-found'); 
+              this._router.navigate(['/page-not-found']); 
             }
           }
         }) 
