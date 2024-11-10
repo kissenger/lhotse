@@ -25,7 +25,6 @@ export class AppComponent {
   ) {
     let _window = _document.defaultView;
     this.showHeaderFooter = _window?.location.href.match('blogeditor') === null;
-    this._router.events.subscribe(console.log)
   }
 
 

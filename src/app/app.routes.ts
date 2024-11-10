@@ -5,7 +5,7 @@ import { PageNotFoundComponent } from '@shared/components/page-not-found/page-no
 import { MainComponent } from '@pages/main/main.component';
 
 export const routes: Routes = [
-  { path: '', component: MainComponent },
+  { path: '', pathMatch: 'full', component: MainComponent },
   { path: 'blog/:slug', component: PostShowerComponent },
   { path: 'blogeditor', component: BlogEditorComponent },
   { path: 'page-not-found', component: PageNotFoundComponent},
