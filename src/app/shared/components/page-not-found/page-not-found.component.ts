@@ -11,6 +11,7 @@ import { BlogBrowserComponent } from "../../../pages/blog/browser/browser.compon
 export class PageNotFoundComponent{
 
   constructor(
-  ) { 
+  ) {
+    console.log('404') 
   }
 }

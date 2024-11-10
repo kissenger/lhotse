@@ -8,6 +8,6 @@ export const routes: Routes = [
   { path: '', component: MainComponent },
   { path: 'blog/:slug', component: PostShowerComponent },
   { path: 'blogeditor', component: BlogEditorComponent },
-  { path: '404', component: PageNotFoundComponent},
+  { path: 'page-not-found', component: PageNotFoundComponent},
   // { path: '**', component: PageNotFoundComponent}
 ];

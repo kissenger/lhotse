@@ -15,9 +15,9 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'enabled',
         anchorScrolling: 'enabled'
       }),
-      withRouterConfig({
-        onSameUrlNavigation: 'reload'
-      }),
+      // withRouterConfig({
+      //   onSameUrlNavigation: 'reload'
+      // }),
     ), 
     provideClientHydration(),
     provideHttpClient(withFetch()),
