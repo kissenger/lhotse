@@ -9,5 +9,5 @@ export const routes: Routes = [
   { path: 'blog/:slug', component: PostShowerComponent },
   { path: 'blogeditor', component: BlogEditorComponent },
   { path: '404', component: PageNotFoundComponent},
-  { path: '**', component: PageNotFoundComponent}
+  // { path: '**', component: PageNotFoundComponent}
 ];
