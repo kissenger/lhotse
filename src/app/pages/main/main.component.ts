@@ -1,5 +1,5 @@
-import { ActivatedRoute, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { ActivatedRoute} from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from '@shared/services/screen.service';
@@ -11,18 +11,12 @@ import { FAQComponent } from '@pages/main/faq/faq.component';
 import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
 import { SEOService } from '@shared/services/seo.service';
-import { HeaderComponent } from '@shared/components/header/header.component';
 import { DataService } from '@shared/services/data.service';
-import { BannerAdComponent } from "@shared/components/banner-ad/banner-ad.component";
 
 
 @Component({
   standalone: true,
-  imports: [
-    NgOptimizedImage, RouterOutlet, RouterLink, RouterLinkActive, HeaderComponent, CommonModule,
-    SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent,
-    BannerAdComponent
-],
+  imports: [SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent ],
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']

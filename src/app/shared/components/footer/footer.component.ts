@@ -1,11 +1,9 @@
 import { ScreenService } from '../../services/screen.service';
 import { Component} from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [],
   selector: 'app-footer',
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css']

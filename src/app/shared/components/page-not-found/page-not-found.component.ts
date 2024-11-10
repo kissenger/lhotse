@@ -12,6 +12,6 @@ export class PageNotFoundComponent{
 
   constructor(
   ) {
-    console.log('404') 
+    // console.log('404') 
   }
 }

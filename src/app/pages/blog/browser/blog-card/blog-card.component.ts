@@ -9,13 +9,14 @@ import { RouterLink } from '@angular/router';
   selector: 'app-blog-card',
   template: `
 
-    <div class="blog-card" [routerLink]="'blog/'+data.slug">
+    <div class="blog-card" [routerLink]="'/blog/'+data.slug">
 
       <div class="photo">
         <img
           ngSrc="{{data.imgFname}}"
           alt="{{data.imgAlt}}"
           fill
+          priority
         />
       </div>
 

@@ -3,14 +3,13 @@ import { ScrollspyService } from '../../services/scrollspy.service';
 import { ScreenService } from '../../services/screen.service';
 import { Subscription } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { NgOptimizedImage } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { DataService } from '@shared/services/data.service';
 
 @Component({
   standalone: true,
   providers: [],
-  imports: [RouterLink, CommonModule, NgOptimizedImage, RouterOutlet, RouterLinkActive],
+  imports: [RouterLink, CommonModule],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']

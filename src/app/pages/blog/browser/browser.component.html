@@ -1,6 +1,6 @@
 <div class="browser-container">
     <div #browser class="browser dynamic-container">
-      @for (post of posts; track posts) {
+      @for (post of posts; track post) {
         <app-blog-card [data]="post"></app-blog-card>
       }
     </div>

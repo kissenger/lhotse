@@ -27,10 +27,6 @@ export function app(): express.Express {
   
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
-  // console.log(serverDistFolder)
-  // console.log(browserDistFolder)
-  // console.log(indexHtml)
-
   const commonEngine = new CommonEngine();
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
@@ -161,7 +157,6 @@ export function app(): express.Express {
   server.get('*', (req, res, next) => {
     
     const { protocol, originalUrl, baseUrl, headers } = req;
-    console.log(`${protocol}://${headers.host}${originalUrl}`)
     commonEngine
       .render({
         bootstrap,

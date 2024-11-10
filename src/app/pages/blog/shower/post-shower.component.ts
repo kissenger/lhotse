@@ -10,7 +10,6 @@ import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
-import { environment } from '@environments/environment';
 // import { Router } from 'express';
 
 @Component({
@@ -65,8 +64,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this.nextSlug = result.nextSlug;
             this.lastSlug = result.lastSlug;
 
-            this.isReadyToLoad = true;
-
             this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
             this._seo.updateTitle(this.post.title);
             this._seo.updateKeywords(this.post.keywords.join(', '));
@@ -79,16 +76,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
               entity = this.makeArticleEntity();
             }
             this._seo.addStructuredData(entity);
-
+            
+            this.isReadyToLoad = true;
           },
           error: (error) => {
             console.log(error);
-            
-            // if (isPlatformBrowser(this.platformId)) {
-// console.log(`${environment.PROTOCOL}://${environment.BASE_URL}/page-not-found`)
-              this._router.navigateByUrl(`/page-not-found`); 
-              // this._router.navigate(['/page-not-found']); 
-            // }
+            this._router.navigateByUrl(`/page-not-found`); 
           }
         }) 
       }

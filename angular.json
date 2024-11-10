@@ -114,13 +114,13 @@
             },
 
 
-            "dev": {
+            "development": {
               "tsConfig": "tsconfig.json",  
               "ssr": {
                 "entry": "server.ts"
               },                                         
               "outputPath": "dist/dev",              
-              "optimization": true,               
+              "optimization": false,               
               "extractLicenses": false,
               "sourceMap": true,
               "index": "src/config/beta/index.html",
@@ -137,7 +137,7 @@
               ]                     
             }
           },
-          "defaultConfiguration": "dev"
+          "defaultConfiguration": "development"
         },
 
 
@@ -147,11 +147,11 @@
             "production": {
               "buildTarget": "lhotse:build:production"
             },
-            "dev": {
-              "buildTarget": "lhotse:build:dev"
+            "development": {
+              "buildTarget": "lhotse:build:development" 
             }
           },
-          "defaultConfiguration": "dev"
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
