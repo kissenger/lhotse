@@ -1,9 +1,9 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, isPlatformBrowser, isPlatformServer, NgOptimizedImage } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
@@ -31,6 +31,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   constructor(
     private _http: HttpService,
+    @Inject(PLATFORM_ID) private platformId: any,
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
     private _seo: SEOService,
     private _htmler: HtmlerPipe,
@@ -81,7 +82,10 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           },
           error: (error) => {
             console.log(error);
-            this._router.navigateByUrl('/page-not-found'); 
+            
+            if (isPlatformBrowser(this.platformId)) {
+              this._router.navigateByUrl('/page-not-found'); 
+            }
           }
         }) 
       }
