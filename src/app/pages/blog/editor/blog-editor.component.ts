@@ -49,7 +49,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
       })
     })
     this.uniqueKeywords = kws.sort();
-    console.log(kws);
   }
 
   getPosts() {
@@ -66,7 +65,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
   }
 
   wordCount(v: string, n: number) {
-    console.log(v.split(" ").length > n)
     return v.split(" ").length > n;
   }
 
@@ -103,8 +101,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
       .map( (kw: string) => kw.trim())
       .filter( (kw: string) => kw !== '');
   }
-
-  
 
   onSave() {
     const slug = this.selectedPost.slug;
@@ -151,8 +147,6 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.posts = [this.selectedPost];
     this.posts.push(...newData);  
     this.getUniqueKeywords();
-
-    // console.log(this.uniqueKeywords)
   }
 
   ngOnDestroy() {

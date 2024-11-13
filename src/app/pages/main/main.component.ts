@@ -11,12 +11,16 @@ import { FAQComponent } from '@pages/main/faq/faq.component';
 import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
 import { SEOService } from '@shared/services/seo.service';
-import { DataService } from '@shared/services/data.service';
+import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
 
 
 @Component({
   standalone: true,
-  imports: [SlideshowComponent, AboutUsComponent, ExploreComponent, FAQComponent, PartnersComponent, BookComponent ],
+  providers: [BlogBrowserComponent],
+  imports: [
+    SlideshowComponent, AboutUsComponent, ExploreComponent, 
+    FAQComponent, PartnersComponent, BookComponent,
+    ],
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']
@@ -43,7 +47,7 @@ export class MainComponent implements AfterViewInit {
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
     private _seo: SEOService,
-    private _data: DataService
+    private _blogBrowserComponent: BlogBrowserComponent
   ) {
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - British Snorkelling For All');
@@ -61,7 +65,7 @@ export class MainComponent implements AfterViewInit {
       "sameAs": "https://instagram.com/snorkelology"
     }`)
 
-    this._dataSubs = this._data.isBlogDataEmitter.subscribe( (value) => {
+    this._dataSubs = this._blogBrowserComponent.isBlogDataEmitter.subscribe( (value) => {
       this.isBlogData = value;
     });
   }

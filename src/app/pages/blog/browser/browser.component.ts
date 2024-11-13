@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -7,7 +7,6 @@ import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.compo
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { DataService } from '@shared/services/data.service';
 import { environment } from '@environments/environment';
 
 @Component({
@@ -27,12 +26,13 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   private _httpSubs: Subscription | undefined; 
   private _window;   
   public posts: Array<BlogPost> = [];
+  public isBlogDataEmitter = new EventEmitter();
+
 
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
     private _screen: ScreenService,
-    private _data: DataService,
     @Inject(DOCUMENT) private _document: Document
   ) {
     this._window = _document.defaultView;
@@ -46,10 +46,10 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
         next: (result) => {
           // console.log(result);
           this.posts = result;
-          this._data.isBlogDataEmitter.emit(this.posts.length !== 0);
+          this.isBlogDataEmitter.emit(this.posts.length !== 0);
         },
         error: (error) => {
-          this._data.isBlogDataEmitter.emit(true);
+          this.isBlogDataEmitter.emit(true);
           console.log(error);
         }
       }) 

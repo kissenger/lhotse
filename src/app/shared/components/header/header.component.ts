@@ -1,10 +1,9 @@
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
-import { ScrollspyService } from '../../services/scrollspy.service';
-import { ScreenService } from '../../services/screen.service';
-import { Subscription } from 'rxjs';
+import { ScrollspyService } from '@shared/services/scrollspy.service';
+import { ScreenService } from '@shared/services/screen.service';
+import { filter, Subscription } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { DataService } from '@shared/services/data.service';
+import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/router';
 
 @Component({
   standalone: true,
@@ -17,43 +16,45 @@ import { DataService } from '@shared/services/data.service';
 
 export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
 
-  @ViewChildren('menuItem') menuElements!: QueryList<ElementRef>; 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
 
-  private _scrSubs: Subscription;
-  private _dataSubs: Subscription;
+  private _scrSubs: Subscription | null = null;
+  private _routeSubs: Subscription | null = null;
 
-
-  public menuItems = ['Home', 'About', 'Explore', 'Book', 'FAQs', 'Friends'];
+  public menuItems: Array<string> = [];
   public expandDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
   public isLoaded: boolean = false;
-  public isBlogData: boolean = true;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: any,
+    @Inject(ActivatedRoute) private _route: ActivatedRoute,
+    @Inject(Router) private _router: Router,
     private _scrollSpy: ScrollspyService,
-    public screen: ScreenService,
-    private _data: DataService
+    private _screen: ScreenService,
   ) {
 
-    // observed elements are set in main component and tracked in scrollspy
-    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
-      if (isect.ratio > 0.2) {
-        this.activeAnchor = isect.id;
-      }
-    })
+    this._router.events
+      .pipe(filter( (e: any) => e instanceof NavigationEnd))
+      .subscribe( () => {
 
-    this._dataSubs = this._data.isBlogDataEmitter.subscribe( (value) => {
-      if (!value) {
-        this.menuItems = this.menuItems.filter( mi => mi !== 'Explore');
-      };
+          //get menu items from router
+          this.menuItems = this._route.firstChild?.snapshot.data['menuItems'];
+
+          //once we know where we are, set active anchor with statically or using scrollspy
+          if (this._router.routerState.snapshot.url.match('blog')) {
+            this.activeAnchor = 'explore';
+          } else {
+            this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+              if (isect.ratio > 0.2) {
+                this.activeAnchor = isect.id;
+              }
+            })
+          }
     });
   }
-  
-
+ 
   ngAfterViewInit() {
-    if (this.screen.widthDescriptor === 'large') {
+    if (this._screen.widthDescriptor === 'large') {
       this.expandDropdownMenu = false;
     }
   }
@@ -95,7 +96,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
 
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
-    this._dataSubs?.unsubscribe();
+    this._routeSubs?.unsubscribe();
   }
 
 }

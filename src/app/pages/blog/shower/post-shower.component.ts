@@ -65,6 +65,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this.lastSlug = result.lastSlug;
 
             this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
+            // console.log(this._route.snapshot.url.join('/'))
             this._seo.updateTitle(this.post.title);
             this._seo.updateKeywords(this.post.keywords.join(', '));
             this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);

@@ -1,5 +1,5 @@
 import { Component} from '@angular/core';
-import { BlogBrowserComponent } from "../../../pages/blog/browser/browser.component";
+import { BlogBrowserComponent } from "@pages/blog/browser/browser.component";
 
 @Component({
   standalone: true,
@@ -12,6 +12,5 @@ export class PageNotFoundComponent{
 
   constructor(
   ) {
-    // console.log('404') 
   }
 }
