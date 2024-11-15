@@ -1,4 +1,5 @@
-# Disallow all URLs (see https://www.robotstxt.org/robotstxt.html)
+# Allow all URLs except backend routes (see https://www.robotstxt.org/robotstxt.html)
 User-agent: *
-Disallow: 
+Disallow: /api/
+Allow: /
 Sitemap: https://snorkelology.co.uk/sitemap.xml

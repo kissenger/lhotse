@@ -1,4 +1,4 @@
-import { ScreenService } from '../../services/screen.service';
+import { ScreenService } from '@shared/services/screen.service';
 import { Component} from '@angular/core';
 
 @Component({
@@ -10,7 +10,7 @@ import { Component} from '@angular/core';
 })
 export class FooterComponent{
 
-  public fullYear?: number;
+  public fullYear;
 
   constructor(
     public screen: ScreenService,
