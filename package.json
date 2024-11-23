@@ -8,7 +8,8 @@
     "build:ssr": "ng build --configuration local",
     "server": "node ./dist/local/server/server.mjs",
     "watch": "ng build --watch --configuration local",
-    "deploy": "cd ~/snorkelology && ng build --configuration beta"
+    "deploy:beta": "ng build --configuration beta",
+    "deploy:master": "ng build --configuration prod"
   },
   "private": true,
   "dependencies": {
