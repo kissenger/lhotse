@@ -11,18 +11,21 @@ header {
   height: var(--header-height);
   color: var(--text-colour-header);
   background-color: var(--sn-colour);
-  border-bottom: 2px white solid;   
+  border-bottom: 2px white solid;  
+
 }  
 
 .navbar {
   margin-inline: auto;
   /* margin-inline: calc( (100vw - var(--container-width) ) / 2 ); */
   /* border: 1px red solid; */
+  /* border: orange 2px solid; */
 }
 
 .brandbox {
   margin-inline: calc( (100vw - var(--container-width) ) / 2 );
   position: absolute;
+  /* border: green 2px solid; */
   top: 10px;
 }
 
@@ -34,6 +37,8 @@ header {
 .menu {
   margin-left: 0px;
   padding-left: 0px;
+  /* border: blue 2px solid; */
+;
 }
 
 .menu > li {
@@ -67,8 +72,18 @@ img {
   z-index: 99;
 }
 
-.hamburger:hover {
+.basket:hover {
   cursor: pointer;
+}
+
+.basket {
+  top: 20px;
+  position: absolute;
+  right: calc( (100vw - var(--container-width) ) / 2 );
+  padding: 0;
+  margin-left: auto;
+  z-index: 99;
+  /* border: red 2px solid; */
 }
 
 /*  Narrow screen adjustments  */

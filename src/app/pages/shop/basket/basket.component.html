@@ -1,0 +1,15 @@
+
+<main>
+  <div class="dynamic-container">
+    <div class="flex-grid">
+      @for (basketItem of shop.basket.basketItems; track basketItem) {
+        <div class="col2"> {{basketItem.item.name}}</div>
+        <div class="col1"> {{basketItem.item.price | currency: 'GBP' : 'symbol' : '1.2-2' : 'en'}} ea     </div>
+        <div class="col1">  
+          <input type="number" min=0 [(ngModel)]="basketItem.qty"> 
+        </div>
+        <div class="col1">{{basketItem.qty * basketItem.item.price | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+      }
+    </div>
+  </div>
+</main>

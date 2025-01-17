@@ -1,4 +1,5 @@
 
+
 export class BlogPost {
   _id: string = '';
   slug: string = '';

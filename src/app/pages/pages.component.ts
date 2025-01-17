@@ -6,7 +6,7 @@ import { HeaderComponent } from '@shared/components/header/header.component';
 @Component({
   standalone: true,
   imports: [HeaderComponent, FooterComponent, RouterOutlet],
-  selector: 'app-main',
+  selector: 'app-pages',
   templateUrl: './pages.component.html',
   styles: ''
 })

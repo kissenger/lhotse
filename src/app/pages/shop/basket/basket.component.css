@@ -1,0 +1,25 @@
+.flex-grid {
+  margin-top: 2em;
+  margin-inline: 7em;
+  display: flex;
+  border: 1px black solid;
+}
+
+input {
+  font-size: 1em;
+  font-weight: 300;
+  width: 3rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* padding: 0px; */
+  line-height: 1em;
+}
+.row {
+  /* padding: 1em, 0, 0.5em, 0; */
+}
+.col2 {
+  flex: 2;
+}
+.col1 {
+  flex: 1;
+}
+
