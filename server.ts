@@ -8,13 +8,18 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
 
-const PWD = process.env['MONGODB_PASSWORD'];
-const DB = process.env['MONGODB_DBNAME'];
-// if production then use port 4000; for beta and dev use 4000
-const PORT = import.meta.url.match('prod') ? '4001' : '4000';
-const CS = `mongodb+srv://root:${PWD}@cluster0.5h6di.gcp.mongodb.net/${DB}?retryWrites=true&w=majority&appName=Cluster0`
 
-mongoose.connect(CS);
+// if production then use port 4000; for beta and dev use 4000
+const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
+const PORT = ENVIRONMENT === 'PRODUCTION' ? '4001' : '4000';
+const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
+const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
+const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
+const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
+const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
+const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api-m.sandbox.paypal.com'
+
+mongoose.connect(MONGODB_CONNECTION_STR);
 mongoose.connection
   .on('error', console.error.bind(console, 'connection error:'))
   .on('close', () => console.log('MongoDB disconnected'))
@@ -41,7 +46,7 @@ export function app(): express.Express {
     Get all data for all posts
     Returns: Array<BlogPost>
   */
-  server.get('/api/get-all-posts/', async (req, res) => {
+  server.get('/api/blog/get-all-posts/', async (req, res) => {
     try {
       const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
       res.status(201).json(result);
@@ -55,7 +60,7 @@ export function app(): express.Express {
       Get all data for all posts
       Returns: Array<BlogPost>
     */
-    server.get('/api/get-published-posts/', async (req, res) => {
+    server.get('/api/blog/get-published-posts/', async (req, res) => {
       try {
         const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
         res.status(201).json(result);
@@ -70,7 +75,7 @@ export function app(): express.Express {
     Returns: BlogPost
   */
 
-  server.get('/api/get-post-by-slug/:slug', async (req, res) => {
+  server.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
     try {
       const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
       const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
@@ -88,7 +93,7 @@ export function app(): express.Express {
     }
   });
 
-  server.post('/api/upsert-post/', async (req, res) => {
+  server.post('/api/blog/upsert-post/', async (req, res) => {
     try {
       if (req.body._id !=='') {
         await BlogModel.findByIdAndUpdate(req.body._id, req.body);
@@ -105,7 +110,7 @@ export function app(): express.Express {
     }
   });
 
-  server.get('/api/sitemap/', async (req, res) => {
+  server.get('/api/blog/sitemap/', async (req, res) => {
     // const today = new Date();
     // const todayString = `${today.getFullYear}-${today.getMonth}-${today.getDate}`
     try {
@@ -136,7 +141,7 @@ export function app(): express.Express {
     Get post specified by _id, and if successful return result of find all
     Returns: Array<BlogPost>
   */
-  server.get('/api/delete-post/:_id', async (req, res) => {
+  server.get('/api/blog/delete-post/:_id', async (req, res) => {
     try {
       await BlogModel.deleteOne({_id: req.params._id});
       const result = await BlogModel.find({});
@@ -146,6 +151,96 @@ export function app(): express.Express {
       res.status(500).send(error);
     }
   });
+
+  /**
+   * Creates an order and returns it as a JSON response.
+   * @function
+   * @name createPaypalOrder
+   * @memberof module:routes
+   * @param {object} req - The HTTP request object.
+   * @param {object} req.body - The request body containing the order information.
+   * @param {string} req.body.intent - The intent of the order.
+   * @param {object} res - The HTTP response object.
+   * @returns {object} The created order as a JSON response.
+   * @throws {Error} If there is an error creating the order.
+   */
+  server.post('/api/shop/create-paypal-order', (req, res) => {
+
+    get_access_token().then(access_token => {
+      // console.log(req.body)
+      
+      fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${access_token}`
+              },
+              body: JSON.stringify(req.body)
+          })
+          .then(res => res.json())
+          .then(json => {
+              res.send(json);
+          }) //Send minimal data to client
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).send(err)
+        })
+  });
+
+  /**
+  * Completes an order and returns it as a JSON response.
+  * @function
+  * @name completeOrder
+  * @memberof module:routes
+  * @param {object} req - The HTTP request object.
+  * @param {object} req.body - The request body containing the order ID and intent.
+  * @param {string} req.body.order_id - The ID of the order to complete.
+  * @param {string} req.body.intent - The intent of the order.
+  * @param {object} res - The HTTP response object.
+  * @returns {object} The completed order as a JSON response.
+  * @throws {Error} If there is an error completing the order.
+  */
+  server.post('/complete-paypal-order', (req, res) => {
+    get_access_token().then(access_token => {
+      fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${access_token}`
+              }
+          })
+          .then(res => res.json())
+          .then(json => {
+              console.log(json);
+              res.send(json);
+          }) //Send minimal data to client
+      })
+      .catch(err => {
+          console.log(err);
+          res.status(500).send(err)
+      })
+  });
+
+  //PayPal Developer YouTube Video:
+  //How to Retrieve an API Access Token (Node.js)
+  //https://www.youtube.com/watch?v=HOkkbGSxmp4
+  async function get_access_token() {
+    const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`
+    const data = 'grant_type=client_credentials'
+    return fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+            },
+            body: data
+        })
+        .then(res => res.json())
+        .then(json => {
+            return json.access_token;
+        })
+  }
 
 // *** End of API Endpoints
 

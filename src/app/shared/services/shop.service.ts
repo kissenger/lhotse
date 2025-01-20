@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import { isObjectIdOrHexString } from 'mongoose';
 
 @Injectable({
   providedIn: 'root'
@@ -10,46 +11,120 @@ export class Shop {
     constructor() {
         this.basket = new Basket()
         this.items = [{
-            id: "1",
+            sku: "00001",
             name: "Snorkelling Britain",
-            price: 18.99,
-            stockStatus: true
+            description: "Snorkelling Birtain guidebook",
+            unit_amount: {
+                currency_code: 'GBP',
+                value: 18.99
+            },
+            // image_url: 'xx',
+            // url: 'xx'
+        },{
+            sku: "00002",
+            name: "Snorkelling Britain Signed",
+            description: "Snorkelling Birtain guidebook, signed by the authors",
+            unit_amount: {
+                currency_code: 'GBP',
+                value: 23.99
+            },
+            // image_url: 'xx',
+            // url: 'xx'
         }]
+    }
+    createOrder() {
+        return <PaypalOrder> {
+            intent: 'CAPTURE',
+            purchase_units: [{
+                amount: {
+                    currency_code: 'GBP',
+                    value: this.basket.totalInclShipping,
+                    breakdown: {
+                        item_total: {
+                          currency_code: 'GBP',
+                          value: this.basket.totalExclShipping
+                        },
+                        shipping: {
+                            currency_code: 'GBP',
+                            value: this.basket.shipping
+                        }
+                    }
+                },
+                items: this.basket.items
+            }],
+        }
     }
 }
 
+
+
 interface ShopItem {
-    id: string;
+    sku: string;
     name: string;
-    price: number;
-    stockStatus: boolean;
+    description: string;
+    unit_amount: {
+        currency_code: string,
+        value: number
+    }
+    image_url?: string;
+    url?: string
+}
+
+interface BasketItem extends Omit<ShopItem, 'inStock'> {
+    quantity: number;
+}
+
+
+export interface PaypalOrder {
+    intent: string,
+    purchase_units: Array<{
+        amount: {
+            currency_code: string;
+            value: number;
+            breakdown: {
+                item_total: {
+                  currency_code: string,
+                  value: number
+                },
+                shipping: {
+                    currency_code: string,
+                    value: number                    
+                }
+            }
+        },
+        items: Array<BasketItem>
+    }>
+
 }
 
 class Basket {
-    basketItems: Array<{item: ShopItem, qty: number}>=[];
-    add(itemToAdd: ShopItem, qty: number) {
-        this.basketItems.push({item: itemToAdd, qty});
+    basketItems: Array<BasketItem> = [];
+    add(shopItem: ShopItem, quantity: number) {
+        let basketItem: ShopItem & {quantity: number} = {...shopItem, quantity: quantity};
+        this.basketItems.push(basketItem);
     }
-    update(itemToUpdate: ShopItem, newQty: number) {
+    get totalExclShipping(): number {
+        let sum = 0;
         for (let basketItem of this.basketItems) {
-            if (basketItem.item.name == itemToUpdate.name) {
-                basketItem.qty = newQty
-            }
-        }
-    }
-    get totalPrice(): number {
-        let sum = 0
-        for (let basketItem of this.basketItems) {
-            sum += basketItem.item.price * basketItem.qty;
+            sum += basketItem.unit_amount.value * basketItem.quantity;
         }
         return sum
+    }
+    get shipping(): number {
+        return 10
+    }
+    get totalInclShipping() : number {
+        return this.totalExclShipping + this.shipping
     }
     get totalQty(): number {
         let sum = 0
         for (let basketItem of this.basketItems) {
-            sum += basketItem.qty;
+            sum += basketItem.quantity;
         }
         return sum
+    }
+    get items(): Array<BasketItem> {
+        return this.basketItems
     }
 }
   
