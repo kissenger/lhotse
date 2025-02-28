@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { BlogPost } from '@shared/types';
-import { PaypalOrder } from './shop.service';
+import { PayPalCaptureOrder, PayPalCreateOrder, PayPalOrderError } from './shop.service';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -43,16 +44,26 @@ export class HttpService {
   /* 
   PAYPAL ENDPOINTS
   */
-  createPaypalOrder(order: PaypalOrder) {
-    return this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, order);
+  async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, order);
+    return await lastValueFrom<any>(request);
   }
 
-  completePaypalOrder(orderId: string) {
-    const payload = {
-      'intent': 'capture',
-      'order_id': orderId 
-    }
-    return this.http.post<any>(`${this._backendURL}/shop/complete-paypal-order/`, payload).toPromise;
+  async capturePaypalPayment(orderId: string): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderId});
+    return await lastValueFrom<any>(request);
   }
 
+  /*
+  SHOP ENDPOINTS
+  */
+  newOrder(orderIntent: PayPalCreateOrder) {
+    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/new-order`, orderIntent);
+  }
+  updateOrderApproved(orderId: string, orderApproved: PayPalCaptureOrder) {
+    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/`, {orderId, orderApproved});
+  }  
+  updateOrderError(orderId: string, orderError: PayPalOrderError) {
+    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/new-order`, {orderId, orderError});
+  }    
 }

@@ -7,7 +7,7 @@ import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
-
+import ShopModel from '@schema/shop';
 
 // if production then use port 4000; for beta and dev use 4000
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -17,7 +17,7 @@ const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
 const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
 const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
 const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
-const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api-m.sandbox.paypal.com'
+const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
 
 mongoose.connect(MONGODB_CONNECTION_STR);
 mongoose.connection
@@ -110,6 +110,9 @@ export function app(): express.Express {
     }
   });
 
+  
+ 
+
   server.get('/api/blog/sitemap/', async (req, res) => {
     // const today = new Date();
     // const todayString = `${today.getFullYear}-${today.getMonth}-${today.getDate}`
@@ -147,10 +150,12 @@ export function app(): express.Express {
       const result = await BlogModel.find({});
       res.status(201).json(result);
     } catch (error: any) {
-      console.log(error);
+      console.log('Error from blog/delete-post' + error);
       res.status(500).send(error);
     }
   });
+
+
 
   /**
    * Creates an order and returns it as a JSON response.
@@ -168,22 +173,24 @@ export function app(): express.Express {
 
     get_access_token().then(access_token => {
       // console.log(req.body)
-      
+      // logShopEvent({intent: req.body, endPoint: PAYPAL_ENDPOINT})
       fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${access_token}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`
               },
               body: JSON.stringify(req.body)
           })
           .then(res => res.json())
           .then(json => {
-              res.send(json);
-          }) //Send minimal data to client
+            console.log(json);
+            logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT})
+            res.send(json);
+          })
         })
         .catch(err => {
-            console.log(err);
+            console.log('Error from shop/create-paypal-order' + err);
             res.status(500).send(err)
         })
   });
@@ -201,26 +208,42 @@ export function app(): express.Express {
   * @returns {object} The completed order as a JSON response.
   * @throws {Error} If there is an error completing the order.
   */
-  server.post('/complete-paypal-order', (req, res) => {
+  server.post('/api/shop/capture-paypal-payment', (req, res) => {
     get_access_token().then(access_token => {
-      fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders/' + req.body.order_id + '/' + req.body.intent, {
+      console.log(req.body)
+      console.log(req.body.orderId)
+      console.log(PAYPAL_ENDPOINT)
+      console.log(access_token)
+      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderId}/capture/`, {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${access_token}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`,
               }
           })
           .then(res => res.json())
           .then(json => {
-              console.log(json);
+              console.log(json)
+              logShopEvent(json.id, {approved: json})
               res.send(json);
-          }) //Send minimal data to client
-      })
+          })
+        })
+
       .catch(err => {
-          console.log(err);
+          console.log('Error from shop/capture-paypal-payment' + err);
+          logShopEvent(req.body.orderId, {error: err})
           res.status(500).send(err)
       })
   });
+
+  // log shop event to mongodb
+  async function logShopEvent(orderNumber: string, orderDetails: any) {
+    let response = await ShopModel.findOneAndUpdate(
+      {orderNumber: orderNumber}, 
+      orderDetails,
+      {new: true, upsert: true}
+    );
+  }
 
   //PayPal Developer YouTube Video:
   //How to Retrieve an API Access Token (Node.js)

@@ -3,23 +3,30 @@
   <div class="dynamic-container">
 
     <div class="basket">
-      @for (basketItem of shop.basket.basketItems; track basketItem) {
+      @for (basketItem of shop.basket.items; track basketItem.id) {
         <div class="grid" [ngClass]="{'last-row': $index === $count-1}">
           <div class="col2"> {{basketItem.name}} </div>
           <div class="col1"> {{basketItem.unit_amount.value| currency: 'GBP' : 'symbol' : '1.2-2' : 'en'}} ea     </div>
           <div class="col1">
-            <button class="plus-minus" (click)="onPlusMinus(-1,$index)">-</button>
+            <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)">-</button>
             <input type="number" min=0 name="qty-input-{{$index}}" [(ngModel)]="basketItem.quantity" readonly> 
-            <button class="plus-minus" (click)="onPlusMinus(1,$index)">+</button>
+            <button class="plus-minus" (click)="onPlusMinus(basketItem.id,1)">+</button>
           </div>
+          
           <div class="col1">{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
         </div>
       }
       <div class="total">
         <div class="col2"></div>
+        <div class="col2">Shipping</div>
+        <div class="col1">{{shop.basket.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+      </div>      
+      <div class="total">
+        <div class="col2"></div>
         <div class="col2">Total</div>
         <div class="col1">{{shop.basket.totalExclShipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
       </div>
+      
     </div>
     <div id="paypal-button-container"></div>
   </div>
