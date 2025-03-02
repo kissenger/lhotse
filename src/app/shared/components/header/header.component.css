@@ -3,10 +3,10 @@ header {
   position: fixed;
   top: 0px;
   z-index: 99;
-  margin: 0;
-  padding: 0;
-  display: flex;  
-  flex-direction: row;
+  /* margin: 0; */
+  /* padding-inline: calc( (100vw - var(--container-width) ) / 2 ); */
+  /* display: flex;   */
+  /* flex-direction: row; */
   width: 100%;
   height: var(--header-height);
   color: var(--text-colour-header);
@@ -14,18 +14,47 @@ header {
   border-bottom: 2px white solid;   
 }  
 
+
+.header-content {
+  display: flex;   
+  /* border: 1px red solid; */
+  flex-direction: row;
+  position: relative;
+  height: 100%;
+  /* width: 100%; */
+  margin-inline: calc( (100vw - var(--container-width) ) / 2 );
+}
+
+.socials {
+  /* border: 1px red solid; */
+  height: 40px;
+  margin-block: auto;
+}
+
+.socials > a > svg {
+  padding-inline: 0.3em;
+  transition: all 0.25s;
+}
+
+.socials > a > svg:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+
 .navbar {
+  /* position: relative; */
   margin-inline: auto;
+  padding-left: 100px;
   /* margin-inline: calc( (100vw - var(--container-width) ) / 2 ); */
   /* border: 1px red solid; */
 }
 
 .brandbox {
-  margin-inline: calc( (100vw - var(--container-width) ) / 2 );
+  margin-left: calc( (100vw - var(--container-width) ) / 2 );
   position: absolute;
   top: 10px;
 }
-
 
 .brandbox:hover {
   cursor: pointer;
@@ -61,7 +90,7 @@ img {
   display: none;
   position: absolute;
   top: 20px;
-  right: calc( (100vw - var(--container-width) ) / 2 );
+  right: 0px;
   padding: 0;
   margin-left: auto;
   z-index: 99;
@@ -76,11 +105,17 @@ img {
 
   .hamburger {
     display: block;
+    /* position: absolute;
+    left: 0px; */
   }
 
-  .navbar {
-    margin-inline: calc( (100vw - var(--container-width) ) / 2 );
+
+  .socials {
+    /* border: 1px red solid; */
+    /* height: 35px; */
+    margin-right: 50px;
   }
+
 
   .menu {
     max-height: 0px;
