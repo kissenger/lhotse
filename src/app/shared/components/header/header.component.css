@@ -130,7 +130,7 @@ img {
     top: 100;
     background-color: var(--sn-colour);
     border-top: none;
-    box-shadow: var(--box-shadow-bottom-only);
+    /* box-shadow: var(--box-shadow-bottom-only); */
     padding: 0;
     margin: 0;
     transition: max-height 0.3s;

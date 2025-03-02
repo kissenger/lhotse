@@ -1,5 +1,5 @@
-import { ActivatedRoute} from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { ActivatedRoute, RouterLink} from '@angular/router';
+import { isPlatformBrowser, NgClass } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from '@shared/services/screen.service';
@@ -16,11 +16,11 @@ import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
 
 @Component({
   standalone: true,
-  providers: [BlogBrowserComponent],
+  providers: [BlogBrowserComponent, ScreenService],
   imports: [
     SlideshowComponent, AboutUsComponent, ExploreComponent, 
-    FAQComponent, PartnersComponent, BookComponent,
-    ],
+    FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink
+  ],
   selector: 'app-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']
@@ -33,6 +33,8 @@ export class MainComponent implements AfterViewInit {
 
   private _dataSubs: Subscription;
   public isBlogData: boolean = true;
+  public hideOverlay: Boolean = false;
+  public widthDescriptor?: string;
 
   staticBackgrounds: {[windowOne: string]: string} = {
     windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
@@ -73,7 +75,9 @@ export class MainComponent implements AfterViewInit {
   ngAfterViewInit() {
     this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
     this.loadBackgroundImages();
+    this.widthDescriptor = this._screen.widthDescriptor;
     this._screen.resize.subscribe( (hasOrientationChanged) => {
+      this.widthDescriptor = this._screen.widthDescriptor
       if (hasOrientationChanged) {
         this.loadBackgroundImages();
       }
@@ -92,6 +96,10 @@ export class MainComponent implements AfterViewInit {
         w.nativeElement.style.backgroundPosition = 'center';
       }
     })
+  }
+
+  onClickCloseOverlay () {
+    this.hideOverlay = true;
   }
 
   ngOnDestroy() {

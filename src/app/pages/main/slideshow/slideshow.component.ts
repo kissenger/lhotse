@@ -6,7 +6,7 @@ import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.compon
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, CommonModule, RouterLink,SvgArrowComponent],
+  imports: [NgOptimizedImage, CommonModule, RouterLink, SvgArrowComponent],
   providers: [],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',

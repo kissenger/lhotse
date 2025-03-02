@@ -13,28 +13,52 @@
 .book-overlay {
   position: fixed;
   display: flex;
-  flex-direction: row;
-  height: 160px;
-  /* width: 300px; */
+  height: 180px;
+  left: 0;
+  right: 0;
+  width: fit-content;
   z-index: 101;
   left: calc( (100vw - var(--container-width) ) / 2 );
-  top: 125px;
+  top: 150px;
   border: 2px var(--sn-colour) solid;
   border-radius: 10px;
   background-color: white;
   overflow: hidden;
-
 }
 
-.book-overlay > img {
+.book-overlay > a {
+  display: flex;
+  height: 100%;
+}
+
+.book-overlay-image {
   margin-block: auto;
+  margin-inline: 0.5rem;
   height: 150px;
   transition: all 0.25s;
 }
 
-.book-overlay > img:hover {
+.book-overlay-image:hover {
   cursor: pointer;
   transform: scale(1.05);
+}
+
+/*  Narrow screen adjustments  */
+@media (max-width: 767px) {
+  .book-overlay {
+    left: 0;
+    top: 200px;
+    /* margin-block: auto; */
+    margin-inline: auto;
+    height: 400px;
+  }
+  .book-overlay-image {
+    height: 380px;
+  }
+}
+
+.hide-overlay {
+  display: none;
 }
 
 .close-icon {
