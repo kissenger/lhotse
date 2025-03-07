@@ -4,6 +4,9 @@
 /* styling used on some child components */
 /* ===================================== */
 
+
+
+
 .window {
   position: relative;
   width: 100%;
@@ -146,4 +149,13 @@
   }
 }
 
- 
+.buy-now:hover {
+  cursor: pointer;
+}
+
+.buy-now {
+  border: 1px solid var(--border-colour);
+  /* padding-inline: 0.25em; */
+  margin: 0em 0.25em 0.25em 0em;
+  border-radius: 5px;
+}

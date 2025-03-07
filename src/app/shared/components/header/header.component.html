@@ -39,6 +39,7 @@
           </line>
         </svg>
 
+
         <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
           @for (menuItem of menuItems; track menuItem) {
             <li #menuItem [routerLink]="'.'" [fragment]="menuItem.toLowerCase()" [ngClass]="{'active': activeAnchor == menuItem.toLowerCase()}">
@@ -46,7 +47,7 @@
             </li>          
           }
         </ul>
-        
+      
       </nav>
 
       <div class="socials">
@@ -61,6 +62,8 @@
     </div>
 
 
+
+    <a class="basket" href="shop/basket">basket</a>
 
   }
 

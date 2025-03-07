@@ -61,8 +61,8 @@
             <div>
                 <label for="keywords">Keywords:</label>
                 <input type="text" id="keywords" name="keywords" (change)="onKeywordsChange($event)" [ngModel]="selectedPost.keywords">
-
             </div>          
+            
             <div>
                 <label for="kwList">Add from list:</label>
                 <select #kwList [ngModel]="uniqueKeywords" (ngModelChange)="onAddKW($event)" name="kwList" id="kwList">

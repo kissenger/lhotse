@@ -1,0 +1,121 @@
+import { Component } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { ShopService } from '@shared/services/shop.service'
+import { FormsModule } from "@angular/forms";
+import { loadScript } from "@paypal/paypal-js";
+import { environment } from '@environments/environment';
+import { HttpService } from '@shared/services/http.service';
+import { Router } from '@angular/router';
+
+@Component({
+  standalone: true,
+  imports: [FormsModule, CurrencyPipe, CommonModule],
+  // providers: [Shop],
+  selector: 'app-basket',
+  templateUrl: './basket.component.html',
+  styleUrls: ['./basket.component.css']
+})
+
+export class BasketComponent {
+
+  public qty: number = 0;
+
+  constructor(
+    private _http: HttpService,
+    private _router: Router,
+    public shop: ShopService
+  ) {
+    try {
+      this.shop.basket.add(this.shop.item("0001"),2);
+      this.shop.basket.add(this.shop.item("0002"),2);
+    } catch (err) {
+      console.log(err);
+      this._router.navigateByUrl(`/shop/order_outcome`);
+    }
+  }
+
+  async ngOnInit() {
+
+    let paypal;
+
+    try {
+        paypal = await loadScript({ 
+          clientId: environment.PAYPAL_CLIENT_ID,
+          currency: 'GBP'
+        });
+    } catch (error) {
+        console.error("failed to load the PayPal JS SDK script", error);
+    }
+
+    if (paypal?.Buttons !== undefined && paypal !== null) {
+      try {
+
+        const that = this;
+
+        await paypal.Buttons({
+          
+          async createOrder() {
+            let order = that.shop.newOrder;
+            console.log(order)
+            let res = await that._http.createPaypalOrder(order.intent);
+            if (Array.isArray(res.details)) {
+              console.error(res)
+              order.createError(res);
+              that._router.navigateByUrl(`/shop/complete/failed`); 
+            } 
+            order.orderNumber = res.id;
+            return res.id;
+          },
+
+          async onApprove(data, actions) {
+            let res = await that._http.capturePaypalPayment(data.orderID);
+            console.log(res)
+            const isError = Array.isArray(res.details);
+            if (isError) {
+              that.shop.order?.createError(res);
+              if (res.details[0].issue == 'INSTRUMENT_DECLINED') {
+                that._router.navigateByUrl(`/shop/basket`);
+                return actions.restart();
+              } else {
+                that._router.navigateByUrl(`/shop/complete/failed`); 
+                return;
+              }
+            } else {
+              that.shop.order?.createApproved(res);
+              that._router.navigateByUrl(`/shop/complete/success`); 
+              return;                
+            }  
+          },
+
+          async onShippingAddressChange(data, actions) {
+            if (data.shippingAddress.countryCode !== "US") {
+              // @ts-expect-error
+              return actions.reject(data.errors.COUNTRY_ERROR);
+            }
+          },
+
+          async onShippingOptionsChange(data, actions) {
+            if (data.selectedShippingOption?.type === 'PICKUP') {
+                return actions.reject();
+            }
+          }
+
+        }).render("#paypal-button-container");
+
+      } catch (error) {
+          console.error("failed to render the PayPal Buttons", error);
+      }
+    }
+  }
+
+  onPlusMinus(id: string, increment: number) {
+    const min = 0;
+    const max = 9;
+    const qty = this.shop.basket.getQuantity(id);
+    if (this.shop.basket.totalQty+increment <= max) {
+      const newQty = Math.min(max,Math.max(min,qty+increment))
+      this.shop.basket.updateQuantity(id, newQty)
+    }
+
+  }
+}

@@ -1,0 +1,56 @@
+
+.basket {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  /* border-bottom: 1px var(--banner-colour) solid; */
+
+}
+
+.last-row {
+  border-bottom: 1px var(--banner-colour) solid;
+}
+
+.grid {
+  /* margin-top: 2em; */
+  margin-inline: 7em;
+  padding-block: 1em;
+  display: flex;
+  border-top: 1px var(--banner-colour) solid;
+  /* border-bottom: 1px var(--banner-colour) solid; */
+  /* grid-template-columns: repeat(4); */
+}
+
+.total {
+  margin-inline: 7em;
+  padding-block: 1em;
+  display: flex;
+
+}
+
+input {
+  font-size: 1em;
+  font-weight: 300;
+  width: 2rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* padding: 0px; */
+  line-height: 1em;
+  vertical-align: top;
+}
+
+
+.col2 {
+  flex: 2;
+}
+.col1 {
+  flex: 1;
+  margin: 0px;
+  padding: 0px;
+}
+
+.plus-minus {
+  vertical-align: top;
+  height: 100%;
+  width: 2em;
+  /* vertical-align: middle */
+}
+
