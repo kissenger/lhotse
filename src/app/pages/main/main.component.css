@@ -73,26 +73,48 @@
   transform: scale(1.15);
 }
 
+/* .buy-book-div {
+  width: 100%;
+  display: flex;
+  border: 1px red solid;
+
+} */
+
 .content-image-box {
-  position: sticky;
-  /* top: 75px; */
-  left: 0px;
-  width: 300px;
-  max-height: 400px;
-  padding-bottom: 1rem;
-  margin: auto;
-  margin-top: 0;
+  position: relative;
+  width: 350px;
+  margin-top: 0.5rem;
+  /* align-content: center; */
+  /* justify-content: center; */
+  overflow: hidden;
   /* border: 1px red solid; */
 }
 
+.extra-top-margin {
+  margin-top: 2rem;
+}
+
+
+.content-image-box > img {
+  /* width: 350px; */
+  width: 100%;
+}
+
 .main-content-grid {
-  display: block;
-  grid-template-columns: auto auto;
+  display: grid; 
+  /* grid-template-columns: 2 2; */
   grid-template-rows: auto;
   grid-gap: 1.5rem;
   grid-auto-flow: column;
   /* border: 1px green solid; */
 }
+
+
+.main-content-grid > div > ul {
+  /* width: 350px; */
+  margin-top: 0px;
+}
+
 
 .grid-position-left {
   grid-column: 1;
@@ -102,13 +124,25 @@
   grid-column: 2;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 768px) {
   .main-content-grid {
-    display: grid;
+    display: block;
+    /* border: 1px red solid; */
+    /* width: 100%; */
+
   }
   .content-image-box {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    display: flex;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    /* border: 1px red solid; */
+    /* width: 100%; */
+  }
+  .content-image-box > img {
+    width: 350px;
+    margin-inline: auto;
+    align-content: center;
+    justify-content: center;
   }
 }
 
