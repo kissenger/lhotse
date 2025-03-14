@@ -1,4 +1,5 @@
 import {Inject, Injectable} from '@angular/core';
+import { truncate } from 'fs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +16,13 @@ export class ShopService {
         this._items = [{
             id: "0001",
             name: "Snorkelling Britain",
-            description: "Snorkelling Birtain guidebook",
+            description: "Snorkelling Britain guidebook",
             unit_amount: { currency_code: 'GBP', value: 18.99 },
             isInStock: true
         }, {
             id: "0002",
             name: "Snorkelling Britain Signed",
-            description: "Snorkelling Birtain guidebook, signed by the authors",
+            description: "Snorkelling Britain guidebook, signed by the authors",
             unit_amount: { currency_code: 'GBP', value: 23.99 },
             isInStock: true
         }]
@@ -87,22 +88,26 @@ export class Order {
             purchase_units: [{
                 amount: {
                     currency_code: 'GBP',
-                    value: this._shop.basket.totalExclShipping + this._shipping.royalMailTracked48[Math.min(4,this._shop.basket.totalQty)],
+                    value: this._shop.basket.grandTotal,
                     breakdown: {
                         item_total: {
                             currency_code: 'GBP',
-                            value: this._shop.basket.totalExclShipping
+                            value: this._shop.basket.totalGoodsOnly
                         },
                         shipping: {
                             currency_code: 'GBP',
-                            value: this._shipping.royalMailTracked48[Math.min(4,this._shop.basket.totalQty)]
-                        }
+                            value: this._shop.basket.shipping
+                        },
+                        discount : {
+                            currency_code: 'GBP',
+                            value: -this._shop.basket.appliedDiscount
+                          }
                     }
                 },
                 // items: this._shop.basket.items,
                 shipping: {
                     options: [{
-                        id: 'RoyalMailTracked24',
+                        id: 'royalMailTracked24',
                         label: 'Royal Mail Tracked 24',
                         selected: false,
                         type: 'SHIPPING',
@@ -111,7 +116,7 @@ export class Order {
                             value: this._shipping.royalMailTracked24[Math.min(4,this._shop.basket.totalQty)]
                         }
                     },{
-                        id: 'RoyalMailTracked48',
+                        id: 'royalMailTracked48',
                         label: 'Royal Mail Tracked 48',
                         selected: true,
                         type: 'SHIPPING',
@@ -164,7 +169,7 @@ export interface PayPalOrderError {
     }>,
     message: string,
     debug_id: string
-}
+} 
 
 export interface PayPalCreateOrder {
     intent: string,
@@ -238,6 +243,7 @@ class Basket {
         royalMailTracked48: [ 0, 2.70, 3.39, 3.39, 6.65 ]
     }    
     private _shippingOption: ShippingOption = "royalMailTracked48";
+    private _discount: number = 0;
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
@@ -260,6 +266,17 @@ class Basket {
         }
     }
 
+    set discount(dc: number) {
+        console.log(dc);
+        this._discount = dc;
+        console.log(this._discount)
+
+    }
+
+    get appliedDiscount() {
+        return Math.trunc(Math.round(-this.totalGoodsOnly * 100) * this._discount/100) / 100;
+    }
+
     get shippingOption() {
         return this._shippingOption;
     }
@@ -267,20 +284,21 @@ class Basket {
     set shippingOption(so: ShippingOption) {
         this._shippingOption = so;
     }
-    get totalExclShipping(): number {
+    
+    get totalGoodsOnly(): number {
         let sum = 0;
         for (let basketItem of this._basketItems) {
             sum += basketItem.unit_amount.value * basketItem.quantity;
         }
-        return sum
+        return sum;
     }
 
     get shipping(): number {
         return this._shippingCosts[this._shippingOption][Math.min(4,this.totalQty)]
     }
 
-    get totalInclShipping() : number {
-        return this.totalExclShipping + this.shipping
+    get grandTotal() : number {
+        return Math.round((this.totalGoodsOnly + this.shipping + this.appliedDiscount) * 100) / 100;
     }
 
     get totalQty(): number {

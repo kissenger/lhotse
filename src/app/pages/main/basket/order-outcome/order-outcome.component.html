@@ -1,0 +1,33 @@
+
+@if (paymentOutcome == "failed") {
+  <p>
+    Oops, something went wrong with the transaction.  This is what we know from PayPal:
+  </p>
+  <div class="errorDetails">
+    {{shop.order?.error?.message}} <br>
+    {{shop.order?.error?.details?.[0]?.issue}} <br>
+    {{shop.order?.error?.details?.[0]?.description}}
+  </div>
+  <p>
+    If you think the error is on our side, don't hesitate to contact us at &#104;&#101;&#108;&#108;&#111;&commat;&#115;&#110;&#111;&#114;&#107;&#101;&#108;&#111;&#108;&#111;&#103;&#121;&period;&#99;&#111;&period;&#117;&#107;
+    , or refresh the page to try again.
+  </p>
+  
+} @else {
+  <p>
+    Thank you for your order, we'll get right on it! Your order number is {{shop.order?.orderNumber}}
+    and will be posted to:
+  </p>
+  <p>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.name?.full_name}}<br>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.address?.address_line_1}}<br>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.address?.admin_area_1}}<br>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.address?.admin_area_2}}<br>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.address?.country_code}}<br>
+    {{shop.order?.approved?.purchase_units?.[0]?.shipping?.address?.postal_code}}
+  </p>
+  <p>
+    If anything doesn't look right, please contact us at &#104;&#101;&#108;&#108;&#111;&commat;&#115;&#110;&#111;&#114;&#107;&#101;&#108;&#111;&#108;&#111;&#103;&#121;&period;&#99;&#111;&period;&#117;&#107;
+
+  </p>
+}

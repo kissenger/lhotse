@@ -42,8 +42,8 @@
 
         <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
           @for (menuItem of menuItems; track menuItem) {
-            <li #menuItem [routerLink]="'.'" [fragment]="menuItem.toLowerCase()" [ngClass]="{'active': activeAnchor == menuItem.toLowerCase()}">
-              <span class="stealth-html-link">{{menuItem}}</span>
+            <li #menuItem [routerLink]="'.'" [fragment]="menuItem.anchor" [ngClass]="{'active': activeAnchor == menuItem.anchor}">
+              <span class="stealth-html-link">{{menuItem.name}}</span>
             </li>          
           }
         </ul>
@@ -60,10 +60,6 @@
       </div>
 
     </div>
-
-
-
-    <a class="basket" href="shop/basket">basket</a>
 
   }
 

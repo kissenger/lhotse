@@ -21,7 +21,7 @@ const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com
 
 mongoose.connect(MONGODB_CONNECTION_STR);
 mongoose.connection
-  .on('error', console.error.bind(console, 'connection error:'))
+  .once('error', () => console.log('xxx'))
   .on('close', () => console.log('MongoDB disconnected'))
   .once('open', () => console.log('MongoDB connected') );
 

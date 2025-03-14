@@ -1,24 +1,30 @@
 import { Component } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { ShopService } from '@shared/services/shop.service'
+import { ShippingOption, ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
 import { Router } from '@angular/router';
+import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 
 @Component({
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, CommonModule],
+  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent],
   // providers: [Shop],
   selector: 'app-basket',
   templateUrl: './basket.component.html',
-  styleUrls: ['./basket.component.css']
+  styleUrls: ['./basket.component.css', '../main.component.css']
 })
 
 export class BasketComponent {
 
   public qty: number = 0;
+  public discountCodes: Array<{code: string, discount: number}> = [
+    {code: "iheartsnorkelling", discount: 25}
+  ];
+  public userEnteredCode: string = "";
+  public discount: number = 0;
 
   constructor(
     private _http: HttpService,
@@ -26,11 +32,11 @@ export class BasketComponent {
     public shop: ShopService
   ) {
     try {
-      this.shop.basket.add(this.shop.item("0001"),2);
-      this.shop.basket.add(this.shop.item("0002"),2);
+      this.shop.basket.add(this.shop.item("0001"),1);
+      // this.shop.basket.add(this.shop.item("0002"),2);
     } catch (err) {
       console.log(err);
-      this._router.navigateByUrl(`/shop/order_outcome`);
+      // this._router.navigateByUrl(`/shop/order_outcome`);
     }
   }
 
@@ -61,7 +67,7 @@ export class BasketComponent {
             if (Array.isArray(res.details)) {
               console.error(res)
               order.createError(res);
-              that._router.navigateByUrl(`/shop/complete/failed`); 
+              // that._router.navigateByUrl(`/shop/complete/failed`); 
             } 
             order.orderNumber = res.id;
             return res.id;
@@ -74,27 +80,32 @@ export class BasketComponent {
             if (isError) {
               that.shop.order?.createError(res);
               if (res.details[0].issue == 'INSTRUMENT_DECLINED') {
-                that._router.navigateByUrl(`/shop/basket`);
+                // that._router.navigateByUrl(`/shop/basket`);
                 return actions.restart();
               } else {
-                that._router.navigateByUrl(`/shop/complete/failed`); 
+                // that._router.navigateByUrl(`/shop/complete/failed`); 
                 return;
               }
             } else {
               that.shop.order?.createApproved(res);
-              that._router.navigateByUrl(`/shop/complete/success`); 
+              // that._router.navigateByUrl(`/shop/complete/success`); 
               return;                
             }  
           },
 
           async onShippingAddressChange(data, actions) {
-            if (data.shippingAddress.countryCode !== "US") {
+            console.log(data.shippingAddress.countryCode)
+            if (data.shippingAddress.countryCode !== "GB") {
               // @ts-expect-error
               return actions.reject(data.errors.COUNTRY_ERROR);
             }
           },
 
           async onShippingOptionsChange(data, actions) {
+            console.log(data);
+            if (data.selectedShippingOption?.id) {
+              that.shop.basket.shippingOption = <ShippingOption>data.selectedShippingOption?.id;
+            }
             if (data.selectedShippingOption?.type === 'PICKUP') {
                 return actions.reject();
             }
@@ -116,6 +127,20 @@ export class BasketComponent {
       const newQty = Math.min(max,Math.max(min,qty+increment))
       this.shop.basket.updateQuantity(id, newQty)
     }
+  }
+
+  onCodeChange(){
+    this.discountCodes.forEach(dc => {
+      console.log(this.userEnteredCode)
+      console.log(dc.code)
+      if (dc.code === this.userEnteredCode) {
+        this.shop.basket.discount = dc.discount;
+        this.discount = dc.discount;
+      } else {
+        this.shop.basket.discount = 0;
+      }
+      console.log(this.shop.basket.appliedDiscount)
+    })
 
   }
 }

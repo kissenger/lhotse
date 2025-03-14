@@ -1,0 +1,85 @@
+<div class="dynamic-container">
+  <div class="main-content-grid">
+    
+    <div class="content-image-box grid-position-left">
+      <img class="extra-top-margin"
+        src = "/assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-2d.jpg"
+        alt = "Snorkelling Britain: 100 Marine Adventures book cover 2D"
+      />         
+    </div>
+
+    <div class="grid-position-right">
+
+      <h2>Buy Now</h2>
+
+      <p> 
+        By purchasing Snorkelling Britain directly us as the authors, you are  
+        rewarding the 3 years of research we put into the book, and helping
+        us to recoup more of our costs - and yes, we get more
+        profit on each book this way!
+      </p>
+      
+      <div class="basket">
+        @for (basketItem of shop.basket.items; track basketItem.id) {
+          <div class="basket-item">
+            <div class="basket-item-description">
+
+              <div> {{basketItem.name}}</div>
+              
+              <div class="basket-item-qty">
+                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)">-</button>
+                <input class="qty" type="number" min=0 name="qty-input-{{$index}}" [(ngModel)]="basketItem.quantity" readonly> 
+                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,1)">+</button>
+              </div>
+        
+              <div>{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+            </div>
+          </div>
+        }
+      
+        @if (discount !== 0) {
+          <div class="basket-item">
+            <div class="basket-item-description">
+              <div class="basket-item-text">{{discount}}% Discount</div>
+              <div>{{shop.basket.appliedDiscount  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+            </div>
+          </div> 
+        }
+      
+        <div class="basket-item">
+          <div class="basket-item-description">
+            <div class="basket-item-text">Shipping ({{shop.basket.shippingOption}})</div>
+            <div>{{shop.basket.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+          </div>
+          <div class="basket-item-note">Shipping options can be changed in PayPal checkout</div>
+        </div>      
+      
+        <div class="basket-item">
+          <div class="basket-item-description">
+            <div class="basket-item-text">Total</div>
+            <div>{{shop.basket.grandTotal | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+          </div>
+          <!-- <div class="basket-item-note">Shipping options can be changed in PayPal checkout</div> -->
+        </div>
+        
+        <div class="basket-item">
+          <div class="basket-item-description">
+            <label for="title">Discount&nbsp;Code:</label>
+            <input class="discount" type="text" id="title" name="title" (keyup)="onCodeChange()" [(ngModel)]="userEnteredCode">
+          </div>
+        </div>
+      
+      </div>
+
+      @if (!!shop.order?.error || !!shop.order?.approved) {
+        <app-order-outcome></app-order-outcome>
+      } @else {
+        <div id="paypal-button-container"></div>
+      }
+
+    </div>
+
+  </div>
+</div>
+
+

@@ -18,6 +18,12 @@ export class PartnersComponent {
       size: { height: 100, width: 100}
     },
     {
+      url: "partners/rebecca-douglas-small.webp",      
+      href: 'https://rebeccadouglas.co.uk/',
+      alt: 'Rebecca Douglas 2025 Logo',
+      size: { height: 100, width: 274}
+    },
+    {
       url: "partners/alphamarine-small.webp",
       href: 'https://www.alphamarinephoto.com',
       alt: 'Alphamarine Logo',

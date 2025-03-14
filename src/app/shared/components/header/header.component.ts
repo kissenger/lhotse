@@ -21,7 +21,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
 
-  public menuItems: Array<string> = [];
+  public menuItems: Array<{name: string, anchor: string}> = [];
   public expandDropdownMenu: boolean = false;
   public activeAnchor: string = 'about';
   public isLoaded: boolean = false;
@@ -41,15 +41,15 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
           this.menuItems = this._route.firstChild?.snapshot.data['menuItems'];
 
           //once we know where we are, set active anchor with statically or using scrollspy
-          if (this._router.routerState.snapshot.url.match('blog')) {
-            this.activeAnchor = 'explore';
-          } else {
+          // if (this._router.routerState.snapshot.url.match('blog')) {
+          //   this.activeAnchor = 'explore';
+          // } else {
             this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
               if (isect.ratio > 0.2) {
                 this.activeAnchor = isect.id;
               }
             })
-          }
+          // }
     });
   }
  

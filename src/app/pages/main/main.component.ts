@@ -12,13 +12,14 @@ import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
 import { SEOService } from '@shared/services/seo.service';
 import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
+import { BasketComponent } from '@pages/main/basket/basket.component';
 
 
 @Component({
   standalone: true,
   providers: [BlogBrowserComponent, ScreenService],
   imports: [
-    SlideshowComponent, AboutUsComponent, ExploreComponent, 
+    SlideshowComponent, AboutUsComponent, ExploreComponent, BasketComponent,
     FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink
   ],
   selector: 'app-main',

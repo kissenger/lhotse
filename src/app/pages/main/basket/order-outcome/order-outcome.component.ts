@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router'
 import { ShopService } from '@shared/services/shop.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
-  imports: [CurrencyPipe, CommonModule],
+  imports: [CommonModule],
   // providers: [Shop],
   selector: 'app-order-outcome',
   templateUrl: './order-outcome.component.html',
