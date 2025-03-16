@@ -9,6 +9,7 @@ import { NgOptimizedImage } from '@angular/common';
   templateUrl: './about.component.html',
   styleUrls: ['../main.component.css']
 })
+
 export class AboutUsComponent implements OnInit {
 
   constructor(

@@ -1,6 +1,6 @@
 import { ActivatedRoute, RouterLink} from '@angular/router';
-import { isPlatformBrowser, NgClass } from '@angular/common';
-import { AfterContentChecked, AfterViewChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from '@shared/services/screen.service';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
@@ -20,7 +20,7 @@ import { BasketComponent } from '@pages/main/basket/basket.component';
   providers: [BlogBrowserComponent, ScreenService],
   imports: [
     SlideshowComponent, AboutUsComponent, ExploreComponent, BasketComponent,
-    FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink
+    FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink, NgOptimizedImage
   ],
   selector: 'app-main',
   templateUrl: './main.component.html',
