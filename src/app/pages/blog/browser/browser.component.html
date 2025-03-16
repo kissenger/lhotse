@@ -1,13 +1,13 @@
 <div class="browser-container">
-    <div #browser class="browser dynamic-container">
-      @for (post of posts; track post) {
-        <app-blog-card [data]="post"></app-blog-card>
-      }
-    </div>
-    <div #leftArrow class="arrow-container"> 
-      <app-svg-arrow direction="left" (click)="onClickLeft()"></app-svg-arrow>
-    </div>
-    <div #rightArrow class="arrow-container">        
-      <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
-    </div>
+  <div #browser class="browser dynamic-container">
+    @for (post of posts; track post) {
+      <app-blog-card [data]="post"></app-blog-card>
+    }
   </div>
+  <div #leftArrow class="arrow-container"> 
+    <app-svg-arrow direction="left" (click)="onClickLeft()"></app-svg-arrow>
+  </div>
+  <div #rightArrow class="arrow-container">        
+    <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
+  </div>
+</div>

@@ -104,7 +104,7 @@ export class Order {
                           }
                     }
                 },
-                // items: this._shop.basket.items,
+                items: this._shop.basket.items,
                 shipping: {
                     options: [{
                         id: 'royalMailTracked24',
@@ -138,6 +138,7 @@ export class Order {
     createApproved(apiResponse: PayPalCaptureOrder) {
         this._orderApproved = apiResponse;
     }
+
     createError(apiResponse: PayPalOrderError) {
         this._orderError = apiResponse;
     }

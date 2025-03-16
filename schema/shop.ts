@@ -5,7 +5,13 @@ const shopSchema = new mongoose.Schema({
   intent: {type: Object, required: true},
   approved: {type: Object},
   error: {type: Object},
-  endPoint: {type: String}
+  endPoint: {type: String},
+  orderCreated: {type: Date},
+  orderCompleted: {type: Date},
+  readyToPost: {type: Date},
+  posted: {type: Date},
+  returned: {type: Date},
+  refunded: {type: Date},
 }, 
 {
   timestamps: true

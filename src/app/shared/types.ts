@@ -20,3 +20,6 @@ export class BlogPost {
 export type DeviceOrientation = 'landscape' | 'portrait' | undefined;
 
 export type WidthDescriptor = 'large' | 'small' | undefined;
+
+export type OrderStatus = 'orderCreated' | 'orderCompleted' | 'readyToPost' | 'posted' | 'returned' | 'refunded';
+// export type OrderStatus = 'DRAFT' | 'PAYMENT COMPLETE' | 'READY TO POST' | 'POSTED' | 'RETURNED' | 'REFUNDED';

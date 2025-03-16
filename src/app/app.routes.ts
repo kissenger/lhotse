@@ -4,6 +4,7 @@ import { PostShowerComponent } from '@pages/blog/shower/post-shower.component';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { MainComponent } from '@pages/main/main.component';
 import { PagesComponent } from '@pages/pages.component';
+import { OrdersComponent } from '@pages/orders/orders.component'
 // import { OrderOutcomeComponent } from '@pages/shop/order-outcome/order-outcome.component';
 // import { BasketComponent } from '@pages/shop/basket/basket.component';
 
@@ -30,8 +31,7 @@ export const routes: Routes = [
           {name: 'Back to Blogs', anchor: 'blog'}
         ]} 
       },
-      // { path: 'shop/basket', component: BasketComponent, data: {menuItems: ['Home', 'About', 'Explore', 'Book', 'FAQs', 'Friends']} },
-      // { path: 'shop/complete/:outcome', component: OrderOutcomeComponent, data: {menuItems: ['Home', 'About', 'Explore', 'Book', 'FAQs', 'Friends']} },
+      { path: 'orders', component: OrdersComponent, data: {menuItems: []}},
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
     ]
   }

@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
 import ShopModel from '@schema/shop';
+import nodemailer from 'nodemailer';
 
 // if production then use port 4000; for beta and dev use 4000
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -35,9 +36,10 @@ export function app(): express.Express {
   const commonEngine = new CommonEngine();
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
-   
   server.use(express.json());
   
+  sendEmail();
+
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
@@ -185,7 +187,7 @@ export function app(): express.Express {
           .then(res => res.json())
           .then(json => {
             console.log(json);
-            logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT})
+            logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT,  orderCreated: Date.now()})
             res.send(json);
           })
         })
@@ -194,6 +196,18 @@ export function app(): express.Express {
             res.status(500).send(err)
         })
   });
+
+
+  server.get('/api/shop/get-orders/', async (req, res) => {
+    try {
+      const result = await ShopModel.find({}).sort({"createdAt": "descending"});;
+      res.status(201).json(result);
+    } catch (error: any) { 
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
 
   /**
   * Completes an order and returns it as a JSON response.
@@ -210,10 +224,10 @@ export function app(): express.Express {
   */
   server.post('/api/shop/capture-paypal-payment', (req, res) => {
     get_access_token().then(access_token => {
-      console.log(req.body)
-      console.log(req.body.orderId)
-      console.log(PAYPAL_ENDPOINT)
-      console.log(access_token)
+      // console.log(req.body)
+      // console.log(req.body.orderId)
+      // console.log(PAYPAL_ENDPOINT)
+      // console.log(access_token)
       fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderId}/capture/`, {
               method: 'POST',
               headers: {
@@ -224,8 +238,9 @@ export function app(): express.Express {
           .then(res => res.json())
           .then(json => {
               console.log(json)
-              logShopEvent(json.id, {approved: json})
+              logShopEvent(json.id, {approved: json, orderCompleted: Date.now()})
               res.send(json);
+              sendEmail();
           })
         })
 
@@ -234,6 +249,18 @@ export function app(): express.Express {
           logShopEvent(req.body.orderId, {error: err})
           res.status(500).send(err)
       })
+  });
+
+  server.post('/api/shop/set-order-status', async (req, res) => {
+    console.log(req.body.orderNumber)
+    console.log(req.body.orderStatus)
+    let response = await ShopModel.findOneAndUpdate(
+      {orderNumber: req.body.orderNumber}, 
+      {[req.body.orderStatus]: Date.now()},
+      {new: true, upsert: true}
+    );
+    console.log(response)
+    res.send(response);
   });
 
   // log shop event to mongodb
@@ -263,6 +290,34 @@ export function app(): express.Express {
         .then(json => {
             return json.access_token;
         })
+  }
+
+  function sendEmail() {
+    let config = {
+      service: 'gmail', // your email domain
+      host: "stmp.gmail.com",
+      port: 465,
+      auth: {
+          user: 'thingummycc@gmail.com',   // your email address
+          pass: 'bglf alag hopn pnfd' // your password
+      }
+    }
+    let transporter = nodemailer.createTransport(config);
+
+    let message = {
+        from: 'thingummycc@gmail.com', // sender address
+        to: 'snorkelology@gmail.com', // list of receivers
+        subject: 'NEW ORDER RECIEVED', // Subject line
+        html: "<a href='snorkelology.co.uk/orders'>Orders Page</a>" // html body
+    };
+
+    transporter.sendMail(message)
+    .then((info) => {
+      console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
+    }).catch((err) => {
+      console.log(`error:${err}`);
+    }
+    );
   }
 
 // *** End of API Endpoints

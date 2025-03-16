@@ -1,0 +1,87 @@
+<main>
+  <button (click)="onUpdateList()">Update</button>
+
+  <div class="dynamic-container">
+    @for (order of orders; track order) {
+        <!-- @let isActionNeeded = false; -->
+        @let isActionNeeded = (!!order.orderCompleted && !order.readyToPost) || (!!order.readyToPost && !order.posted) || (!!order.returned && !order.refunded);
+        <div class="order-table">
+            <div class="order-detail" [ngClass]="isActionNeeded ? 'red' : 'first-line'">
+                <div class="title">Order Number</div>
+                <div class="value">{{ order.orderNumber }}</div>
+            </div>
+            @if (order.orderCreated) {
+                <div class="order-detail">
+                    <div class="title">Order Created</div>
+                    <div class="value">{{order.createdAt}}</div>
+                </div>
+            }
+            @if (order.orderCompleted) {
+                <div class="order-detail">
+                    <div class="title" [ngClass]="!order.readyToPost ? 'red' : ''">Order Completed</div>
+                    <div class="value" [ngClass]="!order.readyToPost ? 'red' : ''">{{order.orderCompleted}}</div>
+                    @if (!order.readyToPost) {
+                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div>
+                    }
+                </div>
+            }
+            @if (order.readyToPost) {
+                <div class="order-detail">
+                    <div class="title" [ngClass]="!order.posted ? 'red' : ''">Ready to Post</div>
+                    <div class="value" [ngClass]="!order.posted ? 'red' : ''">{{order.readyToPost}}</div>
+                    @if (!order.posted) {
+                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button></div>
+                    }
+                </div>
+            }
+            @if (order.posted) {
+                <div class="order-detail">
+                    <div class="title">Posted</div>
+                    <div class="value">{{order.posted}}</div>
+                    @if (!order.returned) {
+                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button></div>
+                    }
+                </div>
+            }
+            @if (order.returned) {
+                <div class="order-detail">
+                    <div class="title" [ngClass]="!order.refunded ? 'red' : ''">Returned</div>
+                    <div class="value" [ngClass]="!order.refunded ? 'red' : ''">{{order.returned}}</div>
+                    @if (!order.refunded) {
+                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button></div>
+                    }
+                </div>
+            }
+            @if (order.refunded) {
+                <div class="order-detail">
+                    <div class="title">Refunded</div>
+                    <div class="value">{{order.refunded}}</div>
+                </div>
+            }
+            <div class="order-detail">
+                <div class="title">API Endpoint</div>
+                <div class="value">{{ order.endPoint }}</div>
+            </div>
+            <div class="order-detail">
+                <div class="title">Order</div>
+                <div class="value">
+                    {{ order.intent.purchase_units[0].items[0].name }} x {{ order.intent.purchase_units[0].items[0].quantity }}
+                </div>
+            </div>
+            @if (order.approved) {
+                <div class="order-detail">
+                    <div class="title">Shipping</div>
+                    <div class="value">
+                        {{ order.approved.purchase_units[0].shipping.name.full_name }}<br />
+                        {{ order.approved.purchase_units[0].shipping.address.address_line_1}}<br />
+                        {{ order.approved.purchase_units[0].shipping.address.admin_area_1}}<br />
+                        {{ order.approved.purchase_units[0].shipping.address.admin_area_2}}<br />
+                        {{ order.approved.purchase_units[0].shipping.address.country_code}}<br />
+                        {{ order.approved.purchase_units[0].shipping.address.postal_code}}<br />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+  </div>
+</main>

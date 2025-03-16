@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { BlogPost } from '@shared/types';
+import { BlogPost, OrderStatus } from '@shared/types';
 import { PayPalCaptureOrder, PayPalCreateOrder, PayPalOrderError } from './shop.service';
 import { lastValueFrom } from 'rxjs';
 
@@ -57,13 +57,20 @@ export class HttpService {
   /*
   SHOP ENDPOINTS
   */
-  newOrder(orderIntent: PayPalCreateOrder) {
-    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/new-order`, orderIntent);
-  }
-  updateOrderApproved(orderId: string, orderApproved: PayPalCaptureOrder) {
-    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/`, {orderId, orderApproved});
-  }  
-  updateOrderError(orderId: string, orderError: PayPalOrderError) {
-    return this.http.post<Array<BlogPost>>(`${this._backendURL}/shop/new-order`, {orderId, orderError});
+  // newOrder(orderIntent: PayPalCreateOrder) {
+  //   return this.http.post(`${this._backendURL}/shop/new-order`, orderIntent);
+  // }
+  // updateOrderApproved(orderId: string, orderApproved: PayPalCaptureOrder) {
+  //   return this.http.post(`${this._backendURL}/shop/`, {orderId, orderApproved});
+  // }  
+  // updateOrderError(orderId: string, orderError: PayPalOrderError) {
+  //   return this.http.post(`${this._backendURL}/shop/new-order`, {orderId, orderError});
+  // }    
+  getOrders() {
+    return this.http.get(`${this._backendURL}/shop/get-orders`);
+  }    
+  setOrderStatus(orderNumber: string, orderStatus: OrderStatus) {
+    console.log()
+    return this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, orderStatus});
   }    
 }

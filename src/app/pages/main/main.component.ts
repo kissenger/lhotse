@@ -14,7 +14,6 @@ import { SEOService } from '@shared/services/seo.service';
 import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
 import { BasketComponent } from '@pages/main/basket/basket.component';
 
-
 @Component({
   standalone: true,
   providers: [BlogBrowserComponent, ScreenService],
@@ -35,10 +34,10 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
   private _dataSubs: Subscription;
   private _scrSubs: Subscription | null = null;
   public isBlogData: boolean = true;
-  public hideAboutBookOverlay: Boolean = true;
+  public hideAboutBookOverlay: Boolean = false;
   public hideBuyNowOverlay: Boolean = true;
   public widthDescriptor?: string;
-  // public isLoaded = false;
+  public isReadyToLoad = false;
 
   staticBackgrounds: {[windowOne: string]: string} = {
     windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
@@ -79,21 +78,16 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     
   ngAfterContentChecked() {
     if (!isPlatformBrowser(PLATFORM_ID)) {
-      this.hideAboutBookOverlay = false;
+      this.isReadyToLoad = true;
     }
   }
   
   ngAfterViewInit() {
     this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
     this.loadBackgroundImages();
-    // this.widthDescriptor = undefined;
     this.widthDescriptor = this._screen.widthDescriptor;
-    console.log(this.widthDescriptor)
-
     this._screen.resize.subscribe( (hasOrientationChanged) => {
-      // console.log(this.widthDescriptor)
       this.widthDescriptor = this._screen.widthDescriptor;
-      // this.hideAboutBookOverlay = false;
       if (hasOrientationChanged) {
         this.loadBackgroundImages();
       }
@@ -128,11 +122,14 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
   }
 
   hideOverlay(overlay: string) {
+    console.log(overlay)
     if (overlay === 'buy-now') {
       this.hideBuyNowOverlay = true;
     } else if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
     }
+    console.log(this.hideAboutBookOverlay)
+
   }
 
   ngOnDestroy() {
