@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
 import { ShippingOption, ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
@@ -11,7 +11,7 @@ import { ScreenService } from '@shared/services/screen.service';
 
 @Component({
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent],
+  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, NgOptimizedImage],
   // providers: [Shop],
   selector: 'app-basket',
   templateUrl: './basket.component.html',

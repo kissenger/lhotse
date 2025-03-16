@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { BasketComponent } from "../basket/basket.component";
+import { NgOptimizedImage } from '@angular/common';
+
+// import { BasketComponent } from "../basket/basket.component";
 
 @Component({
   standalone: true,
   providers: [],
-  // imports: [BasketComponent],
+  imports: [NgOptimizedImage],
   selector: 'app-book',
   templateUrl: './book.component.html',
   styleUrls: ['../main.component.css']
