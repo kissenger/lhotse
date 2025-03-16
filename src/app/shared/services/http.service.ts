@@ -70,7 +70,6 @@ export class HttpService {
     return this.http.get(`${this._backendURL}/shop/get-orders`);
   }    
   setOrderStatus(orderNumber: string, orderStatus: OrderStatus) {
-    console.log()
     return this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, orderStatus});
   }    
 }

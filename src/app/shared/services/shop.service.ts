@@ -268,9 +268,9 @@ class Basket {
     }
 
     set discount(dc: number) {
-        console.log(dc);
+        // console.log(dc);
         this._discount = dc;
-        console.log(this._discount)
+        // console.log(this._discount)
 
     }
 

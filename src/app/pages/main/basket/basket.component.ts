@@ -77,9 +77,9 @@ export class BasketComponent {
           
           async createOrder() {
             let order = that.shop.newOrder;
-            console.log(order)
+            // console.log(order)
             let res = await that._http.createPaypalOrder(order.intent);
-            console.log(res);
+            // console.log(res);
             if (Array.isArray(res.details)) {
               console.error(res)
               order.createError(res);
@@ -91,7 +91,7 @@ export class BasketComponent {
 
           async onApprove(data, actions) {
             let res = await that._http.capturePaypalPayment(data.orderID);
-            console.log(res)
+            // console.log(res)
             const isError = Array.isArray(res.details);
             if (isError) {
               that.shop.order?.createError(res);
@@ -110,7 +110,7 @@ export class BasketComponent {
           },
 
           async onShippingAddressChange(data, actions) {
-            console.log(data.shippingAddress.countryCode)
+            // console.log(data.shippingAddress.countryCode)
             if (data.shippingAddress.countryCode !== "GB") {
               // @ts-expect-error
               return actions.reject(data.errors.COUNTRY_ERROR);
@@ -118,7 +118,7 @@ export class BasketComponent {
           },
 
           async onShippingOptionsChange(data, actions) {
-            console.log(data);
+            // console.log(data);
             if (data.selectedShippingOption?.id) {
               that.shop.basket.shippingOption = <ShippingOption>data.selectedShippingOption?.id;
             }
@@ -147,15 +147,15 @@ export class BasketComponent {
 
   onCodeChange(){
     this.discountCodes.forEach(dc => {
-      console.log(this.userEnteredCode)
-      console.log(dc.code)
+      // console.log(this.userEnteredCode)
+      // console.log(dc.code)
       if (dc.code === this.userEnteredCode) {
         this.shop.basket.discount = dc.discount;
         this.discount = dc.discount;
       } else {
         this.shop.basket.discount = 0;
       }
-      console.log(this.shop.basket.appliedDiscount)
+      // console.log(this.shop.basket.appliedDiscount)
     })
 
   }

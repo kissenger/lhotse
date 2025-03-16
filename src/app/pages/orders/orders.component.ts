@@ -32,7 +32,7 @@ export class OrdersComponent  {
     this._httpSubs = this._http.getOrders()
       .subscribe({
         next: (result) => {
-          console.log(result)
+          // console.log(result)
           this.orders = result;
           // this.refreshPostList(result);
         },
