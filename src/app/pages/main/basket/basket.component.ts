@@ -7,6 +7,7 @@ import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
 import { Router } from '@angular/router';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
+import { ScreenService } from '@shared/services/screen.service';
 
 @Component({
   standalone: true,
@@ -29,7 +30,9 @@ export class BasketComponent {
   constructor(
     private _http: HttpService,
     private _router: Router,
-    public shop: ShopService
+    public shop: ShopService,
+    private _screen: ScreenService,
+    
   ) {
     try {
       this.shop.basket.add(this.shop.item("0001"),1);
@@ -38,6 +41,18 @@ export class BasketComponent {
       console.log(err);
       // this._router.navigateByUrl(`/shop/order_outcome`);
     }
+  }
+
+  ngAfterViewInit() {
+    
+    // this.widthDescriptor = this._screen.widthDescriptor;
+    // this._screen.resize.subscribe( (hasOrientationChanged) => {
+    //   this.widthDescriptor = this._screen.widthDescriptor;
+    //   if (hasOrientationChanged) {
+    //     this.loadBackgroundImages();
+    //   }
+    // });
+    
   }
 
   async ngOnInit() {

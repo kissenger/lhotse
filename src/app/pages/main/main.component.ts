@@ -1,6 +1,6 @@
 import { ActivatedRoute, RouterLink} from '@angular/router';
 import { isPlatformBrowser, NgClass } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from '@shared/services/screen.service';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
@@ -27,15 +27,18 @@ import { BasketComponent } from '@pages/main/basket/basket.component';
   styleUrls: ['./main.component.css']
 })
 
-export class MainComponent implements AfterViewInit {
+export class MainComponent implements AfterViewInit, AfterContentChecked {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
   private _dataSubs: Subscription;
+  private _scrSubs: Subscription | null = null;
   public isBlogData: boolean = true;
-  public hideOverlay: Boolean = false;
+  public hideAboutBookOverlay: Boolean = true;
+  public hideBuyNowOverlay: Boolean = true;
   public widthDescriptor?: string;
+  // public isLoaded = false;
 
   staticBackgrounds: {[windowOne: string]: string} = {
     windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
@@ -64,7 +67,7 @@ export class MainComponent implements AfterViewInit {
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
+      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forthcoming book: Snorkelling Britain.",
       "sameAs": "https://instagram.com/snorkelology"
     }`)
 
@@ -72,15 +75,40 @@ export class MainComponent implements AfterViewInit {
       this.isBlogData = value;
     });
   }
+
+    
+  ngAfterContentChecked() {
+    if (!isPlatformBrowser(PLATFORM_ID)) {
+      this.hideAboutBookOverlay = false;
+    }
+  }
   
   ngAfterViewInit() {
     this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
     this.loadBackgroundImages();
+    // this.widthDescriptor = undefined;
     this.widthDescriptor = this._screen.widthDescriptor;
+    console.log(this.widthDescriptor)
+
     this._screen.resize.subscribe( (hasOrientationChanged) => {
-      this.widthDescriptor = this._screen.widthDescriptor
+      // console.log(this.widthDescriptor)
+      this.widthDescriptor = this._screen.widthDescriptor;
+      // this.hideAboutBookOverlay = false;
       if (hasOrientationChanged) {
         this.loadBackgroundImages();
+      }
+    });
+    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+      if (isect.ratio > 0.2) {
+        if (isect.id === "buy-now" || isect.id === "snorkelling-britain") {
+          this.hideAboutBookOverlay = true;
+        }
+        if (isect.id === "snorkelling-britain") {
+          this.hideBuyNowOverlay = false;
+        } else {
+          this.hideBuyNowOverlay = true;
+        }
+    
       }
     })
   }
@@ -99,12 +127,17 @@ export class MainComponent implements AfterViewInit {
     })
   }
 
-  onClickCloseOverlay () {
-    this.hideOverlay = true;
+  hideOverlay(overlay: string) {
+    if (overlay === 'buy-now') {
+      this.hideBuyNowOverlay = true;
+    } else if (overlay === 'about-book') {
+      this.hideAboutBookOverlay = true;
+    }
   }
 
   ngOnDestroy() {
     this._dataSubs?.unsubscribe();
+    this._scrSubs?.unsubscribe();
   }
 
 }

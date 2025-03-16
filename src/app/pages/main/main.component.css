@@ -4,46 +4,51 @@
 /* styling used on some child components */
 /* ===================================== */
 
-
-
-
 .window {
   position: relative;
   width: 100%;
   /* border: 1px red solid; */
 }
 
-.book-overlay {
+.overlay {
   position: fixed;
   display: flex;
-  height: 180px;
-  left: 0;
-  right: 0;
-  width: fit-content;
   z-index: 101;
-  left: calc( (100vw - var(--container-width) ) / 2 );
-  top: 150px;
   border: 2px var(--sn-colour) solid;
   border-radius: 10px;
   background-color: white;
   overflow: hidden;
 }
 
-.book-overlay > a {
-  display: flex;
-  height: 100%;
+.overlay > a {
+  display: inline-block;
+  line-height: 0;
+  /* inline-size: 0; */
 }
 
-.book-overlay-image {
-  margin-block: auto;
-  margin-inline: 0.5rem;
-  height: 150px;
+.overlay > a > img {
+  /* margin-block: auto; */
+  /* margin-in line: 0.5rem; */
+
+  margin: 0.5rem;
   transition: all 0.25s;
 }
 
-.book-overlay-image:hover {
+.overlay > img:hover {
   cursor: pointer;
   transform: scale(1.05);
+}
+
+.buy-now {
+  /* height: 180px; */
+  left: calc( (100vw - var(--container-width) ) );
+  bottom: 50px;
+}
+
+.about-book {
+  /* height: 180px; */
+  left: calc( (100vw - var(--container-width) ) / 2 ); 
+  top: 150px;
 }
 
 /*  Narrow screen adjustments  */
@@ -53,7 +58,7 @@
     top: 200px;
     /* margin-block: auto; */
     margin-inline: auto;
-    height: 400px;
+    /* height: 400px; */
   }
   .book-overlay-image {
     height: 380px;
@@ -66,8 +71,8 @@
 
 .close-icon {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 0px;
+  right: 2px;
   transition: all 0.25s;
 }
 
@@ -86,6 +91,7 @@
 .content-image-box {
   position: relative;
   width: 350px;
+  margin-inline: auto;
   margin-top: 0.5rem;
   /* align-content: center; */
   /* justify-content: center; */
@@ -120,10 +126,12 @@
 
 
 .grid-position-left {
+  /* display: flex;/ */
   grid-column: 1;
 }
 
 .grid-position-right {
+  /* display: flex; */
   grid-column: 2;
 }
 
@@ -149,13 +157,12 @@
   }
 }
 
-.buy-now:hover {
+/* .buy-now:hover {
   cursor: pointer;
 }
 
 .buy-now {
   border: 1px solid var(--border-colour);
-  /* padding-inline: 0.25em; */
   margin: 0em 0.25em 0.25em 0em;
   border-radius: 5px;
-}
+} */

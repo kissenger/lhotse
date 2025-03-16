@@ -23,7 +23,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
 
   public menuItems: Array<{name: string, anchor: string}> = [];
   public expandDropdownMenu: boolean = false;
-  public activeAnchor: string = 'about';
+  public activeAnchor: string = 'about-us';
   public isLoaded: boolean = false;
 
   constructor(
@@ -46,7 +46,11 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
           // } else {
             this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
               if (isect.ratio > 0.2) {
-                this.activeAnchor = isect.id;
+                if (isect.id === "buy-now") {
+                  this.activeAnchor = "snorkelling-britain";
+                } else {
+                  this.activeAnchor = isect.id;
+                }
               }
             })
           // }
