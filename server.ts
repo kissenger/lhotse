@@ -186,17 +186,22 @@ export function app(): express.Express {
           })
           .then(res => res.json())
           .then(json => {
-            console.log(json);
+            // console.log(json);
             logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT,  orderCreated: Date.now()})
             res.send(json);
           })
         })
         .catch(err => {
             console.log('Error from shop/create-paypal-order' + err);
+            logShopEvent('null', {error: err})
             res.status(500).send(err)
         })
   });
 
+
+  server.post('/api/shop/log-paypal-error', (req, res) => {
+    logShopEvent(req.body.orderNumber, {error: req.body.error, errorCreated: Date.now()})
+  });
 
   server.get('/api/shop/get-orders/', async (req, res) => {
     try {
@@ -279,17 +284,17 @@ export function app(): express.Express {
     const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`
     const data = 'grant_type=client_credentials'
     return fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
-            },
-            body: data
-        })
-        .then(res => res.json())
-        .then(json => {
-            return json.access_token;
-        })
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+        },
+        body: data
+    })
+    .then(res => res.json())
+    .then(json => {
+        return json.access_token;
+    })
   }
 
   function sendEmail() {

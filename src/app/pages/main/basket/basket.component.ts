@@ -83,6 +83,7 @@ export class BasketComponent {
             if (Array.isArray(res.details)) {
               console.error(res)
               order.createError(res);
+              await that._http.logPaypalError(res.id, res);
               // that._router.navigateByUrl(`/shop/complete/failed`); 
             } 
             order.orderNumber = res.id;
@@ -99,6 +100,7 @@ export class BasketComponent {
                 // that._router.navigateByUrl(`/shop/basket`);
                 return actions.restart();
               } else {
+                console.error(res)
                 // that._router.navigateByUrl(`/shop/complete/failed`); 
                 return;
               }

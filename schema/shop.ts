@@ -12,6 +12,7 @@ const shopSchema = new mongoose.Schema({
   posted: {type: Date},
   returned: {type: Date},
   refunded: {type: Date},
+  errorCreated: {type: Date}
 }, 
 {
   timestamps: true

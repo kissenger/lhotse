@@ -49,8 +49,13 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  async capturePaypalPayment(orderId: string): Promise<any> {
-    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderId});
+  async logPaypalError(orderNumber: string, error: object): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/log-paypal-error/`, {orderNumber, error});
+    return await lastValueFrom<any>(request);
+  }
+
+  async capturePaypalPayment(orderNumber: string): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, orderNumber);
     return await lastValueFrom<any>(request);
   }
 
