@@ -53,7 +53,7 @@ export function app(): express.Express {
       const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
       res.status(201).json(result);
     } catch (error: any) { 
-      console.log(error);
+      console.error(error);
       res.status(500).send(error);
     }
   });
@@ -67,7 +67,7 @@ export function app(): express.Express {
         const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
         res.status(201).json(result);
       } catch (error: any) { 
-        console.log(error);
+        console.error(error);
         res.status(500).send(error);
       }
     });
@@ -107,7 +107,7 @@ export function app(): express.Express {
       const result = await BlogModel.find({});
       res.status(201).json(result);
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
       res.status(500).send(error);
     }
   });
@@ -137,7 +137,7 @@ export function app(): express.Express {
         res.status(201).send(outString);
         
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
       res.status(500).send(error);
     }
   });
@@ -152,7 +152,7 @@ export function app(): express.Express {
       const result = await BlogModel.find({});
       res.status(201).json(result);
     } catch (error: any) {
-      console.log('Error from blog/delete-post' + error);
+      console.error(error);
       res.status(500).send(error);
     }
   });
@@ -173,47 +173,35 @@ export function app(): express.Express {
    */
   server.post('/api/shop/create-paypal-order', (req, res) => {
 
-    get_access_token().then(access_token => {
-      // console.log(req.body)
-      // logShopEvent({intent: req.body, endPoint: PAYPAL_ENDPOINT})
-      fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${access_token}`
-              },
-              body: JSON.stringify(req.body)
-          })
-          .then(res => res.json())
-          .then(json => {
-            // console.log(json);
-            logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT,  orderCreated: Date.now()})
-            res.send(json);
-          })
+    get_access_token().then(token => {
+
+      // token is checked here so that we can store with the intent for max debugging potential
+      if (token.error) {
+
+        console.error(token);
+        logShopEvent(null, {error: token, intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now(), errorCreated: Date.now()})
+        res.send(token);
+      
+      } else (
+
+        fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
+          body: JSON.stringify(req.body)
+        }).then(res => res.json()).then(json => {
+          logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now()})
+          res.send(json)
         })
-        .catch(err => {
-            console.log('Error from shop/create-paypal-order' + err);
-            logShopEvent('null', {error: err})
-            res.status(500).send(err)
-        })
+      )
+
+    }).catch(err => {
+      console.error(err);
+      logShopEvent(null, {error: err, intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now()})
+      res.send(err)
+    })
   });
 
-
-  server.post('/api/shop/log-paypal-error', (req, res) => {
-    logShopEvent(req.body.orderNumber, {error: req.body.error, errorCreated: Date.now()})
-  });
-
-  server.get('/api/shop/get-orders/', async (req, res) => {
-    try {
-      const result = await ShopModel.find({}).sort({"createdAt": "descending"});;
-      res.status(201).json(result);
-    } catch (error: any) { 
-      console.log(error);
-      res.status(500).send(error);
-    }
-  });
-
-
+  
   /**
   * Completes an order and returns it as a JSON response.
   * @function
@@ -228,50 +216,81 @@ export function app(): express.Express {
   * @throws {Error} If there is an error completing the order.
   */
   server.post('/api/shop/capture-paypal-payment', (req, res) => {
-    get_access_token().then(access_token => {
-      // console.log(req.body)
-      // console.log(req.body.orderId)
-      // console.log(PAYPAL_ENDPOINT)
-      // console.log(access_token)
-      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderId}/capture/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${access_token}`,
-              }
-          })
-          .then(res => res.json())
-          .then(json => {
-              console.log(json)
-              logShopEvent(json.id, {approved: json, orderCompleted: Date.now()})
-              res.send(json);
-              sendEmail();
-          })
-        })
 
-      .catch(err => {
-          console.log('Error from shop/capture-paypal-payment' + err);
-          logShopEvent(req.body.orderId, {error: err})
-          res.status(500).send(err)
-      })
+    get_access_token().then(token => {
+
+      console.log(req.body);
+
+      // token is checked here so that we can store with the intent for max debugging potential
+      if (token.error) {
+
+        console.error(token);
+        logShopEvent(req.body.orderNumber, {error: token, intent: req.body, endPoint: PAYPAL_ENDPOINT, errorCreated: Date.now()})
+        res.send(token);
+
+      } else {
+
+        fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderNumber}/capture/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
+
+        }).then(res => res.json()).then(json => {
+
+          if (Array.isArray(json.details)) {
+            // error 
+            console.error(json.details);
+            res.send({error: json.details[0].issue});
+            logShopEvent(json.id, {error: json, errorCreated: Date.now()});
+          
+          } else {
+            // success
+            logShopEvent(json.id, {approved: json, orderCompleted: Date.now()})
+            res.send(json)
+            sendEmail();
+
+          }
+        })
+      }
+
+    }).catch(err => {
+      console.error(err);
+      logShopEvent(req.body.orderNumber, {error: err, errorCreated: Date.now()});
+      res.status(500).send(err);
+    })
+
   });
 
+  server.post('/api/shop/log-paypal-error', (req, res) => {
+    logShopEvent(req.body.orderNumber, {error: req.body.error, errorCreated: Date.now()})
+  });
+
+  server.get('/api/shop/get-orders/', async (req, res) => {
+    try {
+      const result = await ShopModel.find({}).sort({"createdAt": "descending"});;
+      res.status(201).json(result);
+    } catch (error: any) { 
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+
+
+
   server.post('/api/shop/set-order-status', async (req, res) => {
-    console.log(req.body.orderNumber)
-    console.log(req.body.orderStatus)
     let response = await ShopModel.findOneAndUpdate(
       {orderNumber: req.body.orderNumber}, 
       {[req.body.orderStatus]: Date.now()},
       {new: true, upsert: true}
     );
-    console.log(response)
     res.send(response);
   });
 
   // log shop event to mongodb
-  async function logShopEvent(orderNumber: string, orderDetails: any) {
-    let response = await ShopModel.findOneAndUpdate(
-      {orderNumber: orderNumber}, 
+  async function logShopEvent(orderNumber: string | null, orderDetails: any) {
+    // create random order number if one doesnt exist (in the case of rejected order creation only)
+    orderNumber = orderNumber ?? Math.random().toString().slice(2,9);
+    await ShopModel.findOneAndUpdate(
+      {orderNumber: orderNumber},
       orderDetails,
       {new: true, upsert: true}
     );
@@ -293,7 +312,7 @@ export function app(): express.Express {
     })
     .then(res => res.json())
     .then(json => {
-        return json.access_token;
+        return json;
     })
   }
 

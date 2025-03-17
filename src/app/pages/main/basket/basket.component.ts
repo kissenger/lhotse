@@ -77,36 +77,29 @@ export class BasketComponent {
           
           async createOrder() {
             let order = that.shop.newOrder;
-            console.log(order)
+            // console.log(order)
             let res = await that._http.createPaypalOrder(order.intent);
-            console.log(res);
-            if (Array.isArray(res.details)) {
-              console.error(res)
-              order.createError(res);
-              await that._http.logPaypalError(res.id, res);
-              // that._router.navigateByUrl(`/shop/complete/failed`); 
-            } 
-            order.orderNumber = res.id;
-            return res.id;
+            if (res.error) {
+              console.error(res);
+              return false;
+            } else {
+              order.orderNumber = res.id;
+              return res.id;
+            }
+
           },
 
           async onApprove(data, actions) {
             let res = await that._http.capturePaypalPayment(data.orderID);
-            // console.log(res)
-            const isError = Array.isArray(res.details);
-            if (isError) {
-              that.shop.order?.createError(res);
-              if (res.details[0].issue == 'INSTRUMENT_DECLINED') {
-                // that._router.navigateByUrl(`/shop/basket`);
+            if (res.error) {
+              console.error(res);
+              if (res.error === 'INSTRUMENT_DECLINED') {
                 return actions.restart();
               } else {
-                console.error(res)
-                // that._router.navigateByUrl(`/shop/complete/failed`); 
                 return;
               }
             } else {
               that.shop.order?.createApproved(res);
-              // that._router.navigateByUrl(`/shop/complete/success`); 
               return;                
             }  
           },

@@ -55,7 +55,8 @@ export class HttpService {
   }
 
   async capturePaypalPayment(orderNumber: string): Promise<any> {
-    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, orderNumber);
+    console.log(orderNumber);
+    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderNumber});
     return await lastValueFrom<any>(request);
   }
 
