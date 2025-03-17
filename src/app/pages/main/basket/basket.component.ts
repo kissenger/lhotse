@@ -77,7 +77,7 @@ export class BasketComponent {
           
           async createOrder() {
             let order = that.shop.newOrder;
-            // console.log(order)
+            console.log(order)
             let res = await that._http.createPaypalOrder(order.intent);
             // console.log(res);
             if (Array.isArray(res.details)) {
