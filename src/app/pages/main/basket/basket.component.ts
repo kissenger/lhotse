@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
-import { ShippingOption, ShopService } from '@shared/services/shop.service'
+import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
@@ -77,7 +77,7 @@ export class BasketComponent {
           
           async createOrder() {
             let order = that.shop.newOrder;
-            // console.log(order)
+            console.log(order.intent)
             let res = await that._http.createPaypalOrder(order.intent);
             if (res.error) {
               console.error(res);
@@ -115,7 +115,7 @@ export class BasketComponent {
           async onShippingOptionsChange(data, actions) {
             // console.log(data);
             if (data.selectedShippingOption?.id) {
-              that.shop.basket.shippingOption = <ShippingOption>data.selectedShippingOption?.id;
+              that.shop.basket.shippingOption = data.selectedShippingOption.id;
             }
             if (data.selectedShippingOption?.type === 'PICKUP') {
                 return actions.reject();

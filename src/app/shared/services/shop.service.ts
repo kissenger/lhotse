@@ -18,13 +18,15 @@ export class ShopService {
             name: "Snorkelling Britain",
             description: "Snorkelling Britain guidebook",
             unit_amount: { currency_code: 'GBP', value: 18.99 },
-            isInStock: true
+            isInStock: true,
+            // weightInKg: 0.75
         }, {
             id: "0002",
             name: "Snorkelling Britain Signed",
             description: "Snorkelling Britain guidebook, signed by the authors",
             unit_amount: { currency_code: 'GBP', value: 23.99 },
-            isInStock: true
+            isInStock: true,
+            // weightInKg: 0.75
         }]
     }
 
@@ -106,34 +108,16 @@ export class Order {
                 },
                 items: this._shop.basket.items,
                 shipping: {
-                    options: [{
-                        id: 'royalMailTracked24',
-                        label: 'Royal Mail Tracked 24',
-                        selected: false,
-                        type: 'SHIPPING',
-                        amount: {
-                            currency_code: 'GBP',
-                            value: this._shipping.royalMailTracked24[Math.min(4,this._shop.basket.totalQty)]
-                        }
-                    },{
-                        id: 'royalMailTracked48',
-                        label: 'Royal Mail Tracked 48',
-                        selected: true,
-                        type: 'SHIPPING',
-                        amount: {
-                            currency_code: 'GBP',
-                            value: this._shipping.royalMailTracked48[Math.min(4,this._shop.basket.totalQty)]
-                        }
-                    },
-                ]}
+                    options: this._shop.basket.shippingOptions
+                }
             }]
         };
     }
 
-    private _shipping: ShippingCosts = {
-        royalMailTracked24: [ 0, 3.50, 4.25, 4.25, 7.69 ],
-        royalMailTracked48: [ 0, 2.70, 3.39, 3.39, 6.65 ]
-    }    
+    // private _shipping: ShippingCosts = {
+    //     royalMailTracked24: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+    //     royalMailTracked48: [ 0, 2.70, 3.39, 3.39, 6.65 ]
+    // }    
 
     createApproved(apiResponse: PayPalCaptureOrder) {
         this._orderApproved = apiResponse;
@@ -156,6 +140,7 @@ interface StockItem {
     isInStock: boolean;    
     image_url?: string;
     url?: string;
+    // weightInKg: number;
 }
 
 interface BasketItem extends Omit<StockItem, 'isInStock'> {
@@ -232,19 +217,65 @@ export interface PayPalCaptureOrder {
     }>
 }
 
-export type ShippingOption = "royalMailTracked24" | "royalMailTracked48";
-export type ShippingCosts = {
-    [key in ShippingOption]: Array<number>
+// export type ShippingOption = "royalMailTracked24" | "royalMailSecondClass" | "royalMailFirstClass";
+// export type ShippingOptions = {
+//     [key in ShippingOption]: Array<number>
+// }
+
+class Shipping {
+
+    private _shippingOptions: Array<{label: string, costs: Array<number>, default: boolean}> = [
+        {   label: "Royal Mail Tracked 24",
+            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+            default: false },
+        {   label: "Royal Mail First Class",
+            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+            default: false },
+        {   label: "Royal Mail Second Class",
+            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+            default: true },         
+    ];
+
+    private _activeShippingOption = this._shippingOptions.find(option=>option.default===true) || this._shippingOptions[0];
+
+    set activeShippingOption(label: string) {
+        this._activeShippingOption = this._shippingOptions.find(option=>option.label===label) || this._shippingOptions[0];
+    } 
+
+    get activeShippingOption(): {label: string, costs: Array<number>, default: boolean} {
+        return this._activeShippingOption;
+    }
+
+    getShippingOptions(qty: number) {
+        let options: any = [];
+        this._shippingOptions.forEach( (option: {label: string, costs: Array<number>, default: boolean}) => {
+            options.push({
+                id: option.label,
+                label: option.label,
+                selected: option.default,
+                type: 'SHIPPING',
+                amount: {
+                    currency_code: 'GBP',
+                    value: option.costs[qty]
+                }
+            }) 
+        })
+        return options;
+    }
+
+    getShippingCost(qty: number) {
+        // return this._shippingOptions.label[qty];
+        // let option = this._shippingOptions.find(option=>option.label===label);
+        return this._activeShippingOption.costs[Math.min(4,qty)];
+    }
+
 }
 
 class Basket {
+    private _shipping = new Shipping();
     private _basketItems: Array<BasketItem> = [];
-    private _shippingCosts: ShippingCosts = {
-        royalMailTracked24: [ 0, 3.50, 4.25, 4.25, 7.69 ],
-        royalMailTracked48: [ 0, 2.70, 3.39, 3.39, 6.65 ]
-    }    
-    private _shippingOption: ShippingOption = "royalMailTracked48";
     private _discount: number = 0;
+    // private _shippingOption = this._shippingOptions.find(option=>option.label===label);
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
@@ -261,7 +292,7 @@ class Basket {
     }
 
     updateQuantity(itemId: string, newQty: number) {
-        let item = this._basketItems.find(item=>item.id==itemId);
+        let item = this._basketItems.find(item=>item.id===itemId);
         if (item) {
             item.quantity = newQty;
         }
@@ -279,11 +310,15 @@ class Basket {
     }
 
     get shippingOption() {
-        return this._shippingOption;
+        return this._shipping.activeShippingOption.label
     }
 
-    set shippingOption(so: ShippingOption) {
-        this._shippingOption = so;
+    get shippingOptions() {
+        return this._shipping.getShippingOptions(this.totalQty);
+    }
+
+    set shippingOption(so: string) {
+        this._shipping.activeShippingOption = so;
     }
     
     get totalGoodsOnly(): number {
@@ -295,7 +330,8 @@ class Basket {
     }
 
     get shipping(): number {
-        return this._shippingCosts[this._shippingOption][Math.min(4,this.totalQty)]
+        return this._shipping.getShippingCost(this.totalQty);
+        // return this._shippingOptions[this._shippingOption][Math.min(4,this.totalQty)]
     }
 
     get grandTotal() : number {

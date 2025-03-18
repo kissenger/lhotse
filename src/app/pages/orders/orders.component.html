@@ -70,7 +70,7 @@
             </div>
             @if (order.approved) {
                 <div class="order-detail">
-                    <div class="title">Shipping</div>
+                    <div class="title">Address</div>
                     <div class="value">
                         {{ order.approved.purchase_units[0].shipping.name.full_name }}<br />
                         {{ order.approved.purchase_units[0].shipping.address.address_line_1}}<br />
@@ -80,7 +80,19 @@
                         {{ order.approved.purchase_units[0].shipping.address.postal_code}}<br />
                     </div>
                 </div>
-            }
+                <div class="order-detail">
+                    <div class="title">Postage</div>
+                    <div class="value">
+                        {{ order.approved.purchase_units[0].shipping.options[0].label }}
+                    </div>
+                </div>
+                <div class="order-detail">
+                    <div class="title">Email </div>
+                    <div class="value">
+                        {{ order.approved.payer.email_address }}
+                    </div>
+                </div>
+            }            
         </div>
     }
   </div>
