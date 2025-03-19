@@ -157,7 +157,30 @@ export function app(): express.Express {
     }
   });
 
+  async function getOrderDetails(orderNumber: string) {
+    const order = await ShopModel.findOne({orderNumber});
+    return {
+      orderNumber,
+      name: order?.approved.purchase_units[0].shipping.name.full_name,
+      address: order?.approved.purchase_units[0].shipping.address,
+      email: order?.approved.payer.email_address,
+      units: order?.intent.purchase_units[0].items[0].quantity,
+      cost: order?.intent.purchase_units[0].amount.breakdown.item_total.value,
+      shipping: order?.intent.purchase_units[0].amount.breakdown.shipping.value,
+      discount: order?.intent.purchase_units[0].amount.breakdown.discount.value,
+      totalCost: order?.intent.purchase_units[0].amount.value
+    }
 
+  }
+
+  server.get('/api/shop/get-order-details/:orderNumber', async (req, res) => {
+    try {
+      let orderDetails = await getOrderDetails(req.params.orderNumber);
+      res.status(201).json(orderDetails);
+    } catch (error: any) {
+      res.status(500).send(error);
+    }
+  });
 
   /**
    * Creates an order and returns it as a JSON response.
@@ -188,7 +211,7 @@ export function app(): express.Express {
           method: 'POST',
           headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
           body: JSON.stringify(req.body)
-        }).then(res => res.json()).then(json => {
+        }).then(result => result.json()).then(json => {
           logShopEvent(json.id, {intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now()})
           res.send(json)
         })
@@ -197,6 +220,42 @@ export function app(): express.Express {
     }).catch(err => {
       console.error(err);
       logShopEvent(null, {error: err, intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now()})
+      res.send(err)
+    })
+  });
+
+
+  server.post('/api/shop/patch-paypal-order', (req, res) => {
+
+    get_access_token().then(token => {
+
+      // token is checked here so that we can store with the intent for max debugging potential
+      if (token.error) {
+
+        console.error(token);
+        logShopEvent(null, {error: token, intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now(), errorCreated: Date.now()})
+        res.send(token);
+      
+      } else (
+
+        fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderNumber}`, { 
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
+          body: JSON.stringify([{ 
+            "op": "replace", 
+            "path": req.body.path, 
+            "value": req.body.patch
+          }])
+        })
+        .then(result => {
+          logShopEvent(req.body.orderNumber, {patch:req.body, orderPatched: Date.now()})
+          res.send(result);
+        })
+      )
+
+    }).catch(err => {
+      console.error(err);
+      logShopEvent(req.body.orderNumber, {error: err, intent: req.body, endPoint: PAYPAL_ENDPOINT, orderCreated: Date.now()})
       res.send(err)
     })
   });
@@ -234,7 +293,7 @@ export function app(): express.Express {
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
 
-        }).then(res => res.json()).then(json => {
+        }).then(result => result.json()).then(json => {
 
           if (Array.isArray(json.details)) {
             // error 

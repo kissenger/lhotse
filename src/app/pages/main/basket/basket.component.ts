@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
-import { Router } from '@angular/router';
+// import { Router } from '@angular/router';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
-import { ScreenService } from '@shared/services/screen.service';
+// import { ScreenService } from '@shared/services/screen.service';
 
 @Component({
   standalone: true,
@@ -29,29 +29,17 @@ export class BasketComponent {
 
   constructor(
     private _http: HttpService,
-    private _router: Router,
     public shop: ShopService,
-    private _screen: ScreenService,
     
   ) {
     try {
       this.shop.basket.add(this.shop.item("0001"),1);
-      // this.shop.basket.add(this.shop.item("0002"),2);
     } catch (err) {
       console.log(err);
-      // this._router.navigateByUrl(`/shop/order_outcome`);
     }
   }
 
   ngAfterViewInit() {
-    
-    // this.widthDescriptor = this._screen.widthDescriptor;
-    // this._screen.resize.subscribe( (hasOrientationChanged) => {
-    //   this.widthDescriptor = this._screen.widthDescriptor;
-    //   if (hasOrientationChanged) {
-    //     this.loadBackgroundImages();
-    //   }
-    // });
     
   }
 
@@ -76,14 +64,12 @@ export class BasketComponent {
         await paypal.Buttons({
           
           async createOrder() {
-            let order = that.shop.newOrder;
-            console.log(order.intent)
-            let res = await that._http.createPaypalOrder(order.intent);
+            let res = await that._http.createPaypalOrder(that.shop.orderIntent);
             if (res.error) {
               console.error(res);
-              return false;
+              return;
             } else {
-              order.orderNumber = res.id;
+              that.shop.orderNumber = res.id;
               return res.id;
             }
 
@@ -93,19 +79,19 @@ export class BasketComponent {
             let res = await that._http.capturePaypalPayment(data.orderID);
             if (res.error) {
               console.error(res);
+              that.shop.orderStatus = "error";
               if (res.error === 'INSTRUMENT_DECLINED') {
                 return actions.restart();
               } else {
                 return;
               }
             } else {
-              that.shop.order?.createApproved(res);
+              that.shop.orderStatus = "complete";
               return;                
             }  
           },
 
           async onShippingAddressChange(data, actions) {
-            // console.log(data.shippingAddress.countryCode)
             if (data.shippingAddress.countryCode !== "GB") {
               // @ts-expect-error
               return actions.reject(data.errors.COUNTRY_ERROR);
@@ -113,13 +99,16 @@ export class BasketComponent {
           },
 
           async onShippingOptionsChange(data, actions) {
-            // console.log(data);
-            if (data.selectedShippingOption?.id) {
-              that.shop.basket.shippingOption = data.selectedShippingOption.id;
+            if (data.selectedShippingOption?.id && data.orderID) {
+              that.shop.basket.shippingOption = data.selectedShippingOption?.id;
+            
+              let res=await that._http.patchPaypalOrder(
+                data.orderID,
+                "/purchase_units/@reference_id=='default'",  
+                that.shop.orderIntent.purchase_units[0]
+              )
             }
-            if (data.selectedShippingOption?.type === 'PICKUP') {
-                return actions.reject();
-            }
+            return 
           }
 
         }).render("#paypal-button-container");
@@ -142,15 +131,12 @@ export class BasketComponent {
 
   onCodeChange(){
     this.discountCodes.forEach(dc => {
-      // console.log(this.userEnteredCode)
-      // console.log(dc.code)
       if (dc.code === this.userEnteredCode) {
         this.shop.basket.discount = dc.discount;
         this.discount = dc.discount;
       } else {
         this.shop.basket.discount = 0;
       }
-      // console.log(this.shop.basket.appliedDiscount)
     })
 
   }

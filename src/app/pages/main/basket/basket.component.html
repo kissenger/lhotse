@@ -5,14 +5,18 @@
       <h2>Buy Now</h2>
 
       <p> 
-        By purchasing Snorkelling Britain directly from us as the authors, you are  
+        By pre-ordering Snorkelling Britain directly from us as the authors, you are  
         rewarding the 3 years of research we put into the book, helping
         us to recoup more of our costs, and yes, we get more
         profit on each book this way!
       </p>
-      <p class="blockquote">
+      <!-- <p class="blockquote">
         Please allows 5-7 days for recieving your order - if you need it sooner, 
         please get in touch and we'll see what we can do
+      </p> -->
+      <p class="blockquote">
+        Snorkelling Britain will be available in May 2025 - order now and be among the 
+        first to recieve a copy!
       </p>
 
       <div class="basket">
@@ -23,9 +27,9 @@
               <div> {{basketItem.name}}</div>
               
               <div class="basket-item-qty">
-                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)">-</button>
-                <input class="qty" type="number" min=0 name="qty-input-{{$index}}" [(ngModel)]="basketItem.quantity" readonly> 
-                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,1)">+</button>
+                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">-</button>
+                <input class="qty" type="number" min=0 name="qty-input-{{$index}}" [disabled]="shop.orderStatus!='draft'"  [(ngModel)]="basketItem.quantity" readonly> 
+                <button class="plus-minus" (click)="onPlusMinus(basketItem.id,1)" [disabled]="shop.orderStatus!='draft'">+</button>
               </div>
         
               <div>{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
@@ -47,7 +51,10 @@
             <div class="basket-item-text">Shipping ({{shop.basket.shippingOption}})</div>
             <div>{{shop.basket.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
           </div>
-          <div class="basket-item-note">Shipping options can be changed in PayPal checkout</div>
+          <div class="basket-item-note">
+            Shipping options can be changed in PayPal checkout<br>
+            If you wish to select pickup, please contact us in advance
+          </div>
         </div>      
       
         <div class="basket-item">
@@ -61,16 +68,16 @@
         <div class="basket-item">
           <div class="basket-item-description">
             <label for="title">Discount&nbsp;Code:</label>
-            <input class="discount" type="text" id="title" name="title" (keyup)="onCodeChange()" [(ngModel)]="userEnteredCode">
+            <input class="discount" type="text" id="title" name="title" (keyup)="onCodeChange()"  [disabled]="shop.orderStatus!='draft'" [(ngModel)]="userEnteredCode">
           </div>
         </div>
       
       </div>
 
-      @if (!!shop.order?.error || !!shop.order?.approved) {
-        <app-order-outcome></app-order-outcome>
-      } @else {
+      @if (shop.orderStatus === "draft") {
         <div id="paypal-button-container"></div>
+      } @else {
+        <app-order-outcome></app-order-outcome>
       }
 
     </div>

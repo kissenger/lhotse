@@ -4,6 +4,8 @@ const shopSchema = new mongoose.Schema({
   orderNumber: {type: String, required: true},
   intent: {type: Object},
   approved: {type: Object},
+  patch: {type: Object},
+  orderPatched: {type: Date},
   error: {type: Object},
   endPoint: {type: String},
   orderCreated: {type: Date},

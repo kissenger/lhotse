@@ -2,7 +2,7 @@
 header {
   position: fixed;
   top: 0px;
-  z-index: 99;
+  z-index: 9999;
   /* margin: 0; */
   /* padding-inline: calc( (100vw - var(--container-width) ) / 2 ); */
   /* display: flex;   */

@@ -9,7 +9,8 @@ export class ShopService {
 
     private _basket: Basket;
     private _items: Array<StockItem>;
-    private _order?: Order;
+    private _orderNumber?: string;
+    private _orderStatus: "error" | "complete" | "draft" = "draft";
     
     constructor() {
         this._basket = new Basket();
@@ -33,101 +34,67 @@ export class ShopService {
     get items() {
         return this._items;
     }
+
+    set orderStatus(os: "draft" | "error" | "complete") {
+        this._orderStatus = os;
+    }
+    
+    get orderStatus() {
+        return this._orderStatus;
+    }
+
     item(id: string) {
-        let item = this._items.find(item=>item.id==id);
-        if (item) {
-            return item;
-        } 
-        throw new ShopError(`ShopItem ${id} not found`)
+        return this._items.find(item=>item.id==id) || this._items[0];
+        // throw new ShopError(`ShopItem ${id} not found`)
     }
-    get newOrder() {
-        this._order = new Order(this);
-        return this._order;
-    }
-    get basket() {
-        return this._basket;
-    } 
-    get order() {
-        return this._order;
-    } 
-}
 
-export class ShopError extends Error {
-    constructor(@Inject(String) message: string) {
-        super(message)
-    }
-}
-
-export class Order {
-    private _orderError?: PayPalOrderError;
-    private _order: PayPalCreateOrder;
-    private _orderApproved?: PayPalCaptureOrder;
-    private _orderNumber?: string;
-
-    constructor(
-        private _shop: ShopService
-    ) {
-        this._order = this._createOrder();
-    }
-    get intent() {
-        return this._order;
-    }
-    get error() {
-        return this._orderError;
-    }
-    get approved() {
-        return this._orderApproved;
-    }    
     get orderNumber() {
         return this._orderNumber;
     }
     set orderNumber(on: string | undefined) {
         this._orderNumber = on;
     }
-    private _createOrder() {
+
+    get basket() {
+        return this._basket;
+    } 
+    get orderIntent() {
         return {
             intent: 'CAPTURE',
             purchase_units: [{
                 amount: {
                     currency_code: 'GBP',
-                    value: this._shop.basket.grandTotal,
+                    value: this.basket.grandTotal,
                     breakdown: {
                         item_total: {
                             currency_code: 'GBP',
-                            value: this._shop.basket.totalGoodsOnly
+                            value: this.basket.totalGoodsOnly
                         },
                         shipping: {
                             currency_code: 'GBP',
-                            value: this._shop.basket.shipping
+                            value: this.basket.shipping
                         },
                         discount : {
                             currency_code: 'GBP',
-                            value: -this._shop.basket.appliedDiscount
+                            value: -this.basket.appliedDiscount
                           }
                     }
                 },
-                items: this._shop.basket.items,
+                items: this.basket.items,
                 shipping: {
-                    options: this._shop.basket.shippingOptions
+                    options: this.basket.shippingOptions
                 }
             }]
-        };
+        }
     }
-
-    // private _shipping: ShippingCosts = {
-    //     royalMailTracked24: [ 0, 3.50, 4.25, 4.25, 7.69 ],
-    //     royalMailTracked48: [ 0, 2.70, 3.39, 3.39, 6.65 ]
-    // }    
-
-    createApproved(apiResponse: PayPalCaptureOrder) {
-        this._orderApproved = apiResponse;
-    }
-
-    createError(apiResponse: PayPalOrderError) {
-        this._orderError = apiResponse;
-    }
-        
 }
+
+// export class ShopError extends Error {
+//     constructor(@Inject(String) message: string) {
+//         super(message)
+//     }
+// }
+
 
 interface StockItem {
     id: string;
@@ -189,6 +156,23 @@ export interface PayPalCreateOrder {
         }
     }>
 }
+export interface OrderDetails {
+    orderNumber: string,
+    name: string,
+    email: string,
+    address: {
+        address_line_1: string,
+        admin_area_2: string,
+        admin_area_1: string,
+        postal_code: string,
+        country_code: string
+    },
+    units: number,
+    cost: number,
+    shipping: number,
+    discount: number,
+    totalCost: number
+}
 
 export interface PayPalCaptureOrder {
     id: string,
@@ -217,22 +201,17 @@ export interface PayPalCaptureOrder {
     }>
 }
 
-// export type ShippingOption = "royalMailTracked24" | "royalMailSecondClass" | "royalMailFirstClass";
-// export type ShippingOptions = {
-//     [key in ShippingOption]: Array<number>
-// }
-
 class Shipping {
 
     private _shippingOptions: Array<{label: string, costs: Array<number>, default: boolean}> = [
-        {   label: "Royal Mail Tracked 24",
-            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+        {   label: "Pickup By Arrangement Only",
+            costs: [ 0, 0, 0, 0, 0 ],
             default: false },
         {   label: "Royal Mail First Class",
-            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+            costs: [ 0, 3.30, 4.09, 7.39, 7.39],
             default: false },
         {   label: "Royal Mail Second Class",
-            costs: [ 0, 3.50, 4.25, 4.25, 7.69 ],
+            costs: [ 0, 2.50, 3.25, 6.35, 6.35],
             default: true },         
     ];
 
@@ -252,7 +231,7 @@ class Shipping {
             options.push({
                 id: option.label,
                 label: option.label,
-                selected: option.default,
+                selected: option.label === this._activeShippingOption.label,
                 type: 'SHIPPING',
                 amount: {
                     currency_code: 'GBP',
@@ -270,6 +249,7 @@ class Shipping {
     }
 
 }
+
 
 class Basket {
     private _shipping = new Shipping();

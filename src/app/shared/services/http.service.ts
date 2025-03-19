@@ -44,6 +44,12 @@ export class HttpService {
   /* 
   PAYPAL ENDPOINTS
   */
+
+  async getOrderDetails(orderNumber?: string) {
+    const request =  this.http.get<any>(`${this._backendURL}/shop/get-order-details/${orderNumber}`);
+    return await lastValueFrom<any>(request);
+  }
+
   async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
     const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, order);
     return await lastValueFrom<any>(request);
@@ -60,6 +66,11 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
+  async patchPaypalOrder(orderNumber: string, path: string, patch: object): Promise<any> {
+    // console.log(orderNumber);sec-fetch-dest
+    const request = this.http.post<any>(`${this._backendURL}/shop/patch-paypal-order/`, {orderNumber, path, patch});
+    return await lastValueFrom<any>(request);
+  }
   /*
   SHOP ENDPOINTS
   */
