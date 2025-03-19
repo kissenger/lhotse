@@ -11,13 +11,15 @@ import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
 
 // if production then use port 4000; for beta and dev use 4000
+// prod is snorkelology.co.uk
+// prod is beta.snorkelology.co.uk and local development
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const PORT = ENVIRONMENT === 'PRODUCTION' ? '4001' : '4000';
 const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
 const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
 const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
-const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
-const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
+const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
+const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
 
 mongoose.connect(MONGODB_CONNECTION_STR);

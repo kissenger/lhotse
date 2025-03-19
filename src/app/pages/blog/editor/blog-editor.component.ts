@@ -58,7 +58,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
           this.refreshPostList(result);
         },
         error: (error) => {
-          console.log(error);
+          console.error(error);
           this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
         }
       }) 
@@ -112,7 +112,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
           this._window!.alert("Post successfully updated!");
         },
         error: (error) => {
-          console.log(error);
+          console.error(error);
           this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
         }
       }) 
@@ -131,7 +131,7 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
             this._window!.alert("Post successfully deleted!");
           },
           error: (error) => {
-            console.log(error);
+            console.error(error);
             this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
           }
         })    

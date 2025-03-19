@@ -41,7 +41,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   async ngOnInit() {
-    // console.log(this.questions);
     this._routeSubs = this._route.params.subscribe(params => {
 
         // this is a hack to avoid an error 
@@ -49,7 +48,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         this._httpSubs = this._http.getPostBySlug(params['slug']).subscribe({
           next: (result: {article: BlogPost, nextSlug: string, lastSlug:string}) => {
 
-            // console.log(result);
             // htmlize blog entries to avoid doing it twice
             this.post = result.article;
             this.post.intro = this._htmler.transform(result.article.intro);
@@ -65,7 +63,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this.lastSlug = result.lastSlug;
 
             this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
-            // console.log(this._route.snapshot.url.join('/'))
             this._seo.updateTitle(this.post.title);
             this._seo.updateKeywords(this.post.keywords.join(', '));
             this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
@@ -81,7 +78,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             this.isReadyToLoad = true;
           },
           error: (error) => {
-            console.log(error);
+            console.error(error);
             this._router.navigateByUrl(`/page-not-found`); 
           }
         }) 

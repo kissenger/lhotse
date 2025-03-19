@@ -44,13 +44,12 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
       const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
       this._httpSubs = getFunction.subscribe({
         next: (result) => {
-          // console.log(result);
           this.posts = result;
           this.isBlogDataEmitter.emit(this.posts.length !== 0);
         },
         error: (error) => {
           this.isBlogDataEmitter.emit(true);
-          console.log(error);
+          console.error(error);
         }
       }) 
     });

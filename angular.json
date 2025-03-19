@@ -33,7 +33,6 @@
           },
           "configurations": {
             
-            
             "prod": {
               "ssr": {
                 "entry": "server.ts"
