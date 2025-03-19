@@ -1,18 +1,15 @@
-import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
-// import { Router } from '@angular/router';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
-// import { ScreenService } from '@shared/services/screen.service';
 
 @Component({
   standalone: true,
   imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, NgOptimizedImage],
-  // providers: [Shop],
   selector: 'app-basket',
   templateUrl: './basket.component.html',
   styleUrls: ['./basket.component.css', '../main.component.css']

@@ -122,14 +122,11 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
   }
 
   hideOverlay(overlay: string) {
-    console.log(overlay)
     if (overlay === 'buy-now') {
       this.hideBuyNowOverlay = true;
     } else if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
     }
-    console.log(this.hideAboutBookOverlay)
-
   }
 
   ngOnDestroy() {
