@@ -22,7 +22,7 @@ export class BasketComponent {
 
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = [
-    {code: "iheartsnorkelling", discount: 25}
+    {code: "snorkelpromo", discount: 25}
   ];
   public userEnteredCode: string = "";
   public discount: number = 0;

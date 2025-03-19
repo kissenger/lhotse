@@ -278,8 +278,6 @@ export function app(): express.Express {
 
     get_access_token().then(token => {
 
-      console.log(req.body);
-
       // token is checked here so that we can store with the intent for max debugging potential
       if (token.error) {
 

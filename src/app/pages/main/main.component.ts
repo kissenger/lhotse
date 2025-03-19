@@ -59,14 +59,14 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateKeywords(`snorkel, snorkeling, snorkling, snorkelling, britain, british, UK, united kingdom, great britain,
       underwater, sealife, marinelife, wales, scotland, england`);
     this._seo.updateDescription(`Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful
-      British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.`);
+      British marine environment, view inspiring underwater photography, and buy our new book: Snorkelling Britain.`);
     this._seo.addStructuredData(`{
       "@context": "http://schema.org",
       "@type": "Organization",
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forthcoming book: Snorkelling Britain.",
+      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and buy our new book: Snorkelling Britain.",
       "sameAs": "https://instagram.com/snorkelology"
     }`)
 

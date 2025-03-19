@@ -62,13 +62,12 @@
             <div class="basket-item-text">Total</div>
             <div>{{shop.basket.grandTotal | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
           </div>
-          <!-- <div class="basket-item-note">Shipping options can be changed in PayPal checkout</div> -->
         </div>
         
         <div class="basket-item">
           <div class="basket-item-description">
-            <label for="title">Discount&nbsp;Code:</label>
-            <input class="discount" type="text" id="title" name="title" (keyup)="onCodeChange()"  [disabled]="shop.orderStatus!='draft'" [(ngModel)]="userEnteredCode">
+            <label for="discount">Discount&nbsp;Code:</label>
+            <input class="discount" type="text" id="discount" name="discount" (keyup)="onCodeChange()"  [disabled]="shop.orderStatus!='draft'" [(ngModel)]="userEnteredCode">
           </div>
         </div>
       
