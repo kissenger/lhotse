@@ -34,7 +34,6 @@ export class OrdersComponent  {
         next: (result) => {
           // console.log(result)
           this.orders = result;
-          // this.refreshPostList(result);
         },
         error: (error) => {
           console.log(error);
