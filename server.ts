@@ -168,7 +168,6 @@ export function app(): express.Express {
 
   async function getOrderDetails(orderNumber: string) {
     const order = await ShopModel.findOne({orderNumber});
-    console.log(order);
     return {
       orderNumber,
       name: order?.approved.purchase_units[0].shipping.name.full_name,
@@ -179,7 +178,8 @@ export function app(): express.Express {
       shipping: order?.intent.purchase_units[0].amount.breakdown.shipping.value,
       discount: order?.intent.purchase_units[0].amount.breakdown.discount.value,
       totalCost: order?.intent.purchase_units[0].amount.value,
-      api: order?.endPoint
+      api: order?.endPoint,
+      shippingOption: order?.approved.purchase_units[0].shipping.options[0].label
     }
   }
 
@@ -247,7 +247,8 @@ export function app(): express.Express {
           }])
         })
         .then(result => {
-          logShopEvent(req.body.orderNumber, {patch:req.body, orderPatched: Date.now()})
+          // logShopEvent(req.body.orderNumber, {patch:req.body, orderPatched: Date.now()})
+          logShopEvent(req.body.orderNumber, {intent: {purchase_units: [req.body.patch]}, orderPatched: Date.now()})
           res.send(result);
         })
       )
@@ -310,7 +311,7 @@ export function app(): express.Express {
                   <div>${orderDetails.orderNumber}</div>
                 </div>
                 <div class="item">
-                  <div class="title">Shipping:</div>
+                  <div class="title">Shipping Address:</div>
                   <div>${orderDetails.name}<br>
                   ${orderDetails.address.address_line_1}<br>
                   ${orderDetails.address.admin_area_2}<br>
@@ -320,13 +321,22 @@ export function app(): express.Express {
                   </div>    
                 </div>
                 <div class="item">
+                  <div class="title">Shipping Option:</div>
+                  <div>${orderDetails.shippingOption}</div>    
+                </div>                
+                <div class="item">
+                  <div class="title">Item Cost</div>
+                  <div>£${orderDetails.cost.toFixed(2)}</div>
+                </div>                  
+                </div>
+                <div class="item">
                   <div class="title">Shipping</div>
                   <div>£${orderDetails.shipping.toFixed(2)}</div>
                 </div>
                 ${discountMsg}
                 <div class="item">
                   <div class="title">Subtotal</div>
-                  <div>${orderDetails.totalCost.toFixed(2)}</div>
+                  <div>£${orderDetails.totalCost.toFixed(2)}</div>
                 </div>                                           
               </body>
               `
