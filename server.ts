@@ -21,6 +21,15 @@ const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.
 const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
 const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
+const EMAIL_CONFIG = {
+  service: 'gmail', 
+  host: "stmp.gmail.com",
+  port: 587,
+  auth: {
+    user: 'hello@snorkelology.co.uk',   // your email address
+    pass: process.env['GMAIL_APP_PASSWD'] // app password for gordon@snorkelology.co.uk account through google workspace
+  },
+}
 
 mongoose.connect(MONGODB_CONNECTION_STR);
 mongoose.connection
@@ -40,8 +49,6 @@ export function app(): express.Express {
   server.set('views', browserDistFolder);
   server.use(express.json());
   
-  sendEmail();
-
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
@@ -161,6 +168,7 @@ export function app(): express.Express {
 
   async function getOrderDetails(orderNumber: string) {
     const order = await ShopModel.findOne({orderNumber});
+    console.log(order);
     return {
       orderNumber,
       name: order?.approved.purchase_units[0].shipping.name.full_name,
@@ -170,10 +178,11 @@ export function app(): express.Express {
       cost: order?.intent.purchase_units[0].amount.breakdown.item_total.value,
       shipping: order?.intent.purchase_units[0].amount.breakdown.shipping.value,
       discount: order?.intent.purchase_units[0].amount.breakdown.discount.value,
-      totalCost: order?.intent.purchase_units[0].amount.value
+      totalCost: order?.intent.purchase_units[0].amount.value,
+      api: order?.endPoint
     }
-
   }
+
 
   server.get('/api/shop/get-order-details/:orderNumber', async (req, res) => {
     try {
@@ -184,18 +193,6 @@ export function app(): express.Express {
     }
   });
 
-  /**
-   * Creates an order and returns it as a JSON response.
-   * @function
-   * @name createPaypalOrder
-   * @memberof module:routes
-   * @param {object} req - The HTTP request object.
-   * @param {object} req.body - The request body containing the order information.
-   * @param {string} req.body.intent - The intent of the order.
-   * @param {object} res - The HTTP response object.
-   * @returns {object} The created order as a JSON response.
-   * @throws {Error} If there is an error creating the order.
-   */
   server.post('/api/shop/create-paypal-order', (req, res) => {
 
     get_access_token().then(token => {
@@ -262,20 +259,7 @@ export function app(): express.Express {
     })
   });
 
-  
-  /**
-  * Completes an order and returns it as a JSON response.
-  * @function
-  * @name completeOrder
-  * @memberof module:routes
-  * @param {object} req - The HTTP request object.
-  * @param {object} req.body - The request body containing the order ID and intent.
-  * @param {string} req.body.order_id - The ID of the order to complete.
-  * @param {string} req.body.intent - The intent of the order.
-  * @param {object} res - The HTTP response object.
-  * @returns {object} The completed order as a JSON response.
-  * @throws {Error} If there is an error completing the order.
-  */
+
   server.post('/api/shop/capture-paypal-payment', (req, res) => {
 
     get_access_token().then(token => {
@@ -293,7 +277,7 @@ export function app(): express.Express {
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
 
-        }).then(result => result.json()).then(json => {
+        }).then(result => result.json()).then(async (json) => {
 
           if (Array.isArray(json.details)) {
             // error 
@@ -303,9 +287,57 @@ export function app(): express.Express {
           
           } else {
             // success
-            logShopEvent(json.id, {approved: json, orderCompleted: Date.now()})
-            res.send(json)
-            sendEmail();
+            await logShopEvent(json.id, {approved: json, orderCompleted: Date.now()})
+            let orderDetails = await getOrderDetails(req.body.orderNumber);
+            let testMessage = PAYPAL_ENDPOINT.indexOf('sandbox') > 0 ? '<div><b>THIS IS A TEST: NO PAYMENT WAS TAKEN</b></div>' : '';
+            let discountMsg = orderDetails.discount > 0 ? `<div class='item'><div class='title'>Discount</div><div>-£${orderDetails.discount.toFixed(2)}</div></div>` : '';
+            let emailBody = `
+              <head>
+                <style>
+                  .item { width: 100%; }
+                  .item > div{ display: inline-block; vertical-align:top; }
+                  .title { width: 20%; }
+                </style>
+              </head>
+              <body>
+                ${testMessage}
+                <div> 
+                  <p>Thank you for your order, we'll do our best to get it to you as soon as possible.</p>
+                  <p>If you have any problems with your order, or something doesn't look right below, let us
+                  know at <a href="mailto:orders@snorkelology.co.uk">orders@snorkelology.co.uk</a>.</p>
+                <div class="item">
+                  <div class="title">Order number:</div>
+                  <div>${orderDetails.orderNumber}</div>
+                </div>
+                <div class="item">
+                  <div class="title">Shipping:</div>
+                  <div>${orderDetails.name}<br>
+                  ${orderDetails.address.address_line_1}<br>
+                  ${orderDetails.address.admin_area_2}<br>
+                  ${orderDetails.address.admin_area_1}<br>
+                  ${orderDetails.address.postal_code}<br>
+                  ${orderDetails.address.country_code}
+                  </div>    
+                </div>
+                <div class="item">
+                  <div class="title">Shipping</div>
+                  <div>£${orderDetails.shipping.toFixed(2)}</div>
+                </div>
+                ${discountMsg}
+                <div class="item">
+                  <div class="title">Subtotal</div>
+                  <div>${orderDetails.totalCost.toFixed(2)}</div>
+                </div>                                           
+              </body>
+              `
+              sendEmail(json.payer.email_address, emailBody, 'Your Snorkelology order is on its way!');
+              sendEmail(
+                'orders@snorkelology.co.uk', 
+                `<a href="snorkelology.co.uk/orders">See orders</a></p><br>${emailBody}`, 
+                'NEW ORDER'
+              );
+            
+            res.send(json);
 
           }
         })
@@ -375,31 +407,20 @@ export function app(): express.Express {
     })
   }
 
-  function sendEmail() {
-    let config = {
-      service: 'gmail', // your email domain
-      host: "stmp.gmail.com",
-      port: 465,
-      auth: {
-          user: 'thingummycc@gmail.com',   // your email address
-          pass: 'bglf alag hopn pnfd' // your password
-      }
-    }
-    let transporter = nodemailer.createTransport(config);
+  function sendEmail(to: string, html: string, subject: string) {
 
+    let transporter = nodemailer.createTransport(EMAIL_CONFIG);
     let message = {
-        from: 'thingummycc@gmail.com', // sender address
-        to: 'snorkelology@gmail.com', // list of receivers
-        subject: 'NEW ORDER RECIEVED', // Subject line
-        html: "<a href='snorkelology.co.uk/orders'>Orders Page</a>" // html body
+        from: 'noreply@snorkelology.co.uk', 
+        to, subject, html
     };
-
+    
     transporter.sendMail(message)
-    .then((info) => {
-      console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
-    }).catch((err) => {
-      console.log(`error:${err}`);
-    }
+      .then((info) => {
+        // console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
+      }).catch((err) => {
+        console.log(`error:${err}`);
+      }
     );
   }
 
