@@ -66,14 +66,14 @@ export class BasketComponent {
               console.error(res);
               return;
             } else {
-              that.shop.orderNumber = res.id;
-              return res.id;
+              that.shop.orderNumber = res.orderNumber;
+              return res.paypalOrderId;
             }
 
           },
 
           async onApprove(data, actions) {
-            let res = await that._http.capturePaypalPayment(data.orderID);
+            let res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', data.orderID);
             if (res.error) {
               console.error(res);
               that.shop.orderStatus = "error";
@@ -100,6 +100,7 @@ export class BasketComponent {
               that.shop.basket.shippingOption = data.selectedShippingOption?.id;
             
               let res=await that._http.patchPaypalOrder(
+                that.shop.orderNumber ?? '',
                 data.orderID,
                 "/purchase_units/@reference_id=='default'",  
                 that.shop.orderIntent.purchase_units[0]

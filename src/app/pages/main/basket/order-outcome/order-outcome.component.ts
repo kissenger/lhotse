@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router'
-import { OrderDetails, ShopService } from '@shared/services/shop.service';
+import { ShopService } from '@shared/services/shop.service';
 import { Subscription } from 'rxjs';
 import { HttpService } from '@shared/services/http.service';
+import { OrderSummary } from '@shared/types';
 
 @Component({
   standalone: true,
@@ -16,7 +17,7 @@ import { HttpService } from '@shared/services/http.service';
 export class OrderOutcomeComponent implements OnInit {
   
   public paymentOutcome: string = '';
-  public orderDetails?: OrderDetails;
+  public orderDetails?: OrderSummary;
 
   constructor(
     private _http: HttpService,

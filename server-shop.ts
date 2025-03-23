@@ -39,10 +39,11 @@ shop.post('/api/shop/create-paypal-order', (req, res) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
         body: JSON.stringify(req.body)
-      }).then(result => result.json()).then(json => {
+      }).then(result => result.json()).then(async (json) => {
 
-        logShopEvent(json.id, {
+        let response = await logShopEvent(newOrderNumber(), {
           paypal: {
+            id: json.id,
             intent: req.body, 
             endPoint: PAYPAL_ENDPOINT
           }, 
@@ -53,7 +54,7 @@ shop.post('/api/shop/create-paypal-order', (req, res) => {
           }
         })
 
-        res.send(json)
+        res.send({orderNumber: response.orderNumber, paypalOrderId: json.id})
       })
     )
 
@@ -64,6 +65,10 @@ shop.post('/api/shop/create-paypal-order', (req, res) => {
 
   })
 });
+
+function newOrderNumber() {
+  return Date.now().toString();
+}
 
 /*****************************************************************
  * ROUTE: Update paypal order
@@ -80,7 +85,7 @@ shop.post('/api/shop/patch-paypal-order', (req, res) => {
     
     } else (
 
-      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderNumber}`, { 
+      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
         body: JSON.stringify([{ 
@@ -127,7 +132,7 @@ shop.post('/api/shop/capture-paypal-payment', (req, res) => {
 
     } else {
 
-      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.orderNumber}/capture/`, {
+      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}/capture/`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
 
@@ -136,10 +141,10 @@ shop.post('/api/shop/capture-paypal-payment', (req, res) => {
         if (Array.isArray(json.details)) {
           console.error(json.details);
           res.send({error: json.details[0].issue});
-          logShopError(json.id, json)
+          logShopError(req.body.orderNumber, json)
         
         } else {
-          await logShopEvent(json.id, {
+          await logShopEvent(req.body.orderNumber, {
             "$set": {
               "paypal.approved": json, 
               "orderSummary.timeStamps.orderCompleted": Date.now(),
@@ -196,7 +201,22 @@ shop.post('/api/shop/set-order-status', async (req, res) => {
       [path]: Date.now()
     }
   });
+  res.send(result);
+  
+});
 
+/*****************************************************************
+ * ROUTE: Create manual order
+ ****************************************************************/
+shop.post('/api/shop/create-manual-order', async (req, res) => {
+
+  let order = req.body.order;
+  order.timeStamps = {
+    orderCreated: Date.now(),
+    orderCompleted: Date.now()
+  };
+  order.orderNumber = newOrderNumber();
+  let result = await logShopEvent(order.orderNumber, {orderSummary: order});
   res.send(result);
   
 });
@@ -226,10 +246,10 @@ async function setOrderSummary(orderNumber: string) {
       'orderSummary.user.address': order?.paypal?.approved.purchase_units[0].shipping.address,
       'orderSummary.user.email_address': order?.paypal?.approved.payer.email_address,
       'orderSummary.items': order?.paypal?.intent.purchase_units[0].items,
-      'orderSummary.cost_breakdown.items': order?.paypal?.intent.purchase_units[0].amount.breakdown.item_total.value,
-      'orderSummary.cost_breakdown.shipping': order?.paypal?.intent.purchase_units[0].amount.breakdown.shipping.value,
-      'orderSummary.cost_breakdown.discount': order?.paypal?.intent.purchase_units[0].amount.breakdown.discount.value,
-      'orderSummary.cost_breakdown.total': order?.paypal?.intent.purchase_units[0].amount.value,
+      'orderSummary.costBreakdown.items': order?.paypal?.intent.purchase_units[0].amount.breakdown.item_total.value,
+      'orderSummary.costBreakdown.shipping': order?.paypal?.intent.purchase_units[0].amount.breakdown.shipping.value,
+      'orderSummary.costBreakdown.discount': order?.paypal?.intent.purchase_units[0].amount.breakdown.discount.value,
+      'orderSummary.costBreakdown.total': order?.paypal?.intent.purchase_units[0].amount.value,
       'orderSummary.endPoint': order?.paypal?.endPoint,
       'orderSummary.shippingOption': order?.paypal?.approved.purchase_units[0].shipping.options[0].label
     }
@@ -245,8 +265,8 @@ function getConfirmationEmailBody(orderSummary: any) {
   let testMessage = orderSummary.endPoint.indexOf('sandbox') > 0 ?
     '<div><b>THIS IS A TEST: NO PAYMENT WAS TAKEN</b></div>' : 
     '';
-  let discountMsg = orderSummary.cost_breakdown.discount > 0 ? 
-    `<div class='item'><div class='title'>Discount</div><div>-£${orderSummary.cost_breakdown.discount.toFixed(2)}</div></div>` :
+  let discountMsg = orderSummary.costBreakdown.discount > 0 ? 
+    `<div class='item'><div class='title'>Discount</div><div>-£${orderSummary.costBreakdown.discount.toFixed(2)}</div></div>` :
      '';
   return `
     <head>
@@ -282,17 +302,17 @@ function getConfirmationEmailBody(orderSummary: any) {
       </div>                
       <div class="item">
         <div class="title">Item Cost</div>
-        <div>£${orderSummary.cost_breakdown.items.toFixed(2)}</div>
+        <div>£${orderSummary.costBreakdown.items.toFixed(2)}</div>
       </div>                  
       </div>
       <div class="item">
         <div class="title">Shipping</div>
-        <div>£${orderSummary.cost_breakdown.shipping.toFixed(2)}</div>
+        <div>£${orderSummary.costBreakdown.shipping.toFixed(2)}</div>
       </div>
       ${discountMsg}
       <div class="item">
         <div class="title">Subtotal</div>
-        <div>£${orderSummary.cost_breakdown.total.toFixed(2)}</div>
+        <div>£${orderSummary.costBreakdown.total.toFixed(2)}</div>
       </div>                                           
     </body>
     `

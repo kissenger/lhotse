@@ -1,31 +1,62 @@
-<div>
-    <label for="name">Name</label>
-    <input type="text" id="name" name="name">
-</div>
+<!-- <main> -->
+    
+    <div class="dynamic-container manual-order-container">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" [(ngModel)]="order.user.name">
+        </div>
 
-<div>
-    <label for="address_line_1">Address Line 1:</label>
-    <input type="text" id="address_line_1" name="address_line_1"></input>
-</div>
+        <div>
+            <label for="org">Organisation</label>
+            <input type="text" id="org" name="org" [(ngModel)]="order.user.organisation">
+        </div>
 
-<div>
-    <label for="admin_area_2">Admin Area 2:</label>
-    <input type="text" id="admin_area_2" name="admin_area_2"></input>
-</div>
+        <div>
+            <label for="address_line_1">Address Line 1:</label>
+            <input type="text" id="address_line_1" name="address_line_1" [(ngModel)]="order.user.address.address_line_1">
+        </div>
 
-<div>
-    <label for="admin_area_2">Admin Area 1:</label>
-    <input type="text" id="admin_area_2" name="admin_area_2"></input>
-</div>
+        <div>
+            <label for="admin_area_2">Admin Area 2:</label>
+            <input type="text" id="admin_area_2" name="admin_area_2" [(ngModel)]="order.user.address.admin_area_2">
+        </div>
 
-<div>
-    <label for="postal_code">Postal Code:</label>
-    <input type="text" id="postal_code" name="postal_code"></input>
-</div>
+        <div>
+            <label for="admin_area_2">Admin Area 1:</label>
+            <input type="text" id="admin_area_2" name="admin_area_2" [(ngModel)]="order.user.address.admin_area_1">
 
-<div>
-    <label for="email">Email Address:</label>
-    <input type="text" id="email" name="email"></input>
-</div>
+        <div>
+            <label for="postal_code">Postal Code:</label>
+            <input type="text" id="postal_code" name="postal_code" [(ngModel)]="order.user.address.postal_code">
+        </div>
+
+        <div>
+            <label for="email">Email Address:</label>
+            <input type="text" id="email" name="email" [(ngModel)]="order.user.email_address">
+        </div>
+
+        <div>
+            <label for="shippingOptions">Shipping Option:</label>
+            <select #kwList [(ngModel)]="order.shippingOption" name="shippingOptions" id="shippingOptions">
+                @for (so of shippingOptions; track so) {
+                    <option value="{{so.label}}" [selected]="so.label===shop.basket.shippingOption">{{so.label}}</option>
+                }
+            </select>
+        </div>
+
+        <div>
+            <label for="qty">Quantity:</label>
+            <input type="text" id="qty" name="qty" [(ngModel)]="order.items[0].quantity">
+        </div>
+
+        <div>
+            <label for="qty">Order Notes:</label>
+            <input type="text" id="qty" name="qty" [(ngModel)]="order.notes">
+        </div>
+        <button type="submit" class="formButton" (click)="onSave()">Submit</button>
+    </div>
+
+<!-- </main> -->
+
 
   

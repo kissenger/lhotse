@@ -1,3 +1,40 @@
+import {BasketItem} from '@shared/services/shop.service'
+
+export interface OrderSummary {
+  orderNumber?: string;
+  user: {
+    name: string,
+    organisation?: string,
+    email_address: string,
+    address: {
+      address_line_1: string,
+      admin_area_2: string,
+      admin_area_1: string,
+      postal_code: string,
+      country_code: string,
+    },
+  },
+  items: Array<BasketItem>,
+  costBreakdown: {
+    items: number,
+    shipping: number,
+    discount: number,
+    total: number,
+  },
+  endPoint?: string,
+  shippingOption: string,
+  timeStamps?: {
+    orderPatched?: string,
+    orderCreated?: string,
+    orderCompleted?: string,
+    readyToPost?: string,
+    posted?: string,
+    returned?: string,
+    refunded?: string,
+    errorCreated?: string,
+  },
+  notes?: string
+}
 
 
 export class BlogPost {

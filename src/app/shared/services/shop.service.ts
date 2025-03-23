@@ -31,6 +31,10 @@ export class ShopService {
         }]
     }
 
+    resetBasket() {
+        this._basket = new Basket();
+    }
+
     get items() {
         return this._items;
     }
@@ -58,25 +62,45 @@ export class ShopService {
     get basket() {
         return this._basket;
     } 
+
+    get manualOrder() {
+        return {
+            user: {
+                name: '',
+                email_address: '',
+                address: {
+                    address_line_1: '',
+                    admin_area_2: '',
+                    admin_area_1: '',
+                    postal_code: '',
+                    country_code: 'GB',
+                },
+            },
+            items: this.basket.items,
+            shippingOption: this.basket.shippingOption,
+            costBreakdown: this.basket.costBreakdown,
+            endPoint: 'manual'
+        }
+    }
     get orderIntent() {
         return {
             intent: 'CAPTURE',
             purchase_units: [{
                 amount: {
                     currency_code: 'GBP',
-                    value: this.basket.grandTotal,
+                    value: this.basket.totalCost,
                     breakdown: {
                         item_total: {
                             currency_code: 'GBP',
-                            value: this.basket.totalGoodsOnly
+                            value: this.basket.itemsCost
                         },
                         shipping: {
                             currency_code: 'GBP',
-                            value: this.basket.shipping
+                            value: this.basket.shippingCost
                         },
                         discount : {
                             currency_code: 'GBP',
-                            value: -this.basket.appliedDiscount
+                            value: -this.basket.discountValue
                           }
                     }
                 },
@@ -110,7 +134,7 @@ interface StockItem {
     // weightInKg: number;
 }
 
-interface BasketItem extends Omit<StockItem, 'isInStock'> {
+export interface BasketItem extends Omit<StockItem, 'isInStock'> {
     quantity: number;
 }
 
@@ -156,38 +180,7 @@ export interface PayPalCreateOrder {
         }
     }>
 }
-export interface OrderDetails {
-    orderNumber: string,
-    user: {
-        name: string,
-        email: string,
-        address: {
-            address_line_1: string,
-            admin_area_2: string,
-            admin_area_1: string,
-            postal_code: string,
-            country_code: string
-        },
-    },
-    items: [{
-        id: string,
-        name: string,
-        description: string,
-        unit_amount: {
-          currency_code: string,
-          value: number,
-        },
-        quantity: number,
-      }],    
-    cost_breakdown: {
-        items: number,
-        shipping: number,
-        discount: number,
-        total: number
-    }
-    units: number,
 
-}
 
 export interface PayPalCaptureOrder {
     id: string,
@@ -216,7 +209,7 @@ export interface PayPalCaptureOrder {
     }>
 }
 
-class Shipping {
+export class Shipping {
 
     private _shippingOptions: Array<{label: string, costs: Array<number>, default: boolean}> = [
         {   label: "Pickup By Arrangement Only",
@@ -300,8 +293,17 @@ class Basket {
 
     }
 
-    get appliedDiscount() {
-        return Math.trunc(Math.round(-this.totalGoodsOnly * 100) * this._discount/100) / 100;
+    get discountValue() {
+        return Math.trunc(Math.round(-this.itemsCost * 100) * this._discount/100) / 100;
+    }
+
+    get costBreakdown() {
+        return {
+            items: this.itemsCost,
+            shipping: this.shippingCost,
+            discount: this.discountValue,
+            total: this.totalCost
+        }
     }
 
     get shippingOption() {
@@ -316,21 +318,21 @@ class Basket {
         this._shipping.activeShippingOption = so;
     }
     
-    get totalGoodsOnly(): number {
+    get itemsCost(): number {
         let sum = 0;
         for (let basketItem of this._basketItems) {
             sum += basketItem.unit_amount.value * basketItem.quantity;
         }
-        return sum;
+        return Math.round(sum*100)/100;
     }
 
-    get shipping(): number {
+    get shippingCost(): number {
         return this._shipping.getShippingCost(this.totalQty);
         // return this._shippingOptions[this._shippingOption][Math.min(4,this.totalQty)]
     }
 
-    get grandTotal() : number {
-        return Math.round((this.totalGoodsOnly + this.shipping + this.appliedDiscount) * 100) / 100;
+    get totalCost() : number {
+        return Math.round((this.itemsCost + this.shippingCost + this.discountValue) * 100) / 100;
     }
 
     get totalQty(): number {

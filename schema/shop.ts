@@ -3,6 +3,7 @@ import mongoose, {model} from 'mongoose';
 const shopSchema = new mongoose.Schema({
   orderNumber: {type: String, required: true},
   paypal: {
+    id: {type: String},
     intent: {type: Object},
     approved: {type: Object},
     patch: {type: Object},
@@ -14,6 +15,7 @@ const shopSchema = new mongoose.Schema({
     user: {
       name: {type: String},
       email_address: {type: String},
+      organisation: {type: String},
       address: {
         address_line_1: {type: String},
         admin_area_2: {type: String},
@@ -22,7 +24,6 @@ const shopSchema = new mongoose.Schema({
         country_code: {type: String},
       },
     },
-    units: {type: String},
     items: [{
       id: {type: String},
       name: {type: String},
@@ -33,7 +34,7 @@ const shopSchema = new mongoose.Schema({
       },
       quantity: {type: Number},
     }],
-    cost_breakdown: {
+    costBreakdown: {
       items: {type: Number},
       shipping: {type: Number},
       discount: {type: Number},
@@ -50,7 +51,8 @@ const shopSchema = new mongoose.Schema({
       returned: {type: Date},
       refunded: {type: Date},
       errorCreated: {type: Date}
-    }
+    },
+    notes: {type: String}
   }
 }, 
 {

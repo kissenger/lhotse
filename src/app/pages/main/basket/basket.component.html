@@ -41,7 +41,7 @@
           <div class="basket-item">
             <div class="basket-item-description">
               <div class="basket-item-text">{{discount}}% Discount</div>
-              <div>{{shop.basket.appliedDiscount  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+              <div>{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
             </div>
           </div> 
         }
@@ -49,7 +49,7 @@
         <div class="basket-item">
           <div class="basket-item-description">
             <div class="basket-item-text">Shipping ({{shop.basket.shippingOption}})</div>
-            <div>{{shop.basket.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+            <div>{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
           </div>
           <div class="basket-item-note">
             Shipping options can be changed in PayPal checkout<br>
@@ -60,7 +60,7 @@
         <div class="basket-item">
           <div class="basket-item-description">
             <div class="basket-item-text">Total</div>
-            <div>{{shop.basket.grandTotal | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+            <div>{{shop.basket.totalCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
           </div>
         </div>
         

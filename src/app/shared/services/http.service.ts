@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { BlogPost, OrderStatus } from '@shared/types';
+import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCaptureOrder, PayPalCreateOrder, PayPalOrderError } from './shop.service';
 import { lastValueFrom } from 'rxjs';
 
@@ -60,15 +60,21 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  async capturePaypalPayment(orderNumber: string): Promise<any> {
+  async capturePaypalPayment(orderNumber: string, paypalOrderId: string): Promise<any> {
     console.log(orderNumber);
-    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderNumber});
+    const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderNumber, paypalOrderId});
     return await lastValueFrom<any>(request);
   }
 
-  async patchPaypalOrder(orderNumber: string, path: string, patch: object): Promise<any> {
+  async patchPaypalOrder(orderNumber: string, paypalOrderId: string, path: string, patch: object): Promise<any> {
     // console.log(orderNumber);sec-fetch-dest
-    const request = this.http.post<any>(`${this._backendURL}/shop/patch-paypal-order/`, {orderNumber, path, patch});
+    const request = this.http.post<any>(`${this._backendURL}/shop/patch-paypal-order/`, {orderNumber, paypalOrderId, path, patch});
+    return await lastValueFrom<any>(request);
+  }
+
+  async createManualOrder(order: OrderSummary) {
+    const request = this.http.post<any>(`${this._backendURL}/shop/create-manual-order/`, {order});
+    console.log(request)
     return await lastValueFrom<any>(request);
   }
   /*

@@ -5,6 +5,8 @@ import { PageNotFoundComponent } from '@shared/components/page-not-found/page-no
 import { MainComponent } from '@pages/main/main.component';
 import { PagesComponent } from '@pages/pages.component';
 import { OrdersComponent } from '@pages/orders/orders.component'
+import { ManualOrderComponent } from '@pages/orders/manual-order/manual-order.component';
+
 // import { OrderOutcomeComponent } from '@pages/shop/order-outcome/order-outcome.component';
 // import { BasketComponent } from '@pages/shop/basket/basket.component';
 
@@ -32,6 +34,7 @@ export const routes: Routes = [
         ]} 
       },
       { path: 'orders', component: OrdersComponent, data: {menuItems: []}},
+      { path: 'orders/manual', component: ManualOrderComponent, data: {menuItems: []}},      
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
     ]
   }

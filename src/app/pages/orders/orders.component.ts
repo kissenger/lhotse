@@ -4,7 +4,6 @@ import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
 import { Subscription } from 'rxjs';
 import { OrderStatus } from '@shared/types';
-import { Order } from '@paypal/paypal-server-sdk';
 
 @Component({
   selector: 'app-orders',
