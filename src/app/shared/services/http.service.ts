@@ -46,7 +46,7 @@ export class HttpService {
   */
 
   async getOrderDetails(orderNumber?: string) {
-    const request =  this.http.get<any>(`${this._backendURL}/shop/get-order-details/${orderNumber}`);
+    const request = this.http.get<any>(`${this._backendURL}/shop/get-order-details/${orderNumber}`);
     return await lastValueFrom<any>(request);
   }
 
@@ -84,9 +84,11 @@ export class HttpService {
   //   return this.http.post(`${this._backendURL}/shop/new-order`, {orderId, orderError});
   // }    
   getOrders() {
-    return this.http.get(`${this._backendURL}/shop/get-orders`);
+    return this.http.get<any>(`${this._backendURL}/shop/get-orders`);
+    
   }    
-  setOrderStatus(orderNumber: string, orderStatus: OrderStatus) {
-    return this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, orderStatus});
+  setTimestamp(orderNumber: string, timeStamp: OrderStatus) {
+    console.log(orderNumber, timeStamp);
+    return this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, timeStamp});
   }    
 }

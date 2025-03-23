@@ -45,7 +45,8 @@
   "files": [
     "src/main.ts",
     "src/main.server.ts",
-    "server.ts"
+    "server.ts",
+    "server-shop.ts"
   ],
   "include": [
     "src/**/*.d.ts"

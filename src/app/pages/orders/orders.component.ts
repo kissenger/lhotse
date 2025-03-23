@@ -32,7 +32,7 @@ export class OrdersComponent  {
     this._httpSubs = this._http.getOrders()
       .subscribe({
         next: (result) => {
-          // console.log(result)
+          console.log(result)
           this.orders = result;
         },
         error: (error) => {
@@ -47,11 +47,12 @@ export class OrdersComponent  {
   }
 
   onSetStatus(orderNumber: string, newStatus: OrderStatus) {
-    this._httpSubs = this._http.setOrderStatus(orderNumber, newStatus)
+    // console.log(orderNumber)
+    this._httpSubs = this._http.setTimestamp(orderNumber, newStatus)
       .subscribe({
         next: (result) => {
           this.getOrders();
-          // console.log(result);
+          console.log(result);
         },
         error: (error) => {
           console.log(error);

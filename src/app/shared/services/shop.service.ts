@@ -158,20 +158,35 @@ export interface PayPalCreateOrder {
 }
 export interface OrderDetails {
     orderNumber: string,
-    name: string,
-    email: string,
-    address: {
-        address_line_1: string,
-        admin_area_2: string,
-        admin_area_1: string,
-        postal_code: string,
-        country_code: string
+    user: {
+        name: string,
+        email: string,
+        address: {
+            address_line_1: string,
+            admin_area_2: string,
+            admin_area_1: string,
+            postal_code: string,
+            country_code: string
+        },
     },
+    items: [{
+        id: string,
+        name: string,
+        description: string,
+        unit_amount: {
+          currency_code: string,
+          value: number,
+        },
+        quantity: number,
+      }],    
+    cost_breakdown: {
+        items: number,
+        shipping: number,
+        discount: number,
+        total: number
+    }
     units: number,
-    cost: number,
-    shipping: number,
-    discount: number,
-    totalCost: number
+
 }
 
 export interface PayPalCaptureOrder {

@@ -4,58 +4,61 @@
   <div class="dynamic-container">
     @for (order of orders; track order) {
         <!-- @let isActionNeeded = false; -->
-        @let isActionNeeded = (!!order.orderCompleted && !order.readyToPost) || (!!order.readyToPost && !order.posted) || (!!order.returned && !order.refunded);
+        @let isActionNeeded = 
+            (!!order.timeStamps.orderCompleted && !order.timeStamps.readyToPost) || 
+            (!!order.timeStamps.readyToPost && !order.timeStamps.posted) || 
+            (!!order.timeStamps.returned && !order.timeStamps.refunded);
         <div class="order-table">
             <div class="order-detail" [ngClass]="isActionNeeded ? 'red' : 'first-line'">
                 <div class="title">Order Number</div>
                 <div class="value">{{ order.orderNumber }}</div>
             </div>
-            @if (order.orderCreated) {
+            @if (order.timeStamps.orderCreated) {
                 <div class="order-detail">
                     <div class="title">Order Created</div>
-                    <div class="value">{{order.createdAt}}</div>
+                    <div class="value">{{order.timeStamps.orderCreated}}</div>
                 </div>
             }
-            @if (order.orderCompleted) {
+            @if (order.timeStamps.orderCompleted) {
                 <div class="order-detail">
-                    <div class="title" [ngClass]="!order.readyToPost ? 'red' : ''">Order Completed</div>
-                    <div class="value" [ngClass]="!order.readyToPost ? 'red' : ''">{{order.orderCompleted}}</div>
-                    @if (!order.readyToPost) {
+                    <div class="title" [ngClass]="!order.timeStamps.readyToPost ? 'red' : ''">Order Completed</div>
+                    <div class="value" [ngClass]="!order.timeStamps.readyToPost ? 'red' : ''">{{order.timeStamps.orderCompleted}}</div>
+                    @if (!order.timeStamps.readyToPost) {
                         <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div>
                     }
                 </div>
             }
-            @if (order.readyToPost) {
+            @if (order.timeStamps.readyToPost) {
                 <div class="order-detail">
-                    <div class="title" [ngClass]="!order.posted ? 'red' : ''">Ready to Post</div>
-                    <div class="value" [ngClass]="!order.posted ? 'red' : ''">{{order.readyToPost}}</div>
-                    @if (!order.posted) {
+                    <div class="title" [ngClass]="!order.timeStamps.posted ? 'red' : ''">Ready to Post</div>
+                    <div class="value" [ngClass]="!order.timeStamps.posted ? 'red' : ''">{{order.timeStamps.readyToPost}}</div>
+                    @if (!order.timeStamps.posted) {
                         <div class="button"><button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button></div>
                     }
                 </div>
             }
-            @if (order.posted) {
+            @if (order.timeStamps.posted) {
                 <div class="order-detail">
                     <div class="title">Posted</div>
-                    <div class="value">{{order.posted}}</div>
-                    @if (!order.returned) {
-                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button></div>
+                    <div class="value">{{order.timeStamps.posted}}</div>
+                    @if (!order.timeStamps.returned) {
+                        <div class="button"><button (click)="onSetStatus(order.timeStamps.orderNumber, 'returned')">Returned</button></div>
                     }
                 </div>
             }
-            @if (order.returned) {
+            @if (order.timeStamps.returned) {
                 <div class="order-detail">
-                    <div class="title" [ngClass]="!order.refunded ? 'red' : ''">Returned</div>
-                    <div class="value" [ngClass]="!order.refunded ? 'red' : ''">{{order.returned}}</div>
-                    @if (!order.refunded) {
-                        <div class="button"><button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button></div>
+                    <div class="title" [ngClass]="!order.timeStamps.refunded ? 'red' : ''">Returned</div>
+                    <div class="value" [ngClass]="!order.timeStamps.refunded ? 'red' : ''">{{order.timeStamps.returned}}</div>
+                    @if (!order.timeStamps.refunded) {
+                        <div class="button"><button (click)="onSetStatus(order.timeStamps.orderNumber, 'refunded')">Refunded</button></div>
                     }
                 </div>
             }
-            @if (order.refunded) {
+            @if (order.timeStamps.refunded) {
                 <div class="order-detail">
                     <div class="title">Refunded</div>
-                    <div class="value">{{order.refunded}}</div>
+                    <div class="value">{{order.timeStamps.refunded}}</div>
                 </div>
             }
             <div class="order-detail">
@@ -65,31 +68,31 @@
             <div class="order-detail">
                 <div class="title">Order</div>
                 <div class="value">
-                    {{ order.intent.purchase_units[0].items[0].name }} x {{ order.intent.purchase_units[0].items[0].quantity }}
+                    {{ order.items[0].name }} x {{ order.items[0].quantity }}
                 </div>
             </div>
-            @if (order.approved) {
+            @if (order.timeStamps.orderCompleted) {
                 <div class="order-detail">
                     <div class="title">Address</div>
                     <div class="value">
-                        {{ order.approved.purchase_units[0].shipping.name.full_name }}<br />
-                        {{ order.approved.purchase_units[0].shipping.address.address_line_1}}<br />
-                        {{ order.approved.purchase_units[0].shipping.address.admin_area_1}}<br />
-                        {{ order.approved.purchase_units[0].shipping.address.admin_area_2}}<br />
-                        {{ order.approved.purchase_units[0].shipping.address.country_code}}<br />
-                        {{ order.approved.purchase_units[0].shipping.address.postal_code}}<br />
+                        {{ order.user.name }}<br />
+                        {{ order.user.address.address_line_1}}<br />
+                        {{ order.user.address.admin_area_1}}<br />
+                        {{ order.user.address.admin_area_2}}<br />
+                        {{ order.user.address.country_code}}<br />
+                        {{ order.user.address.postal_code}}<br />
                     </div>
                 </div>
                 <div class="order-detail">
                     <div class="title">Postage</div>
                     <div class="value">
-                        {{ order.approved.purchase_units[0].shipping.options[0].label }}
+                        {{ order.shippingOption }}
                     </div>
                 </div>
                 <div class="order-detail">
                     <div class="title">Email </div>
                     <div class="value">
-                        {{ order.approved.payer.email_address }}
+                        {{ order.user.email_address }}
                     </div>
                 </div>
             }            

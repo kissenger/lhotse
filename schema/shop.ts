@@ -2,19 +2,56 @@ import mongoose, {model} from 'mongoose';
 
 const shopSchema = new mongoose.Schema({
   orderNumber: {type: String, required: true},
-  intent: {type: Object},
-  approved: {type: Object},
-  patch: {type: Object},
-  orderPatched: {type: Date},
-  error: {type: Object},
-  endPoint: {type: String},
-  orderCreated: {type: Date},
-  orderCompleted: {type: Date},
-  readyToPost: {type: Date},
-  posted: {type: Date},
-  returned: {type: Date},
-  refunded: {type: Date},
-  errorCreated: {type: Date}
+  paypal: {
+    intent: {type: Object},
+    approved: {type: Object},
+    patch: {type: Object},
+    endPoint: {type: String},
+    error: {type: Object},
+  },
+  orderSummary: {
+    orderNumber:{type: String},
+    user: {
+      name: {type: String},
+      email_address: {type: String},
+      address: {
+        address_line_1: {type: String},
+        admin_area_2: {type: String},
+        admin_area_1: {type: String},
+        postal_code: {type: String},
+        country_code: {type: String},
+      },
+    },
+    units: {type: String},
+    items: [{
+      id: {type: String},
+      name: {type: String},
+      description: {type: String},
+      unit_amount: {
+        currency_code: {type: String},
+        value: {type: Number},
+      },
+      quantity: {type: Number},
+    }],
+    cost_breakdown: {
+      items: {type: Number},
+      shipping: {type: Number},
+      discount: {type: Number},
+      total: {type: Number},
+    },
+    endPoint: {type: String},
+    shippingOption: {type: String},
+    timeStamps: {
+      orderPatched: {type: Date},
+      orderCreated: {type: Date},
+      orderCompleted: {type: Date},
+      readyToPost: {type: Date},
+      posted: {type: Date},
+      returned: {type: Date},
+      refunded: {type: Date},
+      errorCreated: {type: Date}
+    }
+  }
 }, 
 {
   timestamps: true
