@@ -111,10 +111,18 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     this.windows.forEach( (w) => {
       // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
       if (isPlatformBrowser(this.platformId)) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
         const elementId: string = w.nativeElement.id;
         let url = this.staticBackgrounds[elementId].replace('.webp',`-${this._screen.deviceOrientation}.webp`);        
         w.nativeElement.style.backgroundImage = `url('${url}')`;        
-        w.nativeElement.style.backgroundAttachment = 'fixed';
+        // console.log(w.nativeElement.style.backgroundAttachment)
+        // w.nativeElement.style.backgroundAttachment = 'fixed';
+        // if (w.nativeElement.style.backgroundAttachment!='fixed') {
+        //   w.nativeElement.style.backgroundAttachment = 'scroll';
+        // }
+        
+        // console.log(w.nativeElement.style.backgroundAttachment)
         w.nativeElement.style.backgroundSize = 'cover';
         w.nativeElement.style.backgroundPosition = 'center';
       }

@@ -3,11 +3,15 @@
 /* ===================================== */
 /* styling used on some child components */
 /* ===================================== */
+@supports not (-webkit-touch-callout: none) {
+  .window {
+    background-attachment: fixed;
+  }
+}
 
 .window {
   position: relative;
   width: 100%;
-  /* border: 1px red solid; */
 }
 
 .overlay {

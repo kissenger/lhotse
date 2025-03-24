@@ -30,7 +30,7 @@
  ===================================================*/
 
  * {
-  -webkit-touch-callout: none;
+  /* -webkit-touch-callout: none; */
 
   /* Dont allow user to select text */
     -webkit-user-select: none;
