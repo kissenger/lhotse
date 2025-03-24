@@ -22,7 +22,7 @@ export class BasketComponent {
     {code: "snorkelpromo", discount: 25}
   ];
   public userEnteredCode: string = "";
-  public discount: number = 0;
+  // public discount: number = 0;
 
   constructor(
     private _http: HttpService,
@@ -34,6 +34,7 @@ export class BasketComponent {
     } catch (err) {
       console.log(err);
     }
+    
   }
 
   ngAfterViewInit() {
@@ -41,7 +42,7 @@ export class BasketComponent {
   }
 
   async ngOnInit() {
-
+    this.shop.basket.discount = 0;
     let paypal;
 
     try {
@@ -127,15 +128,15 @@ export class BasketComponent {
     }
   }
 
-  onCodeChange(){
+  onCodeChange() {
     this.discountCodes.forEach(dc => {
       if (dc.code === this.userEnteredCode) {
         this.shop.basket.discount = dc.discount;
-        this.discount = dc.discount;
       } else {
         this.shop.basket.discount = 0;
       }
     })
+    console.log(this.shop.basket.discount)
 
   }
 }

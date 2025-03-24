@@ -287,10 +287,11 @@ class Basket {
     }
 
     set discount(dc: number) {
-        // console.log(dc);
         this._discount = dc;
-        // console.log(this._discount)
+    }
 
+    get discount() {
+        return this._discount;
     }
 
     get discountValue() {

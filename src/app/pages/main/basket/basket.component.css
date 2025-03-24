@@ -31,6 +31,9 @@
   font-size: small;
   margin-top: -1rem;
 }
+.basket-item-note-right {
+  text-align: right;
+}
 
 
 .total {
