@@ -173,8 +173,7 @@ shop.post('/api/shop/capture-paypal-payment', (req, res) => {
  ****************************************************************/
 shop.get('/api/shop/get-orders/', async (req, res) => {
   try {
-    const result = await ShopModel.find({},{orderSummary: 1}).sort({"orderSummary.timeStamp.createdAt": "descending"});
-    // console.log(result)
+    const result = await ShopModel.find({'orderSummary.timeStamps.orderCompleted': {$ne: null}},{orderSummary: 1}).sort({"orderSummary.timeStamp.createdAt": "descending"});
     res.status(201).json(result.map(o=>o.orderSummary));
   } catch (error: any) { 
     console.error(error);
