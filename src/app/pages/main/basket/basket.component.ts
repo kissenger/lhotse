@@ -29,12 +29,7 @@ export class BasketComponent {
     public shop: ShopService,
     
   ) {
-    try {
       this.shop.basket.add(this.shop.item("0001"),1);
-    } catch (err) {
-      console.log(err);
-    }
-    
   }
 
   ngAfterViewInit() {
@@ -55,10 +50,9 @@ export class BasketComponent {
     }
 
     if (paypal?.Buttons !== undefined && paypal !== null) {
+
       try {
-
         const that = this;
-
         await paypal.Buttons({
           
           async createOrder() {
@@ -136,7 +130,5 @@ export class BasketComponent {
         this.shop.basket.discount = 0;
       }
     })
-    console.log(this.shop.basket.discount)
-
   }
 }

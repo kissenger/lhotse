@@ -1,15 +1,9 @@
 .main-container {
-    /* height: 100dvh; */
-    /* margin-top: var(--header-height); */
     padding-top: var(--header-height);
-    /* height: calc(100dvh - var(--header-height)); */
-    /* overflow-y: scroll; */
-    /* overflow-x: hidden; */
     display: flex;
     flex-direction: column; 
 }
 
 .content {
-    /* margin-top: 500px; */
     flex-grow: 1;
 }

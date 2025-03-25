@@ -1,5 +1,5 @@
-import {Inject, Injectable} from '@angular/core';
-import { truncate } from 'fs';
+import {Injectable} from '@angular/core';
+import {StockItem, BasketItem} from '@shared/types';
 
 @Injectable({
   providedIn: 'root'
@@ -20,14 +20,12 @@ export class ShopService {
             description: "Snorkelling Britain guidebook",
             unit_amount: { currency_code: 'GBP', value: 18.99 },
             isInStock: true,
-            // weightInKg: 0.75
         }, {
             id: "0002",
             name: "Snorkelling Britain Signed",
             description: "Snorkelling Britain guidebook, signed by the authors",
             unit_amount: { currency_code: 'GBP', value: 23.99 },
             isInStock: true,
-            // weightInKg: 0.75
         }]
     }
 
@@ -49,7 +47,6 @@ export class ShopService {
 
     item(id: string) {
         return this._items.find(item=>item.id==id) || this._items[0];
-        // throw new ShopError(`ShopItem ${id} not found`)
     }
 
     get orderNumber() {
@@ -113,101 +110,6 @@ export class ShopService {
     }
 }
 
-// export class ShopError extends Error {
-//     constructor(@Inject(String) message: string) {
-//         super(message)
-//     }
-// }
-
-
-interface StockItem {
-    id: string;
-    name: string;
-    description: string;
-    unit_amount: {
-        currency_code: string,
-        value: number
-    }
-    isInStock: boolean;    
-    image_url?: string;
-    url?: string;
-    // weightInKg: number;
-}
-
-export interface BasketItem extends Omit<StockItem, 'isInStock'> {
-    quantity: number;
-}
-
-export interface PayPalOrderError {
-    name: string,
-    details: Array<{
-        issue: string,
-        description: string
-    }>,
-    message: string,
-    debug_id: string
-} 
-
-export interface PayPalCreateOrder {
-    intent: string,
-    purchase_units: Array<{
-        amount: {
-            currency_code: string;
-            value: number;
-            breakdown: {
-                item_total: {
-                  currency_code: string,
-                  value: number
-                },
-                shipping: {
-                    currency_code: string,
-                    value: number
-                }
-            }
-        },
-        // items: Array<BasketItem>,
-        shipping: {
-            options: Array<{
-                id: string,
-                label: string,
-                selected: boolean,
-                type: string,
-                amount: {
-                    currency_code: string,
-                    value: number   
-                }
-            }>
-        }
-    }>
-}
-
-
-export interface PayPalCaptureOrder {
-    id: string,
-    status: string,
-    payer: {
-        name: {
-            given_name: string,
-            surname: string
-        },
-        email_address: string,
-        payer_id: string
-    }
-    purchase_units: Array<{
-        shipping: { 
-            address: {
-                address_line_1: string;
-                admin_area_1: string;
-                admin_area_2: string;
-                country_code: string;
-                postal_code: string;
-            },
-            name: {
-                full_name: string
-            }
-        }
-    }>
-}
 
 export class Shipping {
 
@@ -251,8 +153,6 @@ export class Shipping {
     }
 
     getShippingCost(qty: number) {
-        // return this._shippingOptions.label[qty];
-        // let option = this._shippingOptions.find(option=>option.label===label);
         return this._activeShippingOption.costs[Math.min(4,qty)];
     }
 
@@ -263,7 +163,6 @@ class Basket {
     private _shipping = new Shipping();
     private _basketItems: Array<BasketItem> = [];
     private _discount: number = 0;
-    // private _shippingOption = this._shippingOptions.find(option=>option.label===label);
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
@@ -329,7 +228,6 @@ class Basket {
 
     get shippingCost(): number {
         return this._shipping.getShippingCost(this.totalQty);
-        // return this._shippingOptions[this._shippingOption][Math.min(4,this.totalQty)]
     }
 
     get totalCost() : number {

@@ -12,6 +12,7 @@ const shopSchema = new mongoose.Schema({
   },
   orderSummary: {
     orderNumber:{type: String},
+    payPalOrderId: {type: String},
     user: {
       name: {type: String},
       email_address: {type: String},

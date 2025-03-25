@@ -1,7 +1,6 @@
 import express from 'express';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
-
 import 'dotenv/config';
 
 const shop = express();
@@ -14,7 +13,7 @@ const EMAIL_CONFIG = {
   host: "stmp.gmail.com",
   port: 587,
   auth: {
-    user: 'hello@snorkelology.co.uk',   // your email address
+    user: 'hello@snorkelology.co.uk',
     pass: process.env['GMAIL_APP_PASSWD'] // app password for gordon@snorkelology.co.uk account through google workspace
   },
 }
@@ -39,6 +38,7 @@ shop.post('/api/shop/create-paypal-order', (req, res) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
         body: JSON.stringify(req.body)
+        
       }).then(result => result.json()).then(async (json) => {
 
         let response = await logShopEvent(newOrderNumber(), {
@@ -67,6 +67,7 @@ shop.post('/api/shop/create-paypal-order', (req, res) => {
 });
 
 function newOrderNumber() {
+  // 13 digit unix epoch giving time in millisecs
   return Date.now().toString();
 }
 
@@ -173,7 +174,12 @@ shop.post('/api/shop/capture-paypal-payment', (req, res) => {
  ****************************************************************/
 shop.get('/api/shop/get-orders/', async (req, res) => {
   try {
-    const result = await ShopModel.find({'orderSummary.timeStamps.orderCompleted': {$ne: null}},{orderSummary: 1}).sort({"orderSummary.timeStamp.createdAt": "descending"});
+    const result = await ShopModel.find(
+      {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
+      {orderSummary: 1}
+    ).sort(
+      {"orderSummary.timeStamp.createdAt": "descending"}
+    );
     res.status(201).json(result.map(o=>o.orderSummary));
   } catch (error: any) { 
     console.error(error);
@@ -241,6 +247,7 @@ async function setOrderSummary(orderNumber: string) {
   let newOrder = await logShopEvent(orderNumber, {
     '$set': {
       'orderSummary.orderNumber': orderNumber,
+      'orderSummary.payPalOrderId': order?.paypal?.id,
       'orderSummary.user.name': order?.paypal?.approved.purchase_units[0].shipping.name.full_name,
       'orderSummary.user.address': order?.paypal?.approved.purchase_units[0].shipping.address,
       'orderSummary.user.email_address': order?.paypal?.approved.payer.email_address,
