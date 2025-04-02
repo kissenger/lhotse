@@ -2,8 +2,9 @@ import express from 'express';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
-
+import { ShopError } from 'server';
 const shop = express();
+
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
 const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
@@ -18,52 +19,40 @@ const EMAIL_CONFIG = {
   },
 }
 
+
+ 
+
 /*****************************************************************
  * ROUTE: Create paypal order
  ****************************************************************/
-shop.post('/api/shop/create-paypal-order', (req, res) => {
+shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
 
-  get_access_token().then(token => {
+  try {
+    const token = await getAccessToken();
+    const orderNumber = req.body.orderNumber ?? newOrderNumber();
 
-    // token is checked here so that we can store with the intent for max debugging potential
-    if (token.error) {
+    const result = await fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
+      body: JSON.stringify(req.body.order)
+    });
 
-      console.error(token);
-      logShopError(null, token)
-      res.send(token);
-    
-    } else (
+    const json = await result.json();
+    const resp = await logShopEvent( orderNumber, 
+      { paypal: { id: json.id, intent: req.body.order, endPoint: PAYPAL_ENDPOINT}, 
+        orderSummary: { timeStamps: { orderCreated: Date.now() }} 
+      });
 
-      fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
-        body: JSON.stringify(req.body)
-        
-      }).then(result => result.json()).then(async (json) => {
+    res.send({  
+      orderNumber: resp.orderNumber, 
+      paypalOrderId: json.id
+    })
+  
+  } catch (err: any) {
+    logShopError(req.body.orderNumber, err);
+    res.status(500).send({error: `ShopError: ${err.name}`, message: `Error creating PayPal order: ${err.message}`});
+  }
 
-        let response = await logShopEvent(newOrderNumber(), {
-          paypal: {
-            id: json.id,
-            intent: req.body, 
-            endPoint: PAYPAL_ENDPOINT
-          }, 
-          orderSummary: {
-            timeStamps: {
-              orderCreated: Date.now()
-            }
-          }
-        })
-
-        res.send({orderNumber: response.orderNumber, paypalOrderId: json.id})
-      })
-    )
-
-  }).catch(err => {
-    console.error(err);
-    logShopError(null, err);
-    res.send(err)
-
-  })
 });
 
 function newOrderNumber() {
@@ -74,98 +63,71 @@ function newOrderNumber() {
 /*****************************************************************
  * ROUTE: Update paypal order
  ****************************************************************/
-shop.post('/api/shop/patch-paypal-order', (req, res) => {
+shop.post('/api/shop/patch-paypal-order', async (req, res) => {
+  
+  try {
+    const token = await getAccessToken();
+    const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
+      body: JSON.stringify([{ 
+        "op": "replace", 
+        "path": req.body.path, 
+        "value": req.body.patch
+      }])
+    })
 
-  get_access_token().then(token => {
+    await logShopEvent(req.body.orderNumber, {
+      "$set": {
+        "paypal.intent.purchase_units": [req.body.patch], 
+        "orderSummary.timeStamps.orderPatched": Date.now(),
+      }          
+    })
 
-    // token is checked here so that we can store with the intent for max debugging potential
-    if (token.error) {
-      console.error(token);
-      logShopError(req.body.orderNumber, token);
-      res.send(token);
-    
-    } else (
+    res.send(result);
 
-      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
-        body: JSON.stringify([{ 
-          "op": "replace", 
-          "path": req.body.path, 
-          "value": req.body.patch
-        }])
-      })
-      .then(result => {
-
-        logShopEvent(req.body.orderNumber, {
-          "$set": {
-            "paypal.intent.purchase_units": [req.body.patch], 
-            "orderSummary.timeStamps.orderPatched": Date.now(),
-          }          
-        })
-        res.send(result);
-
-      })
-    )
-
-  }).catch(err => {
-    console.error(err);
+  } catch (err: any) {
     logShopError(req.body.orderNumber, err);
-    res.send(err)
-  })
+    res.status(500).send({error: `ShopError: ${err.name}`, message: `Error patching PayPal order: ${err.message}`});
+  }
 
-});
+})
 
 /*****************************************************************
  * ROUTE: Capture paypal payment
  ****************************************************************/
 
-shop.post('/api/shop/capture-paypal-payment', (req, res) => {
+shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 
-  get_access_token().then(token => {
+  try {
+    const token = await getAccessToken();
 
-    // token is checked here so that we can store with the intent for max debugging potential
-    if (token.error) {
-
-      console.error(token);
-      logShopError(req.body.orderNumber, token);
-      res.send(token);
-
+    const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}/capture/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
+    })
+      
+    const json = await result.json();
+    if (Array.isArray(json.details)) {
+      throw new Error(json.details[0].issue);
     } else {
-
-      fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}/capture/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token.access_token}`}
-
-      }).then(result => result.json()).then(async (json) => {
-
-        if (Array.isArray(json.details)) {
-          console.error(json.details);
-          res.send({error: json.details[0].issue});
-          logShopError(req.body.orderNumber, json)
-        
-        } else {
-          await logShopEvent(req.body.orderNumber, {
-            "$set": {
-              "paypal.approved": json, 
-              "orderSummary.timeStamps.orderCompleted": Date.now(),
-            }             
-          })
-
-          let orderSummary = await setOrderSummary(req.body.orderNumber);
-          let emailBody = getConfirmationEmailBody(orderSummary);
-          sendEmail(json.payer.email_address, emailBody, 'Thank you for ordering from Snorkelology');
-          res.send(json);
-
-        }
+      await logShopEvent(req.body.orderNumber, {
+        "$set": {
+          "paypal.approved": json, 
+          "orderSummary.timeStamps.orderCompleted": Date.now(),
+        }             
       })
     }
 
-  }).catch(err => {
-    console.error(err);
-    logShopEvent(req.body.orderNumber, {error: err, errorCreated: Date.now()});
-    res.status(500).send(err);
-  })
+    let orderSummary = await setOrderSummary(req.body.orderNumber);
+    let emailBody = getConfirmationEmailBody(orderSummary);
+    sendEmail(json.payer.email_address, emailBody, 'Thank you for ordering from Snorkelology');
+    res.send(json);
+
+  } catch (err: any) {
+    logShopError(req.body.orderNumber, err);
+    res.status(500).send({error: `ShopError: ${err.name}`, message: `Error finalising PayPal order: ${err.message}`});
+  }
 
 });
 
@@ -173,6 +135,7 @@ shop.post('/api/shop/capture-paypal-payment', (req, res) => {
  * ROUTE: Get all orders from database
  ****************************************************************/
 shop.get('/api/shop/get-orders/', async (req, res) => {
+
   try {
     const result = await ShopModel.find(
       {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
@@ -181,6 +144,7 @@ shop.get('/api/shop/get-orders/', async (req, res) => {
       {"orderSummary.timeStamp.createdAt": "descending"}
     );
     res.status(201).json(result.map(o=>o.orderSummary));
+
   } catch (error: any) { 
     console.error(error);
     res.status(500).send(error);
@@ -286,7 +250,7 @@ function getConfirmationEmailBody(orderSummary: any) {
       ${testMessage}
       <div> 
         <p>Thank you for your order, we'll do our best to get it to you as soon the books are in 
-        stock, which are expecting to be early May.</p>
+        stock, which we are expecting to be early May.</p>
         <p>If you have any problems with your order, or something doesn't look right below, let us
         know at <a href="mailto:orders@snorkelology.co.uk">orders@snorkelology.co.uk</a>.</p>
       <div class="item">
@@ -328,7 +292,7 @@ function getConfirmationEmailBody(orderSummary: any) {
 /*****************************************************************
  * FUNCTION: Send data to store database
  ****************************************************************/
-async function logShopEvent(orderNumber: string | null, orderDetails: any) {
+export async function logShopEvent(orderNumber: string | null, orderDetails: any) {
   // create random order number if one doesnt exist (in the case of rejected order creation only)
   orderNumber = orderNumber ?? Math.random().toString().slice(2,9);
   return await ShopModel.findOneAndUpdate(
@@ -338,7 +302,7 @@ async function logShopEvent(orderNumber: string | null, orderDetails: any) {
   );
 }
 
-async function logShopError(orderNumber: string | null, error: Object) {
+export async function logShopError(orderNumber: string | null, error: Object) {
   logShopEvent(orderNumber, { 
     "$set": {
       "paypal.error": error, 
@@ -351,23 +315,69 @@ async function logShopError(orderNumber: string | null, error: Object) {
  * FUNCTION: Get paypal access token
  ****************************************************************/
   //https://www.youtube.com/watch?v=HOkkbGSxmp4
-  async function get_access_token() {
-    const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`
-    const data = 'grant_type=client_credentials'
-    return fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
+  // function getAccessToken() {
+
+  //   // const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
+  //   const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
+  //   const data = 'grant_type=client_credentials';
+
+  //   return fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
+  //     method: 'POST',
+  //     headers: {
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //         'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+  //     },
+  //     body: data
+  //   })
+  //   .then( (response) => {return response.json()})
+  //   .then ( (json) => {
+  //     console.log(json);
+  //     if (json?.error) {
+  //       console.log('boos')
+  //       throw new PayPalError('bums');
+  //     } 
+  //     return json;
+  //   })
+  //   .catch( (err) => {
+  //     console.log(err);
+      
+  //   })
+
+
+
+    // return {}
+
+  // }
+  async function getAccessToken() {
+
+    const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
+    // const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
+    const data = 'grant_type=client_credentials';
+    let apiResponse;
+    let json;
+
+    try {
+      apiResponse = await fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
         },
         body: data
-    })
-    .then(res => res.json())
-    .then(json => {
-        return json;
-    })
-  }
+      })
+      json = await apiResponse.json();
+    } catch (error) {
+      throw new ShopError('PayPal oauth API: No response recieved');
+    }
 
+    if (json.error) {
+      throw new ShopError('PayPal oauth API: Authorisation failed');
+    }
+    
+    return json;
+
+  }
+// 
 /*****************************************************************
  * FUNCTION: Send email
  ****************************************************************/
@@ -388,6 +398,7 @@ async function logShopError(orderNumber: string | null, error: Object) {
       }
     );
   }
+
 
 
   export {shop};

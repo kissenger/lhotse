@@ -1,8 +1,8 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, importProvidersFrom } from '@angular/core';
 import { provideRouter, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
 
@@ -20,9 +20,10 @@ export const appConfig: ApplicationConfig = {
       }),
     ), 
     provideClientHydration(),
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(),
+      ),
     provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };
-
 

@@ -1,10 +1,10 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
-import { lastValueFrom } from 'rxjs';
+import { catchError, lastValueFrom, NEVER, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +16,13 @@ export class HttpService {
 
   constructor(
     private http: HttpClient
-    ) {}
+  ) {}
+
+  // errorHandler = (error: HttpErrorResponse) => {
+  //   console.log(error);
+  //   // return;
+  //   return throwError(() => new Error(error.message));
+  // }
 
   /*
   BLOG POSTS ENDPOINTS
@@ -50,9 +56,19 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
-    const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, order);
+  // async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
+  //   return this.http
+  //     .post<any>(`${this._backendURL}/shop/create-paypal-order/`, order)
+  //     // .pipe(catchError(error=>{throw new Error(error)}))
+  //     .subscribe( (res) => {return res} )
+  //     // 
+  //   // return await lastValueFrom<any>(request);
+  // }
+
+  async createPaypalOrder(orderNumber: string | null, order: PayPalCreateOrder): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, {orderNumber, order});
     return await lastValueFrom<any>(request);
+    // .subscribe( (res) => {return res} )
   }
 
   async logPaypalError(orderNumber: string, error: object): Promise<any> {
