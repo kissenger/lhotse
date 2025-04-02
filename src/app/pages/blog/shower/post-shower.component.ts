@@ -8,7 +8,6 @@ import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
-import { BannerAdComponent } from '@shared/components/banner-ad/banner-ad.component';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 // import { Router } from 'express';
 
@@ -18,7 +17,7 @@ import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.compon
   providers: [HtmlerPipe, SanitizerPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [SvgArrowComponent, KebaberPipe, SanitizerPipe, BannerAdComponent, CommonModule, RouterLink, NgOptimizedImage]
+  imports: [SvgArrowComponent, KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage]
 })
 export class PostShowerComponent implements OnDestroy, OnInit {
   public post: BlogPost = new BlogPost;
