@@ -39,41 +39,44 @@
 
             <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
 
-            <section class="anchor" id="contents">
-                <h4>Contents</h4>
-                <ul>
-                    @for(section of post.sections; track section) {
-                        <li>
-                            <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
-                        </li>
-                    } 
-                </ul>
-            </section>
-            <br />
-
-            <app-banner-ad></app-banner-ad>
+            @if (post.sections.length > 0) {
+                <section class="anchor" id="contents">
+                    <h4>Contents</h4>
+                    <ul>
+                        @for(section of post.sections; track section) {
+                            <li>
+                                <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
+                            </li>
+                        } 
+                    </ul>
+                </section>
+                <br />
             
-            @for (section of post.sections; track section) {
-                <a class="anchor" id="{{section.title | kebaber}}"></a>
-                <h4>{{section.title}}</h4>
-                <div [innerHTML]="section.content | sanitizer"></div>
-                @if (!!section.imgFname) {
-                    <div class="article-image-container">
-                        <img
-                            [ngSrc]="section.imgFname"
-                            [alt]="section.imgAlt"
-                            fill
-                        /> 
-                        <div class="image-caption">
-                            {{section.imgAlt}} <br />
-                            Photo credit: Snorkelology
-                        </div>
-                    </div>
-                }
-                <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
-            }
 
-            <app-banner-ad></app-banner-ad>
+            <!-- <app-banner-ad></app-banner-ad> -->
+                
+                @for (section of post.sections; track section) {
+                    <a class="anchor" id="{{section.title | kebaber}}"></a>
+                    <h4>{{section.title}}</h4>
+                    <div [innerHTML]="section.content | sanitizer"></div>
+                    @if (!!section.imgFname) {
+                        <div class="article-image-container">
+                            <img
+                                [ngSrc]="section.imgFname"
+                                [alt]="section.imgAlt"
+                                fill
+                            /> 
+                            <div class="image-caption">
+                                {{section.imgAlt}} <br />
+                                Photo credit: Snorkelology
+                            </div>
+                        </div>
+                    }
+                    <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
+                }
+            }
+            
+            <!-- <app-banner-ad></app-banner-ad> -->
             <h4>Conclusion</h4>
             <div [innerHTML]="post.conclusion | sanitizer"></div>
 
