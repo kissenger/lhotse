@@ -1,5 +1,6 @@
-import { Component} from '@angular/core';
+import { AfterViewInit, Component, Signal, viewChild, ViewContainerRef} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   standalone: true,
@@ -9,8 +10,21 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit{
 
-  constructor() {}
+  container: Signal<ViewContainerRef | undefined> = viewChild("toaster", {
+		read: ViewContainerRef,
+	});
 
+  constructor(
+    private toaster: ToastService
+  ) {}
+
+	ngAfterViewInit(): void {
+    console.log(this.container())
+		if (this.container()) {
+			this.toaster.init(this.container()!);
+		}
+	}
+  
 }

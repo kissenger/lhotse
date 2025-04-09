@@ -6,6 +6,7 @@ import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   standalone: true,
@@ -27,7 +28,7 @@ export class BasketComponent {
   constructor(
     private _http: HttpService,
     public shop: ShopService,
-    
+    private toaster: ToastService
   ) {
     try {
       this.shop.basket.add(this.shop.item("0001"),1);
@@ -51,26 +52,25 @@ export class BasketComponent {
           currency: 'GBP'
         });
     } catch (error) {
-        console.error("failed to load the PayPal JS SDK script", error);
+        console.error('Failed to load the PayPal JS SDK script', error);
     }
 
     if (paypal?.Buttons !== undefined && paypal !== null) {
       try {
 
         const that = this;
-
         await paypal.Buttons({
           
           async createOrder() {
             let res = await that._http.createPaypalOrder(that.shop.orderIntent);
-            if (res.error) {
-              console.error(res);
-              return;
-            } else {
+            if (res.paypalOrderId) {
               that.shop.orderNumber = res.orderNumber;
               return res.paypalOrderId;
+            } else {
+              console.error(res.error);
+              that.toaster.show(res.error ?? 'null', 'error');
+              return;
             }
-
           },
 
           async onApprove(data, actions) {
@@ -79,18 +79,21 @@ export class BasketComponent {
               console.error(res);
               that.shop.orderStatus = "error";
               if (res.error === 'INSTRUMENT_DECLINED') {
+                that.toaster.show('PayPal payment was declined, please try again', 'warning');
                 return actions.restart();
               } else {
+                that.toaster.show(res.error, 'error');
                 return;
               }
             } else {
-              that.shop.orderStatus = "complete";
+              that.shop.orderStatus = 'complete';
               return;                
             }  
           },
 
           async onShippingAddressChange(data, actions) {
             if (data.shippingAddress.countryCode !== "GB") {
+              that.toaster.show("Sorry, we are not currently shipping outside the UK", "warning");
               // @ts-expect-error
               return actions.reject(data.errors.COUNTRY_ERROR);
             }
@@ -112,8 +115,10 @@ export class BasketComponent {
 
         }).render("#paypal-button-container");
 
-      } catch (error) {
-          console.error("failed to render the PayPal Buttons", error);
+      } catch (error: any) {
+        
+          this.toaster.show(error.message, "error");
+
       }
     }
   }
