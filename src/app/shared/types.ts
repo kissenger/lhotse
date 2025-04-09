@@ -1,7 +1,59 @@
-import {BasketItem} from '@shared/services/shop.service'
+
+export interface StockItem {
+  id: string;
+  name: string;
+  description: string;
+  unit_amount: {
+      currency_code: string,
+      value: number
+  }
+  isInStock: boolean;    
+  image_url?: string;
+  url?: string;
+  // weightInKg: number;
+}
+
+export interface BasketItem extends Omit<StockItem, 'isInStock'> {
+  quantity: number;
+}
+
+export interface PayPalCreateOrder {
+  intent: string,
+  purchase_units: Array<{
+      amount: {
+          currency_code: string;
+          value: number;
+          breakdown: {
+              item_total: {
+                currency_code: string,
+                value: number
+              },
+              shipping: {
+                  currency_code: string,
+                  value: number
+              }
+          }
+      },
+      items: Array<BasketItem>,
+      shipping: {
+          options: Array<{
+              id: string,
+              label: string,
+              selected: boolean,
+              type: string,
+              amount: {
+                  currency_code: string,
+                  value: number   
+              }
+          }>
+      }
+  }>
+}
+
 
 export interface OrderSummary {
   orderNumber?: string;
+  payPalOrderId?: string;
   user: {
     name: string,
     organisation?: string,

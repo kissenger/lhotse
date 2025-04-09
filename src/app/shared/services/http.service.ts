@@ -1,10 +1,10 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
-import { PayPalCaptureOrder, PayPalCreateOrder, PayPalOrderError } from './shop.service';
-import { lastValueFrom } from 'rxjs';
+import { PayPalCreateOrder } from '@shared/types';
+import { catchError, lastValueFrom, NEVER, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +16,13 @@ export class HttpService {
 
   constructor(
     private http: HttpClient
-    ) {}
+  ) {}
+
+  // errorHandler = (error: HttpErrorResponse) => {
+  //   console.log(error);
+  //   // return;
+  //   return throwError(() => new Error(error.message));
+  // }
 
   /*
   BLOG POSTS ENDPOINTS
@@ -50,9 +56,19 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
-    const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, order);
+  // async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
+  //   return this.http
+  //     .post<any>(`${this._backendURL}/shop/create-paypal-order/`, order)
+  //     // .pipe(catchError(error=>{throw new Error(error)}))
+  //     .subscribe( (res) => {return res} )
+  //     // 
+  //   // return await lastValueFrom<any>(request);
+  // }
+
+  async createPaypalOrder(orderNumber: string | null, order: PayPalCreateOrder): Promise<any> {
+    const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, {orderNumber, order});
     return await lastValueFrom<any>(request);
+    // .subscribe( (res) => {return res} )
   }
 
   async logPaypalError(orderNumber: string, error: object): Promise<any> {
@@ -61,40 +77,31 @@ export class HttpService {
   }
 
   async capturePaypalPayment(orderNumber: string, paypalOrderId: string): Promise<any> {
-    console.log(orderNumber);
     const request = this.http.post<any>(`${this._backendURL}/shop/capture-paypal-payment/`, {orderNumber, paypalOrderId});
     return await lastValueFrom<any>(request);
   }
 
   async patchPaypalOrder(orderNumber: string, paypalOrderId: string, path: string, patch: object): Promise<any> {
-    // console.log(orderNumber);sec-fetch-dest
     const request = this.http.post<any>(`${this._backendURL}/shop/patch-paypal-order/`, {orderNumber, paypalOrderId, path, patch});
     return await lastValueFrom<any>(request);
   }
 
   async createManualOrder(order: OrderSummary) {
     const request = this.http.post<any>(`${this._backendURL}/shop/create-manual-order/`, {order});
-    console.log(request)
     return await lastValueFrom<any>(request);
   }
+
   /*
   SHOP ENDPOINTS
   */
-  // newOrder(orderIntent: PayPalCreateOrder) {
-  //   return this.http.post(`${this._backendURL}/shop/new-order`, orderIntent);
-  // }
-  // updateOrderApproved(orderId: string, orderApproved: PayPalCaptureOrder) {
-  //   return this.http.post(`${this._backendURL}/shop/`, {orderId, orderApproved});
-  // }  
-  // updateOrderError(orderId: string, orderError: PayPalOrderError) {
-  //   return this.http.post(`${this._backendURL}/shop/new-order`, {orderId, orderError});
-  // }    
-  getOrders() {
-    return this.http.get<any>(`${this._backendURL}/shop/get-orders`);
+  
+  async getOrders() {
+    const request = this.http.get<any>(`${this._backendURL}/shop/get-orders`);
+    return await lastValueFrom<any>(request);
     
   }    
-  setTimestamp(orderNumber: string, timeStamp: OrderStatus) {
-    console.log(orderNumber, timeStamp);
-    return this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, timeStamp});
+  async setTimestamp(orderNumber: string, timeStamp: OrderStatus) {
+    const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, timeStamp});
+    return await lastValueFrom<any>(request);
   }    
 }

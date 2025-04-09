@@ -7,7 +7,7 @@ import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
-import {shop} from './server-shop';
+import {shop, logShopError} from './server-shop';
 
 // if production then use port 4000; for beta and dev use 4000
 // prod is snorkelology.co.uk
@@ -18,6 +18,12 @@ const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
 const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
 const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
 
+export class ShopError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ShopError"
+  }
+}
 
 mongoose.connect(MONGODB_CONNECTION_STR);
 mongoose.connection
@@ -37,7 +43,8 @@ export function app(): express.Express {
   server.set('views', browserDistFolder);
   server.use(express.json());
   server.use(shop);
-  
+  server.use(errorHandler);
+
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
@@ -178,6 +185,18 @@ export function app(): express.Express {
       .then((html) => res.send(html))
       .catch((err) => next(err));
   });
+
+  function errorHandler(err: Error, req: any, res: any, next: any) {
+    // console.error(err.message)
+    console.log('Handling Error:', err);
+    if (res.headersSent) {
+      return next(err)
+    }
+    if (err instanceof ShopError) {
+       logShopError(req.body.orderNumber, err);
+    }
+    res.status(500).send({error: err.name, message: err.message});
+  }
 
   return server;
 }

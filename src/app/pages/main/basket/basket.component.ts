@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
-import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
+import { Component, Inject } from '@angular/core';
+import { CommonModule, CurrencyPipe, DOCUMENT, NgOptimizedImage} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
+// import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
 
@@ -23,58 +24,50 @@ export class BasketComponent {
     {code: "snorkelpromo", discount: 25}
   ];
   public userEnteredCode: string = "";
+  private _window;   
   // public discount: number = 0;
 
   constructor(
     private _http: HttpService,
     public shop: ShopService,
-    private toaster: ToastService
+    public toaster: ToastService,
+    @Inject(DOCUMENT) private _document: Document
   ) {
-    try {
-      this.shop.basket.add(this.shop.item("0001"),1);
-    } catch (err) {
-      console.log(err);
-    }
-    
+    this._window = _document.defaultView;
+    this.shop.basket.add(this.shop.item("0001"),1);
   }
-
-  ngAfterViewInit() {
-    
-  }
-
+  
   async ngOnInit() {
+
     this.shop.basket.discount = 0;
     let paypal;
-
+    
     try {
-        paypal = await loadScript({ 
+        paypal = await loadScript({
           clientId: environment.PAYPAL_CLIENT_ID,
-          currency: 'GBP'
+          currency: 'eGBP'
         });
-    } catch (error) {
-        console.error('Failed to load the PayPal JS SDK script', error);
+    } catch (error:any) {
+      this.toaster.show(error, 'warning');
     }
 
     if (paypal?.Buttons !== undefined && paypal !== null) {
-      try {
 
+      try {
         const that = this;
         await paypal.Buttons({
-          
+
+
           async createOrder() {
-            let res = await that._http.createPaypalOrder(that.shop.orderIntent);
-            if (res.paypalOrderId) {
-              that.shop.orderNumber = res.orderNumber;
-              return res.paypalOrderId;
-            } else {
-              console.error(res.error);
-              that.toaster.show(res.error ?? 'null', 'error');
-              return;
-            }
+            let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.orderIntent);
+            that.shop.orderNumber = res.orderNumber;
+            return res.paypalOrderId;              
           },
 
           async onApprove(data, actions) {
+
             let res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', data.orderID);
+
             if (res.error) {
               console.error(res);
               that.shop.orderStatus = "error";
@@ -86,9 +79,9 @@ export class BasketComponent {
                 return;
               }
             } else {
-              that.shop.orderStatus = 'complete';
-              return;                
-            }  
+              that.shop.orderStatus = "complete";
+              return;
+            }
           },
 
           async onShippingAddressChange(data, actions) {
@@ -102,26 +95,25 @@ export class BasketComponent {
           async onShippingOptionsChange(data, actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
               that.shop.basket.shippingOption = data.selectedShippingOption?.id;
-            
-              let res=await that._http.patchPaypalOrder(
+
+              await that._http.patchPaypalOrder(
                 that.shop.orderNumber ?? '',
                 data.orderID,
-                "/purchase_units/@reference_id=='default'",  
+                "/purchase_units/@reference_id=='default'",
                 that.shop.orderIntent.purchase_units[0]
               )
             }
-            return 
+            return
           }
 
         }).render("#paypal-button-container");
 
-      } catch (error: any) {
-        
-          this.toaster.show(error.message, "error");
-
+      } catch (error:any) {
+        this.toaster.show(error, "error");
       }
     }
   }
+
 
   onPlusMinus(id: string, increment: number) {
     const min = 0;
@@ -141,7 +133,5 @@ export class BasketComponent {
         this.shop.basket.discount = 0;
       }
     })
-    console.log(this.shop.basket.discount)
-
   }
 }

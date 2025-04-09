@@ -1,14 +1,13 @@
-import { NgClass } from '@angular/common';
+import { CurrencyPipe, NgClass } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
-import { Subscription } from 'rxjs';
-import { OrderStatus } from '@shared/types';
+import { OrderStatus, OrderSummary } from '@shared/types';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [NgClass, FormsModule],  
+  imports: [NgClass, FormsModule, CurrencyPipe],  
   providers: [], 
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css'
@@ -16,47 +15,43 @@ import { OrderStatus } from '@shared/types';
 
 export class OrdersComponent  {
 
-  public orders?: any;
-  private _httpSubs: Subscription | undefined;
+  public orders: Array<OrderSummary> = [];
   
   constructor(
     private _http: HttpService,
   ) {}
     
-  async ngOnInit() {
+  ngOnInit() {
     this.getOrders();
-  }
-
-  getOrders() {
-    this._httpSubs = this._http.getOrders()
-      .subscribe({
-        next: (result) => {
-          console.log(result)
-          this.orders = result;
-        },
-        error: (error) => {
-          console.log(error);
-          // this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
-        }
-      }) 
   }
 
   onUpdateList() {
     this.getOrders();
   }
 
-  onSetStatus(orderNumber: string, newStatus: OrderStatus) {
-    // console.log(orderNumber)
-    this._httpSubs = this._http.setTimestamp(orderNumber, newStatus)
-      .subscribe({
-        next: (result) => {
-          this.getOrders();
-          console.log(result);
-        },
-        error: (error) => {
-          console.log(error);
-        }
-      });
+  async getOrders() {
+
+    try {
+      this.orders = await this._http.getOrders()
+    } catch (error) {
+      console.error(error);
+    }
+
+    this.orders.sort((a, b) => {
+      let x: number = new Date(a?.timeStamps?.orderCompleted ?? '').getTime();
+      let y: number = new Date(b?.timeStamps?.orderCompleted ?? '').getTime();
+      return y-x
+    })
+
+  }
+
+  async onSetStatus(orderNumber: string | undefined, newStatus: OrderStatus) {
+    try {
+      await this._http.setTimestamp(orderNumber ?? '', newStatus);
+      this.getOrders();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
 }

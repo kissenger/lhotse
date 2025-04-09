@@ -32,28 +32,19 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
   ) {
-
     this._router.events
       .pipe(filter( (e: any) => e instanceof NavigationEnd))
       .subscribe( () => {
-
-          //get menu items from router
-          this.menuItems = this._route.firstChild?.snapshot.data['menuItems'];
-
-          //once we know where we are, set active anchor with statically or using scrollspy
-          // if (this._router.routerState.snapshot.url.match('blog')) {
-          //   this.activeAnchor = 'explore';
-          // } else {
-            this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
-              if (isect.ratio > 0.2) {
-                if (isect.id === "buy-now") {
-                  this.activeAnchor = "snorkelling-britain";
-                } else {
-                  this.activeAnchor = isect.id;
-                }
-              }
-            })
-          // }
+        this.menuItems = this._route.firstChild?.snapshot.data['menuItems'];
+        this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+          if (isect.ratio > 0.2) {
+            if (isect.id === "buy-now") {
+              this.activeAnchor = "snorkelling-britain";
+            } else {
+              this.activeAnchor = isect.id;
+            }
+          }
+        })
     });
   }
  

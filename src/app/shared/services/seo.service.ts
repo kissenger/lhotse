@@ -13,11 +13,11 @@ export class SEOService {
   private _renderer: Renderer2;
   
   constructor(
+    @Inject(DOCUMENT) private _document: Document,
+    @Inject(PLATFORM_ID) private platformId: Object,
     private _title: Title, 
     private _meta: Meta,
-    private _rendererFactory: RendererFactory2,
-    @Inject(DOCUMENT) private _document: Document,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private _rendererFactory: RendererFactory2
 
   ) { 
       this._renderer = _rendererFactory.createRenderer(null, null);

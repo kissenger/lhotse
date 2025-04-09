@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router'
 import { ShopService } from '@shared/services/shop.service';
-import { Subscription } from 'rxjs';
 import { HttpService } from '@shared/services/http.service';
 import { OrderSummary } from '@shared/types';
 
@@ -25,8 +23,11 @@ export class OrderOutcomeComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.orderDetails = await this._http.getOrderDetails(this.shop.orderNumber);
-    console.log(this.orderDetails);
+    try {
+      this.orderDetails = await this._http.getOrderDetails(this.shop.orderNumber);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
 }
