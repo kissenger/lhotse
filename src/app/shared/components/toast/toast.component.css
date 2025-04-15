@@ -22,8 +22,8 @@
 }
 
 .toast.success {
-  border: 1px #28a745 solid;
-  border-left: 10px #28a745 solid;
+  border: 1px #00ff3c solid;
+  border-left: 10px #00ff3c solid;
 }
 .toast.error {
   border: 1px #DC3545 solid;

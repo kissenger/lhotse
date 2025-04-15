@@ -2,7 +2,7 @@
 .toast-container {
   position: fixed;    
   z-index: 999;
-  bottom: 20px;
+  bottom: 40px;
   left: 0px;
   right: 0px;
 }

@@ -1,7 +1,26 @@
 
+/* solution for animating height: https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/ */
+
+.hidden-basket-item-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s ease-out;
+  opacity: 0;
+}
+
+.show {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.hidden-basket-item {
+  overflow: hidden;
+}
+
 .basket {
   margin-top: 2em;
   margin-bottom: 2em;
+  /* display: flex; */
   /* border-bottom: 1px var(--banner-colour) solid; */
 
 }
@@ -12,6 +31,7 @@
 
 .basket-item {
   border-top: 1px var(--banner-colour) solid;
+  /* display: flex; */
 }
 
 .basket-item-description {

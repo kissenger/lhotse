@@ -8,6 +8,7 @@ import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
+import * as fromFile from "@assets/discount-codes.json"
 
 @Component({
   standalone: true,
@@ -20,21 +21,17 @@ import { ToastService } from '@shared/services/toast.service';
 export class BasketComponent {
 
   public qty: number = 0;
-  public discountCodes: Array<{code: string, discount: number}> = [
-    {code: "snorkelpromo", discount: 25}
-  ];
+  public discountCodes: Array<{code: string, discount: number}> = fromFile.discountCodes;
   public userEnteredCode: string = "";
-  private _window;   
-  // public discount: number = 0;
+  public dirtyDiscountCode = false;
 
   constructor(
     private _http: HttpService,
     public shop: ShopService,
     public toaster: ToastService,
-    @Inject(DOCUMENT) private _document: Document
   ) {
-    this._window = _document.defaultView;
     this.shop.basket.add(this.shop.item("0001"),1);
+    console.log(this.discountCodes)
   }
   
   async ngOnInit() {
@@ -45,7 +42,7 @@ export class BasketComponent {
     try {
         paypal = await loadScript({
           clientId: environment.PAYPAL_CLIENT_ID,
-          currency: 'eGBP'
+          currency: 'GBP'
         });
     } catch (error:any) {
       this.toaster.show(error, 'warning');
@@ -80,6 +77,7 @@ export class BasketComponent {
               }
             } else {
               that.shop.orderStatus = "complete";
+              that.toaster.show('Payment successful, thank you for your order.', 'success');
               return;
             }
           },
@@ -126,12 +124,15 @@ export class BasketComponent {
   }
 
   onCodeChange() {
-    this.discountCodes.forEach(dc => {
-      if (dc.code === this.userEnteredCode) {
+    this.dirtyDiscountCode = true;
+    const uec = this.userEnteredCode.toLowerCase();
+    for (const dc of this.discountCodes) {
+      if (dc.code === uec) {
         this.shop.basket.discount = dc.discount;
+        break;
       } else {
         this.shop.basket.discount = 0;
       }
-    })
+    };
   }
 }

@@ -37,14 +37,17 @@
           </div>
         }
       
-        @if (shop.basket.discount !== 0) {
-          <div class="basket-item">
-            <div class="basket-item-description">
-              <div class="basket-item-text">{{shop.basket.discount}}% Discount</div>
-              <div>{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+        <!-- solution for animating height: https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/ -->
+        <div class="hidden-basket-item-wrapper" [ngClass]="shop.basket.discount ? 'show' : ''">
+            <div class="hidden-basket-item">
+              <div class="basket-item">
+                <div class="basket-item-description">
+                  <div class="basket-item-text">{{shop.basket.discount}}% Discount</div>
+                  <div>{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                </div>
+              </div> 
             </div>
-          </div> 
-        }
+        </div>
       
         <div class="basket-item">
           <div class="basket-item-description">
@@ -71,11 +74,14 @@
 
           </div>
           <div class="basket-item-note basket-item-note-right">
-            @if (shop.basket.discount === 0) {
-              Discount code not found
-            } @else {
-              Discount applied!
-            }          
+            @if (dirtyDiscountCode) {
+              @if (shop.basket.discount === 0) {
+                Entered code is not valid
+              } @else {
+                Discount applied!
+              }  
+            }
+        
             </div>
         </div>
       

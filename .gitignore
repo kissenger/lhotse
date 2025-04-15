@@ -2,6 +2,7 @@
 
 .env
 /src/environments/
+/src/assets/discount-codes.json
 
 # Compiled output
 /dist

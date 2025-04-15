@@ -2,6 +2,7 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
+      "resolveJsonModule": true,
       "allowSyntheticDefaultImports": true,
       "outDir": "./out-tsc/app",
       "types": [

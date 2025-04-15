@@ -4,7 +4,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
-import { catchError, lastValueFrom, NEVER, throwError } from 'rxjs';
+import { catchError, lastValueFrom, NEVER, Observable, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -18,10 +18,8 @@ export class HttpService {
     private http: HttpClient
   ) {}
 
-  // errorHandler = (error: HttpErrorResponse) => {
-  //   console.log(error);
-  //   // return;
-  //   return throwError(() => new Error(error.message));
+  // getJSON(): Observable<any> {
+  //   return this.http.get("@assets/codes.json")
   // }
 
   /*
