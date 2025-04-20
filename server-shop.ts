@@ -134,19 +134,21 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:orderNumber/:name/:online/:manual/:tests', async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:text', async (req, res) => {
 
   const orConditions = [];
   const andConditions = [];
   
-  if (req.params.orderNumber!=='null') {
-    andConditions.push({'orderSummary.orderNumber': {$regex: req.params.orderNumber}})
+  if (req.params.text!=='null') {
+    andConditions.push(
+      {$or: [
+        {'orderSummary.user.name': {$regex: req.params.text, $options: 'i'}},
+        {'orderSummary.endPoint':  {$regex: req.params.text, $options: 'i'}},
+        {'orderNumber':            {$regex: req.params.text, $options: 'i'}},
+        {'orderSummary.comments':  {$regex: req.params.text, $options: 'i'}}
+      ]})
   }
   
-  if (req.params.name!=='null') {
-    andConditions.push({'orderSummary.user.name': {$regex: req.params.name, $options: 'i'}})
-  }
-
   if (req.params.online==='true') {
     orConditions.push({'orderSummary.endPoint': 'https://api-m.paypal.com'})
   }
@@ -155,7 +157,7 @@ shop.get('/api/shop/get-orders/:orderNumber/:name/:online/:manual/:tests', async
     orConditions.push({'orderSummary.endPoint': 'manual'})
   }
 
-  if (req.params.tests==='true') {
+  if (req.params.test==='true') {
     orConditions.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'})
   }
 
@@ -195,13 +197,22 @@ shop.get('/api/shop/get-order-details/:orderNumber', async (req, res) => {
  ****************************************************************/
 shop.post('/api/shop/set-order-status', async (req, res) => {
 
-  let path =`orderSummary.timeStamps.${req.body.timeStamp}`;
-  let result = await logShopEvent(req.body.orderNumber, {
+  let setField =`orderSummary.timeStamps.${req.body.set}`;
+  await logShopEvent(req.body.orderNumber, {
     '$set': {
-      [path]: Date.now()
+      [setField]: Date.now()
     }
   });
-  res.send(result);
+
+  if (req.body.unset) {
+    let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
+    await logShopEvent(req.body.orderNumber, {
+      '$unset': {
+        [unsetField]: ""
+      }
+    });
+  }
+  res.status(201).json({respose: 'success'});
   
 });
 

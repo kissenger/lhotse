@@ -60,6 +60,10 @@ const shopSchema = new mongoose.Schema({
   timestamps: true
 })
 
+shopSchema.index({
+  'orderSummary.orderNumber': 'text', 
+  'orderSummary.user.name': 'text', 
+  'orderSummary.endPoint': 'text', 
+  'orderSummary.notes': 'text'})
 const ShopModel = model('order', shopSchema);
-
 export default ShopModel; 

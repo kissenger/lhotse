@@ -18,8 +18,7 @@ export class OrdersComponent  {
   public includeManualOrders = true;
   public includeOnlineOrders = true;
   public includeTestOrders = false;
-  public idSearch: string = '';
-  public nameSearch: string = '';
+  public textSearch: string = '';
 
   // public emails: Array<string> = [];
   public orders: Array<OrderSummary> = [];
@@ -44,7 +43,7 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.idSearch, this.nameSearch, this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders)
+      this.orders = await this._http.getOrders(this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders, this.textSearch)
     } catch (error) {
       console.error(error);
     }
@@ -57,9 +56,9 @@ export class OrdersComponent  {
 
   }
 
-  async onSetStatus(orderNumber: string | undefined, newStatus: OrderStatus) {
+  async onSetStatus(orderNumber: string | undefined, set: OrderStatus, unset?: OrderStatus) {
     try {
-      await this._http.setTimestamp(orderNumber ?? '', newStatus);
+      await this._http.setTimestamp(orderNumber ?? '', set, unset);
       this.getOrders();
     } catch (error) {
       console.error(error);
