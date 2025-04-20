@@ -19,6 +19,8 @@ export class OrdersComponent  {
   public includeOnlineOrders = true;
   public includeTestOrders = false;
   public idSearch: string = '';
+  public nameSearch: string = '';
+
   // public emails: Array<string> = [];
   public orders: Array<OrderSummary> = [];
   
@@ -42,7 +44,7 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.idSearch, this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders)
+      this.orders = await this._http.getOrders(this.idSearch, this.nameSearch, this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders)
     } catch (error) {
       console.error(error);
     }

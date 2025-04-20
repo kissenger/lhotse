@@ -134,13 +134,17 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:orderNumber/:online/:manual/:tests', async (req, res) => {
+shop.get('/api/shop/get-orders/:orderNumber/:name/:online/:manual/:tests', async (req, res) => {
 
   const orConditions = [];
   const andConditions = [];
   
   if (req.params.orderNumber!=='null') {
     andConditions.push({'orderSummary.orderNumber': {$regex: req.params.orderNumber}})
+  }
+  
+  if (req.params.name!=='null') {
+    andConditions.push({'orderSummary.user.name': {$regex: req.params.name, $options: 'i'}})
   }
 
   if (req.params.online==='true') {

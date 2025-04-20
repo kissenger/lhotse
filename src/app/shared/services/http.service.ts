@@ -93,15 +93,11 @@ export class HttpService {
   SHOP ENDPOINTS
   */
   
-  async getOrders(id: string, onlineOrders: boolean, manualOrders: boolean, testOrders: boolean) {
-    console.log(id===null);
-    // console.log(id??'bui3');
-
-    const request = this.http.get<any>(`${this._backendURL}/shop/get-orders/${id===''?'null':id}/${onlineOrders}/${manualOrders}/${testOrders}`);
-    console.log(`${this._backendURL}/shop/get-orders/${id??'null'}/${onlineOrders}/${manualOrders}/${testOrders}`)
+  async getOrders(id: string, name: string, onlineOrders: boolean, manualOrders: boolean, testOrders: boolean) {
+    const request = this.http.get<any>(`${this._backendURL}/shop/get-orders/${id===''?'null':id}/${name===''?'null':name}/${onlineOrders}/${manualOrders}/${testOrders}`);
     return await lastValueFrom<any>(request);
-    
   }    
+
   async setTimestamp(orderNumber: string, timeStamp: OrderStatus) {
     const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, timeStamp});
     return await lastValueFrom<any>(request);

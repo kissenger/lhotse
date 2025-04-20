@@ -3,6 +3,8 @@
   <button (click)="copyEmails()">Copy email addresses</button><br>
   <label for="idSearch">Order Number: </label>
   <input [(ngModel)]="idSearch" type="text" id="idSearch" name="idSearch" (keyup)="onUpdateList()"><br>
+  <label for="nameSearch">Name: </label>
+  <input [(ngModel)]="nameSearch" type="text" id="nameSearch" name="nameSearch" (keyup)="onUpdateList()"><br>
   <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
   <label for="includeOnline">Online Orders</label><br>
   <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
