@@ -1,5 +1,16 @@
 <main>
-  <button (click)="onUpdateList()">Update</button>
+  <button (click)="onUpdateList()">Update</button><br>
+  <button (click)="copyEmails()">Copy email addresses</button><br>
+  <label for="idSearch">Order Number: </label>
+  <input [(ngModel)]="idSearch" type="text" id="idSearch" name="idSearch" (keyup)="onUpdateList()"><br>
+  <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
+  <label for="includeOnline">Online Orders</label><br>
+  <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
+  <label for="includeManual">Manual Orders</label><br>
+  <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
+  <label for="includeTest">Test Orders</label><br>
+  {{orders.length}}
+
 
   <div class="dynamic-container">
     @for (order of orders; track order) {

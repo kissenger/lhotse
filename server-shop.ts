@@ -134,17 +134,44 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/', async (req, res) => {
+shop.get('/api/shop/get-orders/:orderNumber/:online/:manual/:tests', async (req, res) => {
+
+  const orConditions = [];
+  const andConditions = [];
+  
+  if (req.params.orderNumber!=='null') {
+    andConditions.push({'orderSummary.orderNumber': {$regex: req.params.orderNumber}})
+  }
+
+  if (req.params.online==='true') {
+    orConditions.push({'orderSummary.endPoint': 'https://api-m.paypal.com'})
+  }
+
+  if (req.params.manual==='true') {
+    orConditions.push({'orderSummary.endPoint': 'manual'})
+  }
+
+  if (req.params.tests==='true') {
+    orConditions.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'})
+  }
 
   try {
-    const result = await ShopModel.find(
-      {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
-      {orderSummary: 1}
-    ).sort(
-      {"orderSummary.timeStamp.createdAt": "descending"}
-    );
-    res.status(201).json(result.map(o=>o.orderSummary));
 
+    if (orConditions.length === 0) {
+      res.status(201).send([]);
+    } else {
+      const result = await ShopModel.aggregate([{
+        $match: {
+          $and: [
+            {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
+            ...andConditions,
+            {$or: orConditions}
+          ]
+        }
+      }]);
+      res.status(201).json(result.map(o=>o.orderSummary));
+    }
+    
   } catch (error: any) { 
     console.error(error);
     res.status(500).send(error);

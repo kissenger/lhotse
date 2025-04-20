@@ -15,6 +15,11 @@ import { OrderStatus, OrderSummary } from '@shared/types';
 
 export class OrdersComponent  {
 
+  public includeManualOrders = true;
+  public includeOnlineOrders = true;
+  public includeTestOrders = false;
+  public idSearch: string = '';
+  // public emails: Array<string> = [];
   public orders: Array<OrderSummary> = [];
   
   constructor(
@@ -25,6 +30,11 @@ export class OrdersComponent  {
     this.getOrders();
   }
 
+  copyEmails() {
+    let emails = this.orders.map(o=>o.user.email_address);
+    navigator.clipboard.writeText(emails.join(";"))
+  }
+
   onUpdateList() {
     this.getOrders();
   }
@@ -32,7 +42,7 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders()
+      this.orders = await this._http.getOrders(this.idSearch, this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders)
     } catch (error) {
       console.error(error);
     }
