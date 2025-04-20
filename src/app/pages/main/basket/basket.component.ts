@@ -8,7 +8,8 @@ import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
-import * as fromFile from "@assets/discount-codes.json"
+import { discountCodes } from '@shared/globals';
+
 
 @Component({
   standalone: true,
@@ -21,7 +22,7 @@ import * as fromFile from "@assets/discount-codes.json"
 export class BasketComponent {
 
   public qty: number = 0;
-  public discountCodes: Array<{code: string, discount: number}> = fromFile.discountCodes;
+  public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public userEnteredCode: string = "";
   public dirtyDiscountCode = false;
 
@@ -31,7 +32,6 @@ export class BasketComponent {
     public toaster: ToastService,
   ) {
     this.shop.basket.add(this.shop.item("0001"),1);
-    console.log(this.discountCodes)
   }
   
   async ngOnInit() {

@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {StockItem, BasketItem} from '@shared/types';
+import {shippingOptions} from '@shared/globals';
 
 @Injectable({
   providedIn: 'root'
@@ -113,17 +114,9 @@ export class ShopService {
 
 export class Shipping {
 
-    private _shippingOptions: Array<{label: string, costs: Array<number>, default: boolean}> = [
-        {   label: "Pickup By Arrangement Only",
-            costs: [ 0, 0, 0, 0, 0 ],
-            default: false },
-        {   label: "Royal Mail First Class",
-            costs: [ 0, 3.30, 4.09, 7.39, 7.39],
-            default: false },
-        {   label: "Royal Mail Second Class",
-            costs: [ 0, 2.50, 3.25, 6.35, 6.35],
-            default: true },         
-    ];
+    private _shippingOptions = shippingOptions;
+
+
 
     private _activeShippingOption = this._shippingOptions.find(option=>option.default===true) || this._shippingOptions[0];
 
