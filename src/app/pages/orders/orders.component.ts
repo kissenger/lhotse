@@ -67,6 +67,7 @@ export class OrdersComponent  {
     this.numberOfCopies = this.orders.map(o=>o.items[0].quantity).reduce((a,b)=> a+b,0);
     this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
 
+    console.log(this.orders)
   }
 
   async onSetStatus(orderNumber: string | undefined, set: OrderStatus, unset?: OrderStatus) {
