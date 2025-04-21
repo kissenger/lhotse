@@ -1,173 +1,182 @@
 <main>
+    <div class="orders-container">
+        <div class="side-panel">
+            <div class="panel-header">Actions</div>
+            <button (click)="onUpdateList()">Update List</button><br>
+            <button (click)="copyEmails()">Copy email addresses</button><br>
+            <button (click)="newOrder()">New manual order</button><br>
 
-  <div class="dynamic-container orders">
+            <div class="panel-header">Filters</div>
+            <label for="textSearch">Search: </label>
+            <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
+            <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
+            <label for="includeOnline">Online Orders</label><br>
+            <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
+            <label for="includeManual">Manual Orders</label><br>
+            <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
+            <label for="includeTest">Test Orders</label><br>
 
-    <button (click)="onUpdateList()">Update List</button><br>
-    <button (click)="copyEmails()">Copy email addresses</button><br>
-    <button (click)="newOrder()">New manual order</button><br>
-    <label for="textSearch">Search: </label>
-    <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
-    <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
-    <label for="includeOnline">Online Orders</label><br>
-    <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
-    <label for="includeManual">Manual Orders</label><br>
-    <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
-    <label for="includeTest">Test Orders</label><br>
-    <table>
-        <tbody>
-            <tr>
-                <td>Number of Orders</td>
-                <td>{{orders.length}}</td>
-            </tr>
-            <tr>
-                <td>Number of Copies</td>
-                <td>{{numberOfCopies}}</td>
-            </tr> 
-            <tr>
-                <td>Order Value</td>
-                <td>£{{orderValue}}</td>
-            </tr>  
-        </tbody>                  
-    </table>
-    
-
-    @for (order of orders; track order) {
-        <!-- @let isActionNeeded = false; -->
-        @let isActionNeeded = 
-            (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 
-            (!!order.timeStamps?.readyToPost && !order.timeStamps?.posted) || 
-            (!!order.timeStamps?.returned && !order.timeStamps?.refunded);
-        <div class="order-table">
-            <div class="order-detail first-line" >
-                <div class="title" [ngClass]="isActionNeeded ? 'red' : 'grey'">Order Number</div>
-                <div class="value" [ngClass]="isActionNeeded ? 'red' : 'grey'">{{ order.orderNumber }}</div>
-                @if (order.endPoint === 'manual') {
-                    <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
-                }
-            </div>
-            <div class="order-detail">
-                <div class="title">PayPal Order ID</div>
-                <div class="value">{{ order.payPalOrderId ?? '' }}</div>
-            </div>            
-            @if (order.timeStamps?.orderCreated) {
-                <div class="order-detail">
-                    <div class="title">Order Created</div>
-                    <div class="value">{{order.timeStamps?.orderCreated}}</div>
-                </div>
-            }
-            @if (order.timeStamps?.orderCompleted) {
-                <div class="order-detail">
-                    <div class="title" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">Order Completed</div>
-                    <div class="value" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
-                    @if (!order.timeStamps?.readyToPost) {
-                        <div class="action">
-                            <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
-                        </div>
-                        <!-- <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div> -->
-                    }
-                </div>
-            }
-            @if (order.timeStamps?.readyToPost) {
-                <div class="order-detail">
-                    <div class="title" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">Ready to Post</div>
-                    <div class="value" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">{{order.timeStamps?.readyToPost}}</div>
-                    @if (!order.timeStamps?.posted) {
-                        <div class="action">
-                            <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
-                            <button (click)="onSetStatus(order.orderNumber, 'orderCompleted', 'readyToPost')">Undo Step</button>
-                        </div>
-                    }
-                </div>
-            }
-            @if (order.timeStamps?.posted) {
-                <div class="order-detail">
-                    <div class="title">Posted</div>
-                    <div class="value">{{order.timeStamps?.posted}}</div>
-                    @if (!order.timeStamps?.returned) {
-                        <div class="action">
-                            <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
-                            <button (click)="onSetStatus(order.orderNumber, 'readyToPost', 'posted')">Undo Step</button>
-                        </div>
-                    }
-                </div>
-            }
-            @if (order.timeStamps?.returned) {
-                <div class="order-detail">
-                    <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
-                    <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.returned}}</div>
-                    @if (!order.timeStamps?.refunded) {
-                        <div class="action">
-                            <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
-                            <button (click)="onSetStatus(order.orderNumber, 'posted', 'returned')">Undo Step</button>
-                        </div>
-                    }
-                </div>
-            }
-            @if (order.timeStamps?.refunded) {
-                <div class="order-detail">
-                    <div class="title">Refunded</div>
-                    <div class="value">{{order.timeStamps?.refunded}}</div>
-                    <div class="action">
-                        <button (click)="onSetStatus(order.orderNumber, 'returned', 'refunded')">Undo Step</button>
-                    </div>
-                </div>
-            }
-            <div class="order-detail">
-                <div class="title">API Endpoint</div>
-                <div class="value">{{ order.endPoint }}</div>
-            </div>
-            <div class="order-detail">
-                <div class="title">Order</div>
-                <div class="value">
-                    {{ order.items[0].name }} x {{ order.items[0].quantity }}
-                </div>
-            </div>
-            @if (order.timeStamps?.orderCompleted) {
-                <div class="order-detail">
-                    <div class="title">Address</div>
-                    <div class="value">
-                        {{ order.user.name }}<br />
-                        {{ order.user.address.address_line_1}}<br />
-                        {{ order.user.address.admin_area_1}}<br />
-                        {{ order.user.address.admin_area_2}}<br />
-                        {{ order.user.address.country_code}}<br />
-                        {{ order.user.address.postal_code}}<br />
-                    </div>
-                </div>
-                <div class="order-detail">
-                    <div class="title">Postage</div>
-                    <div class="value">
-                        {{ order.shippingOption }}
-                    </div>
-                </div>
-                <div class="order-detail">
-                    <div class="title">Email </div>
-                    <div class="value">
-                        {{ order.user.email_address }}
-                    </div>
-                </div>
-            }
-            <div class="order-detail">
-                <div class="title">Item Cost</div>
-                <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-            </div>
-            <div class="order-detail">
-                <div class="title">Discount</div>
-                <div class="value"> {{ -order.costBreakdown.discount | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-            </div>     
-            <div class="order-detail">
-                <div class="title">Shipping </div>
-                <div class="value"> {{ order.costBreakdown.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-            </div>
-            <div class="order-detail">
-                <div class="title">Total Cost</div>
-                <div class="value"> {{ order.costBreakdown.total | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-            </div>                        
-            <div class="order-detail">
-                <div class="title">Order Note</div>
-                <div class="value"> {{ order.notes }}</div>
-            </div>     
+            <div class="panel-header">Summary</div>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Number of Orders</td>
+                        <td>{{orders.length}}</td>
+                    </tr>
+                    <tr>
+                        <td>Number of Copies</td>
+                        <td>{{numberOfCopies}}</td>
+                    </tr> 
+                    <tr>
+                        <td>Order Value</td>
+                        <td>£{{orderValue}}</td>
+                    </tr>  
+                </tbody>                  
+            </table>
         </div>
-    }
-  </div>
+
+        <div class="content">
+        
+
+        @for (order of orders; track order) {
+            <!-- @let isActionNeeded = false; -->
+            @let isActionNeeded = 
+                (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 
+                (!!order.timeStamps?.readyToPost && !order.timeStamps?.posted) || 
+                (!!order.timeStamps?.returned && !order.timeStamps?.refunded);
+
+            <div class="order-table">
+                <div class="order-line first-line" >
+                    <div class="title" [ngClass]="isActionNeeded ? 'red' : 'grey'">Order Number</div>
+                    <div class="value" [ngClass]="isActionNeeded ? 'red' : 'grey'">{{ order.orderNumber }}</div>
+                    @if (order.endPoint === 'manual') {
+                        <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
+                    }
+                </div>
+                <div class="order-line">
+                    <div class="title">PayPal Order ID</div>
+                    <div class="value">{{ order.payPalOrderId ?? '' }}</div>
+                </div>            
+                @if (order.timeStamps?.orderCreated) {
+                    <div class="order-line">
+                        <div class="title">Order Created</div>
+                        <div class="value">{{order.timeStamps?.orderCreated}}</div>
+                    </div>
+                }
+                @if (order.timeStamps?.orderCompleted) {
+                    <div class="order-line">
+                        <div class="title" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">Order Completed</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
+                        @if (!order.timeStamps?.readyToPost) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
+                            </div>
+                            <!-- <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div> -->
+                        }
+                    </div>
+                }
+                @if (order.timeStamps?.readyToPost) {
+                    <div class="order-line">
+                        <div class="title" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">Ready to Post</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">{{order.timeStamps?.readyToPost}}</div>
+                        @if (!order.timeStamps?.posted) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
+                                <button (click)="onSetStatus(order.orderNumber, 'orderCompleted', 'readyToPost')">Undo Step</button>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (order.timeStamps?.posted) {
+                    <div class="order-line">
+                        <div class="title">Posted</div>
+                        <div class="value">{{order.timeStamps?.posted}}</div>
+                        @if (!order.timeStamps?.returned) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
+                                <button (click)="onSetStatus(order.orderNumber, 'readyToPost', 'posted')">Undo Step</button>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (order.timeStamps?.returned) {
+                    <div class="order-line">
+                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.returned}}</div>
+                        @if (!order.timeStamps?.refunded) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
+                                <button (click)="onSetStatus(order.orderNumber, 'posted', 'returned')">Undo Step</button>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (order.timeStamps?.refunded) {
+                    <div class="order-line">
+                        <div class="title">Refunded</div>
+                        <div class="value">{{order.timeStamps?.refunded}}</div>
+                        <div class="action">
+                            <button (click)="onSetStatus(order.orderNumber, 'returned', 'refunded')">Undo Step</button>
+                        </div>
+                    </div>
+                }
+                <div class="order-line">
+                    <div class="title">API Endpoint</div>
+                    <div class="value">{{ order.endPoint }}</div>
+                </div>
+                <div class="order-line">
+                    <div class="title">Order</div>
+                    <div class="value">
+                        {{ order.items[0].name }} x {{ order.items[0].quantity }}
+                    </div>
+                </div>
+                @if (order.timeStamps?.orderCompleted) {
+                    <div class="order-line">
+                        <div class="title">Address</div>
+                        <div class="value">
+                            {{ order.user.name }}<br />
+                            {{ order.user.address.address_line_1}}<br />
+                            {{ order.user.address.admin_area_1}}<br />
+                            {{ order.user.address.admin_area_2}}<br />
+                            {{ order.user.address.country_code}}<br />
+                            {{ order.user.address.postal_code}}<br />
+                        </div>
+                    </div>
+                    <div class="order-line">
+                        <div class="title">Postage</div>
+                        <div class="value">
+                            {{ order.shippingOption }}
+                        </div>
+                    </div>
+                    <div class="order-line">
+                        <div class="title">Email </div>
+                        <div class="value">
+                            {{ order.user.email_address }}
+                        </div>
+                    </div>
+                }
+                <div class="order-line">
+                    <div class="title">Item Cost</div>
+                    <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                </div>
+                <div class="order-line">
+                    <div class="title">Discount</div>
+                    <div class="value"> {{ -order.costBreakdown.discount | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                </div>     
+                <div class="order-line">
+                    <div class="title">Shipping </div>
+                    <div class="value"> {{ order.costBreakdown.shipping | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                </div>
+                <div class="order-line">
+                    <div class="title">Total Cost</div>
+                    <div class="value"> {{ order.costBreakdown.total | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                </div>                        
+                <div class="order-line">
+                    <div class="title">Order Note</div>
+                    <div class="value"> {{ order.notes }}</div>
+                </div>     
+            </div>
+        }
+    </div>
+</div>
 </main>
