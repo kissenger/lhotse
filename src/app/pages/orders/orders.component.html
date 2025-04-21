@@ -1,18 +1,36 @@
 <main>
-  <button (click)="onUpdateList()">Update</button><br>
-  <button (click)="copyEmails()">Copy email addresses</button><br>
-  <label for="textSearch">Search: </label>
-  <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
-  <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
-  <label for="includeOnline">Online Orders</label><br>
-  <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
-  <label for="includeManual">Manual Orders</label><br>
-  <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
-  <label for="includeTest">Test Orders</label><br>
-  {{orders.length}}
 
+  <div class="dynamic-container orders">
 
-  <div class="dynamic-container">
+    <button (click)="onUpdateList()">Update List</button><br>
+    <button (click)="copyEmails()">Copy email addresses</button><br>
+    <button (click)="newOrder()">New manual order</button><br>
+    <label for="textSearch">Search: </label>
+    <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
+    <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
+    <label for="includeOnline">Online Orders</label><br>
+    <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
+    <label for="includeManual">Manual Orders</label><br>
+    <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
+    <label for="includeTest">Test Orders</label><br>
+    <table>
+        <tbody>
+            <tr>
+                <td>Number of Orders</td>
+                <td>{{orders.length}}</td>
+            </tr>
+            <tr>
+                <td>Number of Copies</td>
+                <td>{{numberOfCopies}}</td>
+            </tr> 
+            <tr>
+                <td>Order Value</td>
+                <td>£{{orderValue}}</td>
+            </tr>  
+        </tbody>                  
+    </table>
+    
+
     @for (order of orders; track order) {
         <!-- @let isActionNeeded = false; -->
         @let isActionNeeded = 
@@ -20,9 +38,12 @@
             (!!order.timeStamps?.readyToPost && !order.timeStamps?.posted) || 
             (!!order.timeStamps?.returned && !order.timeStamps?.refunded);
         <div class="order-table">
-            <div class="order-detail" [ngClass]="isActionNeeded ? 'red' : 'first-line'">
-                <div class="title">Order Number</div>
-                <div class="value">{{ order.orderNumber }}</div>
+            <div class="order-detail first-line" >
+                <div class="title" [ngClass]="isActionNeeded ? 'red' : 'grey'">Order Number</div>
+                <div class="value" [ngClass]="isActionNeeded ? 'red' : 'grey'">{{ order.orderNumber }}</div>
+                @if (order.endPoint === 'manual') {
+                    <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
+                }
             </div>
             <div class="order-detail">
                 <div class="title">PayPal Order ID</div>
@@ -39,7 +60,7 @@
                     <div class="title" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">Order Completed</div>
                     <div class="value" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
                     @if (!order.timeStamps?.readyToPost) {
-                        <div class="button">
+                        <div class="action">
                             <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
                         </div>
                         <!-- <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div> -->
@@ -51,7 +72,7 @@
                     <div class="title" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">Ready to Post</div>
                     <div class="value" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">{{order.timeStamps?.readyToPost}}</div>
                     @if (!order.timeStamps?.posted) {
-                        <div class="button">
+                        <div class="action">
                             <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
                             <button (click)="onSetStatus(order.orderNumber, 'orderCompleted', 'readyToPost')">Undo Step</button>
                         </div>
@@ -63,7 +84,7 @@
                     <div class="title">Posted</div>
                     <div class="value">{{order.timeStamps?.posted}}</div>
                     @if (!order.timeStamps?.returned) {
-                        <div class="button">
+                        <div class="action">
                             <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
                             <button (click)="onSetStatus(order.orderNumber, 'readyToPost', 'posted')">Undo Step</button>
                         </div>
@@ -75,7 +96,7 @@
                     <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
                     <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.returned}}</div>
                     @if (!order.timeStamps?.refunded) {
-                        <div class="button">
+                        <div class="action">
                             <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
                             <button (click)="onSetStatus(order.orderNumber, 'posted', 'returned')">Undo Step</button>
                         </div>
@@ -86,7 +107,7 @@
                 <div class="order-detail">
                     <div class="title">Refunded</div>
                     <div class="value">{{order.timeStamps?.refunded}}</div>
-                    <div class="button">
+                    <div class="action">
                         <button (click)="onSetStatus(order.orderNumber, 'returned', 'refunded')">Undo Step</button>
                     </div>
                 </div>

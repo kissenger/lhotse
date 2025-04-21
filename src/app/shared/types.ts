@@ -1,3 +1,4 @@
+import { Order } from "@paypal/paypal-server-sdk";
 
 export interface StockItem {
   id: string;
@@ -50,6 +51,17 @@ export interface PayPalCreateOrder {
   }>
 }
 
+export interface OrderItems {
+  id: string,
+  name: string,
+  description: string,
+  unit_amount: {
+    currency_code: string,
+    value: number
+  },
+  quantity: 1
+}
+  
 
 export interface OrderSummary {
   orderNumber?: string;
@@ -66,7 +78,7 @@ export interface OrderSummary {
       country_code: string,
     },
   },
-  items: Array<BasketItem>,
+  items: Array<BasketItem> | Array<OrderItems>,
   costBreakdown: {
     items: number,
     shipping: number,

@@ -24,7 +24,7 @@ export class OrderOutcomeComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      this.orderDetails = await this._http.getOrderDetails(this.shop.orderNumber);
+      this.orderDetails = await this._http.getOrderByOrderNumber(this.shop.orderNumber);
     } catch (error) {
       console.error(error);
     }

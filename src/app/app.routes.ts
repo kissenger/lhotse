@@ -34,7 +34,7 @@ export const routes: Routes = [
         ]} 
       },
       { path: 'orders', component: OrdersComponent, data: {menuItems: []}},
-      { path: 'orders/manual', component: ManualOrderComponent, data: {menuItems: []}},      
+      { path: 'orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}},      
       { path: 'blogeditor', component: BlogEditorComponent },
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
     ]

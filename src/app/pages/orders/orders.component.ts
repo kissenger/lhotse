@@ -1,13 +1,15 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
-import { OrderStatus, OrderSummary } from '@shared/types';
+import { OrderItems, OrderStatus, OrderSummary } from '@shared/types';
+import { Router, RouterLink } from '@angular/router';
+
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [NgClass, FormsModule, CurrencyPipe],  
+  imports: [NgClass, FormsModule, CurrencyPipe, RouterLink],  
   providers: [], 
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css'
@@ -19,12 +21,16 @@ export class OrdersComponent  {
   public includeOnlineOrders = true;
   public includeTestOrders = false;
   public textSearch: string = '';
+  public numberOfCopies: number = 0;
+  public orderValue: string = '';
 
   // public emails: Array<string> = [];
   public orders: Array<OrderSummary> = [];
   
   constructor(
-    private _http: HttpService,
+    private _http: HttpService,    
+    @Inject(Router) private _router: Router
+    
   ) {}
     
   ngOnInit() {
@@ -34,6 +40,10 @@ export class OrdersComponent  {
   copyEmails() {
     let emails = this.orders.map(o=>o.user.email_address);
     navigator.clipboard.writeText(emails.join(";"))
+  }
+
+  newOrder() {
+    this._router.navigateByUrl(`/orders/manual/`); 
   }
 
   onUpdateList() {
@@ -53,6 +63,9 @@ export class OrdersComponent  {
       let y: number = new Date(b?.timeStamps?.orderCompleted ?? '').getTime();
       return y-x
     })
+
+    this.numberOfCopies = this.orders.map(o=>o.items[0].quantity).reduce((a,b)=> a+b,0);
+    this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
 
   }
 

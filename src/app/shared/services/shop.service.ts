@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {StockItem, BasketItem} from '@shared/types';
+import {StockItem, BasketItem, OrderSummary} from '@shared/types';
 import {shippingOptions} from '@shared/globals';
 
 @Injectable({
@@ -77,9 +77,20 @@ export class ShopService {
             items: this.basket.items,
             shippingOption: this.basket.shippingOption,
             costBreakdown: this.basket.costBreakdown,
-            endPoint: 'manual'
+            endPoint: 'manual',
+            notes: ''
         }
     }
+
+    // orderSummarytoManualOrder(orderSummary: OrderSummary) {
+    //     return {
+    //         user: orderSummary.user,
+    //         items: this.basket.items,
+    //         shippingOption: this.basket.shippingOption,
+    //         costBreakdown: this.basket.costBreakdown,
+    //         endPoint: 'manual'
+    //     }
+    // }
     get orderIntent() {
         return {
             intent: 'CAPTURE',

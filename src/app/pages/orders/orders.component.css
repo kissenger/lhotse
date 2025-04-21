@@ -1,7 +1,21 @@
 
-.order-table {
-    margin: 1rem;
+.orders {
     font-size: smaller;
+    margin-top: 125px;
+}
+
+table, td, tr {
+    border: 1px var(--border-colour) solid;
+    border-collapse: collapse;
+}
+
+td {
+    min-width: 3rem;
+    text-align: center;
+}
+
+.order-table {
+    margin-block: 1rem;
 }
 
 .order-detail {
@@ -16,22 +30,28 @@
 }
 
 .first-line {
-    background-color: lightgrey;
     border-top: 1px var(--border-colour) solid;
 }
+
+
 .title {
     width: 25%
 }
 .value {
     width: 50%;
 }
-.button {
-    width: 25%;
+.action {
+    margin-inline: 0.5rem;
+}
+button {
+    margin-right: 0.5rem;
 }
 .green {
     background-color: lightgreen;
 }
-
+.grey {
+    background-color: lightgrey;
+}
 .red {
     background-color: lightcoral;
 }

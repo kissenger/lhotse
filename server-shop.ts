@@ -187,7 +187,7 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:text', async (req, res) =>
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
-shop.get('/api/shop/get-order-details/:orderNumber', async (req, res) => {
+shop.get('/api/shop/get-order-by-order-number/:orderNumber', async (req, res) => {
   let orderSummary = await getOrderSummary(req.params.orderNumber);
   res.status(201).json(orderSummary);
 });
@@ -219,14 +219,16 @@ shop.post('/api/shop/set-order-status', async (req, res) => {
 /*****************************************************************
  * ROUTE: Create manual order
  ****************************************************************/
-shop.post('/api/shop/create-manual-order', async (req, res) => {
+shop.post('/api/shop/upsert-manual-order', async (req, res) => {
 
   let order = req.body.order;
   order.timeStamps = {
     orderCreated: Date.now(),
     orderCompleted: Date.now()
   };
-  order.orderNumber = newOrderNumber();
+  if (!order.orderNumber) {
+    order.orderNumber = newOrderNumber();
+  }
   let result = await logShopEvent(order.orderNumber, {orderSummary: order});
   res.send(result);
   

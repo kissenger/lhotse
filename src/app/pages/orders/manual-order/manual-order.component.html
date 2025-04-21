@@ -22,8 +22,8 @@
         </div>
 
         <div>
-            <label for="admin_area_2">Admin Area 1:</label>
-            <input type="text" id="admin_area_2" name="admin_area_2" [(ngModel)]="order.user.address.admin_area_1">
+            <label for="admin_area_1">Admin Area 1:</label>
+            <input type="text" id="admin_area_1" name="admin_area_1" [(ngModel)]="order.user.address.admin_area_1">
 
         <div>
             <label for="postal_code">Postal Code:</label>
@@ -50,10 +50,11 @@
         </div>
 
         <div>
-            <label for="qty">Order Notes:</label>
-            <input type="text" id="qty" name="qty" [(ngModel)]="order.notes">
+            <label for="notes">Order Notes:</label>
+            <input type="text" id="notes" name="notes" [(ngModel)]="order.notes">
         </div>
         <button type="submit" class="formButton" (click)="onSave()">Submit</button>
+        <button type="submit" class="formButton" (click)="onCancel()">Cancel</button>
     </div>
 
 <!-- </main> -->

@@ -49,8 +49,8 @@ export class HttpService {
   PAYPAL ENDPOINTS
   */
 
-  async getOrderDetails(orderNumber?: string) {
-    const request = this.http.get<any>(`${this._backendURL}/shop/get-order-details/${orderNumber}`);
+  async getOrderByOrderNumber(orderNumber?: string) {
+    const request = this.http.get<any>(`${this._backendURL}/shop/get-order-by-order-number/${orderNumber}`);
     return await lastValueFrom<any>(request);
   }
 
@@ -84,8 +84,8 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  async createManualOrder(order: OrderSummary) {
-    const request = this.http.post<any>(`${this._backendURL}/shop/create-manual-order/`, {order});
+  async upsertManualOrder(order: OrderSummary) {
+    const request = this.http.post<any>(`${this._backendURL}/shop/upsert-manual-order/`, {order});
     return await lastValueFrom<any>(request);
   }
 

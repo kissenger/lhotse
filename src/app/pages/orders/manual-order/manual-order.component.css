@@ -1,3 +1,19 @@
 .manual-order-container {
-  padding-top: 150px;
+  padding-top: 125px;
+  /* display: flex; */
+  /* flex-direction: row; */
+}
+
+label {
+  display: inline-block;
+  width: 25%;
+  /* color: blue; */
+}
+
+input, select {
+  width: 50%;
+}
+
+button {
+  margin-right: 0.5rem;
 }
