@@ -42,10 +42,26 @@ export class OrdersComponent  {
     navigator.clipboard.writeText(emails.join(";"))
   }
 
+  copyAddresses() {
+    let addresses = this.orders.map(o=> {
+        return o.items[0].quantity+"x copies"+"\n"+
+        o.user.name+"\n"+
+        o.user.address.address_line_1+"\n"+
+        o.user.address.admin_area_2+"\n"+
+        o.user.address.admin_area_1+"\n"+
+        o.user.address.postal_code+"\n"
+      }
+    );
+    navigator.clipboard.writeText(addresses.join("\n"))
+  }
+
   newOrder() {
     this._router.navigateByUrl(`/orders/manual/`); 
   }
-
+  async onDeactivate(orderNumber: string) {
+    let respose = await this._http.deactivateOrder(orderNumber); 
+    this.getOrders();
+  }
   onUpdateList() {
     this.getOrders();
   }

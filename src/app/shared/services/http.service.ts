@@ -102,4 +102,10 @@ export class HttpService {
     const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, set, unset});
     return await lastValueFrom<any>(request);
   }    
+
+  async deactivateOrder(orderNumber: string) {
+    const request = this.http.post<any>(`${this._backendURL}/shop/deactivate-order/`, {orderNumber});
+    return await lastValueFrom<any>(request);
+  }
+  
 }

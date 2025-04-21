@@ -1,6 +1,8 @@
+import { boolean } from '@paypal/paypal-server-sdk/dist/types/schema';
 import mongoose, {model} from 'mongoose';
 
 const shopSchema = new mongoose.Schema({
+  isActive: {type: Boolean, default: true},
   orderNumber: {type: String, required: true},
   paypal: {
     id: {type: String},

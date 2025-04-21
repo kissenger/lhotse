@@ -170,6 +170,7 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:text', async (req, res) =>
         $match: {
           $and: [
             {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
+            {'isActive': {$ne: false}},
             ...andConditions,
             {$or: orConditions}
           ]
@@ -234,6 +235,19 @@ shop.post('/api/shop/upsert-manual-order', async (req, res) => {
   
 });
 
+shop.post('/api/shop/deactivate-order', async (req, res) => {
+console.log(req.body.orderNumber)
+  await logShopEvent(req.body.orderNumber, {
+    '$set': {
+      isActive: false
+    }
+  });
+  res.status(201).json({respose: 'success'});
+
+  
+});
+
+
 /*****************************************************************
  * FUNCTION: Get order summary
  ****************************************************************/
@@ -246,6 +260,8 @@ async function getOrderSummary(orderNumber: string) {
     return error;
   }
 }
+
+
 
 /*****************************************************************
  * FUNCTION: Create order summary

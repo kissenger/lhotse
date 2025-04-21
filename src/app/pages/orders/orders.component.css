@@ -9,7 +9,7 @@
 .side-panel {
     position: fixed;
     width: 20%;
-    padding: 1rem;    
+    padding-inline: 1rem;    
 }
 
 .content {
@@ -31,14 +31,20 @@ table {
     margin-top: 1rem;
 }
 
-table, td, tr {
+.summary-table  {
+    border: 1px var(--border-colour) solid;
+    border-collapse: collapse;
+    min-width: 3rem;
+    text-align: center;
+}
+
+.summary-table > td, .summary-table > tr {
     border: 1px var(--border-colour) solid;
     border-collapse: collapse;
 }
 
 td {
-    min-width: 3rem;
-    text-align: center;
+
 }
 
 .order-table {

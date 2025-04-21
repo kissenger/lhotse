@@ -4,20 +4,35 @@
             <div class="panel-header">Actions</div>
             <button (click)="onUpdateList()">Update List</button><br>
             <button (click)="copyEmails()">Copy email addresses</button><br>
+            <button (click)="copyAddresses()">Copy postal addresses</button><br>
             <button (click)="newOrder()">New manual order</button><br>
 
             <div class="panel-header">Filters</div>
             <label for="textSearch">Search: </label>
             <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
-            <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
-            <label for="includeOnline">Online Orders</label><br>
-            <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
-            <label for="includeManual">Manual Orders</label><br>
-            <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
-            <label for="includeTest">Test Orders</label><br>
+            
+            <table class="filter-table">
+                <tbody>
+                    <tr>
+                        <td>Order Type</td>
+                        <td>Order Status</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
+                            <label for="includeOnline">Online</label><br>
+                            <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
+                            <label for="includeManual">Manual</label><br>
+                            <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
+                            <label for="includeTest">Test</label><br>
+                        </td>
+                    </tr> 
+                </tbody>                  
+            </table>
+
 
             <div class="panel-header">Summary</div>
-            <table>
+            <table class="summary-table">
                 <tbody>
                     <tr>
                         <td>Number of Orders</td>
@@ -51,6 +66,7 @@
                     <div class="value" [ngClass]="isActionNeeded ? 'red' : 'grey'">{{ order.orderNumber }}</div>
                     @if (order.endPoint === 'manual') {
                         <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
+                        <button (click)="onDeactivate(order.orderNumber!)">Deactivate</button>
                     }
                 </div>
                 <div class="order-line">
