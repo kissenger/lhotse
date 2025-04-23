@@ -10,25 +10,27 @@
             <div class="panel-header">Filters</div>
             <label for="textSearch">Search: </label>
             <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
-            
-            <table class="filter-table">
-                <tbody>
-                    <tr>
-                        <td>Order Type</td>
-                        <td>Order Status</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input [(ngModel)]="includeOnlineOrders" type="checkbox" id="includeOnline" name="includeOnline" value="includeOnline" (ngModelChange)="onUpdateList()">
-                            <label for="includeOnline">Online</label><br>
-                            <input [(ngModel)]="includeManualOrders" type="checkbox" id="includeManual" name="includeManual" value="includeManual" (ngModelChange)="onUpdateList()">
-                            <label for="includeManual">Manual</label><br>
-                            <input [(ngModel)]="includeTestOrders" type="checkbox" id="includeTest" name="includeTest" value="includeTest" (ngModelChange)="onUpdateList()">
-                            <label for="includeTest">Test</label><br>
-                        </td>
-                    </tr> 
-                </tbody>                  
-            </table>
+            <div class="filter-table"> 
+                <div class="filter-table-left">
+                    By Type<br>
+                    <input [(ngModel)]="filterOnline" type="checkbox" id="filterOnline" name="filterOnline" value="filterOnline" (ngModelChange)="onUpdateList()">
+                    <label for="filterOnline">Online</label><br>
+                    <input [(ngModel)]="filterManual" type="checkbox" id="filterManual" name="filterManual" value="filterManual" (ngModelChange)="onUpdateList()">
+                    <label for="filterManual">Manual</label><br>
+                    <input [(ngModel)]="filterTest" type="checkbox" id="filterTest" name="filterTest" value="filterTest" (ngModelChange)="onUpdateList()">
+                    <label for="filterTest">Test</label><br>
+                </div>
+                <div class="filter-table-right">
+                    By Status<br>
+                    <input [(ngModel)]="filterWithAction" type="checkbox" id="filterWithAction" name="filterWithAction" value="filterWithAction" (ngModelChange)="onUpdateList()">
+                    <label for="filterWithAction">Action Reqd</label><br>
+                    <input [(ngModel)]="filterNoAction" type="checkbox" id="filterNoAction" name="filterNoAction" value="filterNoAction" (ngModelChange)="onUpdateList()">
+                    <label for="filterNoAction">No Action</label><br>                    
+                    <input [(ngModel)]="filterWithError" type="checkbox" id="filterWithError" name="filterWithError" value="filterWithError" (ngModelChange)="onUpdateList()">
+                    <label for="filterWithError">Error</label><br>                    
+                </div>
+            </div>
+
 
 
             <div class="panel-header">Summary</div>
@@ -102,19 +104,31 @@
                             </div>
                         }
                     </div>
-                }
+                }     
                 @if (order.timeStamps?.posted) {
                     <div class="order-line">
                         <div class="title">Posted</div>
                         <div class="value">{{order.timeStamps?.posted}}</div>
-                        @if (!order.timeStamps?.returned) {
+                        @if (!order.timeStamps?.postedEmailSent && !order.timeStamps?.returned) {
                             <div class="action">
+                                <button (click)="onSendEmail(order.orderNumber)">Send Email</button>
                                 <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
                                 <button (click)="onSetStatus(order.orderNumber, 'readyToPost', 'posted')">Undo Step</button>
                             </div>
                         }
                     </div>
                 }
+                @if (order.timeStamps?.postedEmailSent) {
+                    <div class="order-line">
+                        <div class="title">Posted Email</div>
+                        <div class="value">{{order.timeStamps?.postedEmailSent}}</div>
+                        @if (!order.timeStamps?.returned) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
+                            </div>
+                        }
+                    </div>
+                }  
                 @if (order.timeStamps?.returned) {
                     <div class="order-line">
                         <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
@@ -122,7 +136,7 @@
                         @if (!order.timeStamps?.refunded) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
-                                <button (click)="onSetStatus(order.orderNumber, 'posted', 'returned')">Undo Step</button>
+                                <button (click)="onSetStatus(order.orderNumber, 'postedEmailSent', 'returned')">Undo Step</button>
                             </div>
                         }
                     </div>

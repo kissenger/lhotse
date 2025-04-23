@@ -17,9 +17,12 @@ import { Router, RouterLink } from '@angular/router';
 
 export class OrdersComponent  {
 
-  public includeManualOrders = true;
-  public includeOnlineOrders = true;
-  public includeTestOrders = false;
+  public filterManual = true;
+  public filterOnline = true;
+  public filterTest = false;
+  public filterWithAction = true;
+  public filterNoAction = true;
+  public filterWithError = false;  
   public textSearch: string = '';
   public numberOfCopies: number = 0;
   public orderValue: string = '';
@@ -69,7 +72,7 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.includeOnlineOrders, this.includeManualOrders, this.includeTestOrders, this.textSearch)
+      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterWithAction, this.filterNoAction, this.filterWithError, this.textSearch)
     } catch (error) {
       console.error(error);
     }
@@ -82,13 +85,20 @@ export class OrdersComponent  {
 
     this.numberOfCopies = this.orders.map(o=>o.items[0].quantity).reduce((a,b)=> a+b,0);
     this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
-
-    console.log(this.orders)
   }
 
   async onSetStatus(orderNumber: string | undefined, set: OrderStatus, unset?: OrderStatus) {
     try {
       await this._http.setTimestamp(orderNumber ?? '', set, unset);
+      this.getOrders();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async onSendEmail(orderNumber?: string) {
+    try {
+      await this._http.sendPostedEmail(orderNumber);
       this.getOrders();
     } catch (error) {
       console.error(error);

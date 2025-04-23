@@ -96,6 +96,7 @@ export interface OrderSummary {
     returned?: string,
     refunded?: string,
     errorCreated?: string,
+    postedEmailSent?: string
   },
   notes?: string
 }
@@ -128,4 +129,5 @@ export type OrderStatus =
   'readyToPost' | 
   'posted' | 
   'returned' | 
-  'refunded';
+  'refunded' |
+  'postedEmailSent';

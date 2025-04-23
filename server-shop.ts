@@ -3,6 +3,8 @@ import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 import { ShopError } from 'server';
+import {getConfirmationEmailBody} from 'server-confirmation-email';
+import {getPostedEmailBody} from 'server-posted-email';
 const shop = express();
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -19,8 +21,6 @@ const EMAIL_CONFIG = {
   },
 }
 
-
- 
 
 /*****************************************************************
  * ROUTE: Create paypal order
@@ -134,45 +134,52 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:online/:manual/:test/:text', async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:text', async (req, res) => {
 
-  const orConditions = [];
-  const andConditions = [];
-  
+  let filterText: any;
   if (req.params.text!=='null') {
-    andConditions.push(
-      {$or: [
+    filterText = {$or: [
         {'orderSummary.user.name': {$regex: req.params.text, $options: 'i'}},
         {'orderSummary.endPoint':  {$regex: req.params.text, $options: 'i'}},
         {'orderNumber':            {$regex: req.params.text, $options: 'i'}},
         {'orderSummary.comments':  {$regex: req.params.text, $options: 'i'}}
-      ]})
-  }
-  
-  if (req.params.online==='true') {
-    orConditions.push({'orderSummary.endPoint': 'https://api-m.paypal.com'})
+      ]}
   }
 
-  if (req.params.manual==='true') {
-    orConditions.push({'orderSummary.endPoint': 'manual'})
-  }
+  const filterOne = [];
+  if (req.params.online==='true') { filterOne.push({'orderSummary.endPoint': 'https://api-m.paypal.com'}) }
+  if (req.params.manual==='true') { filterOne.push({'orderSummary.endPoint': 'manual'}) }
+  if (req.params.test==='true')   { filterOne.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'}) }
 
-  if (req.params.test==='true') {
-    orConditions.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'})
-  }
+  const filterTwo = [];
+  if (req.params.action==='true') { filterTwo.push({$or: [
+    {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]},
+    {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]},
+    {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]},
+  ]}) }
+  if (req.params.noaction==='true') { filterTwo.push({$or: [
+    {$and: [{'orderSummary.timeStamps.orderCreated': {$exists: true}}, {'orderSummary.timeStamps.orderCompleted': {$exists: false}}]},
+    {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]},
+    {'orderSummary.timeStamps.refunded': {$exists: true}},
+  ]}) }
+  if (req.params.error==='true')  { filterTwo.push({'orderSummary.timeStamps.errorCreated': {$exists: true}}) }
 
+  console.log(filterOne)
+  console.log(filterTwo)
+  console.log(filterText)
   try {
 
-    if (orConditions.length === 0) {
+    if (filterOne.length===0 && filterTwo.length===0 && req.params.text==='null') {
+      console.log('returning empty')
       res.status(201).send([]);
     } else {
       const result = await ShopModel.aggregate([{
         $match: {
           $and: [
-            {'orderSummary.timeStamps.orderCompleted': {$ne: null}},
             {'isActive': {$ne: false}},
-            ...andConditions,
-            {$or: orConditions}
+            filterText?filterText:{},
+            filterOne.length>0?{$or: filterOne}:{},
+            filterTwo.length>0?{$or: filterTwo}:{}
           ]
         }
       }]);
@@ -194,16 +201,31 @@ shop.get('/api/shop/get-order-by-order-number/:orderNumber', async (req, res) =>
 });
 
 /*****************************************************************
+ * ROUTE: Send email to confirm posted
+ ****************************************************************/
+shop.post('/api/shop/send-posted-email', async (req, res) => {
+  console.log('send email')
+  let orderSummary = await getOrderSummary(req.body.orderNumber);
+  let emailBody = getPostedEmailBody(orderSummary);
+  sendEmail(orderSummary.user.email_address, emailBody, 'Your snorkelology order is on its way...');
+  await logShopEvent(req.body.orderNumber, { '$set': { 'orderSummary.timeStamps.postedEmailSent': Date.now() } });
+  res.status(201).json({respose: 'success'});
+
+});
+
+/*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
 shop.post('/api/shop/set-order-status', async (req, res) => {
-
-  let setField =`orderSummary.timeStamps.${req.body.set}`;
-  await logShopEvent(req.body.orderNumber, {
-    '$set': {
-      [setField]: Date.now()
-    }
-  });
+  //only update timestamp if we are not unsetting another
+  if (!req.body.unset) {
+    let setField =`orderSummary.timeStamps.${req.body.set}`;
+    await logShopEvent(req.body.orderNumber, {
+      '$set': {
+        [setField]: Date.now()
+      }
+    });
+  }
 
   if (req.body.unset) {
     let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
@@ -215,7 +237,8 @@ shop.post('/api/shop/set-order-status', async (req, res) => {
   }
   res.status(201).json({respose: 'success'});
   
-});
+})
+
 
 /*****************************************************************
  * ROUTE: Create manual order
@@ -288,68 +311,6 @@ async function setOrderSummary(orderNumber: string) {
 }
 
 /*****************************************************************
- * FUNCTION: Create confirmation email content
- ****************************************************************/
-function getConfirmationEmailBody(orderSummary: any) {
-
-  let testMessage = orderSummary.endPoint.indexOf('sandbox') > 0 ?
-    '<div><b>THIS IS A TEST: NO PAYMENT WAS TAKEN</b></div>' : 
-    '';
-  let discountMsg = orderSummary.costBreakdown.discount > 0 ? 
-    `<div class='item'><div class='title'>Discount</div><div>-£${orderSummary.costBreakdown.discount.toFixed(2)}</div></div>` :
-     '';
-  return `
-    <head>
-      <style>
-        .item { width: 100%; }
-        .item > div{ display: inline-block; vertical-align:top; }
-        .title { width: 20%; }
-      </style>
-    </head>
-    <body>
-      ${testMessage}
-      <div> 
-        <p>Thank you for your order, we'll do our best to get it to you as soon the books are in 
-        stock, which we are expecting to be early May.</p>
-        <p>If you have any problems with your order, or something doesn't look right below, let us
-        know at <a href="mailto:orders@snorkelology.co.uk">orders@snorkelology.co.uk</a>.</p>
-      <div class="item">
-        <div class="title">Order number:</div>
-        <div>${orderSummary.orderNumber}</div>
-      </div>
-      <div class="item">
-        <div class="title">Shipping Address:</div>
-        <div>${orderSummary.user.name}<br>
-        ${orderSummary.user.address.address_line_1}<br>
-        ${orderSummary.user.address.admin_area_2}<br>
-        ${orderSummary.user.address.admin_area_1}<br>
-        ${orderSummary.user.address.postal_code}<br>
-        ${orderSummary.user.address.country_code}
-        </div>    
-      </div>
-      <div class="item">
-        <div class="title">Shipping Option:</div>
-        <div>${orderSummary.shippingOption}</div>    
-      </div>                
-      <div class="item">
-        <div class="title">Item Cost</div>
-        <div>£${orderSummary.costBreakdown.items.toFixed(2)}</div>
-      </div>                  
-      </div>
-      <div class="item">
-        <div class="title">Shipping</div>
-        <div>£${orderSummary.costBreakdown.shipping.toFixed(2)}</div>
-      </div>
-      ${discountMsg}
-      <div class="item">
-        <div class="title">Subtotal</div>
-        <div>£${orderSummary.costBreakdown.total.toFixed(2)}</div>
-      </div>                                           
-    </body>
-    `
-}
-
-/*****************************************************************
  * FUNCTION: Send data to store database
  ****************************************************************/
 export async function logShopEvent(orderNumber: string | null, orderDetails: any) {
@@ -371,43 +332,6 @@ export async function logShopError(orderNumber: string | null, error: Object) {
   });
 }
 
-/*****************************************************************
- * FUNCTION: Get paypal access token
- ****************************************************************/
-  //https://www.youtube.com/watch?v=HOkkbGSxmp4
-  // function getAccessToken() {
-
-  //   // const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
-  //   const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
-  //   const data = 'grant_type=client_credentials';
-
-  //   return fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
-  //     method: 'POST',
-  //     headers: {
-  //         'Content-Type': 'application/x-www-form-urlencoded',
-  //         'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
-  //     },
-  //     body: data
-  //   })
-  //   .then( (response) => {return response.json()})
-  //   .then ( (json) => {
-  //     console.log(json);
-  //     if (json?.error) {
-  //       console.log('boos')
-  //       throw new PayPalError('bums');
-  //     } 
-  //     return json;
-  //   })
-  //   .catch( (err) => {
-  //     console.log(err);
-      
-  //   })
-
-
-
-    // return {}
-
-  // }
   async function getAccessToken() {
 
     const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
