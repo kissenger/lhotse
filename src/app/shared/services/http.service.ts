@@ -93,8 +93,8 @@ export class HttpService {
   SHOP ENDPOINTS
   */
   
-  async getOrders(online: boolean, manual: boolean, test: boolean, action: boolean, noAction: boolean, error: boolean, text: string) {
-    const request = this.http.get<any>(`${this._backendURL}/shop/get-orders/${online}/${manual}/${test}/${action}/${noAction}/${error}/${text||'null'}`);
+  async getOrders(online: boolean, manual: boolean, test: boolean, action: boolean, noAction: boolean, error: boolean, status: string, text: string) {
+    const request = this.http.get<any>(`${this._backendURL}/shop/get-orders/${online}/${manual}/${test}/${action}/${noAction}/${error}/${status||'null'}/${text||'null'}`);
     return await lastValueFrom<any>(request);
   }    
 

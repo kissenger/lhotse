@@ -134,7 +134,7 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:text', async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:status/:text', async (req, res) => {
 
   let filterText: any;
   if (req.params.text!=='null') {
@@ -146,6 +146,25 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:t
       ]}
   }
 
+  let filterStatus: any = {};
+  switch (req.params.status) {
+    case 'orderCompleted':
+      filterStatus = {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readToPost': {$exists: false}}]};
+      break;
+    case 'readyToPost':
+      filterStatus = {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]};
+      break;
+    case 'posted':
+      filterStatus = {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]};
+      break;
+    case 'returned':
+      filterStatus = {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]};
+      break;
+    case 'refunded':
+      filterStatus = {'orderSummary.timeStamps.refunded': {$exists: true}};
+      break;
+  }
+    
   const filterOne = [];
   if (req.params.online==='true') { filterOne.push({'orderSummary.endPoint': 'https://api-m.paypal.com'}) }
   if (req.params.manual==='true') { filterOne.push({'orderSummary.endPoint': 'manual'}) }
@@ -178,6 +197,7 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:t
           $and: [
             {'isActive': {$ne: false}},
             filterText?filterText:{},
+            filterStatus,
             filterOne.length>0?{$or: filterOne}:{},
             filterTwo.length>0?{$or: filterTwo}:{}
           ]

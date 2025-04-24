@@ -24,6 +24,7 @@ export class OrdersComponent  {
   public filterNoAction = true;
   public filterWithError = false;  
   public textSearch: string = '';
+  public filterStatus: string = '';
   public numberOfCopies: number = 0;
   public orderValue: string = '';
 
@@ -46,25 +47,29 @@ export class OrdersComponent  {
   }
 
   copyAddresses() {
-    let addresses = this.orders.map(o=> {
-        return o.items[0].quantity+"x copies"+"\n"+
-        o.user.name+"\n"+
-        o.user.address.address_line_1+"\n"+
-        o.user.address.admin_area_2+"\n"+
-        o.user.address.admin_area_1+"\n"+
-        o.user.address.postal_code+"\n"
-      }
-    );
+    let addresses = this.orders.map(o=>this.getAddress(o))
     navigator.clipboard.writeText(addresses.join("\n"))
+  }
+
+  getAddress(order: OrderSummary) {
+    return (order.user.name+"\n"+
+      (order.user.organisation||'')+"\n"+
+      (order.user.address.address_line_1||'')+"\n"+
+      (order.user.address.address_line_2||'')+"\n"+
+      (order.user.address.admin_area_2||'')+"\n"+
+      (order.user.address.admin_area_1||'')+"\n"+
+      order.user.address.postal_code+"\n").replaceAll(/[\n]+/g,"\n");
   }
 
   newOrder() {
     this._router.navigateByUrl(`/orders/manual/`); 
   }
+
   async onDeactivate(orderNumber: string) {
     let respose = await this._http.deactivateOrder(orderNumber); 
     this.getOrders();
   }
+
   onUpdateList() {
     this.getOrders();
   }
@@ -72,7 +77,7 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterWithAction, this.filterNoAction, this.filterWithError, this.textSearch)
+      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterWithAction, this.filterNoAction, this.filterWithError, this.filterStatus, this.textSearch)
     } catch (error) {
       console.error(error);
     }
@@ -96,6 +101,17 @@ export class OrdersComponent  {
     }
   }
 
+  resetFilters() {
+    this.filterManual = true;
+    this.filterOnline = true;
+    this.filterTest = false;
+    this.filterWithAction = true;
+    this.filterNoAction = true;
+    this.filterWithError = false;  
+    this.textSearch = '';
+    this.filterStatus = '';
+    this.getOrders();
+  }
   async onSendEmail(orderNumber?: string) {
     try {
       await this._http.sendPostedEmail(orderNumber);

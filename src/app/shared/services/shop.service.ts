@@ -68,6 +68,7 @@ export class ShopService {
                 email_address: '',
                 address: {
                     address_line_1: '',
+                    address_line_2: '',
                     admin_area_2: '',
                     admin_area_1: '',
                     postal_code: '',

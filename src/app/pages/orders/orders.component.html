@@ -8,8 +8,10 @@
             <button (click)="newOrder()">New manual order</button><br>
 
             <div class="panel-header">Filters</div>
+            <button (click)="resetFilters()">Reset Filters</button><br>
             <label for="textSearch">Search: </label>
             <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
+
             <div class="filter-table"> 
                 <div class="filter-table-left">
                     By Type<br>
@@ -22,6 +24,13 @@
                 </div>
                 <div class="filter-table-right">
                     By Status<br>
+                    <select [(ngModel)]="filterStatus" name="selectStatus" id="selectStatus" (change)="onUpdateList()">
+                        <option value="orderCompleted"> Completed</option>
+                        <option value="readyToPost">    Ready to Post</option>
+                        <option value="posted">         Posted</option>
+                        <option value="returned">       Returned</option>
+                        <option value="refunded">       Refunded</option>
+                    </select><br>
                     <input [(ngModel)]="filterWithAction" type="checkbox" id="filterWithAction" name="filterWithAction" value="filterWithAction" (ngModelChange)="onUpdateList()">
                     <label for="filterWithAction">Action Reqd</label><br>
                     <input [(ngModel)]="filterNoAction" type="checkbox" id="filterNoAction" name="filterNoAction" value="filterNoAction" (ngModelChange)="onUpdateList()">
@@ -160,16 +169,12 @@
                         {{ order.items[0].name }} x {{ order.items[0].quantity }}
                     </div>
                 </div>
+                
                 @if (order.timeStamps?.orderCompleted) {
                     <div class="order-line">
                         <div class="title">Address</div>
                         <div class="value">
-                            {{ order.user.name }}<br />
-                            {{ order.user.address.address_line_1}}<br />
-                            {{ order.user.address.admin_area_1}}<br />
-                            {{ order.user.address.admin_area_2}}<br />
-                            {{ order.user.address.country_code}}<br />
-                            {{ order.user.address.postal_code}}<br />
+                            {{getAddress(order)}}
                         </div>
                     </div>
                     <div class="order-line">

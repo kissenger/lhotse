@@ -21,6 +21,7 @@ const shopSchema = new mongoose.Schema({
       organisation: {type: String},
       address: {
         address_line_1: {type: String},
+        address_line_2: {type: String},
         admin_area_2: {type: String},
         admin_area_1: {type: String},
         postal_code: {type: String},
