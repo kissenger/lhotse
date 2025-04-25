@@ -17,8 +17,7 @@ function getConfirmationEmailBody(orderSummary: any) {
     <body>
       ${testMessage}
       <div> 
-        <p>Thank you for your order, we'll do our best to get it to you as soon the books are in 
-        stock, which we are expecting to be early May.</p>
+        <p>Thank you so much for your order: we'll let you know when it's on the way.</p>
         <p>If you have any problems with your order, or something doesn't look right below, let us
         know at <a href="mailto:orders@snorkelology.co.uk">orders@snorkelology.co.uk</a>.</p>
       <div class="item">
