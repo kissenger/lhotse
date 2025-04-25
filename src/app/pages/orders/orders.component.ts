@@ -1,5 +1,5 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, ElementRef, Inject, QueryList, ViewChildren } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
 import { OrderItems, OrderStatus, OrderSummary } from '@shared/types';
@@ -27,9 +27,9 @@ export class OrdersComponent  {
   public filterStatus: string = '';
   public numberOfCopies: number = 0;
   public orderValue: string = '';
-
-  // public emails: Array<string> = [];
   public orders: Array<OrderSummary> = [];
+
+  @ViewChildren('label') labelElements!: QueryList<ElementRef>;
   
   constructor(
     private _http: HttpService,    
@@ -47,8 +47,24 @@ export class OrdersComponent  {
   }
 
   copyAddresses() {
-    let addresses = this.orders.map(o=>this.getAddress(o))
+    let addresses = this.orders.map(o=>this.getAddress(o)+"\n")
     navigator.clipboard.writeText(addresses.join("\n"))
+  }
+
+  copyLabel(order: OrderSummary) {
+    this.labelElements.toArray().forEach( (elem) => {
+      if (elem.nativeElement.id === order.orderNumber) {
+        console.log(order.orderNumber)
+        console.log(elem.nativeElement.innerHTML)
+        const data = new ClipboardItem({"text/html": elem.nativeElement.innerHTML});
+        navigator.clipboard.write([data]);
+      }
+    })
+
+    // let label = `<style><.qty { font-size: 0.5em }></style><span class="qty">${order.items[0].name} x ${order.items[0].quantity}<span><br>` + this.getAddress(order);
+    // // let label = "text";
+    // const data = new ClipboardItem({"text/html": label});
+    // navigator.clipboard.write([data]);
   }
 
   getAddress(order: OrderSummary) {
@@ -58,7 +74,7 @@ export class OrdersComponent  {
       (order.user.address.address_line_2||'')+"\n"+
       (order.user.address.admin_area_2||'')+"\n"+
       (order.user.address.admin_area_1||'')+"\n"+
-      order.user.address.postal_code+"\n").replaceAll(/[\n]+/g,"\n");
+      order.user.address.postal_code).replaceAll(/[\n]+/g,"\n");
   }
 
   newOrder() {

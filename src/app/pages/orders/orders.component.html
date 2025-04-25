@@ -164,32 +164,30 @@
                     <div class="value">{{ order.endPoint }}</div>
                 </div>
                 <div class="order-line">
-                    <div class="title">Order</div>
+                    <div class="title">Postage Label</div>
+
+                    <!-- Using inline styles here so that the formatting remains when copied as rich text -->
+                    <div #label id="{{order.orderNumber}}" class="value">
+                        <span style="font-size: 0.4em;">
+                            x{{ order.items[0].quantity }}, {{ order.shippingOption }}
+                        </span>
+                        <br>
+                        <span style="white-space: pre-line;">
+                            {{ getAddress(order) }}
+                        </span>
+                    </div>
+                    
+                    <div class="action">
+                        <button (click)= "copyLabel(order)">Copy Label</button>
+                    </div>
+                    </div>
+                <div class="order-line">
+                    <div class="title">Email </div>
                     <div class="value">
-                        {{ order.items[0].name }} x {{ order.items[0].quantity }}
+                        {{ order.user.email_address }}
                     </div>
                 </div>
                 
-                @if (order.timeStamps?.orderCompleted) {
-                    <div class="order-line">
-                        <div class="title">Address</div>
-                        <div class="value">
-                            {{getAddress(order)}}
-                        </div>
-                    </div>
-                    <div class="order-line">
-                        <div class="title">Postage</div>
-                        <div class="value">
-                            {{ order.shippingOption }}
-                        </div>
-                    </div>
-                    <div class="order-line">
-                        <div class="title">Email </div>
-                        <div class="value">
-                            {{ order.user.email_address }}
-                        </div>
-                    </div>
-                }
                 <div class="order-line">
                     <div class="title">Item Cost</div>
                     <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>

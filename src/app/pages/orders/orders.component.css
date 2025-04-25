@@ -97,6 +97,10 @@ table {
     white-space: pre-line;
 }
 
+.label {
+    font-size: 0.4em;
+}
+
 .first-line > .title, .first-line > .value {
     font-weight: 700;
 }
