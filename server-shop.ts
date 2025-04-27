@@ -290,7 +290,6 @@ shop.post('/api/shop/upsert-manual-order', async (req, res) => {
 });
 
 shop.post('/api/shop/deactivate-order', async (req, res) => {
-console.log(req.body.orderNumber)
   await logShopEvent(req.body.orderNumber, {
     '$set': {
       isActive: false
@@ -300,6 +299,8 @@ console.log(req.body.orderNumber)
 
   
 });
+
+  
 
 
 /*****************************************************************

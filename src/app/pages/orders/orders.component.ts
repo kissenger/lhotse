@@ -2,6 +2,7 @@ import { CurrencyPipe, NgClass } from '@angular/common';
 import { Component, ElementRef, Inject, QueryList, ViewChildren } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
+import { ExportFileService } from '@shared/services/export.service';
 import { OrderItems, OrderStatus, OrderSummary } from '@shared/types';
 import { Router, RouterLink } from '@angular/router';
 
@@ -30,6 +31,7 @@ export class OrdersComponent  {
   
   constructor(
     private _http: HttpService,    
+    private _exportCSV: ExportFileService,
     @Inject(Router) private _router: Router
     
   ) {}
@@ -85,6 +87,10 @@ export class OrdersComponent  {
 
   onUpdateList() {
     this.getOrders();
+  }
+
+  exportCSV() {
+    this._exportCSV.createCSV(this.orders);
   }
 
   async getOrders() {
