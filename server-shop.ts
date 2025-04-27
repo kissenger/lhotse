@@ -134,7 +134,7 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:status/:text', async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', async (req, res) => {
 
   let filterText: any;
   if (req.params.text!=='null') {
@@ -149,7 +149,7 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:s
   let filterStatus: any = {};
   switch (req.params.status) {
     case 'orderCompleted':
-      filterStatus = {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readToPost': {$exists: false}}]};
+      filterStatus = {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]};
       break;
     case 'readyToPost':
       filterStatus = {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]};
@@ -170,25 +170,24 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:s
   if (req.params.manual==='true') { filterOne.push({'orderSummary.endPoint': 'manual'}) }
   if (req.params.test==='true')   { filterOne.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'}) }
 
-  const filterTwo = [];
-  if (req.params.action==='true') { filterTwo.push({$or: [
-    {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]},
-    {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]},
-    {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]},
-  ]}) }
-  if (req.params.noaction==='true') { filterTwo.push({$or: [
-    {$and: [{'orderSummary.timeStamps.orderCreated': {$exists: true}}, {'orderSummary.timeStamps.orderCompleted': {$exists: false}}]},
-    {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]},
-    {'orderSummary.timeStamps.refunded': {$exists: true}},
-  ]}) }
-  if (req.params.error==='true')  { filterTwo.push({'orderSummary.timeStamps.errorCreated': {$exists: true}}) }
+  // const filterTwo = [];
+  // if (req.params.action==='true') { filterTwo.push({$or: [
+  //   {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]},
+  //   {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]},
+  //   {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]},
+  // ]}) }
+  // if (req.params.noaction==='true') { filterTwo.push({$or: [
+  //   {$and: [{'orderSummary.timeStamps.orderCreated': {$exists: true}}, {'orderSummary.timeStamps.orderCompleted': {$exists: false}}]},
+  //   {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]},
+  //   {'orderSummary.timeStamps.refunded': {$exists: true}},
+  // ]}) }
+  // if (req.params.error==='true')  { filterTwo.push({'orderSummary.timeStamps.errorCreated': {$exists: true}}) }
 
   console.log(filterOne)
-  console.log(filterTwo)
   console.log(filterText)
   try {
 
-    if (filterOne.length===0 && filterTwo.length===0 && req.params.text==='null') {
+    if (filterOne.length===0 && req.params.text==='null') {
       console.log('returning empty')
       res.status(201).send([]);
     } else {
@@ -198,11 +197,23 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:action/:noaction/:error/:s
             {'isActive': {$ne: false}},
             filterText?filterText:{},
             filterStatus,
-            filterOne.length>0?{$or: filterOne}:{},
-            filterTwo.length>0?{$or: filterTwo}:{}
+            filterOne.length>0?{$or: filterOne}:{}
           ]
         }
       }]);
+      result.forEach(r=>{
+        if (
+          (r.orderSummary.timeStamps.orderCompleted && !r.orderSummary.timeStamps.readyToPost) ||
+          (r.orderSummary.timeStamps.readyToPost && !r.orderSummary.timeStamps.posted) ||
+          (r.orderSummary.timeStamps.returned && !r.orderSummary.timeStamps.refunded)
+        ) {
+          r.orderSummary.isAction = true;
+        } else {
+          r.orderSummary.isAction = false;
+        }
+
+      })
+      // console.log(result)
       res.status(201).json(result.map(o=>o.orderSummary));
     }
     

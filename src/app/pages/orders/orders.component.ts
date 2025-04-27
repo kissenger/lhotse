@@ -20,9 +20,6 @@ export class OrdersComponent  {
   public filterManual = true;
   public filterOnline = true;
   public filterTest = false;
-  public filterWithAction = true;
-  public filterNoAction = true;
-  public filterWithError = false;  
   public textSearch: string = '';
   public filterStatus: string = '';
   public numberOfCopies: number = 0;
@@ -93,15 +90,18 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterWithAction, this.filterNoAction, this.filterWithError, this.filterStatus, this.textSearch)
+      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
     } catch (error) {
       console.error(error);
     }
+console.log(this.orders)
 
     this.orders.sort((a, b) => {
       let x: number = new Date(a?.timeStamps?.orderCompleted ?? '').getTime();
       let y: number = new Date(b?.timeStamps?.orderCompleted ?? '').getTime();
       return y-x
+    }).sort((a, b) => {
+      return Number(b.isAction) - Number(a.isAction);
     })
 
     this.numberOfCopies = this.orders.map(o=>o.items[0].quantity).reduce((a,b)=> a+b,0);
@@ -121,9 +121,6 @@ export class OrdersComponent  {
     this.filterManual = true;
     this.filterOnline = true;
     this.filterTest = false;
-    this.filterWithAction = true;
-    this.filterNoAction = true;
-    this.filterWithError = false;  
     this.textSearch = '';
     this.filterStatus = '';
     this.getOrders();

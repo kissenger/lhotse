@@ -8,7 +8,7 @@
             <button (click)="newOrder()">New manual order</button><br>
 
             <div class="panel-header">Filters</div>
-            <button (click)="resetFilters()">Reset Filters</button><br>
+
             <label for="textSearch">Search: </label>
             <input [(ngModel)]="textSearch" type="text" id="textSearch" name="textSearch" (keyup)="onUpdateList()"><br>
 
@@ -31,16 +31,9 @@
                         <option value="returned">       Returned</option>
                         <option value="refunded">       Refunded</option>
                     </select><br>
-                    <input [(ngModel)]="filterWithAction" type="checkbox" id="filterWithAction" name="filterWithAction" value="filterWithAction" (ngModelChange)="onUpdateList()">
-                    <label for="filterWithAction">Action Reqd</label><br>
-                    <input [(ngModel)]="filterNoAction" type="checkbox" id="filterNoAction" name="filterNoAction" value="filterNoAction" (ngModelChange)="onUpdateList()">
-                    <label for="filterNoAction">No Action</label><br>                    
-                    <input [(ngModel)]="filterWithError" type="checkbox" id="filterWithError" name="filterWithError" value="filterWithError" (ngModelChange)="onUpdateList()">
-                    <label for="filterWithError">Error</label><br>                    
                 </div>
             </div>
-
-
+            <button (click)="resetFilters()">Reset Filters</button><br>
 
             <div class="panel-header">Summary</div>
             <table class="summary-table">
@@ -66,15 +59,15 @@
 
         @for (order of orders; track order) {
             <!-- @let isActionNeeded = false; -->
-            @let isActionNeeded = 
+            <!-- @let isActionNeeded = 
                 (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 
                 (!!order.timeStamps?.readyToPost && !order.timeStamps?.posted) || 
-                (!!order.timeStamps?.returned && !order.timeStamps?.refunded);
+                (!!order.timeStamps?.returned && !order.timeStamps?.refunded); -->
 
             <div class="order-table">
                 <div class="order-line first-line" >
-                    <div class="title" [ngClass]="isActionNeeded ? 'red' : 'grey'">Order Number</div>
-                    <div class="value" [ngClass]="isActionNeeded ? 'red' : 'grey'">{{ order.orderNumber }}</div>
+                    <div class="title" [ngClass]="order.isAction ? 'red' : 'grey'">Order Number</div>
+                    <div class="value" [ngClass]="order.isAction ? 'red' : 'grey'">{{ order.orderNumber }}</div>
                     @if (order.endPoint === 'manual') {
                         <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
                         <button (click)="onDeactivate(order.orderNumber!)">Deactivate</button>

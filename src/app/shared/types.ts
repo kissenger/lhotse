@@ -66,6 +66,7 @@ export interface OrderItems {
 export interface OrderSummary {
   orderNumber?: string;
   payPalOrderId?: string;
+  isAction?: boolean
   user: {
     name: string,
     organisation?: string,
