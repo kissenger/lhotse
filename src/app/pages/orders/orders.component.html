@@ -60,7 +60,7 @@
         <div class="content">
         
 
-        @for (order of orders; track order) {
+        @for (order of orders; track order.orderNumber) {
             <!-- @let isActionNeeded = false; -->
             <!-- @let isActionNeeded = 
                 (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 
@@ -69,8 +69,8 @@
 
             <div class="order-table">
                 <div class="order-line first-line" >
-                    <div class="title" [ngClass]="order.isAction ? 'red' : 'grey'">Order Number</div>
-                    <div class="value" [ngClass]="order.isAction ? 'red' : 'grey'">{{ order.orderNumber }}</div>
+                    <div class="title grey">Order Number</div>
+                    <div class="value grey">{{ order.orderNumber }}</div>
                     @if (order.endPoint === 'manual') {
                         <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
                         <button (click)="onDeactivate(order.orderNumber!)">Delete</button>
@@ -103,8 +103,8 @@
                 }
                 @if (order.timeStamps?.readyToPost) {
                     <div class="order-line">
-                        <div class="title" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">Ready to Post</div>
-                        <div class="value" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">{{order.timeStamps?.readyToPost}}</div>
+                        <div class="title" [ngClass]="!order.timeStamps?.posted ? 'purple' : ''">Ready to Post</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.posted ? 'purple' : ''">{{order.timeStamps?.readyToPost}}</div>
                         @if (!order.timeStamps?.posted && !order.timeStamps?.orderCancelled) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
@@ -139,8 +139,8 @@
                 }  
                 @if (order.timeStamps?.orderCancelled) {
                     <div class="order-line">
-                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Order Cancelled</div>
-                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.orderCancelled}}</div>
+                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'green' : ''">Order Cancelled</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'green' : ''">{{order.timeStamps?.orderCancelled}}</div>
                         @if (!order.timeStamps?.refunded) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
@@ -151,8 +151,8 @@
                 }                   
                 @if (order.timeStamps?.returned) {
                     <div class="order-line">
-                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
-                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.returned}}</div>
+                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'blue' : ''">Returned</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'blue' : ''">{{order.timeStamps?.returned}}</div>
                         @if (!order.timeStamps?.refunded) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
@@ -231,7 +231,7 @@
                     <div class="title">Order Note</div>
                     <div class="value"> {{ order.notes }}</div>
                     <div class="action">
-                        <input type="text" id="notes{{order.orderNumber}}" name="notes">
+                        <input type="text" id="notes{{order.orderNumber}}" name="notes{{order.orderNumber}}">
                         <button (click)='addNote(order.orderNumber)'>Add note</button>
                     </div>
                 </div>     

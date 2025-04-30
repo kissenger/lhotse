@@ -18,9 +18,9 @@ export class ExportFileService {
   
     orders.forEach( o => {
       csvData += o.orderNumber + ",";
-      csvData += o.items[0].quantity * 0.7 + ',';
+      csvData += o.items[0].quantity * 0.75 + ',';
       csvData += (o.shippingOption == "Royal Mail First Class" ? 'OLP1' : 'OLP2') + ',';
-      csvData += o.user.name.replaceAll(',','').split(" ").join(",") + ',';
+      csvData += o.user.name.replaceAll(',','').split(/ (.*)/).filter(a=>a!='').join(',') + ',';
       csvData += (o.user.organisation||'').replaceAll(',','') + ',';
       csvData += (o.user.address.address_line_1||'').replaceAll(',','') + ',';
       csvData += (o.user.address.address_line_2||'').replaceAll(',','') + ',';

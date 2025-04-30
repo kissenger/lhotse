@@ -287,15 +287,15 @@ class Basket {
     }
     
     get itemsCost(): number {
-        if (this._isNoCharge) {
-            return 0;
-        } else {
+        // if (this._isNoCharge) {
+        //     return 0;
+        // } else {
             let sum = 0;
             for (let basketItem of this._basketItems) {
                 sum += basketItem.unit_amount.value * basketItem.quantity;
             }
             return Math.round(sum*100)/100;
-        }
+        // }
     }
 
     get shippingCost(): number {

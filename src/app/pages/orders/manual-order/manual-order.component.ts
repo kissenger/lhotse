@@ -28,12 +28,14 @@ export class ManualOrderComponent  {
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
     @Inject(Router) private _router: Router   
   ) {
+    this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
   }
     
   ngOnInit() {
      this._routeSubs = this._route.params.subscribe(async params => {
       if (params['orderNumber']) {
+        // this.shop.reset();
         this.isEditMode = true;
         let order = await this._http.getOrderByOrderNumber(params['orderNumber']);
         this._orderNumber = params['orderNumber'];
@@ -43,8 +45,10 @@ export class ManualOrderComponent  {
         if (order?.notes) {
           (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
         }
+        
         this.shop.user.setDetails = order.user;
-        this.shop.basket.add(this.shop.item("0001"),order.items[0].quantity);
+        // this.shop.basket.add(this.shop.item("0001"),order.items[0].quantity);
+        this.shop.basket.updateQuantity("0001",order.items[0].quantity);
       }
     })
   }

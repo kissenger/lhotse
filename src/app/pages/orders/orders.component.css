@@ -112,12 +112,21 @@ table {
 button {
     margin-right: 0.5rem;
 }
-.green {
+/* .green {
     background-color: lightgreen;
-}
+} */
 .grey {
     background-color: lightgrey;
 }
 .red {
     background-color: lightcoral;
+}
+.green {
+    background-color: lightseagreen;
+}
+.blue {
+    background-color: lightblue;
+}
+.purple {
+    background-color: plum;
 }

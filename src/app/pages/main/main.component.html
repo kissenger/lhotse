@@ -4,7 +4,7 @@
       <a [routerLink]="'.'" [fragment]="'snorkelling-britain'" (click)="hideOverlay('about-book')">
         @if (widthDescriptor === "small") {
           <img  
-            ngSrc = "ads/overlay-ad-portrait.png"
+            ngSrc = "ads/overlay-ad-portrait-new.jpg.png"
             alt   = "Overlay image showing Snorkelling Britain with link to book description"
             width = "336"
             height = "414"
@@ -12,7 +12,7 @@
           >
         } @else if (widthDescriptor == "large") {
           <img  
-            ngSrc = "ads/overlay-ad-landscape.png"
+            ngSrc = "ads/overlay-ad-landscape-new.jpg"
             alt   = "Overlay image showing Snorkelling Britain with link to book description"
             width = "464"
             height = "177"
@@ -29,9 +29,9 @@
   <div class="overlay buy-now" [ngClass]="hideBuyNowOverlay ? 'hide-overlay' : ''">
     <a [routerLink]="'.'" [fragment]="'buy-now'" (click)="hideOverlay('buy-now')">
       <img  
-        ngSrc = "ads/preorder-now-btn2.jpg"
+        ngSrc = "ads/discount-code-may.jpg"
         alt   = "Buy now button with link"
-        width = "203"
+        width = "255"
         height = "70"
       >
     </a>

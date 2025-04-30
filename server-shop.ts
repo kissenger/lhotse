@@ -297,7 +297,6 @@ shop.post('/api/shop/unset-order-status', async (req, res) => {
 shop.post('/api/shop/upsert-manual-order', async (req, res) => {
 
   let order = req.body.order;
-  console.log(order)
   order.timeStamps = {
     orderCreated: Date.now(),
     orderCompleted: Date.now()
@@ -310,7 +309,11 @@ shop.post('/api/shop/upsert-manual-order', async (req, res) => {
   } else {
     // not a new order
     let os = await getOrderSummary(order.orderNumber);
-    order.notes = `${os.notes ? os.notes + '\n' : ''}${(new Date).toISOString()}: ${order.notes}`;
+    if (order.notes !== '') {
+      order.notes = `${os.notes !== '' ? os.notes + '\n' : ''}${(new Date).toISOString()}: ${order.notes}`;
+    } else {
+      order.notes = os.notes;
+    }
   }
   let result = await logShopEvent(order.orderNumber, {orderSummary: order});
 
