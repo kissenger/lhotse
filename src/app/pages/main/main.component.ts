@@ -66,7 +66,7 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and buy our new book: Snorkelling Britain.",
+      "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and buy our new book: Snorkelling Britain direct from the Authors, Emma and Gordon Taylor",
       "sameAs": "https://instagram.com/snorkelology"
     }`)
 
