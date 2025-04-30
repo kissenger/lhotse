@@ -23,7 +23,6 @@ export class BasketComponent {
 
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
-  public userEnteredCode: string = "";
   public dirtyDiscountCode = false;
 
   constructor(
@@ -36,7 +35,7 @@ export class BasketComponent {
   
   async ngOnInit() {
 
-    this.shop.basket.discount = 0;
+    this.shop.basket.discountPercent = 0;
     let paypal;
     
     try {
@@ -54,9 +53,8 @@ export class BasketComponent {
         const that = this;
         await paypal.Buttons({
 
-
           async createOrder() {
-            let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.orderIntent);
+            let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.order);
             that.shop.orderNumber = res.orderNumber;
             return res.paypalOrderId;              
           },
@@ -98,7 +96,7 @@ export class BasketComponent {
                 that.shop.orderNumber ?? '',
                 data.orderID,
                 "/purchase_units/@reference_id=='default'",
-                that.shop.orderIntent.purchase_units[0]
+                that.shop.order.paypal.intent.purchase_units[0]
               )
             }
             return
@@ -125,13 +123,13 @@ export class BasketComponent {
 
   onCodeChange() {
     this.dirtyDiscountCode = true;
-    const uec = this.userEnteredCode.toLowerCase();
+    const uec = this.shop.basket.discountCode.toLowerCase();
     for (const dc of this.discountCodes) {
       if (dc.code === uec) {
-        this.shop.basket.discount = dc.discount;
+        this.shop.basket.discountPercent = dc.discount;
         break;
       } else {
-        this.shop.basket.discount = 0;
+        this.shop.basket.discountPercent = 0;
       }
     };
   }

@@ -1,4 +1,3 @@
-import { boolean } from '@paypal/paypal-server-sdk/dist/types/schema';
 import mongoose, {model} from 'mongoose';
 
 const shopSchema = new mongoose.Schema({
@@ -13,7 +12,13 @@ const shopSchema = new mongoose.Schema({
     error: {type: Object},
   },
   orderSummary: {
+    isNoCharge: {type: Boolean},
     orderNumber:{type: String},
+    discountInfo: {
+      discountPercent: {type: Number},
+      discountValue: {type: Number},
+      discountCode: {type: String}
+    },
     payPalOrderId: {type: String},
     user: {
       name: {type: String},
@@ -50,6 +55,7 @@ const shopSchema = new mongoose.Schema({
       orderPatched: {type: Date},
       orderCreated: {type: Date},
       orderCompleted: {type: Date},
+      orderCancelled: {type: Date},
       readyToPost: {type: Date},
       posted: {type: Date},
       returned: {type: Date},

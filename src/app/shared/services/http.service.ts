@@ -98,11 +98,18 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }    
 
-  async setTimestamp(orderNumber: string, set: OrderStatus, unset?: OrderStatus) {
-    const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, set, unset});
+  async setTimestamp(orderNumber: string, set: OrderStatus) {
+    const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, set});
     return await lastValueFrom<any>(request);
   }    
-
+  async unsetTimestamp(orderNumber: string, unset: OrderStatus) {
+    const request = this.http.post(`${this._backendURL}/shop/unset-order-status`, {orderNumber, unset});
+    return await lastValueFrom<any>(request);
+  }   
+  async addNote(orderNumber: string, note: string) {
+    const request = this.http.post(`${this._backendURL}/shop/add-note`, {orderNumber, note});
+    return await lastValueFrom<any>(request);
+  }  
   async sendPostedEmail(orderNumber?: string) {
     const request = this.http.post(`${this._backendURL}/shop/send-posted-email`, {orderNumber});
     return await lastValueFrom<any>(request);

@@ -19,36 +19,42 @@ export interface BasketItem extends Omit<StockItem, 'isInStock'> {
 }
 
 export interface PayPalCreateOrder {
-  intent: string,
-  purchase_units: Array<{
-      amount: {
-          currency_code: string;
-          value: number;
-          breakdown: {
-              item_total: {
-                currency_code: string,
-                value: number
-              },
-              shipping: {
-                  currency_code: string,
-                  value: number
+  orderSummary: OrderSummary,
+  paypal: {
+    intent: {
+      intent: string,
+      purchase_units: Array<{
+          amount: {
+              currency_code: string;
+              value: number;
+              breakdown: {
+                  item_total: {
+                    currency_code: string,
+                    value: number
+                  },
+                  shipping: {
+                      currency_code: string,
+                      value: number
+                  }
               }
+          },
+          items: Array<BasketItem>,
+          shipping: {
+              options: Array<{
+                  id: string,
+                  label: string,
+                  selected: boolean,
+                  type: string,
+                  amount: {
+                      currency_code: string,
+                      value: number   
+                  }
+              }>
           }
-      },
-      items: Array<BasketItem>,
-      shipping: {
-          options: Array<{
-              id: string,
-              label: string,
-              selected: boolean,
-              type: string,
-              amount: {
-                  currency_code: string,
-                  value: number   
-              }
-          }>
-      }
-  }>
+      }>
+    }
+  }
+
 }
 
 export interface OrderItems {
@@ -66,10 +72,12 @@ export interface OrderItems {
 export interface OrderSummary {
   orderNumber?: string;
   payPalOrderId?: string;
-  isAction?: boolean
+  isAction?: boolean;
+  discount?: number;
+  isNoCharge?: boolean;
   user: {
     name: string,
-    organisation?: string,
+    organisation: string,
     email_address: string,
     address: {
       address_line_1: string,
@@ -80,6 +88,11 @@ export interface OrderSummary {
       country_code: string,
     },
   },
+  discountInfo?: {
+    discountCode?: string,
+    discountPercent?: number,
+    discountValue?: number,
+  }
   items: Array<BasketItem> | Array<OrderItems>,
   costBreakdown: {
     items: number,
@@ -98,7 +111,8 @@ export interface OrderSummary {
     returned?: string,
     refunded?: string,
     errorCreated?: string,
-    postedEmailSent?: string
+    postedEmailSent?: string,
+    orderCancelled?: string
   },
   notes?: string
 }
@@ -132,4 +146,5 @@ export type OrderStatus =
   'posted' | 
   'returned' | 
   'refunded' |
-  'postedEmailSent';
+  'postedEmailSent'|
+  'orderCancelled';

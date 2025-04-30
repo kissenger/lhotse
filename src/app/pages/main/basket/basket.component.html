@@ -38,11 +38,11 @@
         }
       
         <!-- solution for animating height: https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/ -->
-        <div class="hidden-basket-item-wrapper" [ngClass]="shop.basket.discount ? 'show' : ''">
+        <div class="hidden-basket-item-wrapper" [ngClass]="shop.basket.discountPercent ? 'show' : ''">
             <div class="hidden-basket-item">
               <div class="basket-item">
                 <div class="basket-item-description">
-                  <div class="basket-item-text">{{shop.basket.discount}}% Discount</div>
+                  <div class="basket-item-text">{{shop.basket.discountPercent}}% Discount</div>
                   <div>{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
                 </div>
               </div> 
@@ -70,12 +70,12 @@
         <div class="basket-item">
           <div class="basket-item-description">
             <label for="discount">Discount&nbsp;Code:</label>
-            <input class="discount" type="text" id="discount" name="discount" (keyup)="onCodeChange()" [disabled]="shop.orderStatus!='draft'" [(ngModel)]="userEnteredCode">
+            <input class="discount" type="text" id="discount" name="discount" (keyup)="onCodeChange()" [disabled]="shop.orderStatus!='draft'" [(ngModel)]="shop.basket.discountCode">
 
           </div>
           <div class="basket-item-note basket-item-note-right">
             @if (dirtyDiscountCode) {
-              @if (shop.basket.discount === 0) {
+              @if (shop.basket.discountPercent === 0) {
                 Entered code is not valid
               } @else {
                 Discount applied!

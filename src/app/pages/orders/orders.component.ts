@@ -3,7 +3,7 @@ import { Component, ElementRef, Inject, QueryList, ViewChildren } from '@angular
 import { FormsModule } from "@angular/forms";
 import { HttpService } from '@shared/services/http.service';
 import { ExportFileService } from '@shared/services/export.service';
-import { OrderItems, OrderStatus, OrderSummary } from '@shared/types';
+import { OrderStatus, OrderSummary } from '@shared/types';
 import { Router, RouterLink } from '@angular/router';
 
 
@@ -53,17 +53,12 @@ export class OrdersComponent  {
   copyLabel(order: OrderSummary) {
     this.labelElements.toArray().forEach( (elem) => {
       if (elem.nativeElement.id === order.orderNumber) {
-        console.log(order.orderNumber)
         console.log(elem.nativeElement.innerHTML)
         const data = new ClipboardItem({"text/html": elem.nativeElement.innerHTML});
         navigator.clipboard.write([data]);
       }
     })
 
-    // let label = `<style><.qty { font-size: 0.5em }></style><span class="qty">${order.items[0].name} x ${order.items[0].quantity}<span><br>` + this.getAddress(order);
-    // // let label = "text";
-    // const data = new ClipboardItem({"text/html": label});
-    // navigator.clipboard.write([data]);
   }
 
   getAddress(order: OrderSummary) {
@@ -97,10 +92,10 @@ export class OrdersComponent  {
 
     try {
       this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
+      console.log(this.orders)
     } catch (error) {
       console.error(error);
     }
-console.log(this.orders)
 
     this.orders.sort((a, b) => {
       let x: number = new Date(a?.timeStamps?.orderCompleted ?? '').getTime();
@@ -114,9 +109,18 @@ console.log(this.orders)
     this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
   }
 
-  async onSetStatus(orderNumber: string | undefined, set: OrderStatus, unset?: OrderStatus) {
+  async onSetStatus(orderNumber: string | undefined, set: OrderStatus) {
     try {
-      await this._http.setTimestamp(orderNumber ?? '', set, unset);
+      await this._http.setTimestamp(orderNumber ?? '', set );
+      this.getOrders();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async onUnsetStatus(orderNumber: string | undefined, unset: OrderStatus) {
+    try {
+      await this._http.unsetTimestamp(orderNumber ?? '', unset);
       this.getOrders();
     } catch (error) {
       console.error(error);
@@ -131,6 +135,17 @@ console.log(this.orders)
     this.filterStatus = '';
     this.getOrders();
   }
+
+  async addNote(orderNumber?: string) {
+    try {
+      const note = (<HTMLInputElement>document.getElementById(`notes${orderNumber}`)).value;
+      await this._http.addNote(orderNumber!, note);
+      this.getOrders();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async onSendEmail(orderNumber?: string) {
     try {
       await this._http.sendPostedEmail(orderNumber);

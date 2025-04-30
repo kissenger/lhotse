@@ -16,7 +16,7 @@ function getPostedEmailBody(orderSummary: any) {
       <div> 
         <p>
           Just to let you know that your order number ${orderSummary.orderNumber} has been posted
-          using your selected shipping method (${orderSummary.shippingOption}).
+          using your selected shipping method.
         </p>
         <p>
           If you have any issues with delivery, please let us

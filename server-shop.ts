@@ -34,13 +34,14 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
     const result = await fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
-      body: JSON.stringify(req.body.order)
+      body: JSON.stringify(req.body.order.paypal.intent)
     });
 
+    console.log(req.body)
     const json = await result.json();
     const resp = await logShopEvent( orderNumber, 
-      { paypal: { id: json.id, intent: req.body.order, endPoint: PAYPAL_ENDPOINT}, 
-        orderSummary: { timeStamps: { orderCreated: Date.now() }} 
+      { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
+        orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
       });
 
     res.send({  
@@ -142,26 +143,45 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', async (req,
         {'orderSummary.user.name': {$regex: req.params.text, $options: 'i'}},
         {'orderSummary.endPoint':  {$regex: req.params.text, $options: 'i'}},
         {'orderNumber':            {$regex: req.params.text, $options: 'i'}},
-        {'orderSummary.comments':  {$regex: req.params.text, $options: 'i'}}
+        {'orderSummary.user.address.postal_code':  {$regex: req.params.text, $options: 'i'}}
       ]}
   }
 
   let filterStatus: any = {};
   switch (req.params.status) {
     case 'orderCompleted':
-      filterStatus = {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]};
+      filterStatus = {$and: [
+        {'orderSummary.timeStamps.orderCompleted': {$exists: true}}, 
+        {'orderSummary.timeStamps.readyToPost': {$exists: false}},
+        {'orderSummary.timeStamps.orderCancelled': {$exists: false}}
+      ]};
       break;
     case 'readyToPost':
-      filterStatus = {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]};
+      filterStatus = {$and: [
+        {'orderSummary.timeStamps.readyToPost': {$exists: true}}, 
+        {'orderSummary.timeStamps.posted': {$exists: false}},
+        {'orderSummary.timeStamps.orderCancelled': {$exists: false}}
+      ]};
       break;
     case 'posted':
-      filterStatus = {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]};
+      filterStatus = {$and: [
+        {'orderSummary.timeStamps.posted': {$exists: true}}, 
+        {'orderSummary.timeStamps.returned': {$exists: false}},
+        {'orderSummary.timeStamps.orderCancelled': {$exists: false}}
+      ]};
       break;
     case 'returned':
-      filterStatus = {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]};
+      filterStatus = {$and: [
+        {'orderSummary.timeStamps.returned': {$exists: true}}, 
+        {'orderSummary.timeStamps.refunded': {$exists: false}},
+        {'orderSummary.timeStamps.orderCancelled': {$exists: false}}
+      ]};
       break;
     case 'refunded':
       filterStatus = {'orderSummary.timeStamps.refunded': {$exists: true}};
+      break;
+    case 'orderCancelled':
+      filterStatus = {'orderSummary.timeStamps.orderCancelled': {$exists: true}};
       break;
   }
     
@@ -170,21 +190,6 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', async (req,
   if (req.params.manual==='true') { filterOne.push({'orderSummary.endPoint': 'manual'}) }
   if (req.params.test==='true')   { filterOne.push({'orderSummary.endPoint': 'https://api.sandbox.paypal.com'}) }
 
-  // const filterTwo = [];
-  // if (req.params.action==='true') { filterTwo.push({$or: [
-  //   {$and: [{'orderSummary.timeStamps.orderCompleted': {$exists: true}}, {'orderSummary.timeStamps.readyToPost': {$exists: false}}]},
-  //   {$and: [{'orderSummary.timeStamps.readyToPost': {$exists: true}}, {'orderSummary.timeStamps.posted': {$exists: false}}]},
-  //   {$and: [{'orderSummary.timeStamps.returned': {$exists: true}}, {'orderSummary.timeStamps.refunded': {$exists: false}}]},
-  // ]}) }
-  // if (req.params.noaction==='true') { filterTwo.push({$or: [
-  //   {$and: [{'orderSummary.timeStamps.orderCreated': {$exists: true}}, {'orderSummary.timeStamps.orderCompleted': {$exists: false}}]},
-  //   {$and: [{'orderSummary.timeStamps.posted': {$exists: true}}, {'orderSummary.timeStamps.returned': {$exists: false}}]},
-  //   {'orderSummary.timeStamps.refunded': {$exists: true}},
-  // ]}) }
-  // if (req.params.error==='true')  { filterTwo.push({'orderSummary.timeStamps.errorCreated': {$exists: true}}) }
-
-  console.log(filterOne)
-  console.log(filterText)
   try {
 
     if (filterOne.length===0 && req.params.text==='null') {
@@ -203,8 +208,8 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', async (req,
       }]);
       result.forEach(r=>{
         if (
-          (r.orderSummary.timeStamps.orderCompleted && !r.orderSummary.timeStamps.readyToPost) ||
-          (r.orderSummary.timeStamps.readyToPost && !r.orderSummary.timeStamps.posted) ||
+          (r.orderSummary.timeStamps.orderCompleted && !r.orderSummary.timeStamps.readyToPost && !r.orderSummary.timeStamps.orderCancelled) ||
+          (r.orderSummary.timeStamps.readyToPost && !r.orderSummary.timeStamps.posted && !r.orderSummary.timeStamps.orderCancelled) ||
           (r.orderSummary.timeStamps.returned && !r.orderSummary.timeStamps.refunded)
         ) {
           r.orderSummary.isAction = true;
@@ -231,6 +236,25 @@ shop.get('/api/shop/get-order-by-order-number/:orderNumber', async (req, res) =>
   res.status(201).json(orderSummary);
 });
 
+shop.post('/api/shop/add-note', async (req, res) => {
+  await addNote(req.body.orderNumber,req.body.note);
+  res.status(201).json({respose: 'success'});
+});
+
+function addNote(orderNumber: string, newNote: string) {
+  return new Promise( async (res,rej) => {
+    let orderSummary = await getOrderSummary(orderNumber);
+    let response = await logShopEvent(orderNumber, {
+      '$set': {
+        'orderSummary.notes': `${orderSummary.notes ? orderSummary.notes + '\n' : ''}${(new Date).toISOString()}: ${newNote}`
+      }
+    });
+    res(response);
+  })
+
+}
+
+
 /*****************************************************************
  * ROUTE: Send email to confirm posted
  ****************************************************************/
@@ -248,28 +272,24 @@ shop.post('/api/shop/send-posted-email', async (req, res) => {
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
 shop.post('/api/shop/set-order-status', async (req, res) => {
-  //only update timestamp if we are not unsetting another
-  if (!req.body.unset) {
-    let setField =`orderSummary.timeStamps.${req.body.set}`;
-    await logShopEvent(req.body.orderNumber, {
-      '$set': {
-        [setField]: Date.now()
-      }
-    });
-  }
-
-  if (req.body.unset) {
-    let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
-    await logShopEvent(req.body.orderNumber, {
-      '$unset': {
-        [unsetField]: ""
-      }
-    });
-  }
+  let setField =`orderSummary.timeStamps.${req.body.set}`;
+  await logShopEvent(req.body.orderNumber, {
+    '$set': {
+      [setField]: Date.now()
+    }
+  });
   res.status(201).json({respose: 'success'});
-  
 })
 
+shop.post('/api/shop/unset-order-status', async (req, res) => {
+  let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
+  await logShopEvent(req.body.orderNumber, {
+    '$unset': {
+      [unsetField]: ""
+    }
+  });
+  res.status(201).json({respose: 'success'});
+});
 
 /*****************************************************************
  * ROUTE: Create manual order
@@ -277,14 +297,23 @@ shop.post('/api/shop/set-order-status', async (req, res) => {
 shop.post('/api/shop/upsert-manual-order', async (req, res) => {
 
   let order = req.body.order;
+  console.log(order)
   order.timeStamps = {
     orderCreated: Date.now(),
     orderCompleted: Date.now()
   };
+
   if (!order.orderNumber) {
+    // new order
     order.orderNumber = newOrderNumber();
+    order.notes = `${(new Date).toISOString()}: ${order.notes}`;
+  } else {
+    // not a new order
+    let os = await getOrderSummary(order.orderNumber);
+    order.notes = `${os.notes ? os.notes + '\n' : ''}${(new Date).toISOString()}: ${order.notes}`;
   }
   let result = await logShopEvent(order.orderNumber, {orderSummary: order});
+
   res.send(result);
   
 });

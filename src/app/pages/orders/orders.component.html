@@ -7,6 +7,7 @@
             <button (click)="copyAddresses()">Copy postal addresses</button><br>
             <button (click)="newOrder()">New manual order</button><br>
             <button (click)="exportCSV()">Click&Drop Export</button><br>
+            <a href="https://business.parcel.royalmail.com/">Click and Drop</a> <br>
 
             <div class="panel-header">Filters</div>
 
@@ -31,6 +32,7 @@
                         <option value="posted">         Posted</option>
                         <option value="returned">       Returned</option>
                         <option value="refunded">       Refunded</option>
+                        <option value="orderCancelled"> Cancelled</option>
                     </select><br>
                 </div>
             </div>
@@ -71,8 +73,11 @@
                     <div class="value" [ngClass]="order.isAction ? 'red' : 'grey'">{{ order.orderNumber }}</div>
                     @if (order.endPoint === 'manual') {
                         <a class="action" [routerLink]="'manual/'+order.orderNumber">Edit Order</a>
-                        <button (click)="onDeactivate(order.orderNumber!)">Deactivate</button>
+                        <button (click)="onDeactivate(order.orderNumber!)">Delete</button>
                     }
+                    <div class="action">
+                        <button (click)="onSetStatus(order.orderNumber!,'orderCancelled')">Cancel</button>
+                    </div>
                 </div>
                 <div class="order-line">
                     <div class="title">PayPal Order ID</div>
@@ -86,9 +91,9 @@
                 }
                 @if (order.timeStamps?.orderCompleted) {
                     <div class="order-line">
-                        <div class="title" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">Order Completed</div>
-                        <div class="value" [ngClass]="!order.timeStamps?.readyToPost ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
-                        @if (!order.timeStamps?.readyToPost) {
+                        <div class="title" [ngClass]="(!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) ? 'red' : ''">Order Completed</div>
+                        <div class="value" [ngClass]="(!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
+                        @if (!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
                             </div>
@@ -100,10 +105,10 @@
                     <div class="order-line">
                         <div class="title" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">Ready to Post</div>
                         <div class="value" [ngClass]="!order.timeStamps?.posted ? 'red' : ''">{{order.timeStamps?.readyToPost}}</div>
-                        @if (!order.timeStamps?.posted) {
+                        @if (!order.timeStamps?.posted && !order.timeStamps?.orderCancelled) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
-                                <button (click)="onSetStatus(order.orderNumber, 'orderCompleted', 'readyToPost')">Undo Step</button>
+                                <button (click)="onUnsetStatus(order.orderNumber, 'readyToPost')">Undo Step</button>
                             </div>
                         }
                     </div>
@@ -112,11 +117,11 @@
                     <div class="order-line">
                         <div class="title">Posted</div>
                         <div class="value">{{order.timeStamps?.posted}}</div>
-                        @if (!order.timeStamps?.postedEmailSent && !order.timeStamps?.returned) {
+                        @if (!order.timeStamps?.postedEmailSent && !order.timeStamps?.returned && !order.timeStamps?.orderCancelled) {
                             <div class="action">
                                 <button (click)="onSendEmail(order.orderNumber)">Send Email</button>
                                 <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
-                                <button (click)="onSetStatus(order.orderNumber, 'readyToPost', 'posted')">Undo Step</button>
+                                <button (click)="onUnsetStatus(order.orderNumber, 'posted')">Undo Step</button>
                             </div>
                         }
                     </div>
@@ -132,6 +137,18 @@
                         }
                     </div>
                 }  
+                @if (order.timeStamps?.orderCancelled) {
+                    <div class="order-line">
+                        <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Order Cancelled</div>
+                        <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">{{order.timeStamps?.orderCancelled}}</div>
+                        @if (!order.timeStamps?.refunded) {
+                            <div class="action">
+                                <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
+                                <button (click)="onUnsetStatus(order.orderNumber, 'orderCancelled')">Undo Step</button>
+                            </div>
+                        }
+                    </div>
+                }                   
                 @if (order.timeStamps?.returned) {
                     <div class="order-line">
                         <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'red' : ''">Returned</div>
@@ -139,7 +156,7 @@
                         @if (!order.timeStamps?.refunded) {
                             <div class="action">
                                 <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
-                                <button (click)="onSetStatus(order.orderNumber, 'postedEmailSent', 'returned')">Undo Step</button>
+                                <button (click)="onUnsetStatus(order.orderNumber, 'returned')">Undo Step</button>
                             </div>
                         }
                     </div>
@@ -149,7 +166,7 @@
                         <div class="title">Refunded</div>
                         <div class="value">{{order.timeStamps?.refunded}}</div>
                         <div class="action">
-                            <button (click)="onSetStatus(order.orderNumber, 'returned', 'refunded')">Undo Step</button>
+                            <button (click)="onUnsetStatus(order.orderNumber, 'refunded')">Undo Step</button>
                         </div>
                     </div>
                 }
@@ -172,7 +189,7 @@
                     </div>
                     
                     <div class="action">
-                        <button (click)= "copyLabel(order)">Copy Label</button>
+                        <button (click)="copyLabel(order)">Copy Label</button>
                     </div>
                     </div>
                 <div class="order-line">
@@ -184,11 +201,19 @@
                 
                 <div class="order-line">
                     <div class="title">Item Cost</div>
-                    <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                    <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
+                        @if (order.isNoCharge) {
+                            (user was not charged)
+                        }
+                    </div>
                 </div>
                 <div class="order-line">
                     <div class="title">Discount</div>
-                    <div class="value"> {{ -order.costBreakdown.discount | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+                    <div class="value"> {{ -order.costBreakdown.discount | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }} 
+                        @if (order.discountInfo?.discountPercent) {
+                            ({{order.discountInfo?.discountPercent||0}}%)
+                        }
+                    </div>
                 </div>     
                 <div class="order-line">
                     <div class="title">Shipping </div>
@@ -197,10 +222,18 @@
                 <div class="order-line">
                     <div class="title">Total Cost</div>
                     <div class="value"> {{ order.costBreakdown.total | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-                </div>                        
+                </div>            
+                <div class="order-line">
+                    <div class="title">Discount Code</div>
+                    <div class="value"> {{ order.discountInfo?.discountCode}}</div>
+                </div>                                
                 <div class="order-line">
                     <div class="title">Order Note</div>
                     <div class="value"> {{ order.notes }}</div>
+                    <div class="action">
+                        <input type="text" id="notes{{order.orderNumber}}" name="notes">
+                        <button (click)='addNote(order.orderNumber)'>Add note</button>
+                    </div>
                 </div>     
             </div>
         }
