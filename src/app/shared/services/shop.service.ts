@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {StockItem, BasketItem, OrderSummary} from '@shared/types';
+import {StockItem, BasketItem} from '@shared/types';
 import {shippingOptions} from '@shared/globals';
 
 @Injectable({

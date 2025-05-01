@@ -8,7 +8,7 @@ import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
-import { discountCodes } from '@shared/globals';
+import { discountCodes, maxOrderQty } from '@shared/globals';
 
 
 @Component({
@@ -114,7 +114,7 @@ export class BasketComponent {
 
   onPlusMinus(id: string, increment: number) {
     const min = 0;
-    const max = 9;
+    const max = maxOrderQty; //imported from config file
     const qty = this.shop.basket.getQuantity(id);
     if (this.shop.basket.totalQty+increment <= max) {
       const newQty = Math.min(max,Math.max(min,qty+increment))

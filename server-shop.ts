@@ -37,13 +37,16 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
       body: JSON.stringify(req.body.order.paypal.intent)
     });
 
-    console.log(req.body)
+    console.log(result)
+
+    // console.log(req.body)
     const json = await result.json();
     const resp = await logShopEvent( orderNumber, 
       { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
         orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
       });
 
+      // console.log(resp)
     res.send({  
       orderNumber: resp.orderNumber, 
       paypalOrderId: json.id
