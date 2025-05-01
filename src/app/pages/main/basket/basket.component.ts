@@ -54,6 +54,7 @@ export class BasketComponent {
         await paypal.Buttons({
 
           async createOrder() {
+            console.log(that.shop.order)
             let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.order);
             that.shop.orderNumber = res.orderNumber;
             return res.paypalOrderId;              

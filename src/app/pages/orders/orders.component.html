@@ -60,7 +60,7 @@
         <div class="content">
         
 
-        @for (order of orders; track order.orderNumber) {
+        @for (order of orders; track order.timeStamps?.orderCreated) {
             <!-- @let isActionNeeded = false; -->
             <!-- @let isActionNeeded = 
                 (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 

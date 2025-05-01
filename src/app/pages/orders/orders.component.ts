@@ -91,7 +91,8 @@ export class OrdersComponent  {
   async getOrders() {
 
     try {
-      this.orders = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
+      let os = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
+      this.orders = os.filter( (o:any) => !!o.orderNumber);
       console.log(this.orders)
     } catch (error) {
       console.error(error);
