@@ -27,11 +27,11 @@ function getConfirmationEmailBody(orderSummary: any) {
       <div class="item">
         <div class="title">Shipping Address:</div>
         <div>${orderSummary.user.name}<br>
-        ${orderSummary.user.address.address_line_1}<br>
-        ${orderSummary.user.address.address_line_2}<br>
-        ${orderSummary.user.address.admin_area_2}<br>
-        ${orderSummary.user.address.admin_area_1}<br>
-        ${orderSummary.user.address.postal_code}<br>
+        <span style="white-space: pre;">${orderSummary.user.address.address_line_1 ?  orderSummary.user.address.address_line_1 + '\n' : ''}</span>
+        <span style="white-space: pre;">${orderSummary.user.address.address_line_2 ? orderSummary.user.address.address_line_2 + '\n' : ''}</span>
+        <span style="white-space: pre;">${orderSummary.user.address.admin_area_2 ? orderSummary.user.address.admin_area_2 + '\n' : ''}</span>
+        <span style="white-space: pre;">${orderSummary.user.address.admin_area_1 ? orderSummary.user.address.admin_area_1 + '\n' : ''}</span>
+        <span style="white-space: pre;">${orderSummary.user.address.postal_code ? orderSummary.user.address.postal_code + '\n' : ''}</span>
         ${orderSummary.user.address.country_code}
         </div>    
       </div>
