@@ -41,16 +41,19 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
 
     // console.log(req.body)
     const json = await result.json();
-    const resp = await logShopEvent( orderNumber, 
-      { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
-        orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
-      });
+    if (Array.isArray(json.details)) {
+      throw new Error(json.details[0].issue);
+    } else {
+      const resp = await logShopEvent( orderNumber, 
+        { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
+          orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
+        });
+      res.send({  
+        orderNumber: resp.orderNumber, 
+        paypalOrderId: json.id
+      })
+    }
 
-      // console.log(resp)
-    res.send({  
-      orderNumber: resp.orderNumber, 
-      paypalOrderId: json.id
-    })
   
   } catch (err: any) {
     logShopError(req.body.orderNumber, err);
@@ -81,12 +84,17 @@ shop.post('/api/shop/patch-paypal-order', async (req, res) => {
       }])
     })
 
-    await logShopEvent(req.body.orderNumber, {
-      "$set": {
-        "paypal.intent.purchase_units": [req.body.patch], 
-        "orderSummary.timeStamps.orderPatched": Date.now(),
-      }          
-    })
+    const json = await result.json();
+    if (Array.isArray(json.details)) {
+      throw new Error(json.details[0].issue);
+    } else {
+      await logShopEvent(req.body.orderNumber, {
+        "$set": {
+          "paypal.intent.purchase_units": [req.body.patch], 
+          "orderSummary.timeStamps.orderPatched": Date.now(),
+        }          
+      })
+    };
 
     res.send(result);
 
