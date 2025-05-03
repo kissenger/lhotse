@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { ShopError } from 'server';
 import {getConfirmationEmailBody} from 'server-confirmation-email';
 import {getPostedEmailBody} from 'server-posted-email';
+import { ConsoleLogger } from '@paypal/paypal-server-sdk';
 const shop = express();
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -37,7 +38,7 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
       body: JSON.stringify(req.body.order.paypal.intent)
     });
 
-    console.log(result)
+    console.log(result);
 
     // console.log(req.body)
     const json = await result.json();
@@ -73,6 +74,8 @@ function newOrderNumber() {
  ****************************************************************/
 shop.post('/api/shop/patch-paypal-order', async (req, res) => {
   
+  const token = await getAccessToken();
+
   try {
     const token = await getAccessToken();
     const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
@@ -85,21 +88,22 @@ shop.post('/api/shop/patch-paypal-order', async (req, res) => {
       }])
     })
 
-    const json = await result.json();
-    if (Array.isArray(json.details)) {
-      throw new Error(json.details[0].issue);
-    } else {
+    // const json = await result.json();
+    // if (Array.isArray(json.details)) {
+    //   throw new Error(json.details[0].issue);
+    // } else {
       await logShopEvent(req.body.orderNumber, {
         "$set": {
           "paypal.intent.purchase_units": [req.body.patch], 
-          "orderSummary.timeStamps.orderPatched": Date.now(),
+          "orderSummary.timeStamps.orderPatched": Date.now()
         }          
       })
-    };
+    // };
 
     res.send(result);
 
   } catch (err: any) {
+    console.log(err)
     logShopError(req.body.orderNumber, err);
     res.status(500).send({error: `ShopError: ${err.name}`, message: `Error patching PayPal order: ${err.message}`});
   }

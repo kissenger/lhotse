@@ -92,7 +92,8 @@ export class BasketComponent {
           async onShippingOptionsChange(data, actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
               that.shop.basket.shippingOption = data.selectedShippingOption?.id;
-
+              console.log(data.orderID);
+              console.log(that.shop.order.paypal.intent.purchase_units[0]);
               await that._http.patchPaypalOrder(
                 that.shop.orderNumber ?? '',
                 data.orderID,
