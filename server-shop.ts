@@ -42,7 +42,7 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
     // console.log(req.body)
     const json = await result.json();
     if (Array.isArray(json.details)) {
-      throw new Error(json.details[0].issue);
+      throw new Error(json.details);
     } else {
       const resp = await logShopEvent( orderNumber, 
         { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
@@ -57,7 +57,8 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
   
   } catch (err: any) {
     logShopError(req.body.orderNumber, err);
-    res.status(500).send({error: `ShopError: ${err.name}`, message: `Error creating PayPal order: ${err.message}`});
+    console.log(err);
+    res.status(500).send({error: `ShopError: ${err[0].issue.name}`, message: `Error creating PayPal order: ${err[0].issue.message}`});
   }
 
 });
