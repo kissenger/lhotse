@@ -313,13 +313,13 @@ shop.post('/api/shop/unset-order-status', async (req, res) => {
 shop.post('/api/shop/upsert-manual-order', async (req, res) => {
 
   let order = req.body.order;
-  order.timeStamps = {
-    orderCreated: Date.now(),
-    orderCompleted: Date.now()
-  };
 
   if (!order.orderNumber) {
     // new order
+    order.timeStamps = {
+      orderCreated: Date.now(),
+      orderCompleted: Date.now()
+    };
     order.orderNumber = newOrderNumber();
     order.notes = `${(new Date).toISOString()}: ${order.notes}`;
   } else {
@@ -330,7 +330,9 @@ shop.post('/api/shop/upsert-manual-order', async (req, res) => {
     } else {
       order.notes = os.notes;
     }
+    order.timeStamps = {edited: Date.now(), ...os.timeStamps};
   }
+  
   let result = await logShopEvent(order.orderNumber, {orderSummary: order});
 
   res.send(result);

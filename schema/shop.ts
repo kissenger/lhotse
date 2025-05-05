@@ -61,7 +61,8 @@ const shopSchema = new mongoose.Schema({
       returned: {type: Date},
       refunded: {type: Date},
       errorCreated: {type: Date},
-      postedEmailSent: {type: Date || null}
+      postedEmailSent: {type: Date || null},
+      edited: {type: Date},
     },
     notes: {type: String}
   }
