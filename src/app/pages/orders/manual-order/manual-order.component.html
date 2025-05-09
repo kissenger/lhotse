@@ -57,14 +57,19 @@
 
         <div>
             <label for="discount">% Discount:</label>
-            <input type="text" id="discount" [disabled]="shop.basket.isNoCharge" name="discount" [(ngModel)]="shop.basket.discountPercent">
+            <input type="text" id="discount" [disabled]="shop.basket.orderType!=='manualOrder'" name="discount" [(ngModel)]="shop.basket.discountPercent">
         </div>
 
         <div>
-            <label for="checkbox">No Charge</label>
-            <input type="checkbox" id="isNoCharge" name="isNoCharge" [(ngModel)]="shop.basket.isNoCharge">
-            
-        </div> 
+            <label for="orderType">OrderType:</label>
+            <select [(ngModel)]="shop.basket.orderType" name="orderType" id="orderType">
+                <option value="freeMediaOrder">Media (No Charge)</option>
+                <option value="freeMediaOrderDan">Media (Sorted by Dan)</option>
+                <option value="freeFriendsOrder">Friends & Family (No Charge)</option>
+                <option value="replacementOrder">Replacement (No Charge)</option>
+                <option value="regularOrder">Regular Order (Charged)</option>
+            </select>
+        </div>
 
         @if (isEditMode) {
             <div>

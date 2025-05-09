@@ -69,12 +69,20 @@ export interface OrderItems {
 }
   
 
+export type OrderType = 
+  "freeMediaOrder" | 
+  "freeMediaOrderDan" |    
+  "freeFriendsOrder" | 
+  "replacementOrder" | 
+  "manualOrder" |
+  "retailOrder";
+
 export interface OrderSummary {
   orderNumber?: string;
   payPalOrderId?: string;
   isAction?: boolean;
   discount?: number;
-  isNoCharge?: boolean;
+  orderType?: OrderType;
   user: {
     name: string,
     organisation: string,

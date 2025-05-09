@@ -12,7 +12,7 @@ const shopSchema = new mongoose.Schema({
     error: {type: Object},
   },
   orderSummary: {
-    isNoCharge: {type: Boolean},
+    orderType: {type: String},
     orderNumber:{type: String},
     discountInfo: {
       discountPercent: {type: Number},

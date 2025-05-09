@@ -202,7 +202,7 @@
                 <div class="order-line">
                     <div class="title">Item Cost</div>
                     <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
-                        @if (order.isNoCharge) {
+                        @if (order.orderType !== 'manualOrder') {
                             (user was not charged)
                         }
                     </div>

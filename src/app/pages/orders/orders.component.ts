@@ -106,9 +106,34 @@ export class OrdersComponent  {
       return Number(b.isAction) - Number(a.isAction);
     })
 
-    this.numberOfCopies = this.orders.map(o=>o.items[0].quantity).reduce((a,b)=> a+b,0);
-    this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
+
+    let sums:any = {};
+    this.orders.forEach(o=>{
+      if (o.orderType! in sums) {
+        sums[o.orderType!].orders += 1
+        sums[o.orderType!].units += o.items[0].quantity;
+        sums[o.orderType!].value += o.items[0].quantity*o.items[0].unit_amount.value;
+        sums[o.orderType!].income += (o.costBreakdown.items-o.costBreakdown.discount);
+      } else {
+        sums[o.orderType!] = {
+          orders: 1,
+          units: o.items[0].quantity,
+          value: o.items[0].quantity*o.items[0].unit_amount.value,
+          income: o.costBreakdown.items-o.costBreakdown.discount
+        }
+      }
+    })
+    console.log(sums)
+    
+
+    // this.countMediaCopies    = this.orders.map(o=>o.orderType==='freeMediaOrder'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
+    // this.countMediaCopiesDan = this.orders.map(o=>o.orderType==='freeMediaOrderDan'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
+    // this.countMediaCopiesDan = this.orders.map(o=>o.orderType==='freeFriendsOrder'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
+    // this.countMediaCopiesDan = this.orders.map(o=>o.orderType==='replacementOrder'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
+    // this.countMediaCopiesDan = this.orders.map(o=>o.orderType==='regularOrder'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
+    // this.orderValue = this.orders.map(o=>o.items[0].quantity*o.items[0].unit_amount.value).reduce((a,b)=> a+b,0).toFixed(2);
   }
+
 
   async onSetStatus(orderNumber: string | undefined, set: OrderStatus) {
     try {

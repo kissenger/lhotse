@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
-import {StockItem, BasketItem} from '@shared/types';
+import {StockItem, BasketItem, OrderType} from '@shared/types';
 import {shippingOptions} from '@shared/globals';
+import { Order } from '@paypal/paypal-server-sdk';
 
 @Injectable({
   providedIn: 'root'
@@ -81,7 +82,8 @@ export class ShopService {
         return {
             orderSummary: {
                 discountInfo: this.basket.discountInfo,
-                isNoCharge: this.basket.isNoCharge,
+                // isNoCharge: this.basket.isNoCharge,
+                orderType: this.basket.orderType,
                 notes: this._orderNotes,
                 user: this._user.json,
                 items: this.basket.items,
@@ -206,7 +208,8 @@ class Basket {
     private _basketItems: Array<BasketItem> = [];
     private _discountPercent: number = 0;
     private _discountCode: string = '';
-    private _isNoCharge: boolean = false;
+    // private _isNoCharge: boolean = false;
+    private _orderType: OrderType = 'manualOrder';
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
@@ -229,12 +232,12 @@ class Basket {
         }
     }
 
-    set isNoCharge(isnc: boolean) {
-        this._isNoCharge = isnc;
+    set orderType(ot: OrderType) {
+        this._orderType = ot;
     }
 
-    get isNoCharge() {
-        return this._isNoCharge;
+    get orderType() {
+        return this._orderType;
     }
 
     get discountInfo() {

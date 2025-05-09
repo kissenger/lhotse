@@ -39,15 +39,11 @@ export class ManualOrderComponent  {
         this.isEditMode = true;
         let order = await this._http.getOrderByOrderNumber(params['orderNumber']);
         this._orderNumber = params['orderNumber'];
-        if (order?.isNoCharge) {
-          this.shop.basket.isNoCharge = true;
-        }
+        this.shop.basket.orderType = order.orderType;
         if (order?.notes) {
           (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
         }
-        
         this.shop.user.setDetails = order.user;
-        // this.shop.basket.add(this.shop.item("0001"),order.items[0].quantity);
         this.shop.basket.updateQuantity("0001",order.items[0].quantity);
       }
     })
