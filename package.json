@@ -8,8 +8,7 @@
     "build:ssr": "ng build --configuration development",
     "server": "node ./dist/local/server/server.mjs",
     "watch": "ng build --watch --configuration development",
-    "deploy_master": "ng build --configuration prod",
-    "postdeploy_master": "copy README.md README2.md"
+    "deploy:master": "ng build --configuration prod"
   },
   "private": true,
   "dependencies": {
