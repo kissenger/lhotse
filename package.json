@@ -5,11 +5,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build:ssr": "ng build --configuration local",
+    "build:ssr": "ng build --configuration development",
     "server": "node ./dist/local/server/server.mjs",
-    "watch": "ng build --watch --configuration local",
-    "deploy:beta": "ng build --configuration beta",
-    "deploy:master": "ng build --configuration prod"
+    "watch": "ng build --watch --configuration development",
+    "deploy_master": "ng build --configuration prod",
+    "postdeploy_master": "copy README.md README2.md"
   },
   "private": true,
   "dependencies": {
@@ -51,6 +51,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "tsx": "^4.19.4",
     "typescript": "~5.4.5"
   }
 }

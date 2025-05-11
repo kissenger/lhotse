@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
 import {shop, logShopError} from './server-shop';
+import { createWriteStream } from 'node:fs';
 
 // if production then use port 4000; for beta and dev use 4000
 // prod is snorkelology.co.uk
@@ -17,6 +18,7 @@ const PORT = ENVIRONMENT === 'PRODUCTION' ? '4001' : '4000';
 const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
 const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
 const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
+const BUILD_DATE = process.env['BUILD_DATE'];
 
 export class ShopError extends Error {
   constructor(message: string) {
@@ -35,6 +37,9 @@ mongoose.connection
 export function app(): express.Express {
   const server = express();
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
+
+  // update sitemap based on base url and all blog posts
+  generateSitemap(BUILD_DATE);
   
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
@@ -81,7 +86,6 @@ export function app(): express.Express {
     Get post from provided slug
     Returns: BlogPost
   */
-
   server.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
     try {
       const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
@@ -111,36 +115,6 @@ export function app(): express.Express {
       }
       const result = await BlogModel.find({});
       res.status(201).json(result);
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-
-  
- 
-
-  server.get('/api/blog/sitemap/', async (req, res) => {
-    // const today = new Date();
-    // const todayString = `${today.getFullYear}-${today.getMonth}-${today.getDate}`
-    try {
-        const listOfSlugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
-        let outString = '&lt;?xml version="1.0" encoding="UTF-8"?&gt;<br />';
-        outString += '&lt;urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"&gt;<br />';
-        outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
-        outString += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/&lt;/loc&gt;<br />';
-        outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${new Date().toISOString()}&lt;/lastmod&gt;<br />`;
-        outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';
-        listOfSlugs.forEach( s => {
-          outString += '&nbsp;&nbsp;&nbsp;&lt;url&gt;<br />';
-          outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;loc>https://snorkelology.co.uk/blog/${s.slug}&lt;/loc&gt;<br />`;
-          outString += `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lastmod&gt;${s.updatedAt.toISOString()}&lt;/lastmod&gt;<br />`;
-          outString += '&nbsp;&nbsp;&nbsp;&lt;/url&gt;<br />';          
-        });
-        outString += '&lt;/urlset&gt;';
-        res.set('Content-Type', 'text/html');
-        res.status(201).send(outString);
-        
     } catch (error: any) {
       console.error(error);
       res.status(500).send(error);
@@ -196,6 +170,30 @@ export function app(): express.Express {
        logShopError(req.body.orderNumber, err);
     }
     res.status(500).send({error: err.name, message: err.message});
+  }
+
+  async function generateSitemap(buildDate?: string) {
+    
+  // Create sitemap
+    const listOfSlugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
+    const file = createWriteStream('src/config/prod/sitemap.xml');
+    const eol = '\r\n'
+    const tab = '   ';
+    file.on('open', () => {
+      file.write(`<?xml version="1.0" encoding="UTF-8"?>${eol}`);
+      file.write(`<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">${eol}`);
+      file.write(`${tab.repeat(1)}<url>${eol}`);
+      file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk</loc>${eol}`);
+      file.write(`${tab.repeat(2)}<lastmod>${buildDate || new Date().toISOString()}</lastmod>${eol}`);
+      file.write(`${tab.repeat(1)}</url>${eol}`);
+      listOfSlugs.forEach( s => {
+        file.write(`${tab.repeat(1)}<url>${eol}`);
+        file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk/blog/${s.slug}</loc>${eol}`);
+        file.write(`${tab.repeat(2)}<lastmod>${s.updatedAt.toISOString()}</lastmod>${eol}`);
+        file.write(`${tab.repeat(1)}</url>${eol}`);      
+      });
+      file.write('</urlset>');
+    });
   }
 
   return server;
