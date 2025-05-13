@@ -16,7 +16,6 @@ import { RouterLink } from '@angular/router';
           ngSrc="{{data.imgFname}}"
           alt="{{data.imgAlt}}"
           fill
-          priority
         />
       </div>
 

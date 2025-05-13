@@ -30,12 +30,14 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
+  // public notifyLoadVideo: EventEmitter<boolean> = new EventEmitter();
+  public notifyLoadVideo = false;
 
   private _dataSubs: Subscription;
   private _scrSubs: Subscription | null = null;
-  public isBlogData: boolean = true;
-  public hideAboutBookOverlay: Boolean = false;
-  public hideBuyNowOverlay: Boolean = true;
+  public isBlogData = true;
+  public hideAboutBookOverlay = false;
+  public hideBuyNowOverlay = true;
   public widthDescriptor?: string;
   public isReadyToLoad = false;
 
@@ -99,6 +101,7 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
         }
         if (isect.id === "snorkelling-britain") {
           this.hideBuyNowOverlay = false;
+          this.notifyLoadVideo = true;
         } else {
           this.hideBuyNowOverlay = true;
         }
@@ -111,18 +114,10 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     this.windows.forEach( (w) => {
       // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
       if (isPlatformBrowser(this.platformId)) {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) ||
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
         const elementId: string = w.nativeElement.id;
         let url = this.staticBackgrounds[elementId].replace('.webp',`-${this._screen.deviceOrientation}.webp`);        
         w.nativeElement.style.backgroundImage = `url('${url}')`;        
-        // console.log(w.nativeElement.style.backgroundAttachment)
-        // w.nativeElement.style.backgroundAttachment = 'fixed';
-        // if (w.nativeElement.style.backgroundAttachment!='fixed') {
-        //   w.nativeElement.style.backgroundAttachment = 'scroll';
-        // }
-        
-        // console.log(w.nativeElement.style.backgroundAttachment)
         w.nativeElement.style.backgroundSize = 'cover';
         w.nativeElement.style.backgroundPosition = 'center';
       }

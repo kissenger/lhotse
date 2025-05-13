@@ -24,7 +24,7 @@
       </p>
 
       <div class="basket">
-        @for (basketItem of shop.basket.items; track basketItem.id) {
+        @for (basketItem of shop.basket.items; track $index) {
           <div class="basket-item">
             <div class="basket-item-description">
 
