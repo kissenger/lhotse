@@ -39,6 +39,7 @@ export function app(): express.Express {
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 
   // update sitemap based on base url and all blog posts
+  console.log(`build date = ${BUILD_DATE}`)
   generateSitemap(BUILD_DATE);
   
   const browserDistFolder = resolve(serverDistFolder, '../browser');
