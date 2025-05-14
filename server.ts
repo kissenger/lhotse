@@ -177,7 +177,8 @@ export function app(): express.Express {
     
   // Create sitemap
     const listOfSlugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
-    const file = createWriteStream('src/config/prod/sitemap.xml');
+    const fname = ENVIRONMENT === 'PRODUCTION' ? 'dist/prod/browser/sitemap.xml' : 'src/config/prod/sitemap.xml';
+    const file = createWriteStream(fname);
     const eol = '\r\n'
     const tab = '   ';
     file.on('open', () => {
