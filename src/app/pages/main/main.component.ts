@@ -30,8 +30,6 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
-  // public notifyLoadVideo: EventEmitter<boolean> = new EventEmitter();
-  public notifyLoadVideo = false;
 
   private _dataSubs: Subscription;
   private _scrSubs: Subscription | null = null;
@@ -77,7 +75,6 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     });
   }
 
-    
   ngAfterContentChecked() {
     if (!isPlatformBrowser(PLATFORM_ID)) {
       this.isReadyToLoad = true;
@@ -101,7 +98,6 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
         }
         if (isect.id === "snorkelling-britain") {
           this.hideBuyNowOverlay = false;
-          this.notifyLoadVideo = true;
         } else {
           this.hideBuyNowOverlay = true;
         }
