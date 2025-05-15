@@ -1,10 +1,10 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
-import { catchError, lastValueFrom, NEVER, Observable, throwError } from 'rxjs';
+import { lastValueFrom} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

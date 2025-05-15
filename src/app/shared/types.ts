@@ -156,3 +156,11 @@ export type OrderStatus =
   'refunded' |
   'postedEmailSent'|
   'orderCancelled';
+
+
+  export interface AuthUser {
+    userName: string;
+    isServiceProvider: string;
+    email: string;
+    password?: string;
+  }

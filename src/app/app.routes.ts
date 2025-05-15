@@ -1,14 +1,11 @@
 import { Routes } from '@angular/router';
-import { BlogEditorComponent } from '@pages/blog/editor/blog-editor.component';
-import { PostShowerComponent } from '@pages/blog/shower/post-shower.component';
+import { BlogEditorComponent } from '@pages/admin/blog-editor/blog-editor.component';
+import { PostShowerComponent } from '@pages/blog-post-shower/post-shower.component';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { MainComponent } from '@pages/main/main.component';
 import { PagesComponent } from '@pages/pages.component';
-import { OrdersComponent } from '@pages/orders/orders.component'
-import { ManualOrderComponent } from '@pages/orders/manual-order/manual-order.component';
-
-// import { OrderOutcomeComponent } from '@pages/shop/order-outcome/order-outcome.component';
-// import { BasketComponent } from '@pages/shop/basket/basket.component';
+import { OrdersComponent } from '@pages/admin/orders/orders.component'
+import { ManualOrderComponent } from '@pages/admin/orders/manual-order/manual-order.component';
 
 export const routes: Routes = [
 

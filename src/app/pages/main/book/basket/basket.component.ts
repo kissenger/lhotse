@@ -1,5 +1,5 @@
-import { Component, Inject } from '@angular/core';
-import { CommonModule, CurrencyPipe, DOCUMENT, NgOptimizedImage} from '@angular/common';
+import { Component } from '@angular/core';
+import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
