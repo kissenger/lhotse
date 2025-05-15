@@ -28,7 +28,7 @@
         <form #blogForm="ngForm">
 
             <div>
-                <label for="slug">Slug:</label>
+                <span class="label">Slug:</span>
                 <span name="slug" id="slug">{{makeSlug()}}</span>
             </div>
 
@@ -94,7 +94,7 @@
             @for(section of selectedPost.sections; track section.title) {
                 <hr>
                 <div>
-                    <label>Section {{$index+1}}</label>
+                    <span class="label">Section {{$index+1}}</span>
                     <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this section</button>
                     <span class="movespan">Move section:</span> 
                     <select #moveSection (change)="onMoveSection($index, moveSection.value)" name="moveSection" id="moveSection">
@@ -108,23 +108,23 @@
                 </div>
 
                 <div>
-                    <label for="question{{section.title}}">Title:</label>
-                    <input type="text" id="question{{section.title}}" name="question{{section.title}}" [(ngModel)]="section.title">
+                    <label for="question{{$index}}">Title:</label>
+                    <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="section.title">
                 </div>
 
                 <div>
-                    <label for="answer{{section.title}}">Content:</label>
-                    <textarea type="text" id="answer{{section.title}}" name="answer{{section.title}}" [(ngModel)]="section.content"></textarea>
+                    <label for="answer{{$index}}">Content:</label>
+                    <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="section.content"></textarea>
                 </div>
 
                 <div>
                     <label for="fname{{section.title}}">Image filename:</label>
-                    <input type="text" id="fname{{section.title}}" name="fname{{section.title}}" [(ngModel)]="section.imgFname">                   
+                    <input type="text" id="fname{{$index}}" name="fname{{$index}}" [(ngModel)]="section.imgFname">                   
                 </div>
     
                 <div>
-                    <label for="alt{{section.title}}">Image Alt Text:</label>
-                    <input type="text" id="alt{{section.title}}" name="alt{{section.title}}" [(ngModel)]="section.imgAlt">
+                    <label for="alt{{$index}}">Image Alt Text:</label>
+                    <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
                 </div>              
 
                 @if ($last) {

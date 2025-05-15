@@ -33,9 +33,9 @@ export const routes: Routes = [
           {name: 'Back to Blogs', anchor: 'blog'}
         ]} 
       },
-      { path: 'orders', component: OrdersComponent, data: {menuItems: []}},
-      { path: 'orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}},      
-      { path: 'blogeditor', component: BlogEditorComponent },
+      { path: 'admin/orders', component: OrdersComponent, data: {menuItems: []}},
+      { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}},      
+      { path: 'admin/blogeditor', component: BlogEditorComponent },
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
     ]
   }
