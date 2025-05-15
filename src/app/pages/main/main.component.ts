@@ -11,8 +11,8 @@ import { FAQComponent } from '@pages/main/faq/faq.component';
 import { PartnersComponent } from '@pages/main/partners/partners.component';
 import { BookComponent } from '@pages/main/book/book.component';
 import { SEOService } from '@shared/services/seo.service';
-import { BlogBrowserComponent } from '@pages/blog/browser/browser.component';
-import { BasketComponent } from '@pages/main/basket/basket.component';
+import { BlogBrowserComponent } from '@pages/main/explore/blog-browser/browser.component';
+import { BasketComponent } from '@pages/main/book/basket/basket.component';
 
 @Component({
   standalone: true,

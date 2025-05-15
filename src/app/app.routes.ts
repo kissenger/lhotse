@@ -6,6 +6,7 @@ import { MainComponent } from '@pages/main/main.component';
 import { PagesComponent } from '@pages/pages.component';
 import { OrdersComponent } from '@pages/admin/orders/orders.component'
 import { ManualOrderComponent } from '@pages/admin/orders/manual-order/manual-order.component';
+import { LoginComponent } from '@pages/admin/login/login.component';
 
 export const routes: Routes = [
 
@@ -33,6 +34,7 @@ export const routes: Routes = [
       { path: 'admin/orders', component: OrdersComponent, data: {menuItems: []}},
       { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}},      
       { path: 'admin/blogeditor', component: BlogEditorComponent },
+      { path: 'admin/login', component: LoginComponent },
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
     ]
   }

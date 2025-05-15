@@ -16,7 +16,7 @@ import { discountCodes, maxOrderQty } from '@shared/globals';
   imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, NgOptimizedImage],
   selector: 'app-basket',
   templateUrl: './basket.component.html',
-  styleUrls: ['./basket.component.css', '../main.component.css']
+  styleUrls: ['./basket.component.css', '../../../main/main.component.css']
 })
 
 export class BasketComponent {

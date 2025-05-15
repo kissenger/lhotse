@@ -1,4 +1,3 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
     "compileOnSave": false,
     "compilerOptions": {
@@ -19,7 +18,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": false,
-    "experimentalDecorators": true,
+    "experimentalDecorators": true, 
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "ES2022",
@@ -34,7 +33,7 @@
       "@assets/*": ["./src/assets/*"],
       "@shared/*": ["./src/app/shared/*"],
       "@pages/*": ["./src/app/pages/*"],
-      "@schema/*": ["./schema/*"],
+      "@schema/*": ["./schema/*"]
     }
   },
   "angularCompilerOptions": {

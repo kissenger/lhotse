@@ -77,50 +77,50 @@ export class AuthService {
   }
 
 
-  login( userName: string, password: string ) {
+  // login( userName: string, password: string ) {
 
-    return new Promise<void>( (res, rej) => {
+  //   return new Promise<void>( (res, rej) => {
 
-      this.http.login( {userName, password} ).subscribe( (result) => {
+  //     this.http.login( {userName, password} ).subscribe( (result) => {
 
-        if (result.user.userName === 'guest') {
-          this.guest = result.user;
-          this.guestToken = result.token;
-        } else {
-          this.user = result.user;
-          this.userToken = result.token;
-        }
-        res();
+  //       if (result.user.userName === 'guest') {
+  //         this.guest = result.user;
+  //         this.guestToken = result.token;
+  //       } else {
+  //         this.user = result.user;
+  //         this.userToken = result.token;
+  //       }
+  //       res();
 
-      }, (error) => {
+  //     }, (error) => {
 
-        rej(error);
+  //       rej(error);
 
-      });
-    });
+  //     });
+  //   });
 
-  }
+  // }
 
 
-  register(user: TsUser) {
+  // register(user: TsUser) {
 
-    return new Promise<void>( (res, rej) => {
+  //   return new Promise<void>( (res, rej) => {
 
-      this.http.register(user).subscribe( (result) => {
+  //     this.http.register(user).subscribe( (result) => {
 
-        this.user = result.user;
-        this.userToken = result.token;
-        res();
+  //       this.user = result.user;
+  //       this.userToken = result.token;
+  //       res();
 
-      }, (error) => {
+  //     }, (error) => {
 
-        rej(error);
+  //       rej(error);
 
-      });
+  //     });
 
-    });
+  //   });
 
-  }
+  // }
 
 
 

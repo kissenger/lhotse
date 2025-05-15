@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { BlogPost, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, BlogPost, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -117,6 +117,13 @@ export class HttpService {
 
   async deactivateOrder(orderNumber: string) {
     const request = this.http.post<any>(`${this._backendURL}/shop/deactivate-order/`, {orderNumber});
+    return await lastValueFrom<any>(request);
+  }
+
+  // Auth
+
+  async login(userData: AuthUser) {
+    const request = this.http.post<any>(`${this._backendURL}/login/`, {userData});
     return await lastValueFrom<any>(request);
   }
   

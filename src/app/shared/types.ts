@@ -160,7 +160,7 @@ export type OrderStatus =
 
   export interface AuthUser {
     userName: string;
-    isServiceProvider: string;
-    email: string;
+    isServiceProvider?: string;
+    email?: string;
     password?: string;
   }

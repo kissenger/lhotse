@@ -1,0 +1,34 @@
+
+.page-container {
+  height: calc(100vh - var(--header-height) - 50px);
+  width: 100%;
+  /* border: 1px red solid; */
+  display: flex;
+  justify-content: center; 
+  align-content: center;
+}
+
+.login-container {
+  display: inline-block;
+  border: 1px grey solid;
+  width: 250px;
+  margin-block: auto;
+  padding: 1rem;
+  /* padding-block: auto; */
+}
+
+input {
+  /* width: 100%; */
+  box-sizing: border-box;
+  padding-inline: 1rem;
+  
+}
+
+.header {
+  width: 100%;
+  height: 3rem;
+}
+
+.buttons {
+  display: inline-block;
+}

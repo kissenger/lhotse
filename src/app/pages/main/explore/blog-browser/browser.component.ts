@@ -3,7 +3,7 @@ import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { BlogCardComponent } from '@pages/blog/browser/blog-card/blog-card.component';
+import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
