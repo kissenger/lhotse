@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { BlogPost } from '@shared/types';
 import { RouterLink } from '@angular/router';
+import { environment } from '@environments/environment';
 
 @Component({
   standalone: true,
@@ -12,11 +13,17 @@ import { RouterLink } from '@angular/router';
     <div class="blog-card" [routerLink]="'/blog/'+data.slug">
 
       <div class="photo">
-        <img
-          ngSrc="{{data.imgFname}}"
-          alt="{{data.imgAlt}}"
-          fill
-        />
+        @if (stage==='dev') {
+          <img
+            [src]="'assets/'+data.imgFname"
+            [alt]="data.imgAlt"
+            fill /> 
+        } @else {
+          <img
+            [ngSrc]="data.imgFname"
+            [alt]="data.imgAlt"
+            fill /> 
+        }
       </div>
 
       <div class="content">
@@ -25,9 +32,9 @@ import { RouterLink } from '@angular/router';
           {{data.subtitle}}
         </div>
         <div class="footer">
-          <div class="published-date">
+          <!-- <div class="published-date">
             Published {{data.createdAt | date : 'MMM YYYY'}}
-          </div>
+          </div> -->
           <div class="keywords">
             @for (kw of data.keywords; track kw) {
               <span class="kw">{{kw}}</span>
@@ -42,9 +49,6 @@ import { RouterLink } from '@angular/router';
 
 export class BlogCardComponent {
   @Input() public data: BlogPost = new BlogPost;
-
-  constructor(
-  ) {}
-
+  public stage=environment.STAGE;
 }
 

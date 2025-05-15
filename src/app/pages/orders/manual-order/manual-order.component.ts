@@ -50,7 +50,7 @@ export class ManualOrderComponent  {
   }
 
   async onCancel() {
-    this._router.navigateByUrl(`/orders`); 
+    this._router.navigateByUrl(`/admin/orders`); 
   }
 
   async onSave() {
@@ -62,7 +62,7 @@ export class ManualOrderComponent  {
     } catch (error) {
       console.error(error);
     }
-    this._router.navigateByUrl(`/orders`); 
+    this._router.navigateByUrl(`/admin/orders`); 
   }
 
   ngOnDestroy () {

@@ -10,7 +10,7 @@
   border-radius: 10px;
   border: var(--border-colour) 1px solid; 
   transition: all 0.25s;
-  margin: 1em;
+  margin: 2em;
   scroll-behavior: smooth;
 }
 
@@ -67,10 +67,6 @@
   height: calc( 3em * var(--line-height) + 1em);
 }
 
-.published-date {
-  margin-top: auto;
-}
-
 .kw {
   border: 1px solid var(--border-colour);
   padding-inline: 0.25em;
@@ -79,6 +75,8 @@
 }
 
 .keywords {
+  margin-top: auto;
+  margin-bottom: 0.7em;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;

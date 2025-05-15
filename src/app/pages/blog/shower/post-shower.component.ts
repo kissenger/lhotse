@@ -9,6 +9,7 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
+import { environment } from '@environments/environment';
 // import { Router } from 'express';
 
 @Component({
@@ -24,6 +25,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   public isReadyToLoad: boolean = false;
   public nextSlug: string = '';
   public lastSlug: string = '';
+  public stage=environment.STAGE;
 
   private _httpSubs: Subscription | undefined;  
   private _routeSubs: Subscription | undefined;  
@@ -40,6 +42,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   async ngOnInit() {
+    // console.log(this.stage)
     this._routeSubs = this._route.params.subscribe(params => {
 
         // this is a hack to avoid an error 

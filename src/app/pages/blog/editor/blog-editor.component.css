@@ -6,7 +6,8 @@
 .wrapper {
     display: flex;
     flex-direction: column;
-    margin-top: calc( 0px -  var(--header-height));
+    margin-top: 100px;
+    /* margin-top: calc( 0px -  var(--header-height)); */
     height: 100vh;
 }
 

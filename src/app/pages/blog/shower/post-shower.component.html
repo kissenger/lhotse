@@ -4,11 +4,19 @@
 
     <main>
         <div class="article-image-container">
-            <img
-                [ngSrc]="post.imgFname"
-                [alt]="post.imgAlt"
-                priority
-                fill /> 
+            @if (stage==='dev') {
+                <img
+                    [src]="'assets/'+post.imgFname"
+                    [alt]="post.imgAlt"
+                    priority
+                    fill /> 
+            } @else {
+                <img
+                    [ngSrc]="post.imgFname"
+                    [alt]="post.imgAlt"
+                    priority
+                    fill /> 
+            }
             <div class="image-caption">
                 {{post.imgAlt}} <br />
                 Photo credit: Snorkelology
