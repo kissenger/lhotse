@@ -159,8 +159,9 @@ export type OrderStatus =
 
 
   export interface AuthUser {
-    userName: string;
+    username: string;
     isServiceProvider?: string;
     email?: string;
     password?: string;
+    role?: 'admin' | 'user';
   }

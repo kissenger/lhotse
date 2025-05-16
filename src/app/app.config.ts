@@ -5,10 +5,12 @@ import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
+import { AuthGuard } from './auth.guard';
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    AuthGuard,
     provideRouter(routes, 
       // withDebugTracing(),
       withRouterConfig(

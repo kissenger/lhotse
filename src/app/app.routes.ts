@@ -6,15 +6,16 @@ import { MainComponent } from '@pages/main/main.component';
 import { PagesComponent } from '@pages/pages.component';
 import { OrdersComponent } from '@pages/admin/orders/orders.component'
 import { ManualOrderComponent } from '@pages/admin/orders/manual-order/manual-order.component';
-import { LoginComponent } from '@pages/admin/login/login.component';
+import { LoginComponent } from '@pages/admin/auth/login/login.component';
+import { RegisterComponent } from '@pages/admin/auth/register/register.component';
+import { AdminComponent } from '@pages/admin/admin.component';
+import { AuthGuard } from './auth.guard';
 
 export const routes: Routes = [
 
-  { path: 'blogeditor', component: BlogEditorComponent },
-
-  { path: '', 
-    component: PagesComponent, 
-    children: [
+  // { path: '', 
+  //   component: PagesComponent, 
+  //   children: [
       { path: '', pathMatch: 'full', component: MainComponent, 
         data: {menuItems: [
           {name: 'Home',  anchor: 'home'},
@@ -31,12 +32,14 @@ export const routes: Routes = [
           {name: 'Back to Blogs', anchor: 'blog'}
         ]} 
       },
-      { path: 'admin/orders', component: OrdersComponent, data: {menuItems: []}},
-      { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}},      
-      { path: 'admin/blogeditor', component: BlogEditorComponent },
+      { path: 'admin', component: AdminComponent, data: {menuItems: []}, canActivate: [AuthGuard]},
+      { path: 'admin/orders', component: OrdersComponent, data: {menuItems: []}, canActivate: [AuthGuard]},
+      { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}, canActivate: [AuthGuard]},      
+      { path: 'admin/blogeditor', component: BlogEditorComponent, canActivate: [AuthGuard]},
       { path: 'admin/login', component: LoginComponent },
+      { path: 'admin/register', component: RegisterComponent },
       { path: '**', component: PageNotFoundComponent, data: {menuItems: []}}
-    ]
-  }
+    // ]
+  // }
 
 ];

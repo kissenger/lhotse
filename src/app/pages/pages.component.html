@@ -1,8 +1,13 @@
-
-<app-header></app-header>
-<div class="main-container" id="container">
-  <div class="content">
+<div class="page-holder">
+  
+  <app-header></app-header>
+  
+  <div class="content-holder">
     <router-outlet></router-outlet>
   </div>
+
   <app-footer></app-footer>
+
 </div>
+
+<div #toaster class="toast-container"></div>

@@ -24,18 +24,6 @@ export class PartnersComponent {
       size: { height: 100, width: 274}
     },
     {
-      url: "partners/alphamarine-small.webp",
-      href: 'https://www.alphamarinephoto.com',
-      alt: 'Alphamarine Logo',
-      size: { height: 100, width: 133}
-    },
-    {
-      url: "partners/wildlifetrusts-small.webp",
-      href: 'https://www.wildlifetrusts.org',
-      alt: 'Wildlife Trusts Logo',
-      size: { height: 100, width: 250}
-    },
-    {
       url: "partners/wild-running-jacket-cover-small.webp",
       href: 'https://jenandsimbenson.co.uk/',
       alt: 'Wild Running by Sim and Jen Benson',
@@ -79,9 +67,15 @@ export class PartnersComponent {
     },
     {
       url: "partners/swt_logo-small.webp",
-      href: 'https://scottishwildlifetrust.org.uk/',
+      href: 'https://snorkel.scottishwildlifetrust.org.uk/',
       alt: 'Scottish Wildlife Trust Logo', 
       size: { height: 100, width: 256}
+    },    
+    {
+      url: "partners/saltwater-life-small.webp",
+      href: 'https://saltwaterlife.co.uk/',
+      alt: 'Saltwater Life Logo', 
+      size: { height: 100, width: 101}
     },
   ]
 

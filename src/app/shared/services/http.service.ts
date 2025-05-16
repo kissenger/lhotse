@@ -122,9 +122,13 @@ export class HttpService {
 
   // Auth
 
-  async login(userData: AuthUser) {
-    const request = this.http.post<any>(`${this._backendURL}/login/`, {userData});
+  async login(user: AuthUser) {
+    const request = this.http.post<any>(`${this._backendURL}/auth/login/`, {user});
     return await lastValueFrom<any>(request);
   }
-  
+
+  async register(user: AuthUser) {
+    const request = this.http.post<any>(`${this._backendURL}/auth/register/`, {user});
+    return await lastValueFrom<any>(request);
+  }
 }

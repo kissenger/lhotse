@@ -8,8 +8,10 @@ import mongoose from 'mongoose';
 import 'dotenv/config';
 import BlogModel from '@schema/blog';
 import {shop, logShopError} from './server-shop';
-import { createWriteStream } from 'node:fs';
-
+import {auth} from './server-auth';
+import {createWriteStream} from 'node:fs';
+import path from 'path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // if production then use port 4000; for beta and dev use 4000
 // prod is snorkelology.co.uk
 // prod is beta.snorkelology.co.uk and local development
@@ -24,6 +26,13 @@ export class ShopError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ShopError"
+  }
+}
+
+export class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthError"
   }
 }
 
@@ -49,6 +58,7 @@ export function app(): express.Express {
   server.set('views', browserDistFolder);
   server.use(express.json());
   server.use(shop);
+  server.use(auth);
   server.use(errorHandler);
 
   server.get('/api/ping/', (req, res) => {

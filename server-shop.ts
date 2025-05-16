@@ -5,7 +5,6 @@ import 'dotenv/config';
 import { ShopError } from 'server';
 import {getConfirmationEmailBody} from 'server-confirmation-email';
 import {getPostedEmailBody} from 'server-posted-email';
-import { ConsoleLogger } from '@paypal/paypal-server-sdk';
 const shop = express();
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";

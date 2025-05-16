@@ -1,18 +1,26 @@
 
 .page-container {
   height: calc(100vh - var(--header-height) - 50px);
+  /* height: 100vh; */
   width: 100%;
   /* border: 1px red solid; */
   display: flex;
+  flex-direction: column;
   justify-content: center; 
   align-content: center;
 }
 
+.link {
+  margin-inline: auto;
+  /* display: inline-block; */
+  /* width: 250px; */
+}
+
 .login-container {
-  display: inline-block;
+  /* display: inline-block; */
   border: 1px grey solid;
   width: 250px;
-  margin-block: auto;
+  margin-inline: auto;
   padding: 1rem;
   /* padding-block: auto; */
 }
@@ -31,4 +39,8 @@ input {
 
 .buttons {
   display: inline-block;
+}
+
+.invalid-input {
+  background-color: red;
 }
