@@ -8,7 +8,8 @@
     "build:ssr": "ng build --configuration development",
     "server": "node ./dist/local/server/server.mjs",
     "watch": "ng build --watch --configuration development",
-    "deploy:master": "ng build --configuration prod"
+    "deploy:master": "ng build --configuration prod",
+    "deploy:beta": "ng build --configuration development"
   },
   "private": true,
   "dependencies": {
