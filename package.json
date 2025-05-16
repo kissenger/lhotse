@@ -9,7 +9,7 @@
     "server": "node ./dist/local/server/server.mjs",
     "watch": "ng build --watch --configuration development",
     "deploy:master": "ng build --configuration prod",
-    "deploy:beta": "ng build --configuration development"
+    "deploy:beta": "ng build --configuration dev"
   },
   "private": true,
   "dependencies": {
