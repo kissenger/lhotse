@@ -1,15 +1,4 @@
-.four0four {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  margin-top: 8em;
-}
-.sorry-text {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  margin-top: 0.5em;
-  margin-bottom: 5em;
+
+.full-page-centered-container > div {
+  margin-inline: auto;
 }

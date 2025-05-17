@@ -168,6 +168,16 @@ a:visited {
   padding-bottom: 1rem;
 }
 
+.full-page-centered-container {
+  height: 100%;
+  width: 100%;
+  padding-top: var(--header-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 @media (hover: hover){
   /* if not a touch screen then add an additional right margin to accouunt for scrollbar*/
   .dynamic-container{
