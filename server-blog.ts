@@ -84,7 +84,7 @@ blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
     const result = await BlogModel.find({});
     res.status(201).json(result);
   } catch (error: any) {
-    console.error(error);
+    console.log(error.message);
     res.status(500).send(error);
   }
 });

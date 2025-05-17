@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
 import { shop } from './server-shop';
-import { auth } from './server-auth';
+import { auth, verifyToken } from './server-auth';
 import { blog, getSlugs } from './server-blog';
 import 'dotenv/config';
 
@@ -68,6 +68,10 @@ export function app(): express.Express {
   server.use(blog);
 
   server.get('/api/ping/', (req, res) => {
+    res.status(201).json({hello: 'world'});
+  })
+
+  server.get('/api/secure_ping/', verifyToken, (req, res) => {
     res.status(201).json({hello: 'world'});
   })
 

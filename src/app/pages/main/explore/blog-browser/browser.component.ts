@@ -17,13 +17,12 @@ import { environment } from '@environments/environment';
   styleUrl: './browser.component.css',
   imports: [ BlogCardComponent, SvgArrowComponent, CommonModule ]
 })
-export class BlogBrowserComponent implements OnInit, OnDestroy {
+export class BlogBrowserComponent implements OnInit {
 
   @ViewChild('browser') browser!: ElementRef;
   @ViewChild('leftArrow') leftArrow!: ElementRef;
   @ViewChild('rightArrow') rightArrow!: ElementRef;
 
-  private _httpSubs: Subscription | undefined; 
   private _window;   
   public posts: Array<BlogPost> = [];
   public isBlogDataEmitter = new EventEmitter();
@@ -40,18 +39,15 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
 
-    this._route.params.subscribe( () => {
-      const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
-      this._httpSubs = getFunction.subscribe({
-        next: (result) => {
-          this.posts = result;
-          this.isBlogDataEmitter.emit(this.posts.length !== 0);
-        },
-        error: (error) => {
-          this.isBlogDataEmitter.emit(true);
-          console.error(error);
-        }
-      }) 
+    this._route.params.subscribe( async () => {
+      try {
+        const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
+        this.posts = await getFunction;
+        this.isBlogDataEmitter.emit(this.posts.length !== 0);
+      } catch (error) {
+        this.isBlogDataEmitter.emit(true);
+        console.log(error);
+      }
     });
     
   }
@@ -98,9 +94,4 @@ export class BlogBrowserComponent implements OnInit, OnDestroy {
   public async onClickRight() {
     this.browser.nativeElement.scrollLeft += this._screen.width * 0.9;  
   }
-
-  ngOnDestroy() {
-    this._httpSubs?.unsubscribe();
-  }
-
 }

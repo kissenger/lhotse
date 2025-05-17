@@ -18,35 +18,36 @@ export class HttpService {
     private http: HttpClient
   ) {}
 
-  // getJSON(): Observable<any> {
-  //   return this.http.get("@assets/codes.json")
-  // }
-
   /*
-  BLOG POSTS ENDPOINTS
+  BLOG 
   */
-  getAllPosts() {
-    return this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/get-all-posts/`);
+  async getAllPosts() {
+    const request =  this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/get-all-posts/`);
+    return await lastValueFrom<any>(request);
   }
 
-  getPublishedPosts() {
-    return this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/get-published-posts/`);
+  async getPublishedPosts() {
+    const request =  this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/get-published-posts/`);
+    return await lastValueFrom<any>(request);
   }
 
-  getPostBySlug(slug: string) {
-    return this.http.get<{article: BlogPost, nextSlug: string, lastSlug: string}>(`${this._backendURL}/blog/get-post-by-slug/${slug}`);
+  async getPostBySlug(slug: string) {
+    const request =  this.http.get<{article: BlogPost, nextSlug: string, lastSlug: string}>(`${this._backendURL}/blog/get-post-by-slug/${slug}`);
+    return await lastValueFrom<any>(request);
   }
 
-  upsertPost(post: BlogPost) {
-    return this.http.post<Array<BlogPost>>(`${this._backendURL}/blog/upsert-post/`, post);
+  async upsertPost(post: BlogPost) {
+    const request = this.http.post<Array<BlogPost>>(`${this._backendURL}/blog/upsert-post/`, post);
+    return await lastValueFrom<any>(request);
   }
   
-  deletePost(postId: string) {
-    return this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/delete-post/${postId}`);
+  async deletePost(postId: string) {
+    const request =  this.http.get<Array<BlogPost>>(`${this._backendURL}/blog/delete-post/${postId}`);
+    return await lastValueFrom<any>(request);
   }
 
   /* 
-  PAYPAL ENDPOINTS
+  PAYPAL
   */
 
   async getOrderByOrderNumber(orderNumber?: string) {
@@ -54,19 +55,9 @@ export class HttpService {
     return await lastValueFrom<any>(request);
   }
 
-  // async createPaypalOrder(order: PayPalCreateOrder): Promise<any> {
-  //   return this.http
-  //     .post<any>(`${this._backendURL}/shop/create-paypal-order/`, order)
-  //     // .pipe(catchError(error=>{throw new Error(error)}))
-  //     .subscribe( (res) => {return res} )
-  //     // 
-  //   // return await lastValueFrom<any>(request);
-  // }
-
   async createPaypalOrder(orderNumber: string | null, order: PayPalCreateOrder): Promise<any> {
     const request = this.http.post<any>(`${this._backendURL}/shop/create-paypal-order/`, {orderNumber, order});
     return await lastValueFrom<any>(request);
-    // .subscribe( (res) => {return res} )
   }
 
   async logPaypalError(orderNumber: string, error: object): Promise<any> {
@@ -88,10 +79,6 @@ export class HttpService {
     const request = this.http.post<any>(`${this._backendURL}/shop/upsert-manual-order/`, {order});
     return await lastValueFrom<any>(request);
   }
-
-  /*
-  SHOP ENDPOINTS
-  */
   
   async getOrders(online: boolean, manual: boolean, test: boolean, status: string, text: string) {
     const request = this.http.get<any>(`${this._backendURL}/shop/get-orders/${online}/${manual}/${test}/${status||'null'}/${text||'null'}`);
@@ -102,14 +89,17 @@ export class HttpService {
     const request = this.http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, set});
     return await lastValueFrom<any>(request);
   }    
+
   async unsetTimestamp(orderNumber: string, unset: OrderStatus) {
     const request = this.http.post(`${this._backendURL}/shop/unset-order-status`, {orderNumber, unset});
     return await lastValueFrom<any>(request);
   }   
+
   async addNote(orderNumber: string, note: string) {
     const request = this.http.post(`${this._backendURL}/shop/add-note`, {orderNumber, note});
     return await lastValueFrom<any>(request);
-  }  
+  } 
+
   async sendPostedEmail(orderNumber?: string) {
     const request = this.http.post(`${this._backendURL}/shop/send-posted-email`, {orderNumber});
     return await lastValueFrom<any>(request);

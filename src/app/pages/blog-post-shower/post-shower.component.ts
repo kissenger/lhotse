@@ -26,8 +26,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   public nextSlug: string = '';
   public lastSlug: string = '';
   public stage=environment.STAGE;
-
-  private _httpSubs: Subscription | undefined;  
   private _routeSubs: Subscription | undefined;  
 
   constructor(
@@ -41,52 +39,44 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     // console.log(this.stage)
-    this._routeSubs = this._route.params.subscribe(params => {
+    this._routeSubs = this._route.params.subscribe(async params => {
 
         // this is a hack to avoid an error 
       if (!params['slug'].match('map')) {
-        this._httpSubs = this._http.getPostBySlug(params['slug']).subscribe({
-          next: (result: {article: BlogPost, nextSlug: string, lastSlug:string}) => {
 
-            // htmlize blog entries to avoid doing it twice
-            this.post = result.article;
-            this.post.intro = this._htmler.transform(result.article.intro);
-            this.post.conclusion = this._htmler.transform(result.article.conclusion);
-            this.post.sections = result.article.sections.map( s => { return {
-              title: s.title, 
-              content: this._htmler.transform(s.content), 
-              imgFname: s.imgFname,
-              imgAlt: s.imgAlt
-            }})
+        const result = await this._http.getPostBySlug(params['slug']);
 
-            this.nextSlug = result.nextSlug;
-            this.lastSlug = result.lastSlug;
+        this.post = result.article;
+        this.post.intro = this._htmler.transform(result.article.intro);
+        this.post.conclusion = this._htmler.transform(result.article.conclusion);
+        this.post.sections = result.article.sections.map( (s: any) => { return {
+          title: s.title, 
+          content: this._htmler.transform(s.content), 
+          imgFname: s.imgFname,
+          imgAlt: s.imgAlt
+        }})
 
-            this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
-            this._seo.updateTitle(this.post.title);
-            this._seo.updateKeywords(this.post.keywords.join(', '));
-            this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
+        this.nextSlug = result.nextSlug;
+        this.lastSlug = result.lastSlug;
 
-            let entity: string;
-            if (this.post.type === 'faq') {
-              entity = this.makeFaqEntity();
-            } else {
-              entity = this.makeArticleEntity();
-            }
-            this._seo.addStructuredData(entity);
-            
-            this.isReadyToLoad = true;
-          },
-          error: (error) => {
-            console.error(error);
-            this._router.navigateByUrl(`/page-not-found`); 
-          }
-        }) 
+        this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
+        this._seo.updateTitle(this.post.title);
+        this._seo.updateKeywords(this.post.keywords.join(', '));
+        this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
+
+        let entity: string;
+        if (this.post.type === 'faq') {
+          entity = this.makeFaqEntity();
+        } else {
+          entity = this.makeArticleEntity();
+        }
+        this._seo.addStructuredData(entity);
+        
+        this.isReadyToLoad = true;
       }
     });
-
   }
 
   makeArticleEntity(): string {
@@ -154,7 +144,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy() {
-    this._httpSubs?.unsubscribe();
     this._routeSubs?.unsubscribe();
   }
 

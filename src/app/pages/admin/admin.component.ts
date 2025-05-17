@@ -13,12 +13,12 @@ import { AuthService } from '@shared/services/auth.service';
 export class AdminComponent  {
   constructor(
     private _auth: AuthService,
-    private _router: Router
-    
+    private _router: Router,    
   ) {}
 
   onLogout() {
     this._auth.deleteCookies();
     this._router.navigate(['/admin/login']);
   }
+
 }

@@ -44,7 +44,6 @@ auth.post('/api/auth/register', async (req, res) => {
 
   const saltRounds = 10;
   const user = req.body.user;
-  console.log(user);
 
   try {
       
@@ -95,13 +94,13 @@ function verifyToken(req: any, res: any, next: any) {
 
     next();
 
-  } catch (error) {
+  } catch (error: any) {
 
-    res.status(401).send(error);
+    console.log(error)
+    res.status(401).send(new AuthError(error.message));
 
   }
 
 }
-
 
 export {auth, verifyToken};

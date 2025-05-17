@@ -16,9 +16,8 @@ import { environment } from '@environments/environment';
   styleUrl: './blog-editor.component.css'
 })
 
-export class BlogEditorComponent implements OnInit, OnDestroy {
+export class BlogEditorComponent implements OnInit {
 
-  private _httpSubs: Subscription | undefined;
   private _window;
   public baseURL: string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
 
@@ -51,17 +50,14 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.uniqueKeywords = kws.sort();
   }
 
-  getPosts() {
-    this._httpSubs = this._http.getAllPosts()
-      .subscribe({
-        next: (result) => {
-          this.refreshPostList(result);
-        },
-        error: (error) => {
-          console.error(error);
-          this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
-        }
-      }) 
+  async getPosts() {
+    try {
+      const result = await this._http.getAllPosts();
+      this.refreshPostList(result);
+    } catch (error: any) {
+      console.error(error);
+      this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
+    }
   }
 
   wordCount(v: string, n: number) {
@@ -102,40 +98,34 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
       .filter( (kw: string) => kw !== '');
   }
 
-  onSave() {
-    const slug = this.selectedPost.slug;
-    this._httpSubs = this._http.upsertPost(this.selectedPost)
-      .subscribe({
-        next: (result) => {
-          this.refreshPostList(result);
-          this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
-          this._window!.alert("Post successfully updated!");
-        },
-        error: (error) => {
-          console.error(error);
-          this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
-        }
-      }) 
+  async onSave() {
+    try {
+      const slug = this.selectedPost.slug;
+      const result = await this._http.upsertPost(this.selectedPost);
+      this.refreshPostList(result);
+      this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
+      this._window!.alert("Post successfully updated!");
+    } catch (error: any) {
+      console.error(error);
+      this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
+    }
   }
 
-  onYesDelete(areYouSure: boolean = false) {
+  async onYesDelete(areYouSure: boolean = false) {
     if (areYouSure === false) {
       this.askForConfirmation = true;
     }
     else {
       this.askForConfirmation = false;
-      this._httpSubs = this._http.deletePost(this.selectedPost._id)
-        .subscribe({
-          next: (result) => {
-            this.refreshPostList(result);
-            this._window!.alert("Post successfully deleted!");
-          },
-          error: (error) => {
-            console.error(error);
-            this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
-          }
-        })    
-    }
+      try {
+        const result = await this._http.deletePost(this.selectedPost._id);
+        this.refreshPostList(result);
+        this._window!.alert("Post successfully deleted!");
+      } catch (error: any) {
+        console.error(error);
+        this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
+      }
+   }
   }
 
   onNoDelete() {
@@ -147,9 +137,5 @@ export class BlogEditorComponent implements OnInit, OnDestroy {
     this.posts = [this.selectedPost];
     this.posts.push(...newData);  
     this.getUniqueKeywords();
-  }
-
-  ngOnDestroy() {
-    this._httpSubs?.unsubscribe();
   }
 }

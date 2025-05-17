@@ -6,7 +6,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi
 import { provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
 import { AuthGuard } from './auth.guard';
-import { TokenInterceptorService } from './shared/services/token-interceptor.service';
+import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interceptor.service';
 
 
 export const appConfig: ApplicationConfig = {
@@ -21,7 +21,8 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptorsFromDi()
     ),
-    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptorService, multi: true},
+    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true},
+    { provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},
     provideImgixLoader(`https://${environment.IMGIX_DOMAIN}`),
   ]
 };
