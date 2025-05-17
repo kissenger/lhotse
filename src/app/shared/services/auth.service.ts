@@ -18,6 +18,7 @@ export class AuthService {
   }
 
   public get isLoggedIn() {
+    // check that the token is decodeable and has username property
     return !!this.token;
   }
 

@@ -1,20 +1,19 @@
+import express from 'express';
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine } from '@angular/ssr';
-import express from 'express';
 import { fileURLToPath } from 'node:url';
+import { createWriteStream } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
 import mongoose from 'mongoose';
+import { shop } from './server-shop';
+import { auth } from './server-auth';
+import { blog, getSlugs } from './server-blog';
 import 'dotenv/config';
-import BlogModel from '@schema/blog';
-import {shop, logShopError} from './server-shop';
-import {auth} from './server-auth';
-import {createWriteStream} from 'node:fs';
-import path from 'path';
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 // if production then use port 4000; for beta and dev use 4000
 // prod is snorkelology.co.uk
-// prod is beta.snorkelology.co.uk and local development
+// dev is beta.snorkelology.co.uk and local development
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const PORT = ENVIRONMENT === 'PRODUCTION' ? '4001' : '4000';
 const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
@@ -33,6 +32,13 @@ export class AuthError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "AuthError"
+  }
+}
+
+export class BlogError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ShopError"
   }
 }
 
@@ -59,95 +65,11 @@ export function app(): express.Express {
   server.use(express.json());
   server.use(shop);
   server.use(auth);
-  server.use(errorHandler);
+  server.use(blog);
 
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
   })
-
-  /* 
-    Get all data for all posts
-    Returns: Array<BlogPost>
-  */
-  server.get('/api/blog/get-all-posts/', async (req, res) => {
-    try {
-      const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
-      res.status(201).json(result);
-    } catch (error: any) { 
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-
-    /* 
-      Get all data for all posts
-      Returns: Array<BlogPost>
-    */
-    server.get('/api/blog/get-published-posts/', async (req, res) => {
-      try {
-        const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
-        res.status(201).json(result);
-      } catch (error: any) { 
-        console.error(error);
-        res.status(500).send(error);
-      }
-    });
-
-  /* 
-    Get post from provided slug
-    Returns: BlogPost
-  */
-  server.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
-    try {
-      const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
-      const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
-      const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
-      const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
-      const article = await BlogModel.findOne({slug: req.params.slug});
-      if (article){
-        res.status(201).json({article, lastSlug, nextSlug});
-      } else {
-        // res.status(404).send(new Error('Not Found'));
-        throw new Error('Not Found')
-      }
-    } catch (error: any) {
-      res.status(500).send(error);
-    }
-  });
-
-  server.post('/api/blog/upsert-post/', async (req, res) => {
-    try {
-      if (req.body._id !=='') {
-        await BlogModel.findByIdAndUpdate(req.body._id, req.body);
-      } else {
-        delete req.body._id;
-        delete req.body.createdAt;
-        await BlogModel.create(req.body);
-      }
-      const result = await BlogModel.find({});
-      res.status(201).json(result);
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-
-  /* 
-    Get post specified by _id, and if successful return result of find all
-    Returns: Array<BlogPost>
-  */
-  server.get('/api/blog/delete-post/:_id', async (req, res) => {
-    try {
-      await BlogModel.deleteOne({_id: req.params._id});
-      const result = await BlogModel.find({});
-      res.status(201).json(result);
-    } catch (error: any) {
-      console.error(error);
-      res.status(500).send(error);
-    }
-  });
-
-
 
 // *** End of API Endpoints
 
@@ -171,22 +93,9 @@ export function app(): express.Express {
       .catch((err) => next(err));
   });
 
-  function errorHandler(err: Error, req: any, res: any, next: any) {
-    // console.error(err.message)
-    console.log('Handling Error:', err);
-    if (res.headersSent) {
-      return next(err)
-    }
-    if (err instanceof ShopError) {
-       logShopError(req.body.orderNumber, err);
-    }
-    res.status(500).send({error: err.name, message: err.message});
-  }
-
   async function generateSitemap(buildDate?: string) {
-    
   // Create sitemap
-    const listOfSlugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
+    const slugs = await getSlugs();
     const fname = ENVIRONMENT === 'PRODUCTION' ? 'dist/prod/browser/sitemap.xml' : 'src/config/prod/sitemap.xml';
     const file = createWriteStream(fname);
     const eol = '\r\n'
@@ -198,7 +107,7 @@ export function app(): express.Express {
       file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk</loc>${eol}`);
       file.write(`${tab.repeat(2)}<lastmod>${buildDate || new Date().toISOString()}</lastmod>${eol}`);
       file.write(`${tab.repeat(1)}</url>${eol}`);
-      listOfSlugs.forEach( s => {
+      slugs.forEach( s => {
         file.write(`${tab.repeat(1)}<url>${eol}`);
         file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk/blog/${s.slug}</loc>${eol}`);
         file.write(`${tab.repeat(2)}<lastmod>${s.updatedAt.toISOString()}</lastmod>${eol}`);

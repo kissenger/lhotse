@@ -5,10 +5,8 @@ import jsonwebtoken from 'jsonwebtoken';
 import { AuthError } from 'server';
 import 'dotenv/config';
 
-const AUTH_KEY = process.env['AUTH_KEY'];
 const auth = express();
-
-
+const AUTH_KEY = process.env['AUTH_KEY'];
 
 /*****************************************************************
  * ROUTE: Create paypal order
@@ -40,7 +38,6 @@ auth.post('/api/auth/login', async (req, res) => {
 
 });
 
-
 auth.post('/api/auth/register', async (req, res) => {
 // take incoming user data in the form {email, password}, hash password,
 // save to db, get json token and return to front end
@@ -71,5 +68,40 @@ auth.post('/api/auth/register', async (req, res) => {
 });
 
 
+/**
+ * middleware to confirm user has an acceptable token. returns userId in req if all is ok
+ */
+function verifyToken(req: any, res: any, next: any) {
 
-export {auth};
+  try {
+
+    if (!req.headers.authorization) {
+      throw new AuthError('Unauthorised request: authorisation headers');
+    }
+
+    const token = req.headers.authorization;
+    if ( token === 'null' ) {
+      throw new AuthError('Unauthorised request: null token');
+    }
+
+    const payload = jsonwebtoken.verify(token, <string>AUTH_KEY);
+    if ( !payload ) {
+      throw new AuthError('Unauthorised request: invalid token');
+    }
+    
+    // req.userId = payload.userId;
+    // req.userName = payload.userName;
+    // req.role = payload.role;
+
+    next();
+
+  } catch (error) {
+
+    res.status(401).send(error);
+
+  }
+
+}
+
+
+export {auth, verifyToken};

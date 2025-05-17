@@ -1,12 +1,13 @@
 import express from 'express';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
-import 'dotenv/config';
 import { ShopError } from 'server';
-import {getConfirmationEmailBody} from 'server-confirmation-email';
-import {getPostedEmailBody} from 'server-posted-email';
-const shop = express();
+import { getConfirmationEmailBody } from 'server-shop-conf-email';
+import { getPostedEmailBody } from 'server-shop-posted-email';
+import { verifyToken } from './server-auth'
+import 'dotenv/config';
 
+const shop = express();
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
 const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
@@ -20,7 +21,6 @@ const EMAIL_CONFIG = {
     pass: process.env['GMAIL_APP_PASSWD'] // app password for gordon@snorkelology.co.uk account through google workspace
   },
 }
-
 
 /*****************************************************************
  * ROUTE: Create paypal order
@@ -150,7 +150,7 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken, async (req, res) => {
 
   let filterText: any;
   if (req.params.text!=='null') {
@@ -251,7 +251,7 @@ shop.get('/api/shop/get-order-by-order-number/:orderNumber', async (req, res) =>
   res.status(201).json(orderSummary);
 });
 
-shop.post('/api/shop/add-note', async (req, res) => {
+shop.post('/api/shop/add-note', verifyToken, async (req, res) => {
   await addNote(req.body.orderNumber,req.body.note);
   res.status(201).json({respose: 'success'});
 });
@@ -273,7 +273,7 @@ function addNote(orderNumber: string, newNote: string) {
 /*****************************************************************
  * ROUTE: Send email to confirm posted
  ****************************************************************/
-shop.post('/api/shop/send-posted-email', async (req, res) => {
+shop.post('/api/shop/send-posted-email', verifyToken, async (req, res) => {
   console.log('send email')
   let orderSummary = await getOrderSummary(req.body.orderNumber);
   let emailBody = getPostedEmailBody(orderSummary);
@@ -286,7 +286,7 @@ shop.post('/api/shop/send-posted-email', async (req, res) => {
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
-shop.post('/api/shop/set-order-status', async (req, res) => {
+shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
   let setField =`orderSummary.timeStamps.${req.body.set}`;
   await logShopEvent(req.body.orderNumber, {
     '$set': {
@@ -296,7 +296,7 @@ shop.post('/api/shop/set-order-status', async (req, res) => {
   res.status(201).json({respose: 'success'});
 })
 
-shop.post('/api/shop/unset-order-status', async (req, res) => {
+shop.post('/api/shop/unset-order-status', verifyToken, async (req, res) => {
   let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
   await logShopEvent(req.body.orderNumber, {
     '$unset': {
@@ -309,7 +309,7 @@ shop.post('/api/shop/unset-order-status', async (req, res) => {
 /*****************************************************************
  * ROUTE: Create manual order
  ****************************************************************/
-shop.post('/api/shop/upsert-manual-order', async (req, res) => {
+shop.post('/api/shop/upsert-manual-order', verifyToken, async (req, res) => {
 
   let order = req.body.order;
 
@@ -338,7 +338,7 @@ shop.post('/api/shop/upsert-manual-order', async (req, res) => {
   
 });
 
-shop.post('/api/shop/deactivate-order', async (req, res) => {
+shop.post('/api/shop/deactivate-order', verifyToken, async (req, res) => {
   await logShopEvent(req.body.orderNumber, {
     '$set': {
       isActive: false
@@ -413,57 +413,55 @@ export async function logShopError(orderNumber: string | null, error: Object) {
   });
 }
 
-  async function getAccessToken() {
+async function getAccessToken() {
 
-    const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
-    // const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
-    const data = 'grant_type=client_credentials';
-    let apiResponse;
-    let json;
+  const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
+  // const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
+  const data = 'grant_type=client_credentials';
+  let apiResponse;
+  let json;
 
-    try {
-      apiResponse = await fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
-        },
-        body: data
-      })
-      json = await apiResponse.json();
-    } catch (error) {
-      throw new ShopError('PayPal oauth API: No response recieved');
-    }
-
-    if (json.error) {
-      throw new ShopError('PayPal oauth API: Authorisation failed');
-    }
-    
-    return json;
-
+  try {
+    apiResponse = await fetch(PAYPAL_ENDPOINT + '/v1/oauth2/token', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${Buffer.from(auth).toString('base64')}`
+      },
+      body: data
+    })
+    json = await apiResponse.json();
+  } catch (error) {
+    throw new ShopError('PayPal oauth API: No response recieved');
   }
+
+  if (json.error) {
+    throw new ShopError('PayPal oauth API: Authorisation failed');
+  }
+  
+  return json;
+
+}
 // 
 /*****************************************************************
  * FUNCTION: Send email
  ****************************************************************/
-  function sendEmail(to: string, html: string, subject: string) {
+function sendEmail(to: string, html: string, subject: string) {
 
-    let transporter = nodemailer.createTransport(EMAIL_CONFIG);
-    let message = {
-        from: 'noreply@snorkelology.co.uk', 
-        bcc: 'orders@snorkelology.co.uk',
-        to, subject, html
-    };
-    
-    transporter.sendMail(message)
-      .then((info) => {
-        // console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
-      }).catch((err) => {
-        console.log(`error:${err}`);
-      }
-    );
-  }
+  let transporter = nodemailer.createTransport(EMAIL_CONFIG);
+  let message = {
+      from: 'noreply@snorkelology.co.uk', 
+      bcc: 'orders@snorkelology.co.uk',
+      to, subject, html
+  };
+  
+  transporter.sendMail(message)
+    .then((info) => {
+      // console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
+    }).catch((err) => {
+      console.log(`error:${err}`);
+    }
+  );
+}
 
-
-
-  export {shop};
+export {shop};
