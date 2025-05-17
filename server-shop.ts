@@ -37,9 +37,6 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
       body: JSON.stringify(req.body.order.paypal.intent)
     });
 
-    console.log(result);
-
-    // console.log(req.body)
     const json = await result.json();
     if (Array.isArray(json.details)) {
       throw new Error(json.details);
@@ -48,7 +45,6 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
         { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
           orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
         });
-        console.log(res);
       res.send({  
         orderNumber: resp.orderNumber, 
         paypalOrderId: json.id
@@ -208,7 +204,6 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken
   try {
 
     if (filterOne.length===0 && req.params.text==='null') {
-      console.log('returning empty')
       res.status(201).send([]);
     } else {
       const result = await ShopModel.aggregate([{
@@ -274,7 +269,6 @@ function addNote(orderNumber: string, newNote: string) {
  * ROUTE: Send email to confirm posted
  ****************************************************************/
 shop.post('/api/shop/send-posted-email', verifyToken, async (req, res) => {
-  console.log('send email')
   let orderSummary = await getOrderSummary(req.body.orderNumber);
   let emailBody = getPostedEmailBody(orderSummary);
   sendEmail(orderSummary.user.email_address, emailBody, 'Your snorkelology order is on its way...');
@@ -457,7 +451,6 @@ function sendEmail(to: string, html: string, subject: string) {
   
   transporter.sendMail(message)
     .then((info) => {
-      // console.log(`info:${nodemailer.getTestMessageUrl(info)}`);
     }).catch((err) => {
       console.log(`error:${err}`);
     }

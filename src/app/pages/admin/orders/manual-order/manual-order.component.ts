@@ -57,7 +57,6 @@ export class ManualOrderComponent  {
     try {
       let orderSummary: OrderSummary = this.shop.order.orderSummary;
       orderSummary.orderNumber = this._orderNumber;
-      console.log(orderSummary);
       await this._http.upsertManualOrder(orderSummary);
     } catch (error) {
       console.error(error);

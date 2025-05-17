@@ -42,8 +42,6 @@ export class HttpErrorInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        console.log('httpinterceptor error: ' + error)
-        console.log(error.status)
         if (error.status===401) {
           this._auth.deleteCookies();
           this._router.navigate(['/admin']); 

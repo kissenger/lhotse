@@ -23,7 +23,6 @@ export class PagesComponent implements AfterViewInit{
   ) {}
 
   ngAfterViewInit(): void {
-    // console.log(this.container())
     if (this.container()) {
       this.toaster.init(this.container()!);
     }

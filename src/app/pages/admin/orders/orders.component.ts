@@ -53,7 +53,6 @@ export class OrdersComponent  {
   copyLabel(order: OrderSummary) {
     this.labelElements.toArray().forEach( (elem) => {
       if (elem.nativeElement.id === order.orderNumber) {
-        console.log(elem.nativeElement.innerHTML)
         const data = new ClipboardItem({"text/html": elem.nativeElement.innerHTML});
         navigator.clipboard.write([data]);
       }
@@ -93,7 +92,6 @@ export class OrdersComponent  {
     try {
       let os = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
       this.orders = os.filter( (o:any) => !!o.orderNumber);
-      console.log(this.orders)
     } catch (error) {
       console.error(error);
     }

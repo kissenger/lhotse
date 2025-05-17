@@ -61,11 +61,6 @@
         
 
         @for (order of orders; track order.timeStamps?.orderCreated) {
-            <!-- @let isActionNeeded = false; -->
-            <!-- @let isActionNeeded = 
-                (!!order.timeStamps?.orderCompleted && !order.timeStamps?.readyToPost) || 
-                (!!order.timeStamps?.readyToPost && !order.timeStamps?.posted) || 
-                (!!order.timeStamps?.returned && !order.timeStamps?.refunded); -->
 
             <div class="order-table">
                 <div class="order-line first-line" >

@@ -34,7 +34,6 @@ export class LoginComponent {
       // let decode = this._auth.decodeToken(res.token);
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
-      console.log(res.token)
     } catch (error) {
       console.log(error);
       // this._toaster.show(<string>error.message, 'error');
