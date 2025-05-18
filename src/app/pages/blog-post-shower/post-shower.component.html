@@ -8,13 +8,11 @@
                 <img
                     [src]="'assets/'+post.imgFname"
                     [alt]="post.imgAlt"
-                    priority
                     fill /> 
             } @else {
                 <img
                     [ngSrc]="post.imgFname"
                     [alt]="post.imgAlt"
-                    priority
                     fill /> 
             }
             <div class="image-caption">
@@ -58,7 +56,7 @@
                         } 
                     </ul>
                 </section>
-                <br />
+                
             
 
             <!-- <app-banner-ad></app-banner-ad> -->
@@ -69,11 +67,18 @@
                     <div [innerHTML]="section.content | sanitizer"></div>
                     @if (!!section.imgFname) {
                         <div class="article-image-container">
-                            <img
-                                [ngSrc]="section.imgFname"
-                                [alt]="section.imgAlt"
-                                fill
-                            /> 
+
+                            @if (stage==='dev') {
+                                <img
+                                    [src]="'assets/'+section.imgFname"
+                                    [alt]="section.imgAlt"
+                                    fill /> 
+                            } @else {
+                                <img
+                                    [ngSrc]="section.imgFname"
+                                    [alt]="section.imgAlt"
+                                    fill /> 
+                            }                            
                             <div class="image-caption">
                                 {{section.imgAlt}} <br />
                                 Photo credit: Snorkelology

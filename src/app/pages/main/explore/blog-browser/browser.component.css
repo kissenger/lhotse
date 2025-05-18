@@ -10,6 +10,8 @@
 
 .browser {
   margin-left: -1em;
+  margin-bottom: 0.5em;
+  padding-top: 0.5em;
   overflow-x: scroll;
   display: flex;
   flex-direction: row;  
