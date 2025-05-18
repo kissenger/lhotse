@@ -32,14 +32,9 @@ import { environment } from '@environments/environment';
           {{data.subtitle}}
         </div>
         <div class="footer">
-          <!-- <div class="published-date">
-            Published {{data.createdAt | date : 'MMM YYYY'}}
-          </div> -->
-          <div class="keywords">
-            @for (kw of data.keywords; track kw) {
-              <span class="kw">{{kw}}</span>
-            }
-          </div>
+          @for (kw of data.keywords; track kw) {
+            <span class="kw">{{kw}}</span>
+          }
         </div>
       </div>
     </div>
