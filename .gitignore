@@ -2,7 +2,6 @@
 
 .env
 /src/environments/
-/src/assets/config.json
 
 # Compiled output
 /dist
