@@ -11,7 +11,7 @@ import { auth, verifyToken } from './server-auth';
 import { blog, getSlugs } from './server-blog';
 import 'dotenv/config';
 
-// if production then use port 4000; for beta and dev use 4000
+// if production then use port 4001; for beta and dev use 4000
 // prod is snorkelology.co.uk
 // dev is beta.snorkelology.co.uk and local development
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";

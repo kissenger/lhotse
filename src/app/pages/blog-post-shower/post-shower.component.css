@@ -87,5 +87,17 @@ h1 {
     padding: 0.25em;
     margin: 0.5em 0.25em 0.25em 0em;
     border-radius: 5px;
-    overflow:hidden;
+    letter-spacing: -1px;
+    background-color: whitesmoke;
   }
+
+  
+.kw {
+  background-color: whitesmoke;
+  border: 1px solid var(--border-colour);
+  padding-inline: 0.25em;
+  margin-right: 0.25em;
+  letter-spacing: -1px;
+  font-size: 0.8em;
+  border-radius: 5px;
+}
