@@ -30,6 +30,7 @@ export class BasketComponent {
     public shop: ShopService,
     public toaster: ToastService,
   ) {
+    this.shop.basket.clear();
     this.shop.basket.add(this.shop.item("0001"),1);
   }
   
