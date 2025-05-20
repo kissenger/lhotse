@@ -14,7 +14,7 @@ const AUTH_KEY = process.env['AUTH_KEY'];
 
 auth.post('/api/auth/login', async (req, res) => {
 
-  // try {
+  try {
 
     const {username, password} = req.body.user;
 
@@ -31,10 +31,10 @@ auth.post('/api/auth/login', async (req, res) => {
     const token = jsonwebtoken.sign({user: user.username, role: user.role}, <string>AUTH_KEY);
     res.status(200).send({token});
 
-  // } catch (error: any) {
-  //   console.log(error.message);
-  //   res.status(401).send(error);
-  // }
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(401).send(error);
+  }
 
 });
 

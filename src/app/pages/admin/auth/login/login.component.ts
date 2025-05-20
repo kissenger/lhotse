@@ -4,6 +4,7 @@ import { HttpService } from '../../../../shared/services/http.service';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
 import { Router, RouterLink } from '@angular/router';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   standalone: true,
@@ -24,7 +25,8 @@ export class LoginComponent {
   constructor(
     private _auth: AuthService,
     private _http: HttpService,
-    private _router: Router
+    private _router: Router,
+    private _toaster: ToastService
   ) {}
 
   async onSubmit() {
@@ -34,9 +36,9 @@ export class LoginComponent {
       // let decode = this._auth.decodeToken(res.token);
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      // this._toaster.show(<string>error.message, 'error');
+      this._toaster.show(<string>error.error.message, 'error');
     }
   }
 
