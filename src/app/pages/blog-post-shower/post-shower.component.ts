@@ -96,7 +96,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         "url": "https://snorkelology.co.uk",
         "logo": "https://snorkelology.co.uk/banner/snround.webp",
         "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
-        "sameAs": "https://instagram.com/snorkelology"},
+        "sameAs": "https://instagram.com/snorkelology"
+      },
       "blogPost": [{
         "@type": "BlogPosting",
         "@id": "https://snorkelology.co.uk/blog/${this.post.slug}",
@@ -115,8 +116,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           "@id": "https://snorkelology.co.uk/assets/${this.post.imgFname}",
           "url": "https://snorkelology.co.uk/assets/${this.post.imgFname}" },
         "url": "https://snorkelology.co.uk/blog/${this.post.slug}"
-        }]
-        `
+      }]
+    }`
   }
 
   makeFaqEntity(): string {
