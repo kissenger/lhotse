@@ -9,9 +9,11 @@ export interface StockItem {
       value: number
   }
   isInStock: boolean;    
-  image_url?: string;
-  url?: string;
-  // weightInKg: number;
+  image: {
+    src: string,
+    alt: string
+  };
+  weightInGrams: number;
 }
 
 export interface BasketItem extends Omit<StockItem, 'isInStock'> {

@@ -32,6 +32,8 @@ export class BasketComponent {
   ) {
     this.shop.basket.clear();
     this.shop.basket.add(this.shop.item("0001"),1);
+    this.shop.basket.add(this.shop.item("0002"),0);
+    this.shop.basket.add(this.shop.item("0003"),0);
   }
   
   async ngOnInit() {

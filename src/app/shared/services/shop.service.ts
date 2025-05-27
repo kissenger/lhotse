@@ -22,15 +22,36 @@ export class ShopService {
         this._items = [{
             id: "0001",
             name: "Snorkelling Britain",
-            description: "Snorkelling Britain guidebook",
+            description: "Snorkelling Britain guidebook (ISBN 978-1910636473)",
             unit_amount: { currency_code: 'GBP', value: 18.99 },
             isInStock: true,
+            image: {
+                src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
+                alt: 'Snorkelling Britain book cover in 3D '
+            },
+            weightInGrams: 660
         }, {
             id: "0002",
             name: "Snorkelling Britain Signed",
-            description: "Snorkelling Britain guidebook, signed by the authors",
-            unit_amount: { currency_code: 'GBP', value: 23.99 },
+            description: "Snorkelling Britain guidebook (ISBN 978-1910636473), signed by the authors",
+            unit_amount: { currency_code: 'GBP', value: 18.99 },
+            image: {
+                src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
+                alt: 'Snorkelling Britain book cover in 3D '
+            },
             isInStock: true,
+            weightInGrams: 660
+        }, {
+            id: "0003",
+            name: "Snorkelology logo sticker",
+            description: "5 x Snorkelology logo sticker (50mm diameter)",
+            unit_amount: { currency_code: 'GBP', value: 3.99 },
+            image: {
+                src: 'photos/shop/snorkelology-stickers.jpg',
+                alt: 'Image showing five Snorkelology logo stickers'
+            },
+            isInStock: true,
+            weightInGrams: 50
         }]
     }
 
@@ -89,7 +110,8 @@ export class ShopService {
                 items: this.basket.items,
                 shippingOption: this.basket.shippingOption,
                 costBreakdown: this.basket.costBreakdown,
-                endPoint: 'manual'
+                endPoint: 'manual',
+                signedByAuthors: 'false'
             },
             paypal: {
                 intent: {

@@ -38,6 +38,28 @@
   padding-block: 1rem;
   display: flex;
   flex-direction: row;
+  align-items: center;
+}
+
+.basket-item-image-box {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    /* border: 1px red solid; */
+    /* width: 100%; */
+  }
+
+.basket-item-image-box > img {
+  height: 100px;
+  margin-inline: auto;
+  align-content: center;
+  justify-content: center;
+}
+
+.basket-item-text {
+  margin-left: 1rem;
+  flex-grow: 1;
+  max-width: 50%;
+  /* text-wrap: nowrap; */
 }
 
 .basket-item-qty {
@@ -62,10 +84,6 @@
   display: flex;
 }
 
-.basket-item-text {
-  flex-grow: 1;
-  text-wrap: nowrap;
-}
 
 input {
   text-align: center;
