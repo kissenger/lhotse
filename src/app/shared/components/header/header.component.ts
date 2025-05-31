@@ -1,4 +1,4 @@
-import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
@@ -25,6 +25,9 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   public expandDropdownMenu: boolean = false;
   public activeAnchor: string = 'about-us';
   public isLoaded: boolean = false;
+  public counter = 0;
+
+  @ViewChild('hamburger') hamburgerElement!: ElementRef;
 
   constructor(
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
@@ -52,17 +55,29 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     if (this._screen.widthDescriptor === 'large') {
       this.expandDropdownMenu = false;
     }
+    if (!isPlatformBrowser(PLATFORM_ID)) {
+      let func = function() {
+        this.counter++;
+      }.bind(this);
+      this.hamburgerElement.nativeElement.addEventListener('click', func );
+    }
+    
   }
   
   ngAfterContentChecked() {
     if (!isPlatformBrowser(PLATFORM_ID)) {
       this.isLoaded = true;
     }
+    
   }
 
+
   onHamburgerClick() {
-    this.expandDropdownMenu = !this.expandDropdownMenu;
-    this.animateHamburger();
+    console.log('hamburger click');
+    this.counter = this.counter + 1;
+    console.log(this.counter)
+    // this.expandDropdownMenu = !this.expandDropdownMenu;
+    // this.animateHamburger();
   }
 
   onMenuItemClick() {

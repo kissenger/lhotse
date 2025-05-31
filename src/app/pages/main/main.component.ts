@@ -57,7 +57,7 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - British Snorkelling For All');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkling, snorkelling, britain, british, UK, united kingdom, great britain,
-      underwater, sealife, marinelife, wales, scotland, england`);
+      underwater, sealife, marinelife`);
     this._seo.updateDescription(`Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful
       British marine environment, view inspiring underwater photography, and buy our new book: Snorkelling Britain.`);
     this._seo.addStructuredData(`{
