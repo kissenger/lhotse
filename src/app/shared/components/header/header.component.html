@@ -2,65 +2,56 @@
 
   @if (isLoaded == true) {
 
-    <svg class="brandbox" width="100" height="100"version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="50" fill="white"/>
-      <rect height="65" width="100" fill=var(--sn-colour)>
-        <animate #animate attributeName="height" from="0" to="65" dur="0.5s" begin="startAnimation.begin" fill="freeze"></animate>
-      </rect>
-    </svg>
-    
-    <a href="/">
-      <img
-        (click)="onMenuItemClick()"
-        class="brandbox"
-        src    = "./assets/banner/snround.webp" 
-        width  = "100" 
-        height = "100"
-        role   = "link"
-      />
+    <a class="brand-box" href="/" [ngClass]="expandDropdownMenu ? 'expand' : 'contract'" (click)="onMenuItemClick()">
+      <img (click)="onMenuItemClick()" src="./assets/banner/snround.webp" width="100" height="100">
     </a>
 
-    <div class="header-content">
+    <div class="menubar">
 
-      <nav class="navbar">
-          
-        <svg id="hamburger" class="hamburger" viewBox="-55 -55 110 110" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
-          <rect x="-50" y="-50" width="100" height="100" fill=var(--sn-colour) rx="10" stroke="#FFFFFF" stroke-width="6">
-            <animate #animate begin="click" id="startAnimation" />
-          </rect>
-          <line x1="-20" y1="-20" x2="20" y2="-20" stroke="#FFFFFF" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none">
-            <animate #animate attributeName="y2" from="20" to="-20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-          </line>
-          <line x1="-20" y1="0" x2="20" y2="0" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
-            <animate #animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-          </line>
-          <line x1="-20" y1="20" x2="20" y2="20" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
-            <animate #animate attributeName="y2" from="-20" to="20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
-          </line>
-        </svg>
+      <svg id="hamburger" class="hamburger" viewBox="-53 -53 106 106" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
+        <rect x="-50" y="-50" width="100" height="100" fill=var(--sn-colour) rx="10" stroke="#FFFFFF" stroke-width="6">
+          <animate #animate begin="click" id="startAnimation" />
+        </rect>
+        <line x1="-20" y1="-20" x2="20" y2="-20" stroke="#FFFFFF" stroke-width="6" opacity="1" stroke-linecap="round" pointer-events="none">
+          <animate #animate attributeName="y2" from="20" to="-20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+        </line>
+        <line x1="-20" y1="0" x2="20" y2="0" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
+          <animate #animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+        </line>
+        <line x1="-20" y1="20" x2="20" y2="20" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" pointer-events="none">
+          <animate #animate attributeName="y2" from="-20" to="20" dur="0.3s" begin="startAnimation.begin" fill="freeze"></animate>
+        </line>
+      </svg>
 
-
-        <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
-          @for (menuItem of menuItems; track menuItem) {
-            <li #menuItem [routerLink]="'.'" [fragment]="menuItem.anchor" [ngClass]="{'active': activeAnchor == menuItem.anchor}">
-              <span class="stealth-html-link">{{menuItem.name}}</span>
-            </li>          
-          }
-        </ul>
+      <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
+        @for (menuItem of menuItems; track menuItem) {
+          <li #menuItem [routerLink]="'.'" [fragment]="menuItem.anchor" [ngClass]="{'active': activeAnchor == menuItem.anchor}">
+            <span class="stealth-html-link">{{menuItem.name}}</span>
+          </li>          
+        }
+      </ul>
       
-      </nav>
-
       <div class="socials">
-        <a class="suppress-external-link" href="https://www.instagram.com/snorkelology/">
-          <svg stroke="white" stroke-width="1px" fill="white" viewBox="0 0 50 50" width="40px" height="40px" xmlns="http://www.w3.org/2000/svg"><path d="M 16 3 C 8.8324839 3 3 8.8324839 3 16 L 3 34 C 3 41.167516 8.8324839 47 16 47 L 34 47 C 41.167516 47 47 41.167516 47 34 L 47 16 C 47 8.8324839 41.167516 3 34 3 L 16 3 z M 16 5 L 34 5 C 40.086484 5 45 9.9135161 45 16 L 45 34 C 45 40.086484 40.086484 45 34 45 L 16 45 C 9.9135161 45 5 40.086484 5 34 L 5 16 C 5 9.9135161 9.9135161 5 16 5 z M 37 11 A 2 2 0 0 0 35 13 A 2 2 0 0 0 37 15 A 2 2 0 0 0 39 13 A 2 2 0 0 0 37 11 z M 25 14 C 18.936712 14 14 18.936712 14 25 C 14 31.063288 18.936712 36 25 36 C 31.063288 36 36 31.063288 36 25 C 36 18.936712 31.063288 14 25 14 z M 25 16 C 29.982407 16 34 20.017593 34 25 C 34 29.982407 29.982407 34 25 34 C 20.017593 34 16 29.982407 16 25 C 16 20.017593 20.017593 16 25 16 z"/></svg>
+        <a class="suppress-external-link" href="https://www.youtube.com/@snorkelology">
+          <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" height="30px" width="40px" x="0" y="0" version="1.1" viewBox="0 0 100 70.028"><g id="g5" transform="matrix(0.823716, 0, 0, 0.823716, 0, 0)"><path fill="#fff" fill-opacity="1" d="M35.705078 0S13.35386.0001149 7.765625 1.4707031c-3 .8235294-5.4713925 3.2946921-6.2949219 6.3535157C.0001149 13.412454 0 25 0 25s.0001149 11.64637 1.4707031 17.175781c.8235294 3.058824 3.2360984 5.471393 6.2949219 6.294922C13.412684 50.000115 35.705078 50 35.705078 50s22.353171-.000115 27.941406-1.470703c3.058824-.82353 5.471393-3.236098 6.294922-6.294922 1.470588-5.588235 1.470703-17.175781 1.470703-17.175781s.058709-11.64614-1.470703-17.2343752c-.823529-3.0588236-3.236098-5.4713925-6.294922-6.2949219C58.058249-.00011488 35.705078 0 35.705078 0zm-7.117187 14.294922L47.175781 25l-18.58789 10.705078V14.294922z" transform="scale(1.7)"/></g></svg>
         </a>
+
+        <a class="suppress-external-link" href="https://www.instagram.com/snorkelology/">
+          <svg stroke="white" stroke-width="2px" fill="white" viewBox="-1 -1 82 82" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 23.636 0 C 10.606 0 0 10.606 0 23.636 L 0 56.364 C 0 69.396 10.606 80 23.636 80 L 56.364 80 C 69.396 80 80 69.396 80 56.364 L 80 23.636 C 80 10.606 69.396 0 56.364 0 L 23.636 0 Z M 23.636 3.636 L 56.364 3.636 C 67.431 3.636 76.364 12.571 76.364 23.636 L 76.364 56.364 C 76.364 67.431 67.431 76.364 56.364 76.364 L 23.636 76.364 C 12.571 76.364 3.636 67.431 3.636 56.364 L 3.636 23.636 C 3.636 12.571 12.571 3.636 23.636 3.636 Z M 61.818 14.546 C 59.809 14.546 58.182 16.173 58.182 18.182 C 58.182 20.191 59.809 21.818 61.818 21.818 C 63.827 21.818 65.454 20.191 65.454 18.182 C 65.454 16.173 63.827 14.546 61.818 14.546 Z M 40 20 C 28.976 20 20 28.976 20 40 C 20 51.024 28.976 60 40 60 C 51.024 60 60 51.024 60 40 C 60 28.976 51.024 20 40 20 Z M 40 23.636 C 49.058 23.636 56.364 30.942 56.364 40 C 56.364 49.058 49.058 56.364 40 56.364 C 30.942 56.364 23.636 49.058 23.636 40 C 23.636 30.942 30.942 23.636 40 23.636 Z"/>
+          </svg>
+        </a>
+
         <a class="suppress-external-link" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;%68%65%6C%6C%6F%40%73%6E%6F%72%6B%65%6C%6F%6C%6F%67%79%2E%63%6F%2E%75%6B">
-          <svg stroke="white" stroke-width="1px" fill="white" viewBox="0 0 64 64" width="40px" height="40px" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path id="Mail" d="M58.0034485,8H5.9965506c-3.3136795,0-5.9999995,2.6862001-5.9999995,6v36c0,3.3137016,2.6863203,6,5.9999995,6 h52.006897c3.3137016,0,6-2.6862984,6-6V14C64.0034485,10.6862001,61.3171501,8,58.0034485,8z M62.0034485,49.1108017 L43.084549,30.1919994l18.9188995-12.0555992V49.1108017z M5.9965506,10h52.006897c2.2056007,0,4,1.7943001,4,4v1.7664003 L34.4677505,33.3134003c-1.4902,0.9492989-3.3935013,0.9199982-4.8495998-0.0703011L1.9965508,14.4694996V14 C1.9965508,11.7943001,3.7910507,10,5.9965506,10z M1.9965508,16.8852005L21.182251,29.9251003L1.9965508,49.1108017V16.8852005z M58.0034485,54H5.9965506c-1.6473999,0-3.0638998-1.0021019-3.6760998-2.4278984l20.5199013-20.5200024l5.6547985,3.843401 c1.0859013,0.7383003,2.3418007,1.1083984,3.5995998,1.1083984c1.1953011,0,2.3925018-0.3339996,3.4463005-1.0048981 l5.8423996-3.7230015l20.2961006,20.2961025C61.0673485,52.9978981,59.6508713,54,58.0034485,54z"></path> </g></svg>
+          <svg viewBox="-53 -43 106 86" height="25px" fill=var(--sn-colour)>
+            <rect x="-50" y="-40" width="100" height="80" fill=var(--sn-colour) rx="10" stroke="#FFF" stroke-width="6"></rect>
+            <path stroke="#FFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M -47 -37 L -10 0 A 20 20 0 0 0 10 0 L 47 -37 M -47 37 L -10 0 M 47 37 L 10 0"></path>
+          </svg>
         </a>
       </div>
 
     </div>
-
+    
   }
 
 </header>

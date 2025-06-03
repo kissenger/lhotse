@@ -109,7 +109,8 @@ a, .html-link {
 }
 
 /* show external link after a tag with link */
-a[href^="http"]::after, a[href^="https"]::after
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors */
+a[href^="http"]:not([class~="suppress-external-link"])::after
 {
   content: "";
   width: 11px;
@@ -122,12 +123,6 @@ a[href^="http"]::after, a[href^="https"]::after
   background-repeat: no-repeat;
   background-size: contain;
   display: inline-block;
-}
-
-/* dont show external link after parter logos */
-a.suppress-external-link::after
-{
-  display: none !important;
 }
 
 a:hover, .html-link:hover {
