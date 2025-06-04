@@ -30,15 +30,24 @@ header {
 .brand-box {
   position: relative;
   border-radius: 50%;
-  background: conic-gradient(
+  /* border-width: 2px; */
+  /* border-style: solid; */
+  /* border-color: white; */
+  /* background-color: aqua; */
+  background-image: conic-gradient(
     transparent var(--angle1), 
     white var(--angle1) var(--angle2),  
     transparent var(--angle2)  
-  );
+  );  
   margin-top: 10px;
   width: 104px;
   height: 104px;
   z-index: 1200;
+}
+
+.brand-box.block-animation {
+  transition: none !important;
+  animation-duration: 0.001s !important; 
 }
 
 .brand-box > img {

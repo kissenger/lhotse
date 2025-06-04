@@ -1,8 +1,8 @@
-import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/router';
 
 @Component({
@@ -17,6 +17,7 @@ import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/route
 export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
+  @ViewChild('brandbox') brandBox!: ElementRef;
 
   private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
@@ -29,6 +30,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   constructor(
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
     @Inject(Router) private _router: Router,
+    @Inject(DOCUMENT) private _document: Document,    
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
   ) {
@@ -61,6 +63,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   }
 
   onHamburgerClick() {
+    this.brandBox.nativeElement.classList.remove("block-animation");
     this.expandDropdownMenu = !this.expandDropdownMenu;
     this.animateHamburger();
   }
@@ -88,6 +91,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
       anim.nativeElement.setAttribute('to', from!);
     });
   }
+
 
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
