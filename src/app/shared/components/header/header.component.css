@@ -30,10 +30,6 @@ header {
 .brand-box {
   position: relative;
   border-radius: 50%;
-  /* border-width: 2px; */
-  /* border-style: solid; */
-  /* border-color: white; */
-  /* background-color: aqua; */
   background-image: conic-gradient(
     transparent var(--angle1), 
     white var(--angle1) var(--angle2),  
