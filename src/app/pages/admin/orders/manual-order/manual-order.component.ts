@@ -44,7 +44,7 @@ export class ManualOrderComponent  {
           (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
         }
         this.shop.user.setDetails = order.user;
-        this.shop.basket.updateQuantity("0001",order.items[0].quantity);
+        // this.shop.basket.updateQuantity("0001",order.items[0].quantity);
       }
     })
   }

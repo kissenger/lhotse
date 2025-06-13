@@ -1,5 +1,5 @@
 
-import { ComponentRef, Injectable, ViewContainerRef } from '@angular/core';
+import { ComponentRef, inject, Injectable, NgZone, ViewContainerRef } from '@angular/core';
 import { ToastComponent } from '@shared/components/toast/toast.component'
 
 /*
@@ -11,12 +11,15 @@ import { ToastComponent } from '@shared/components/toast/toast.component'
   Some Refs:
     https://blog.venturemagazine.net/mastering-angular-toast-notifications-a-complete-guide-from-zero-to-hero-33c853bac36f
     https://stackblitz.com/edit/angular-19-portaloutlet-toast-service-njygavfb?file=src%2Ftoast.service.ts
+    https://angular.dev/errors/NG0506 <--timeouts cause unstable error, fix is in here
 */
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class ToastService {
+  ngZone = inject(NgZone);
 
 	viewContainerRef!: ViewContainerRef;
 
@@ -37,15 +40,19 @@ export class ToastService {
     }
     componentRef.instance.dismiss.subscribe( () => this.close(componentRef) );
     componentRef.location.nativeElement.children[0].classList.add('show', type);
-    setTimeout(() => {
-      this.close(componentRef)
-    }, duration);
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => {
+        this.close(componentRef)
+      }, duration);
+    });
   }
 
   close(cr: ComponentRef<ToastComponent>) {
     cr.location.nativeElement.children[0].classList.remove('show');
-    setTimeout(() => {
-      cr.destroy();
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => {
+        cr.destroy();
+      }, 1000);
+    });
   }
 }

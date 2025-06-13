@@ -8,7 +8,7 @@ import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
-import { discountCodes, maxOrderQty } from '@shared/globals';
+import { discountCodes, maxPackageWeight } from '@shared/globals';
 
 
 @Component({
@@ -30,7 +30,7 @@ export class BasketComponent {
     public shop: ShopService,
     public toaster: ToastService,
   ) {
-    this.shop.basket.clear();
+    this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
     this.shop.basket.add(this.shop.item("0002"),0);
     this.shop.basket.add(this.shop.item("0003"),0);
@@ -38,7 +38,6 @@ export class BasketComponent {
   
   async ngOnInit() {
 
-    this.shop.basket.discountPercent = 0;
     let paypal;
     
     try {
@@ -57,6 +56,10 @@ export class BasketComponent {
         await paypal.Buttons({
 
           async createOrder() {
+            if(that.shop.basket.totalCost===0) {
+              that.toaster.show("Nothing in basket", "warning");
+              return;
+            }
             let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.order);
             that.shop.orderNumber = res.orderNumber;
             return res.paypalOrderId;              
@@ -93,7 +96,7 @@ export class BasketComponent {
 
           async onShippingOptionsChange(data, actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
-              that.shop.basket.shippingOption = data.selectedShippingOption?.id;
+              that.shop.basket.selectedShippingLabel = data.selectedShippingOption?.id;
               await that._http.patchPaypalOrder(
                 that.shop.orderNumber ?? '',
                 data.orderID,
@@ -112,15 +115,8 @@ export class BasketComponent {
     }
   }
 
-
   onPlusMinus(id: string, increment: number) {
-    const min = 0;
-    const max = maxOrderQty; //imported from config file
-    const qty = this.shop.basket.getQuantity(id);
-    if (this.shop.basket.totalQty+increment <= max) {
-      const newQty = Math.min(max,Math.max(min,qty+increment))
-      this.shop.basket.updateQuantity(id, newQty)
-    }
+    this.shop.basket.incrementQty(id, increment);
   }
 
   onCodeChange() {

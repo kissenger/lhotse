@@ -78,7 +78,7 @@
   
     <div class="basket-item">
       <div class="basket-item-description">
-        <div class="basket-item-text">Shipping ({{shop.basket.shippingOption}})</div>
+        <div class="basket-item-text">Shipping ({{shop.basket.selectedShippingLabel}})</div>
         <div>{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
       </div>
       <div class="basket-item-note">
@@ -94,7 +94,7 @@
       </div>
     </div>
 
-    <div class="basket-item">
+    <!-- <div class="basket-item">
       <div class="basket-item-description">
         <div class="basket-item-text">
           I would like my book to be signed by the authors
@@ -104,7 +104,7 @@
       <div class="basket-item-note">
         If you wish for a specific message, please contact us by email to arrange
       </div>
-    </div>
+    </div> -->
     
     <div class="basket-item">
       <div class="basket-item-description">

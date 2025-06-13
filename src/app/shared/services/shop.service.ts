@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
-import {StockItem, BasketItem, OrderType} from '@shared/types';
-import {shippingOptions} from '@shared/globals';
-import { Order } from '@paypal/paypal-server-sdk';
+import {StockItem, BasketItem, OrderType, PayPalShippingOption, ShippingMethod} from '@shared/types';
+import {maxPackageWeight, shippingOptionsByWeight} from '@shared/globals';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +23,7 @@ export class ShopService {
             name: "Snorkelling Britain",
             description: "Snorkelling Britain guidebook (ISBN 978-1910636473)",
             unit_amount: { currency_code: 'GBP', value: 18.99 },
+            // maxOrderQty: 5,
             isInStock: true,
             image: {
                 src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
@@ -103,12 +103,11 @@ export class ShopService {
         return {
             orderSummary: {
                 discountInfo: this.basket.discountInfo,
-                // isNoCharge: this.basket.isNoCharge,
                 orderType: this.basket.orderType,
                 notes: this._orderNotes,
                 user: this._user.json,
                 items: this.basket.items,
-                shippingOption: this.basket.shippingOption,
+                shippingOption: this.basket.selectedShippingLabel,
                 costBreakdown: this.basket.costBreakdown,
                 endPoint: 'manual',
                 signedByAuthors: 'false'
@@ -135,9 +134,9 @@ export class ShopService {
                                 }
                             }
                         },
-                        items: this.basket.items,
+                        items: this.basket.items.filter( item => item.quantity!=0),
                         shipping: {
-                            options: this.basket.shippingOptions
+                            options: this.basket.paypalShippingOptions
                         }
                     }]
                 }
@@ -146,42 +145,6 @@ export class ShopService {
     }
 }
 
-
-export class Shipping {
-
-    private _shippingOptions = shippingOptions;
-    private _activeShippingOption = this._shippingOptions.find(option=>option.default===true) || this._shippingOptions[0];
-
-    set activeShippingOption(label: string) {
-        this._activeShippingOption = this._shippingOptions.find(option=>option.label===label) || this._shippingOptions[0];
-    } 
-
-    get activeShippingOption(): {label: string, costs: Array<number>, default: boolean} {
-        return this._activeShippingOption;
-    }
-
-    getShippingOptions(qty: number) {
-        let options: any = [];
-        this._shippingOptions.forEach( (option: {label: string, costs: Array<number>, default: boolean}) => {
-            options.push({
-                id: option.label,
-                label: option.label,
-                selected: option.label === this._activeShippingOption.label,
-                type: 'SHIPPING',
-                amount: {
-                    currency_code: 'GBP',
-                    value: option.costs[qty]
-                }
-            }) 
-        })
-        return options;
-    }
-
-    getShippingCost(qty: number) {
-        return this._activeShippingOption.costs[Math.min(4,qty)];
-    }
-
-}
 
 export class User {
 
@@ -226,33 +189,43 @@ export class User {
   
 
 class Basket {
-    private _shipping = new Shipping();
+
     private _basketItems: Array<BasketItem> = [];
+    // private _weightOfItems: number = 0;
     private _discountPercent: number = 0;
     private _discountCode: string = '';
-    // private _isNoCharge: boolean = false;
     private _orderType: OrderType = 'manualOrder';
+    // private _parcelType: ShippingMethod = shippingOptionsByWeight[0];
+    private _parcelType: ShippingMethod | undefined;
+    private _selectedShippingLabel: string | undefined;
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
         delete itemForBasket.isInStock;
         this._basketItems.push(itemForBasket);
+        this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
     }
 
-    clear() {
-        this._basketItems = [];
-    }
+    // clear() {
+    //     this._basketItems = [];
+    // }
 
-    getQuantity(id:string) {
-        return this._basketItems.find(item=>item.id==id)?.quantity || 0;
-    }
+    // getQuantity(id:string) {
+    //     return this._basketItems.find(item=>item.id==id)?.quantity || 0;
+    // }
 
-    updateQuantity(itemId: string, newQty: number) {
-        let item = this._basketItems.find(item=>item.id===itemId);
-        if (item) {
-            item.quantity = newQty;
-        }
-    }
+    // updateQuantity(itemId: string, newQty: number) {
+    //     this._basketItems.find(item=>item.id===itemId)!.quantity = newQty;
+    //     this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
+    // }
+
+    incrementQty(itemId: string, inc: number) {
+        const item = this._basketItems.find(item=>item.id===itemId)!;
+        if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < maxPackageWeight) ) {
+            item.quantity += inc;
+            this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
+        } 
+   }
 
     set orderType(ot: OrderType) {
         this._orderType = ot;
@@ -286,10 +259,6 @@ class Basket {
         return this._discountPercent;
     }
 
-    get discountValue() {
-        return Math.trunc(Math.round(-this.itemsCost * 100) * this._discountPercent/100) / 100;
-    }
-
     get costBreakdown() {
         return {
             items: this.itemsCost,
@@ -299,44 +268,69 @@ class Basket {
         }
     }
 
-    get shippingOption() {
-        return this._shipping.activeShippingOption.label
+    //weight of package excluding packaging
+    get weightOfItems() {
+        return this._basketItems.reduce( (sum,item) => sum + item.weightInGrams*item.quantity, 0);
     }
 
-    get shippingOptions() {
-        return this._shipping.getShippingOptions(this.totalQty);
-    }
-
-    set shippingOption(so: string) {
-        this._shipping.activeShippingOption = so;
-    }
-    
-    get itemsCost(): number {
-        // if (this._isNoCharge) {
-        //     return 0;
-        // } else {
-            let sum = 0;
-            for (let basketItem of this._basketItems) {
-                sum += basketItem.unit_amount.value * basketItem.quantity;
-            }
-            return Math.round(sum*100)/100;
-        // }
+    get totalOrderWeight() {
+        return this.weightOfItems + this._parcelType!.packagingWeight;
     }
 
     get shippingCost(): number {
-        return this._shipping.getShippingCost(this.totalQty);
+        
+        if (this._selectedShippingLabel) {
+            try {
+                return this._parcelType!.services.find( s => s.label===this._selectedShippingLabel)!.cost;
+            } catch {
+                this._selectedShippingLabel = undefined;
+                this._parcelType!.services[0].cost;
+            }
+        } 
+        return this._parcelType!.services[0].cost;
+    }    
+    
+    get parcelType(): ShippingMethod {
+        return this._parcelType!;
     }
 
-    get totalCost() : number {
+    set selectedShippingLabel(label: string) {
+        this._selectedShippingLabel = label;
+    }
+
+    get selectedShippingLabel() {
+        return this._selectedShippingLabel || this._parcelType!.services[0].label;
+    }    
+
+    // called only when paypal pay button is pressed
+    get paypalShippingOptions(): Array<PayPalShippingOption> {
+        return this._parcelType!.services.map( (s,i) => ({
+            id: s.label,
+            label: s.label,
+            selected: this._selectedShippingLabel ? this._selectedShippingLabel===s.label : i===0,
+            type: 'SHIPPING',
+            amount: {
+                currency_code: 'GBP',
+                value: s.cost
+            }
+        }));
+    }
+    
+    get discountValue() {
+        return Math.trunc(Math.round(-this.itemsCost * 100) * this._discountPercent/100) / 100;
+    } 
+
+    get itemsCost(): number {
+        return Math.round(this._basketItems.reduce((sum,item) => sum + item.unit_amount.value*item.quantity,0)*100)/100;
+    }
+
+
+    get totalCost(): number {
         return Math.round((this.itemsCost + this.shippingCost + this.discountValue) * 100) / 100;
     }
 
-    get totalQty(): number {
-        let sum = 0
-        for (let basketItem of this._basketItems) {
-            sum += basketItem.quantity;
-        }
-        return sum
+    get itemQty(): number {
+        return this._basketItems.reduce( (sum,item) => sum+item.quantity,0);
     }
 
     get items(): Array<BasketItem> {

@@ -20,6 +20,27 @@ export interface BasketItem extends Omit<StockItem, 'isInStock'> {
   quantity: number;
 }
 
+export interface PayPalShippingOption {
+  id: string,
+  label: string,
+  selected: boolean,
+  type: 'SHIPPING',
+  amount: {
+      currency_code: 'GBP',
+      value: number
+  }
+}
+
+export interface ShippingMethod {
+  packageType: string,
+  maxWeight: number,
+  packagingWeight: number,
+  services: Array<{
+    label: string,
+    cost: number
+  }>
+}
+
 export interface PayPalCreateOrder {
   orderSummary: OrderSummary,
   paypal: {
