@@ -64,7 +64,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
         this._seo.updateTitle(this.post.title);
         this._seo.updateKeywords(this.post.keywords.join(', '));
-        this._seo.updateDescription(`A blog post authored by Snorkelogy. ${this.post.subtitle}`);
+        this._seo.updateDescription(`A blog post from the authors of Snorkelling Britain - ${this.post.subtitle}`);
 
         let entity: string;
         if (this.post.type === 'faq') {
@@ -95,8 +95,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         "name": "Snorkelology",
         "url": "https://snorkelology.co.uk",
         "logo": "https://snorkelology.co.uk/banner/snround.webp",
-        "description": "Snorkelology is a website dedicated to snorkelling in Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and learn about our forecoming book: Snorkelling Britain.",
-        "sameAs": "https://instagram.com/snorkelology"},
+        "description": "Snorkelology is a website from the authors of Snorkelling Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and purchase our book",
+        "sameAs": [
+          "https://instagram.com/snorkelology",
+          "https://www.youtube.com/@snorkelology", 
+          "https://www.facebook.com/snorkelology"
+        ]},
       "blogPost": [{
         "@type": "BlogPosting",
         "@id": "https://snorkelology.co.uk/blog/${this.post.slug}",
@@ -105,7 +109,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         "name": "${this.post.title}",
         "datePublished": "${this.post.createdAt}",
         "dateModified": "${this.post.updatedAt}",
-        "description": "A blog post authored by Snorkelogy. ${this.post.subtitle}",
+        "description": "A blog post from the authors of Snorkelling Britain - ${this.post.subtitle}",
         "author": {
           "@type": "organization",
           "@id": "https://snorkelology.co.uk",
