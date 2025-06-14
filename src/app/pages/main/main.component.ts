@@ -2,23 +2,23 @@ import { ActivatedRoute, RouterLink} from '@angular/router';
 import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { ScreenService } from '@shared/services/screen.service';
-import { ScrollspyService } from '@shared/services/scrollspy.service';
-import { AboutUsComponent } from '@pages/main/about/about.component';
-import { SlideshowComponent } from '@pages/main/slideshow/slideshow.component';
-import { ExploreComponent } from '@pages/main/explore/explore.component';
-import { FAQComponent } from '@pages/main/faq/faq.component';
-import { PartnersComponent } from '@pages/main/partners/partners.component';
-import { BookComponent } from '@pages/main/book/book.component';
-import { SEOService } from '@shared/services/seo.service';
-import { BlogBrowserComponent } from '@pages/main/explore/blog-browser/browser.component';
-import { BasketComponent } from '@pages/main/book/basket/basket.component';
+import { ScreenService } from        '@shared/services/screen.service';
+import { ScrollspyService } from     '@shared/services/scrollspy.service';
+import { SEOService } from           '@shared/services/seo.service';
+import { SlideshowComponent } from   '@pages/main/00 slideshow/slideshow.component';
+import { AboutUsComponent } from     '@pages/main/01 about/about.component';
+import { BlogComponent } from        '@pages/main/02 blog/blog.component';
+import { BlogBrowserComponent } from '@pages/main/02 blog/blog-browser/browser.component';
+import { BookComponent } from        '@pages/main/03 book/book.component';
+import { ShopComponent } from        '@pages/main/04 shop/shop.component';
+import { FAQComponent } from         '@pages/main/05 faq/faq.component';
+import { PartnersComponent } from    '@pages/main/06 partners/partners.component';
 
 @Component({
   standalone: true,
   providers: [BlogBrowserComponent, ScreenService],
   imports: [
-    SlideshowComponent, AboutUsComponent, ExploreComponent, BasketComponent,
+    SlideshowComponent, AboutUsComponent, BlogComponent, ShopComponent,
     FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink, NgOptimizedImage
   ],
   selector: 'app-main',

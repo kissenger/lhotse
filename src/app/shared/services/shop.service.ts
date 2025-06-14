@@ -191,11 +191,9 @@ export class User {
 class Basket {
 
     private _basketItems: Array<BasketItem> = [];
-    // private _weightOfItems: number = 0;
     private _discountPercent: number = 0;
     private _discountCode: string = '';
     private _orderType: OrderType = 'manualOrder';
-    // private _parcelType: ShippingMethod = shippingOptionsByWeight[0];
     private _parcelType: ShippingMethod | undefined;
     private _selectedShippingLabel: string | undefined;
 
@@ -205,19 +203,6 @@ class Basket {
         this._basketItems.push(itemForBasket);
         this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
     }
-
-    // clear() {
-    //     this._basketItems = [];
-    // }
-
-    // getQuantity(id:string) {
-    //     return this._basketItems.find(item=>item.id==id)?.quantity || 0;
-    // }
-
-    // updateQuantity(itemId: string, newQty: number) {
-    //     this._basketItems.find(item=>item.id===itemId)!.quantity = newQty;
-    //     this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
-    // }
 
     incrementQty(itemId: string, inc: number) {
         const item = this._basketItems.find(item=>item.id===itemId)!;

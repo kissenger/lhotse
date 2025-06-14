@@ -1,138 +1,138 @@
 <main>
-<div class="wrapper">
+    <!-- <div class="wrapper"> -->
 
-    <div class="static-div">
-        <form>
-            <label for="select">Select a post to edit:</label>
-            <select #blogs [ngModel]="selectedPost.slug" (ngModelChange)="onFormSelect($event)" name="select" id="select">
-                @for(post of posts; track post) {
-                    <option value="{{post.slug}}">
-                        {{post.title}} - {{post.isPublished ? 'Published' : 'Draft'}}
-                    </option>
-                }
-            </select>
-            <a href="{{baseURL}}{{selectedPost.slug}}" target="_blank">preview</a> 
-        </form>
-
-        <button type="submit" class="formButton" (click)="onSave()">Save</button>
-        <button type="button" class="formButton" (click)="onYesDelete(false)">Delete</button>
-        <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> 
-            Are you sure? 
-            <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
-            <button type="button" class="formButton" (click)="onNoDelete()">No</button></span>
-
-    </div>
-
-    <div class="scrolling-div">
-
-        <form #blogForm="ngForm">
-
-            <div>
-                <span class="label">Slug:</span>
-                <span name="slug" id="slug">{{makeSlug()}}</span>
-            </div>
-
-            <div>
-                <label for="publish">Publish:</label>
-                <select #publish [(ngModel)]="selectedPost.isPublished" name="publish" id="publish">
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="type">Type:</label>
-                <select #type [(ngModel)]="selectedPost.type" name="type" id="type">
-                    <option value="faq">faq</option>
-                    <option value="article">article</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="title">Title:</label>
-                <input type="text" id="title" name="title" [class.alert]="wordCount(selectedPost.title, 7)" [(ngModel)]="selectedPost.title">
-            </div>
-            
-            <div>
-                <label for="subtitle">Subtitle:</label>
-                <textarea type="text" id="subtitle" [class.alert]="wordCount(selectedPost.subtitle, 30)" name="subtitle" [(ngModel)]="selectedPost.subtitle"></textarea>
-            </div>
-
-            <div>
-                <label for="keywords">Keywords:</label>
-                <input type="text" id="keywords" name="keywords" (change)="onKeywordsChange($event)" [ngModel]="selectedPost.keywords">
-            </div>          
-            
-            <div>
-                <label for="kwList">Add from list:</label>
-                <select #kwList [ngModel]="uniqueKeywords" (ngModelChange)="onAddKW($event)" name="kwList" id="kwList">
-                    @for (kw of uniqueKeywords; track kw) {
-                        <option value="{{kw}}">{{kw}}</option>
+        <div class="static-div">
+            <form>
+                <label for="select">Select a post to edit:</label>
+                <select #blogs [ngModel]="selectedPost.slug" (ngModelChange)="onFormSelect($event)" name="select" id="select">
+                    @for(post of posts; track post) {
+                        <option value="{{post.slug}}">
+                            {{post.title}} - {{post.isPublished ? 'Published' : 'Draft'}}
+                        </option>
                     }
                 </select>
-            </div>
-            <div>
-                <label for="fname">Image filename:</label>
-                <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname">                   
-            </div>
+                <a href="{{baseURL}}{{selectedPost.slug}}" target="_blank">preview</a> 
+            </form>
 
-            <div>
-                <label for="alt">Image Alt Text:</label>
-                <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt">
-            </div>
+            <button type="submit" class="formButton" (click)="onSave()">Save</button>
+            <button type="button" class="formButton" (click)="onYesDelete(false)">Delete</button>
+            <span [ngClass]="askForConfirmation? 'showButton' : ''" class="sureButton"> 
+                Are you sure? 
+                <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+                <button type="button" class="formButton" (click)="onNoDelete()">No</button></span>
 
-            <div>
-                <label for="intro">Intro:</label>
-                <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea>
-            </div>
+        </div>
 
-            <div>
-                <label for="callToAction">Conclusion:</label>
-                <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.conclusion"></textarea>
-            </div>
+        <div class="scrolling-div">
 
-            @for(section of selectedPost.sections; track section.title) {
-                <hr>
+            <form #blogForm="ngForm">
+
                 <div>
-                    <span class="label">Section {{$index+1}}</span>
-                    <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this section</button>
-                    <span class="movespan">Move section:</span> 
-                    <select #moveSection (change)="onMoveSection($index, moveSection.value)" name="moveSection" id="moveSection">
-                        <option disabled selected value> -- Select a section to move to -- </option>
-                        @for(s of selectedPost.sections; track s.title) {
-                            @if(s.title !== section.title) {
-                                <option [value]="$index">{{s.title}}</option>
-                            }
-                        }
+                    <span class="label">Slug:</span>
+                    <span name="slug" id="slug">{{makeSlug()}}</span>
+                </div>
+
+                <div>
+                    <label for="publish">Publish:</label>
+                    <select #publish [(ngModel)]="selectedPost.isPublished" name="publish" id="publish">
+                        <option value="true">true</option>
+                        <option value="false">false</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="question{{$index}}">Title:</label>
-                    <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="section.title">
+                    <label for="type">Type:</label>
+                    <select #type [(ngModel)]="selectedPost.type" name="type" id="type">
+                        <option value="faq">faq</option>
+                        <option value="article">article</option>
+                    </select>
                 </div>
 
                 <div>
-                    <label for="answer{{$index}}">Content:</label>
-                    <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="section.content"></textarea>
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" [class.alert]="wordCount(selectedPost.title, 7)" [(ngModel)]="selectedPost.title">
+                </div>
+                
+                <div>
+                    <label for="subtitle">Subtitle:</label>
+                    <textarea type="text" id="subtitle" [class.alert]="wordCount(selectedPost.subtitle, 30)" name="subtitle" [(ngModel)]="selectedPost.subtitle"></textarea>
                 </div>
 
                 <div>
-                    <label for="fname{{section.title}}">Image filename:</label>
-                    <input type="text" id="fname{{$index}}" name="fname{{$index}}" [(ngModel)]="section.imgFname">                   
-                </div>
-    
+                    <label for="keywords">Keywords:</label>
+                    <input type="text" id="keywords" name="keywords" (change)="onKeywordsChange($event)" [ngModel]="selectedPost.keywords">
+                </div>          
+                
                 <div>
-                    <label for="alt{{$index}}">Image Alt Text:</label>
-                    <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
-                </div>              
+                    <label for="kwList">Add from list:</label>
+                    <select #kwList [ngModel]="uniqueKeywords" (ngModelChange)="onAddKW($event)" name="kwList" id="kwList">
+                        @for (kw of uniqueKeywords; track kw) {
+                            <option value="{{kw}}">{{kw}}</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label for="fname">Image filename:</label>
+                    <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname">                   
+                </div>
 
-                @if ($last) {
-                    <button type="button" class="qaButton" (click)="addQA()">New section</button>
+                <div>
+                    <label for="alt">Image Alt Text:</label>
+                    <input type="text" id="alt" name="alt" [(ngModel)]="selectedPost.imgAlt">
+                </div>
+
+                <div>
+                    <label for="intro">Intro:</label>
+                    <textarea type="text" id="intro" name="intro" [(ngModel)]="selectedPost.intro"></textarea>
+                </div>
+
+                <div>
+                    <label for="callToAction">Conclusion:</label>
+                    <textarea type="text" id="callToAction" name="callToAction" [(ngModel)]="selectedPost.conclusion"></textarea>
+                </div>
+
+                @for(section of selectedPost.sections; track $index) {
+                    <hr>
+                    <div>
+                        <span class="label">Section {{$index+1}}</span>
+                        <button class="qaButton" type="button" (click)="deleteQA($index)">Delete this section</button>
+                        <span class="movespan">Move section:</span> 
+                        <select #moveSection (change)="onMoveSection($index, moveSection.value)" name="moveSection{{$index}}" id="moveSection{{$index}}">
+                            <option disabled selected value> -- Select a section to move to -- </option>
+                            @for(s of selectedPost.sections; track s.title) {
+                                @if(s.title !== section.title) {
+                                    <option [value]="$index">{{s.title}}</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="question{{$index}}">Title:</label>
+                        <input type="text" id="question{{$index}}" name="question{{$index}}" [(ngModel)]="section.title">
+                    </div>
+
+                    <div>
+                        <label for="answer{{$index}}">Content:</label>
+                        <textarea type="text" id="answer{{$index}}" name="answer{{$index}}" [(ngModel)]="section.content"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="fname{{$index}}">Image filename:</label>
+                        <input type="text" id="fname{{$index}}" name="fname{{$index}}" [(ngModel)]="section.imgFname">                   
+                    </div>
+        
+                    <div>
+                        <label for="alt{{$index}}">Image Alt Text:</label>
+                        <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
+                    </div>              
+
+                    @if ($last) {
+                        <button type="button" class="qaButton" (click)="addQA()">New section</button>
+                    }
                 }
-            }
 
-        </form>
-    </div>
-</div>
+            </form>
+        </div>
+    <!-- </div> -->
 </main>

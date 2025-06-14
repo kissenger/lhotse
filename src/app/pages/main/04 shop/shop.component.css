@@ -1,6 +1,80 @@
 
 /* solution for animating height: https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/ */
 
+
+.basket {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  /* border-bottom: 1px var(--banner-colour) solid; */
+
+}
+
+.last-row {
+  border-bottom: 1px var(--border-colour) solid;
+}
+
+.basket-item {
+  border-top: 1px var(--border-colour) solid;
+  width: 100%;
+  padding-block: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.basket-item > img {
+  height: 100px;
+}
+
+.basket-item > .text {
+  margin-left: 1rem;
+  flex-grow: 1;
+  /* max-width: 50%; */
+}
+
+
+.basket-item > .text.indented {
+  /* margin-left: auto; */
+  text-align: right;
+}
+
+.basket-item > .qty {
+  width: 15%;
+  display: flex;
+  justify-content: center;
+}
+
+.basket-item > .value {
+  min-width: 15%;
+  max-width: 15%;
+  text-align: right;
+}
+
+.basket-item > .value-wide {
+  min-width: 30%;
+  max-width: 30%;
+  text-align: right;
+}
+
+.basket-item > .value-wide.discount {
+  padding-inline: 1em;
+  background-color: aqua;
+}
+
+.basket-item-note {
+  display: block;
+  font-size: small;
+  margin-top: -1rem;
+}
+
+.basket-item-note-right {
+  text-align: right;
+}
+
 .hidden-basket-item-wrapper {
   display: grid;
   grid-template-rows: 0fr;
@@ -17,73 +91,17 @@
   overflow: hidden;
 }
 
-.basket {
-  margin-top: 2em;
-  margin-bottom: 2em;
-  /* display: flex; */
-  /* border-bottom: 1px var(--banner-colour) solid; */
-
-}
-
-.last-row {
-  border-bottom: 1px var(--banner-colour) solid;
-}
-
-.basket-item {
-  border-top: 1px var(--banner-colour) solid;
-  /* display: flex; */
-}
-
-.basket-item-description {
-  padding-block: 1rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.basket-item-image-box {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    /* border: 1px red solid; */
-    /* width: 100%; */
-  }
-
-.basket-item-image-box > img {
-  height: 100px;
-  margin-inline: auto;
-  align-content: center;
-  justify-content: center;
-}
-
-.basket-item-text {
-  margin-left: 1rem;
-  flex-grow: 1;
-  max-width: 50%;
-  /* text-wrap: nowrap; */
-}
-
-.basket-item-qty {
-  display: flex;
-  flex-grow: 1;
-  justify-content: center;
-}
-
-.basket-item-note {
-  display: block;
-  font-size: small;
-  margin-top: -1rem;
-}
-.basket-item-note-right {
-  text-align: right;
-}
-
-
 .total {
   margin-inline: 7em;
   padding-block: 1em;
   display: flex;
 }
 
+.below-basket-container {
+  margin-top: 2rem;
+  width: 75%;
+  margin-inline: auto;
+}
 
 input {
   text-align: center;
@@ -106,10 +124,11 @@ input.qty {
 }
 
 input.discount {
-  /* flex-grow: 1; */
+  text-align: center;
+  /* width: calc(100% - 1rem); */
   width: 100%;
-  text-align: right;
-  margin-left: 1rem;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
 }
 
 .plus-minus {

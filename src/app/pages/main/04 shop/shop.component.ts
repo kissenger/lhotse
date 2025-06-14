@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule, CurrencyPipe, NgOptimizedImage} from '@angular/common';
+import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
@@ -9,21 +9,23 @@ import { HttpService } from '@shared/services/http.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
 import { discountCodes, maxPackageWeight } from '@shared/globals';
+import { stage } from '@shared/globals';
 
 
 @Component({
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, NgOptimizedImage],
-  selector: 'app-basket',
-  templateUrl: './basket.component.html',
-  styleUrls: ['./basket.component.css', '../../../main/main.component.css']
+  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent],
+  selector: 'app-shop',
+  templateUrl: './shop.component.html',
+  styleUrls: ['./shop.component.css', '../main.component.css']
 })
 
-export class BasketComponent {
+export class ShopComponent {
 
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
+  public stage = stage;
 
   constructor(
     private _http: HttpService,
@@ -33,7 +35,7 @@ export class BasketComponent {
     this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
     this.shop.basket.add(this.shop.item("0002"),0);
-    this.shop.basket.add(this.shop.item("0003"),0);
+    // this.shop.basket.add(this.shop.item("0003"),0);
   }
   
   async ngOnInit() {
@@ -54,7 +56,11 @@ export class BasketComponent {
       try {
         const that = this;
         await paypal.Buttons({
-
+          style: {
+            // borderRadius: 0,
+            shape: 'sharp',
+            height: 50
+          },
           async createOrder() {
             if(that.shop.basket.totalCost===0) {
               that.toaster.show("Nothing in basket", "warning");
