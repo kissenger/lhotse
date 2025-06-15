@@ -82,16 +82,7 @@ h1 {
     }
   }
   
-  .kw {
-    border: 1px solid var(--border-colour);
-    padding: 0.25em;
-    margin: 0.5em 0.25em 0.25em 0em;
-    border-radius: 5px;
-    letter-spacing: -1px;
-    background-color: whitesmoke;
-  }
 
-  
 .kw {
   background-color: whitesmoke;
   border: 1px solid var(--border-colour);

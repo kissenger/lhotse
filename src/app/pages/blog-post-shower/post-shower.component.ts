@@ -119,8 +119,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           "@id": "https://snorkelology.co.uk/assets/${this.post.imgFname}",
           "url": "https://snorkelology.co.uk/assets/${this.post.imgFname}" },
         "url": "https://snorkelology.co.uk/blog/${this.post.slug}"
-        }]
-        `
+      }]
+    }`
   }
 
   makeFaqEntity(): string {

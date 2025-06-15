@@ -87,6 +87,15 @@ input.qty {
   width: 1.8rem;
 }
 
+input.qty::-webkit-outer-spin-button,
+input.qty::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input.qty[type=number]{
+    -moz-appearance: textfield;
+}
+
 input.discount {
   /* flex-grow: 1; */
   width: 100%;
