@@ -77,6 +77,7 @@ export class BlogEditorComponent implements OnInit {
     const elementToMove = this.selectedPost.sections[fromIndex];
     this.selectedPost.sections.splice(fromIndex,1);
     this.selectedPost.sections.splice(parseInt(toIndex),0,elementToMove);
+    console.log(this.selectedPost)
   }
 
   addQA() {

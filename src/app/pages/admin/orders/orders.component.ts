@@ -89,10 +89,12 @@ export class OrdersComponent  {
 
   async getOrders() {
 
+    document.body.style.cursor = 'wait';
     try {
       let os = await this._http.getOrders(this.filterOnline, this.filterManual, this.filterTest, this.filterStatus, this.textSearch)
       this.orders = os.filter( (o:any) => !!o.orderNumber);
     } catch (error) {
+      document.body.style.cursor = 'auto';
       console.error(error);
     }
 
@@ -121,6 +123,7 @@ export class OrdersComponent  {
         }
       }
     })
+    document.body.style.cursor = 'auto';
     console.log(sums)
     
 

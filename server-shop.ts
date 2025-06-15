@@ -39,7 +39,8 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
 
     const json = await result.json();
     if (Array.isArray(json.details)) {
-      throw new Error(json.details);
+      console.log(json.details)
+      throw new Error(json.details[0]);
     } else {
       const resp = await logShopEvent( orderNumber, 
         { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 

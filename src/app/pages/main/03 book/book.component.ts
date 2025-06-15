@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { stage } from '@shared/globals';
 
 @Component({
   standalone: true,
@@ -10,6 +11,8 @@ import { NgOptimizedImage } from '@angular/common';
   styleUrls: ['../main.component.css']
 })
 
-export class BookComponent {}
+export class BookComponent {
+  public stage = stage;
+}
 
 

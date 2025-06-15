@@ -32,13 +32,14 @@ export class LoginComponent {
   async onSubmit() {
 
     try {
+      document.body.style.cursor = 'wait';
       let res = await this._http.login(this.user);
-      // let decode = this._auth.decodeToken(res.token);
+      document.body.style.cursor = 'auto';
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
     } catch (error: any) {
       console.log(error);
-      this._toaster.show(<string>error.error.message, 'error');
+      // this._toaster.show(<string>error.error.message, 'error');
     }
   }
 

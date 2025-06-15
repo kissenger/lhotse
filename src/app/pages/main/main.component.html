@@ -46,22 +46,24 @@
 
   <div #anchor class="anchor" id="about-us">
     <app-about></app-about> 
+    <app-blog></app-blog>
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  @if (isBlogData) {
+  <!-- @if (isBlogData) {
     <div #anchor class="anchor" id="blog">
-      <app-explore></app-explore>
+      <app-blog></app-blog>
       <div #window id="windowTwo" class="window"></div>
     </div>
-  }
+  } -->
 
   <div #anchor class="anchor" id="snorkelling-britain">
     <app-book></app-book>
+    <div #window id="windowTwo" class="window"></div>
   </div>
 
-  <div #anchor class="anchor" id="buy-now">
-    <app-basket></app-basket>
+  <div #anchor class="anchor" id="shop">
+    <app-shop></app-shop>
     <div #window id="windowThree" class="window"></div>  
   </div>
 

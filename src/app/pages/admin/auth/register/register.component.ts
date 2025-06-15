@@ -36,7 +36,9 @@ export class RegisterComponent {
 
   async onSubmit() {
     try {
+      document.body.style.cursor = 'wait';
       let res = await this._http.register(this.user);
+      document.body.style.cursor = 'auto';
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
     } catch (error) {

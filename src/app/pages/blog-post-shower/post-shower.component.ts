@@ -9,7 +9,7 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
-import { environment } from '@environments/environment';
+import { stage } from '@shared/globals';
 // import { Router } from 'express';
 
 @Component({
@@ -25,7 +25,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   public isReadyToLoad: boolean = false;
   public nextSlug: string = '';
   public lastSlug: string = '';
-  public stage=environment.STAGE;
+  public stage = stage;
   private _routeSubs: Subscription | undefined;  
 
   constructor(
