@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {StockItem, BasketItem, OrderType, PayPalShippingOption, ShippingMethod} from '@shared/types';
-import {maxPackageWeight, shippingOptionsByWeight} from '@shared/globals';
+import {StockItem, BasketItem, OrderType, PayPalShippingOption, ParcelType} from '@shared/types';
+import {shippingOptions, shopItems} from '@shared/globals';
 
 @Injectable({
   providedIn: 'root'
@@ -18,41 +18,7 @@ export class ShopService {
     constructor() {
         this._basket = new Basket();
         this._user = new User();
-        this._items = [{
-            id: "0001",
-            name: "Snorkelling Britain",
-            description: "Snorkelling Britain guidebook (ISBN 978-1910636473)",
-            unit_amount: { currency_code: 'GBP', value: 18.99 },
-            // maxOrderQty: 5,
-            isInStock: true,
-            image: {
-                src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
-                alt: 'Snorkelling Britain book cover in 3D '
-            },
-            weightInGrams: 660
-        }, {
-            id: "0002",
-            name: "Snorkelling Britain Signed",
-            description: "Snorkelling Britain guidebook (ISBN 978-1910636473), signed by the authors",
-            unit_amount: { currency_code: 'GBP', value: 18.99 },
-            image: {
-                src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
-                alt: 'Snorkelling Britain book cover in 3D '
-            },
-            isInStock: true,
-            weightInGrams: 660
-        }, {
-            id: "0003",
-            name: "Snorkelology logo sticker",
-            description: "5 x Snorkelology logo sticker (50mm diameter)",
-            unit_amount: { currency_code: 'GBP', value: 3.99 },
-            image: {
-                src: 'photos/shop/snorkelology-stickers.jpg',
-                alt: 'Image showing five Snorkelology logo stickers'
-            },
-            isInStock: true,
-            weightInGrams: 50
-        }]
+        this._items = shopItems;
     }
 
     set orderNotes(notes:string) {
@@ -107,7 +73,7 @@ export class ShopService {
                 notes: this._orderNotes,
                 user: this._user.json,
                 items: this.basket.items,
-                shippingOption: this.basket.selectedShippingLabel,
+                shippingOption: this.basket.selectedShippingService,
                 costBreakdown: this.basket.costBreakdown,
                 endPoint: 'manual',
                 signedByAuthors: 'false'
@@ -194,21 +160,38 @@ class Basket {
     private _discountPercent: number = 0;
     private _discountCode: string = '';
     private _orderType: OrderType = 'manualOrder';
-    private _parcelType: ShippingMethod | undefined;
-    private _selectedShippingLabel: string | undefined;
+    private _parcelType: ParcelType | undefined;
+    private _packagingType: any;
+    private _selectedShippingService: string | undefined;
+
+    selectPackaging() {
+        let packagingOptions = [{
+                type: "envelope",
+                weight: "5",
+                maxDimensions: [6,113,160]
+            }, {
+                type: "packet",
+                weight: "75",
+                maxDimensions: [500,190,295]                
+            }
+        ]
+        // let minPackageDimensions = this._basketItems.reduce( (acc,item) => acc.map((el,i)=>el+item.dimensions[i]),[0,0,0]);
+        let minPackageThickness = this._basketItems.reduce((thickness,item)=>thickness+item.dimensions[0],0);
+        this._packagingType = packagingOptions.find(p=>p.maxDimensions[0]>minPackageThickness);
+    }
 
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
         delete itemForBasket.isInStock;
         this._basketItems.push(itemForBasket);
-        this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
+        this._parcelType = shippingOptions.find(so => so.maxWeight - so.packaging.weight > this.weightOfItems)!;
     }
 
     incrementQty(itemId: string, inc: number) {
         const item = this._basketItems.find(item=>item.id===itemId)!;
-        if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < maxPackageWeight) ) {
+        if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < shippingOptions.slice(-1)[0].maxWeight) ) {
             item.quantity += inc;
-            this._parcelType = shippingOptionsByWeight.find(so => so.maxWeight - so.packagingWeight > this.weightOfItems)!;
+            this._parcelType = shippingOptions.find(so => so.maxWeight - so.packaging.weight > this.weightOfItems)!;
         } 
    }
 
@@ -259,32 +242,32 @@ class Basket {
     }
 
     get totalOrderWeight() {
-        return this.weightOfItems + this._parcelType!.packagingWeight;
+        return this.weightOfItems + this._parcelType!.packaging.weight;
     }
 
     get shippingCost(): number {
         
-        if (this._selectedShippingLabel) {
+        if (this._selectedShippingService) {
             try {
-                return this._parcelType!.services.find( s => s.label===this._selectedShippingLabel)!.cost;
+                return this._parcelType!.services.find( s => s.label===this._selectedShippingService)!.cost;
             } catch {
-                this._selectedShippingLabel = undefined;
+                this._selectedShippingService = undefined;
                 this._parcelType!.services[0].cost;
             }
         } 
         return this._parcelType!.services[0].cost;
     }    
     
-    get parcelType(): ShippingMethod {
+    get parcelType(): ParcelType {
         return this._parcelType!;
     }
 
-    set selectedShippingLabel(label: string) {
-        this._selectedShippingLabel = label;
+    set selectedShippingService(label: string) {
+        this._selectedShippingService = label;
     }
 
-    get selectedShippingLabel() {
-        return this._selectedShippingLabel || this._parcelType!.services[0].label;
+    get selectedShippingService() {
+        return this._selectedShippingService || this._parcelType!.services[0].label;
     }    
 
     // called only when paypal pay button is pressed
@@ -292,7 +275,7 @@ class Basket {
         return this._parcelType!.services.map( (s,i) => ({
             id: s.label,
             label: s.label,
-            selected: this._selectedShippingLabel ? this._selectedShippingLabel===s.label : i===0,
+            selected: this._selectedShippingService ? this._selectedShippingService===s.label : i===0,
             type: 'SHIPPING',
             amount: {
                 currency_code: 'GBP',

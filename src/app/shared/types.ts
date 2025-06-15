@@ -7,7 +7,8 @@ export interface StockItem {
   unit_amount: {
       currency_code: string,
       value: number
-  }
+  },
+  dimensions: Array<number>,
   isInStock: boolean;    
   image: {
     src: string,
@@ -31,10 +32,17 @@ export interface PayPalShippingOption {
   }
 }
 
-export interface ShippingMethod {
+export interface ParcelType {
   packageType: string,
   maxWeight: number,
-  packagingWeight: number,
+  packaging: {
+    weight: number,
+    maxDimensions: {
+      thickness: number,
+      width: number,
+      length: number
+    }
+  },
   services: Array<{
     label: string,
     cost: number

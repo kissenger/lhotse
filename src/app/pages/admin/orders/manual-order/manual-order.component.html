@@ -43,9 +43,9 @@
 
         <div>
             <label for="shippingOptions">Shipping Option:</label>
-            <select #kwList [(ngModel)]="shop.basket.selectedShippingLabel" name="shippingOptions" id="shippingOptions">
+            <select #kwList [(ngModel)]="shop.basket.selectedShippingService" name="shippingOptions" id="shippingOptions">
                 @for (so of shop.basket.parcelType!.services; track so.label) {
-                    <option value="{{so.label}}" [selected]="so.label===shop.basket.selectedShippingLabel">{{so.label}}</option>
+                    <option value="{{so.label}}" [selected]="so.label===shop.basket.selectedShippingService">{{so.label}}</option>
                 }
             </select>
         </div>
@@ -68,6 +68,7 @@
                 <option value="freeFriendsOrder">Friends & Family (No Charge)</option>
                 <option value="replacementOrder">Replacement (No Charge)</option>
                 <option value="regularOrder">Regular Order (Charged)</option>
+                <option value="retailOrder">Retail Order (Charged)</option>
             </select>
         </div>
 

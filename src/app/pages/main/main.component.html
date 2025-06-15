@@ -27,7 +27,7 @@
   }
 
   <div class="overlay buy-now" [ngClass]="hideBuyNowOverlay ? 'hide-overlay' : ''">
-    <a [routerLink]="'.'" [fragment]="'buy-now'" (click)="hideOverlay('buy-now')">
+    <a [routerLink]="'.'" [fragment]="'shop'" (click)="hideOverlay('buy-now')">
       <img  
         ngSrc = "ads/summersnorkel.jpg"
         alt   = "Buy now button with discount code"
@@ -46,16 +46,15 @@
 
   <div #anchor class="anchor" id="about-us">
     <app-about></app-about> 
-    <app-blog></app-blog>
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  <!-- @if (isBlogData) {
+  @if (isBlogData) {
     <div #anchor class="anchor" id="blog">
       <app-blog></app-blog>
       <div #window id="windowTwo" class="window"></div>
     </div>
-  } -->
+  }
 
   <div #anchor class="anchor" id="snorkelling-britain">
     <app-book></app-book>

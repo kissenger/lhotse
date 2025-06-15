@@ -8,7 +8,7 @@ import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { ToastService } from '@shared/services/toast.service';
-import { discountCodes, maxPackageWeight } from '@shared/globals';
+import { discountCodes } from '@shared/globals';
 import { stage } from '@shared/globals';
 
 
@@ -35,7 +35,7 @@ export class ShopComponent {
     this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
     this.shop.basket.add(this.shop.item("0002"),0);
-    // this.shop.basket.add(this.shop.item("0003"),0);
+    this.shop.basket.add(this.shop.item("0003"),0);
   }
   
   async ngOnInit() {
@@ -103,7 +103,7 @@ export class ShopComponent {
 
           async onShippingOptionsChange(data, actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
-              that.shop.basket.selectedShippingLabel = data.selectedShippingOption?.id;
+              that.shop.basket.selectedShippingService = data.selectedShippingOption?.id;
               await that._http.patchPaypalOrder(
                 that.shop.orderNumber ?? '',
                 data.orderID,
