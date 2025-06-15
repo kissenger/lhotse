@@ -62,6 +62,7 @@ export class ShopComponent {
             height: 50
           },
           async createOrder() {
+            console.log(that.shop.order)
             if(that.shop.basket.totalCost===0) {
               that.toaster.show("Nothing in basket", "warning");
               return;
