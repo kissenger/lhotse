@@ -88,14 +88,14 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       "@id": "https://snorkelology.co.uk/",
       "mainEntityOfPage": "https://snorkelology.co.uk/",
       "name": "Snorkelology Blog",
-      "description": "Snorkelology blog covering topics related to snorkelling around Britain",
+      "description": "A blog post from the authors of Snorkelling Britain",
       "publisher": {
         "@context": "http://schema.org",
         "@type": "Organization",
         "name": "Snorkelology",
         "url": "https://snorkelology.co.uk",
         "logo": "https://snorkelology.co.uk/banner/snround.webp",
-        "description": "Snorkelology is a website from the authors of Snorkelling Britain. Explore rich blog posts detailing the wonderful British marine environment, view inspiring underwater photography, and purchase our book",
+        "description": "Snorkelology is a website from the authors of Snorkelling Britain - explore our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.",
         "sameAs": [
           "https://instagram.com/snorkelology",
           "https://www.youtube.com/@snorkelology", 

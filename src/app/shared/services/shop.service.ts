@@ -151,7 +151,7 @@ export class User {
             }
         }
     }
-  }
+}
   
 
 class Basket {
@@ -160,39 +160,35 @@ class Basket {
     private _discountPercent: number = 0;
     private _discountCode: string = '';
     private _orderType: OrderType = 'manualOrder';
-    private _parcelType: ParcelType | undefined;
-    private _packagingType: any;
+    private _parcelType: ParcelType = shippingOptions[0];
     private _selectedShippingService: string | undefined;
 
-    selectPackaging() {
-        let packagingOptions = [{
-                type: "envelope",
-                weight: "5",
-                maxDimensions: [6,113,160]
-            }, {
-                type: "packet",
-                weight: "75",
-                maxDimensions: [500,190,295]                
-            }
-        ]
-        // let minPackageDimensions = this._basketItems.reduce( (acc,item) => acc.map((el,i)=>el+item.dimensions[i]),[0,0,0]);
-        let minPackageThickness = this._basketItems.reduce((thickness,item)=>thickness+item.dimensions[0],0);
-        this._packagingType = packagingOptions.find(p=>p.maxDimensions[0]>minPackageThickness);
-    }
-
+    // Add an item to the basket with a qty = 1
     add(stockItem: StockItem, quantity: number) {
         let itemForBasket: BasketItem & {isInStock?: boolean} = {...stockItem, quantity: quantity};
         delete itemForBasket.isInStock;
         this._basketItems.push(itemForBasket);
-        this._parcelType = shippingOptions.find(so => so.maxWeight - so.packaging.weight > this.weightOfItems)!;
+        this.setParcelType();
     }
 
+    // Increments the basket quantity, checking to ensure maximum allowable order weight is not violated, and tha qty>=0
     incrementQty(itemId: string, inc: number) {
         const item = this._basketItems.find(item=>item.id===itemId)!;
         if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < shippingOptions.slice(-1)[0].maxWeight) ) {
             item.quantity += inc;
-            this._parcelType = shippingOptions.find(so => so.maxWeight - so.packaging.weight > this.weightOfItems)!;
+            this.setParcelType();
         } 
+    }
+
+    // Select parcel based on size and weight of items in basket
+    // Returns the parcelType object from the array and stores it in the class 
+    setParcelType() {
+        const {weight, thickness} = this.basketProperties;
+        this._parcelType = shippingOptions.find( so => 
+            (so.maxWeight - so.packaging.weight > weight) &&
+            (so.maxDimensions.thickness > thickness)
+        )!;
+        console.log(this._parcelType, weight, thickness, this.totalOrderWeight)
    }
 
     set orderType(ot: OrderType) {
@@ -237,12 +233,15 @@ class Basket {
     }
 
     //weight of package excluding packaging
-    get weightOfItems() {
-        return this._basketItems.reduce( (sum,item) => sum + item.weightInGrams*item.quantity, 0);
+    get basketProperties() {
+        return {
+            weight: this._basketItems.reduce( (sum,item) => sum + item.weightInGrams*item.quantity, 0),
+            thickness: this._basketItems.reduce( (sum,item) => sum + item.dimensions.thickness*item.quantity, 0)
+        }
     }
 
     get totalOrderWeight() {
-        return this.weightOfItems + this._parcelType!.packaging.weight;
+        return this.basketProperties.weight + this._parcelType!.packaging.weight;
     }
 
     get shippingCost(): number {

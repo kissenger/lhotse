@@ -8,7 +8,11 @@ export interface StockItem {
       currency_code: string,
       value: number
   },
-  dimensions: Array<number>,
+  dimensions: {
+    thickness: number,
+    width: number,
+    length: number
+  },
   isInStock: boolean;    
   image: {
     src: string,
@@ -35,13 +39,13 @@ export interface PayPalShippingOption {
 export interface ParcelType {
   packageType: string,
   maxWeight: number,
+  maxDimensions: {
+    thickness: number,
+    width: number,
+    length: number
+  },
   packaging: {
-    weight: number,
-    maxDimensions: {
-      thickness: number,
-      width: number,
-      length: number
-    }
+    weight: number
   },
   services: Array<{
     label: string,

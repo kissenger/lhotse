@@ -58,19 +58,19 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
       underwater photography, sealife, marinelife`);
-    this._seo.updateDescription(`Snorkelology is dedicated to snorkelling in Britain. Explore rich blog posts 
-      detailing the rich and dynamic British marine environment, view inspiring underwater photography, 
-      and buy our book: Snorkelling Britain`);
+    this._seo.updateDescription(`Snorkelology is a website from the authors of Snorkelling Britain - explore
+      our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.`);
     this._seo.addStructuredData(`{
       "@context": "http://schema.org",
       "@type": "Organization",
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is dedicated to snorkelling in Britain. Explore rich blog posts 
-      detailing the rich and dynamic British marine environment, view inspiring underwater photography, 
-      and buy our book: Snorkelling Britain",
-      "sameAs": "https://instagram.com/snorkelology"
+      "description": "Snorkelology is a website from the authors of Snorkelling Britain - explore
+        our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.",
+          "https://instagram.com/snorkelology",
+          "https://www.youtube.com/@snorkelology", 
+          "https://www.facebook.com/snorkelology"
     }`)
 
     this._dataSubs = this._blogBrowserComponent.isBlogDataEmitter.subscribe( (value) => {
