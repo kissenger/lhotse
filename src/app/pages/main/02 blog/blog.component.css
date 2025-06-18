@@ -1,0 +1,36 @@
+.browser-container {
+  position:relative;
+  scroll-behavior: smooth;
+}
+
+
+.arrow-container {
+  opacity: 0;
+}
+
+.browser {
+  margin-left: -1em;
+  margin-bottom: 0.5em;
+  padding-top: 0.5em;
+  overflow-x: scroll;
+  display: flex;
+  flex-direction: row;  
+  scroll-behavior: smooth;
+}
+.kw {
+  display: inline-block;
+  background-color: whitesmoke;
+  border: 1px solid var(--border-colour);
+  padding-inline: 0.25em;
+  margin-right: 0.25em;
+  letter-spacing: -1px;
+  font-size: 0.8em;
+  border-radius: 5px;
+}
+.kw:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+.kw.deselected {
+  color: lightgray;
+}

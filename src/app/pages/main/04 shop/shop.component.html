@@ -27,6 +27,16 @@
       </div>
     }
 
+    <div class="summary-row-revealer" [ngClass]="shop.basket.discountPercent ? 'show' : ''">
+      <div >
+        <div class="summary-row">
+          <div class="summary-text">{{shop.basket.discountPercent}}% Discount</div>
+          <div class="summary-subtotal">{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>            
+        
+        </div>     
+      </div>
+    </div> 
+
     <div class="summary-row">
         <div class="summary-text">Shipping ({{shop.basket.selectedShippingService}})</div>
         <div class="summary-subtotal">{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
@@ -41,80 +51,14 @@
   @if (shop.orderStatus === "draft") {
 
     <div class="below-basket-container">
-      <div class="discount-code">
+      <!-- <div class="discount-code"> -->
         <input class="discount" type="text" placeholder="Enter discount code" id="discount" name="discount" (keyup)="onCodeChange()" [disabled]="shop.orderStatus!='draft'" [(ngModel)]="shop.basket.discountCode">
         <div id="paypal-button-container"></div>
-
-      </div>
+      <!-- </div> -->
     </div>
   } @else {
     <app-order-outcome></app-order-outcome>
   }
-
-
-
-
-<!-- 
-    @for (basketItem of shop.basket.items; track $index) {
-
-      <div class="basket-item">
-
-        <div class="img-holder">
-          <img
-            src = {{basketItem.image.src}}
-            alt = {{basketItem.image.alt}}
-          /> 
-        </div>
-
-        <div class="description">
-          <div class="text"> {{basketItem.name}} </div>  
-          <div class="basket-item-note"> {{basketItem.description}} </div>  
-        </div>
-        
-        <div class="qty">
-          <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">-</button>
-          <input id="qty{{$index}}" class="qty" type="number" min=0 name="qty-input-{{$index}}" [disabled]="shop.orderStatus!='draft'"  [(ngModel)]="basketItem.quantity" readonly> 
-          <button class="plus-minus" (click)="onPlusMinus(basketItem.id,1)" [disabled]="shop.orderStatus!='draft'">+</button>
-        </div>
-  
-        <div class="value">{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-      </div>
-    }
-
-    <div class="hidden-basket-item-wrapper" [ngClass]="shop.basket.discountPercent ? 'show' : ''">
-      <div class="hidden-basket-item">
-        <div class="basket-item">
-          <div class="text indented">{{shop.basket.discountPercent}}% Discount</div>
-          <div class="value-wide">{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-        </div> 
-      </div> 
-    </div>
-  
-    <div class="basket-item">
-        <div class="text indented">Shipping ({{shop.basket.selectedShippingService}})</div>
-        <div class="value-wide">{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-    </div>      
-  
-    <div class="basket-item last-row">
-      <div class="text indented">Total</div>
-      <div class="value-wide">{{shop.basket.totalCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
-    </div>
-
-    @if (shop.orderStatus === "draft") {
-
-      <div class="below-basket-container">
-        <div class="discount-code">
-          <input class="discount" type="text" placeholder="Enter discount code" id="discount" name="discount" (keyup)="onCodeChange()" [disabled]="shop.orderStatus!='draft'" [(ngModel)]="shop.basket.discountCode">
-          <div id="paypal-button-container"></div>
-
-        </div>
-      </div>
-    } @else {
-      <app-order-outcome></app-order-outcome>
-    }
-  </div> -->
-
-
 
 </div>
     

@@ -8,7 +8,6 @@ import { SEOService } from           '@shared/services/seo.service';
 import { SlideshowComponent } from   '@pages/main/00 slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/main/01 about/about.component';
 import { BlogComponent } from        '@pages/main/02 blog/blog.component';
-import { BlogBrowserComponent } from '@pages/main/02 blog/blog-browser/browser.component';
 import { BookComponent } from        '@pages/main/03 book/book.component';
 import { ShopComponent } from        '@pages/main/04 shop/shop.component';
 import { FAQComponent } from         '@pages/main/05 faq/faq.component';
@@ -16,7 +15,7 @@ import { PartnersComponent } from    '@pages/main/06 partners/partners.component
 
 @Component({
   standalone: true,
-  providers: [BlogBrowserComponent, ScreenService],
+  providers: [BlogComponent, ScreenService],
   imports: [
     SlideshowComponent, AboutUsComponent, BlogComponent, ShopComponent,
     FAQComponent, PartnersComponent, BookComponent, NgClass, RouterLink, NgOptimizedImage
@@ -52,7 +51,7 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
     private _seo: SEOService,
-    private _blogBrowserComponent: BlogBrowserComponent
+    private _blogComponent: BlogComponent
   ) {
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
@@ -73,7 +72,7 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
           "https://www.facebook.com/snorkelology"
     }`)
 
-    this._dataSubs = this._blogBrowserComponent.isBlogDataEmitter.subscribe( (value) => {
+    this._dataSubs = this._blogComponent.isBlogDataEmitter.subscribe( (value) => {
       this.isBlogData = value;
     });
   }
