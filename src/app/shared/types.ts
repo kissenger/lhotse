@@ -172,7 +172,13 @@ export class BlogPost {
   imgFname: string = '';
   imgAlt: string = '';
   intro: string = '';
-  sections: Array<{title: string, content: string, imgFname: string, imgAlt: string}> = [{title: '', content: '', imgFname: '', imgAlt: ''}]
+  sections = [{
+    title: '', 
+    content: '', 
+    imgFname: '', 
+    imgAlt: '', 
+    videoUrl: ''
+  }];
   conclusion: string = '';
   createdAt: string = '';
   updatedAt: string = '';

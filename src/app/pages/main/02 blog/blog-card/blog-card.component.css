@@ -1,25 +1,12 @@
-/* div {
-  border: grey 1px solid;
-} */
 .blog-card {
   align-self: start;
   display: flex;
   flex-direction: column;
   width: 400px;
   overflow: hidden;
-  border-radius: 10px;
-  border: var(--border-colour) 1px solid; 
   transition: all 0.25s;
   margin-inline: 1em;
   scroll-behavior: smooth;
-}
-
-
-
-@media (max-width: 767px) {
-  .blog-card {
-    width: 300px;
-  }
 }
 
 .blog-card:hover {
@@ -27,11 +14,17 @@
   transform: scale(1.02);
 }
 
+@media (max-width: 767px) {
+  .blog-card {
+    width: 300px;
+  }
+}
+
 .photo {
   overflow: hidden;
-  max-width: 100%;
+  /* max-width: 100%; */
   width: 100%;
-  height: 250px;
+  height: 200px;
   position: relative;
   display: block;
 }
@@ -43,29 +36,19 @@
   object-position: center;
 }
 
-.content > h2 {
-  margin-inline: 0.7em;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+h2 {
+  margin-block: 0.5em;
   font-size: 1em;
-  height: calc( 1em * var(--line-height));
-  align-content: center;
   letter-spacing: -1px;
 }
 
 .subtitle {
-  margin-inline: 0.7em;
   overflow: hidden;
-  height: calc( 1em * var(--line-height) * 4);
-  padding-bottom: auto;
   font-size: 0.9em;
 }
 
-.footer {
-  margin-inline: 0.45em;
-  margin-top: 0.7em;
-  margin-bottom: 0.7em;
-  height: calc( 1.1 * var(--line-height));
+.kws {
+  margin-block: 0.7em;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -76,8 +59,9 @@
   border: 1px solid var(--border-colour);
   padding-inline: 0.25em;
   margin-right: 0.25em;
+  margin-bottom: 0.25rem;
   letter-spacing: -1px;
-  font-size: 0.8em;
+  font-size: 0.7em;
   border-radius: 5px;
 }
 

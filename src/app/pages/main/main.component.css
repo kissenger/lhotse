@@ -26,13 +26,9 @@
 .overlay > a {
   display: inline-block;
   line-height: 0;
-  /* inline-size: 0; */
 }
 
 .overlay > a > img {
-  /* margin-block: auto; */
-  /* margin-in line: 0.5rem; */
-
   margin: 0.5rem;
   transition: all 0.25s;
 }
@@ -43,13 +39,11 @@
 }
 
 .buy-now {
-  /* height: 180px; */
   left: calc( (100vw - var(--container-width) ) );
   bottom: 50px;
 }
 
 .about-book {
-  /* height: 180px; */
   left: calc( (100vw - var(--container-width) ) / 2 ); 
   top: 150px;
 }
@@ -59,9 +53,7 @@
   .book-overlay {
     left: 0;
     top: 200px;
-    /* margin-block: auto; */
     margin-inline: auto;
-    /* height: 400px; */
   }
   .book-overlay-image {
     height: 380px;
@@ -83,74 +75,57 @@
   cursor: pointer;
   transform: scale(1.15);
 }
-
-/* .buy-book-div {
-  width: 100%;
-  display: flex;
-  border: 1px red solid;
-
-} */
-
-.content-image-box {
-  position: relative;
-  width: 300px;
-  margin-inline: auto;
-  margin-top: 2rem;
-  /* align-content: center; */
-  /* justify-content: center; */
-  overflow: hidden;
-  /* border: 1px red solid; */
-}
-
 .extra-top-margin {
   margin-top: 2rem;
 }
 
+.content-image-box {
+  /* position: sticky; */
+  width: 300px;
+  margin-inline: auto;
+  margin-top: 2rem;
+  overflow: hidden;
+}
 
 .content-image-box > img {
-  /* width: 350px; */
   width: 100%;
 }
 
 .main-content-grid {
   display: grid; 
-  /* grid-template-columns: 2 2; */
   grid-template-rows: auto;
   grid-gap: 1.5rem;
   grid-auto-flow: column;
-  /* border: 1px green solid; */
+  /* border: 1px red solid; */
 }
 
 
 .main-content-grid > div > ul {
-  /* width: 350px; */
   margin-top: 0px;
 }
 
 
 .grid-position-left {
-  /* display: flex;/ */
-  grid-column: 1;
+  grid-column: 1;  
+  /* border: 1px green solid; */
+
 }
 
 .grid-position-right {
-  /* display: flex; */
-  grid-column: 2;
+  grid-column: 2;  
+  /* border: 1px blue solid; */
+
 }
 
 @media (max-width: 768px) {
   .main-content-grid {
     display: block;
-    /* border: 1px red solid; */
-    /* width: 100%; */
 
   }
   .content-image-box {
     display: flex;
     margin-top: 0px;
     margin-bottom: 0px;
-    /* border: 1px red solid; */
-    /* width: 100%; */
   }
   .content-image-box > img {
     width: 350px;

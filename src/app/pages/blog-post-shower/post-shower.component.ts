@@ -10,6 +10,7 @@ import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { stage } from '@shared/globals';
+import { DomSanitizer } from '@angular/platform-browser';
 // import { Router } from 'express';
 
 @Component({
@@ -34,7 +35,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
     private _seo: SEOService,
     private _htmler: HtmlerPipe,
-    @Inject(Router) private _router: Router
+    @Inject(Router) private _router: Router,
+    private sanitizer: DomSanitizer
   ) {
 
   }
@@ -55,8 +57,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           title: s.title, 
           content: this._htmler.transform(s.content), 
           imgFname: s.imgFname,
-          imgAlt: s.imgAlt
+          imgAlt: s.imgAlt,
+          videoUrl: this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`)
+          // videoUrl: s.videoUrl
         }})
+
+        console.log(this.post.sections)
 
         this.nextSlug = result.nextSlug;
         this.lastSlug = result.lastSlug;

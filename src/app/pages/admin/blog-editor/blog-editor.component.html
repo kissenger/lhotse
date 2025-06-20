@@ -125,7 +125,12 @@
                     <div>
                         <label for="alt{{$index}}">Image Alt Text:</label>
                         <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
-                    </div>              
+                    </div>  
+                    
+                    <div>
+                        <label for="videoUrl{{$index}}">Video URL:</label>
+                        <input type="text" id="videoUrl{{$index}}" name="videoUrl{{$index}}" [(ngModel)]="section.videoUrl">                   
+                    </div>                           
 
                     @if ($last) {
                         <button type="button" class="qaButton" (click)="addQA()">New section</button>
