@@ -1,12 +1,16 @@
 
 <div class="dynamic-container">
 
-  <h2>Learn About British Snorkelling</h2> 
+  <h1>Learn About British Snorkelling</h1> 
 
   <p>
     Find out more about snorkelling in Britain with Snorkelology ... we have written some information-packed articles 
     to give hints and tips to new and experienced snorkellers alike. Have a dig around, and let us know if there are any 
     British snorkelling topics you'd like us to cover.
+  </p>
+  <p>Filter by keyword: <br>
+  <button (click)="selectAll()">Select All</button>
+  <button (click)="selectNone()">Deselect All</button>
   </p>
   @for (kw of uniqueKeywords; track kw) {
     <div class="kw" [class.deselected]="!selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</div>

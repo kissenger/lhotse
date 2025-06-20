@@ -6,7 +6,6 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { environment } from '@environments/environment';
 
 
 @Component({
@@ -43,7 +42,7 @@ export class BlogComponent {
 
     this._route.params.subscribe( async () => {
       try {
-        const getFunction = environment.STAGE === 'prod' ? this._http.getPublishedPosts() : this._http.getAllPosts();
+        const getFunction = this._http.getPublishedPosts();
         this.allPosts = await getFunction;
         this.isBlogDataEmitter.emit(this.allPosts.length !== 0);
         this.filteredPosts = this.allPosts;
@@ -109,7 +108,7 @@ export class BlogComponent {
       })
     })
     this.uniqueKeywords = kws.sort((a, b) => a.localeCompare(b));
-    this.selectedKeywords = [];
+    this.selectedKeywords = this.uniqueKeywords;
   }
 
   onFilter(kw: string) {
@@ -124,5 +123,15 @@ export class BlogComponent {
 
   filterBlogCards() {
     this.filteredPosts = this.allPosts.filter( p => p.keywords.some( kw => this.selectedKeywords.includes(kw)) );
+  }
+
+  selectAll() {
+    this.selectedKeywords = this.uniqueKeywords;
+    this.filterBlogCards();
+  }
+
+  selectNone() {
+    this.selectedKeywords = [];
+    this.filterBlogCards();
   }
 }

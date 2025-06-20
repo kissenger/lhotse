@@ -8,7 +8,7 @@ import { stage } from '@shared/globals';
   imports: [NgOptimizedImage],
   selector: 'app-book',
   templateUrl: './book.component.html',
-  styleUrls: ['../main.component.css']
+  styleUrls: ['../main.component.css', './book.component.css']
 })
 
 export class BookComponent {

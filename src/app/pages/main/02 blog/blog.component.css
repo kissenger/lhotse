@@ -17,6 +17,13 @@
   flex-direction: row;  
   scroll-behavior: smooth;
 }
+
+button {
+  display: inline-block;
+  padding-inline: 0.25em;
+  margin-right: 0.25em;  
+}
+
 .kw {
   display: inline-block;
   background-color: whitesmoke;

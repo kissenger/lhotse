@@ -4,17 +4,11 @@
 
     <main>
         <div class="article-image-container">
-            @if (stage==='dev') {
-                <img
-                    [src]="'assets/'+post.imgFname"
-                    [alt]="post.imgAlt"
-                    fill /> 
-            } @else {
-                <img
-                    [ngSrc]="post.imgFname"
-                    [alt]="post.imgAlt"
-                    fill /> 
-            }
+            <img
+                [ngSrc]="post.imgFname"
+                [alt]="post.imgAlt"
+                fill 
+            /> 
             <div class="image-caption">
                 {{post.imgAlt}} <br />
                 Photo credit: Snorkelology
@@ -47,7 +41,7 @@
 
             @if (post.sections.length > 0) {
                 <section class="anchor" id="contents">
-                    <h4>Contents</h4>
+                    <h1>Contents</h1>
                     <ul>
                         @for(section of post.sections; track section) {
                             <li>
@@ -63,26 +57,22 @@
                 
                 @for (section of post.sections; track section) {
                     <a class="anchor" id="{{section.title | kebaber}}"></a>
-                    <h4>{{section.title}}</h4>
+                    <h1>{{section.title}}</h1>
                     <div [innerHTML]="section.content | sanitizer"></div>
                     @if (!!section.imgFname) {
                         <div class="article-image-container">
 
-                            @if (stage==='dev') {
-                                <img
-                                    [src]="'assets/'+section.imgFname"
-                                    [alt]="section.imgAlt"
-                                    fill /> 
-                            } @else {
-                                <img
-                                    [ngSrc]="section.imgFname"
-                                    [alt]="section.imgAlt"
-                                    fill /> 
-                            }                            
+                            <img
+                                [ngSrc]="section.imgFname"
+                                [alt]="section.imgAlt"
+                                fill 
+                            /> 
+                            
                             <div class="image-caption">
                                 {{section.imgAlt}} <br />
                                 Photo credit: Snorkelology
                             </div>
+                            
                         </div>
                     }
                     <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
@@ -90,7 +80,7 @@
             }
             
             <!-- <app-banner-ad></app-banner-ad> -->
-            <h4>Conclusion</h4>
+            <h1>Conclusion</h1>
             <div [innerHTML]="post.conclusion | sanitizer"></div>
 
         </div>

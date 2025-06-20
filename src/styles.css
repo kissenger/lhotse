@@ -62,23 +62,23 @@ body {
   font-size: 1.3rem;
 }
 
+button {
+  font-size: 1rem;
+  font-weight: 300;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 main {
   margin-top: var(--header-height)
 }
 
 h1 {
-  font-size: 2.2rem;
-  font-weight: 500;
-  line-height: normal;
-}
-
-h2 {
   font-size: 1.8rem;
   margin: 2rem 0 1rem 0;
   font-weight: 400;
 }
 
-h4 {
+h2 {
   font-size: 1.5rem;
   margin: 1.5rem 0 0.5rem 0;
   font-weight: 400;
