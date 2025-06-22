@@ -62,7 +62,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           // videoUrl: s.videoUrl
         }})
 
-        console.log(this.post.sections)
 
         this.nextSlug = result.nextSlug;
         this.lastSlug = result.lastSlug;

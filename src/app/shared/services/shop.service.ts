@@ -188,7 +188,7 @@ class Basket {
             (so.maxWeight - so.packaging.weight > weight) &&
             (so.maxDimensions.thickness > thickness)
         )!;
-        console.log(this._parcelType, weight, thickness, this.totalOrderWeight)
+        // console.log(this._parcelType, weight, thickness, this.totalOrderWeight)
    }
 
     set orderType(ot: OrderType) {
