@@ -65,11 +65,12 @@ export class MainComponent implements AfterViewInit, AfterContentChecked {
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website from the authors of Snorkelling Britain - explore
-        our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.",
-          "https://instagram.com/snorkelology",
-          "https://www.youtube.com/@snorkelology", 
-          "https://www.facebook.com/snorkelology"
+      "description": "Snorkelology is a website from the authors of Snorkelling Britain - explore our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.",
+      "sameAs": [
+        "https://instagram.com/snorkelology",
+        "https://www.youtube.com/@snorkelology", 
+        "https://www.facebook.com/snorkelology"
+      ]
     }`)
 
     this._dataSubs = this._blogComponent.isBlogDataEmitter.subscribe( (value) => {
