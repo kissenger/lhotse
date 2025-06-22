@@ -4,8 +4,8 @@
     font-size: smaller;
     margin-top: 100px;
     min-height: 100vh;
-    /* display: flex;
-    flex-direction: row; */
+
+    flex-direction: row;
 }
 .side-panel {
     position: fixed;
@@ -80,6 +80,12 @@ table {
     border-color: var(--border-colour);
     border-width: 0 1px 1px 1px;
     line-height: 100%;
+        
+    -webkit-user-select: text;
+     -khtml-user-select: text;
+       -moz-user-select: text;
+        -ms-user-select: text;
+            user-select: text;
 }
 
 .first-line {
