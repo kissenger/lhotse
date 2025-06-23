@@ -16,6 +16,9 @@
           {{basketItem.name}}<br>
           <span class="item-description"> {{basketItem.description}} </span>  
         </div>
+
+        <div class="item-itemcost">{{basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}ea</div>
+
         
         <div class="item-quantity">
           <button class="plus-minus" (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">-</button>
@@ -24,6 +27,7 @@
         </div>
   
         <div class="item-subtotal">{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
+
       </div>
     }
 

@@ -18,7 +18,7 @@
   padding-block: 0.5rem;
   column-gap: 1rem;
   grid-template-rows: 1fr;
-  grid-template-columns: 100px 1fr auto 5rem;
+  grid-template-columns: 100px 1fr 4rem auto 4rem;
   align-items: center;
 }
 
@@ -43,9 +43,15 @@
   /* line-height: 1; */
 }
 
-.item-quantity {
+.item-itemcost {
   grid-row: 1/2;
   grid-column: 3/4;
+  justify-self: right;
+}
+
+.item-quantity {
+  grid-row: 1/2;
+  grid-column: 4/5;
   justify-self: center;
   display: flex;
   flex-direction: row;
@@ -54,7 +60,7 @@
 
 .item-subtotal {
   grid-row: 1/2;
-  grid-column: 4/5;
+  grid-column: 5/6;
   justify-self: right;
 }
 
@@ -158,24 +164,28 @@ input.discount {
     width: 100%;
   }
   .item-row {
-    grid-template-rows: 1fr, 1fr;
+    grid-template-rows: 1fr, 1fr, 1fr;
     grid-template-columns: 100px 1fr 7rem;
   }
   .item-image{
-    grid-row: 1/3;
+    grid-row: 1/4;
     grid-column: 1/2;
   }
   .item-text {
-    grid-row: 1/3;
+    grid-row: 1/4;
     grid-column: 2/3;
   }
-  .item-quantity {
-    justify-self: right;
+  .item-itemcost {
     grid-row: 1/2;
     grid-column: 3/4;
   }
-  .item-subtotal {
+  .item-quantity {
+    justify-self: right;
     grid-row: 2/3;
+    grid-column: 3/4;
+  }
+  .item-subtotal {
+    grid-row: 3/4;
     grid-column: 3/4;
   }
 }

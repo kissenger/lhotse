@@ -20,9 +20,9 @@ export const routes: Routes = [
         data: {menuItems: [
           {name: 'Home',  anchor: 'home'},
           {name: 'About', anchor: 'about-us'},
-          // {name: 'Blog',  anchor: 'blog'},
+          {name: 'Blog',  anchor: 'blog'},
           {name: 'Book',  anchor: 'snorkelling-britain'},
-          {name: 'Shop',  anchor: 'shop'},
+          // {name: 'Shop',  anchor: 'shop'},
           {name: 'FAQs',  anchor: 'british-snorkelling-faqs'},
           {name: 'Friends', anchor: 'friends-and-partners'}
         ]}
