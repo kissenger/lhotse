@@ -2,6 +2,7 @@
 
 .env
 /src/environments/
+/src/config/prod/sitemap.xml
 
 # Compiled output
 /dist
