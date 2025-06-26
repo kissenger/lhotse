@@ -1,16 +1,14 @@
 <div class="dynamic-container">
   <h1>Buy Now</h1> 
   Select your items below, click to pay, and we'll pop it in the post.  It's as simple as that!
+
   <div class="basket">
 
     @for (basketItem of shop.basket.items; track $index) {
 
       <div class="item-row">
 
-        <img class="item-image"
-          src = {{basketItem.image.src}}
-          alt = {{basketItem.image.alt}}
-        /> 
+        <app-carousel [images]="basketItem.images" height="100px" width="150px"></app-carousel>
 
         <div class="item-text">
           {{basketItem.name}}<br>

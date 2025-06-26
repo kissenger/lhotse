@@ -1,0 +1,20 @@
+<div #carouselContainer class="carousel-container">
+
+  <div #carousel class="carousel">
+
+    @for (image of images; track $index) {
+      <div #imageContainer class="image-container">
+        <img [ngSrc]="image.src" [alt]="image.alt" [priority]="image.priority!!" fill>
+      </div>
+    }
+
+  </div>
+
+  @if (images.length > 2) {
+    <app-svg-arrow direction="left"  class="left"  (click)="showPrevImage()"></app-svg-arrow>
+    <app-svg-arrow direction="right" class="right" (click)="showNextImage()"></app-svg-arrow>
+  }
+
+
+</div>
+

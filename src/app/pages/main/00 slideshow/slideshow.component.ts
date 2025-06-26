@@ -3,10 +3,11 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { interval, timer } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
+import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage, CommonModule, RouterLink, SvgArrowComponent],
+  imports: [NgOptimizedImage, CommonModule, RouterLink, SvgArrowComponent, CarouselComponent],
   providers: [],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
@@ -21,17 +22,28 @@ export class SlideshowComponent implements AfterViewInit{
   public showTransition = true;
   private _delta = 0;
   private _mouseOver: boolean = false;
+  public slideshowImages = [{
+    src: "photos/slideshow/child-walking-beach-after-snorkelling-in-yorkshire-england-britain-5.jpg",
+    alt: "Photo of child walking up a beach holding snorkelling gear with blue-green sea behind",
+    priority: true
+  },{
+    src: "photos/slideshow/drone-shot-of-woman-snorkelling-with-book-cover-overlaid.jpg",
+    alt: "Snorkelling Britain book cover with drone view of woman snorkelling behind"
+  },{
+    src: "photos/slideshow/children-rock-pool-snorkelling-in-cornwall-britain.jpg",
+    alt: "Photo showing children pointing at marine life while snorkelling in a rock pool"
+  }]
 
   constructor(
   ) {
     // auto advance - important that this is applied after rendering or hydration fails
-    afterNextRender( () => {
-      interval(8000).subscribe( ()=> {
-        if (!this._mouseOver) {
-          this._slideshowManager(true);
-        }
-      })
-    })
+    // afterNextRender( () => {
+    //   interval(8000).subscribe( ()=> {
+    //     if (!this._mouseOver) {
+    //       this._slideshowManager(true);
+    //     }
+    //   })
+    // })
 
   }
 

@@ -14,10 +14,10 @@ export interface StockItem {
     length: number
   },
   isInStock: boolean;    
-  image: {
+  images: Array<{
     src: string,
     alt: string
-  };
+  }>;
   weightInGrams: number;
 }
 

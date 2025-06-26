@@ -193,25 +193,25 @@ a:visited {
   :root{ --container-width: calc(100vw - 2em); }
   html {font-size: 14px;}
   .window{ height: 80vh; }
-  .slideshow{ height: 60vh; }
+  /* .slideshow{ height: 60vh; } */
 }
 @media (min-width: 576px) and (max-width: 767px) {
   html {font-size: 14px;}
   :root{ --container-width: 540px; }
   .window { height: 80vh; }
-  .slideshow{ height: 80vh; }
+  /* .slideshow{ height: 80vh; } */
 }
 @media (min-width: 768px) and (max-width: 991px) {
   html {font-size: 16px;}
   :root{ --container-width: 720px; }
   .window { height: 80vh; }
-  .slideshow{ height: 80vh; }
+  /* .slideshow{ height: 80vh; } */
 }
 @media (min-width: 992px) {
   html {font-size: 16px;}
   :root{ --container-width: 960px; }
   .window { height: 80vh; }
-  .slideshow{ height: 80vh; }
+  /* .slideshow{ height: 80vh; } */
 }
 
 /* @media (min-width: 992px) and (max-width: 1199px) {

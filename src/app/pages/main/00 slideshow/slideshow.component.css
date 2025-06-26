@@ -32,11 +32,6 @@
   object-position: center;
 }
 
-.test {
-  height: 100%;
-  width: 100%;
-}
-
 .button {
   position: relative;
   pointer-events: all;

@@ -7,6 +7,7 @@ import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
 // import { ErrorService } from '@shared/services/error.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
+import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 import { ToastService } from '@shared/services/toast.service';
 import { discountCodes } from '@shared/globals';
 import { stage } from '@shared/globals';
@@ -14,7 +15,7 @@ import { stage } from '@shared/globals';
 
 @Component({
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent],
+  imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, CarouselComponent],
   selector: 'app-shop',
   templateUrl: './shop.component.html',
   styleUrls: ['./shop.component.css', '../main.component.css']
@@ -26,6 +27,13 @@ export class ShopComponent {
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
   public stage = stage;
+  // public testimages = [{
+  //   src: 'assets/photos/shop/Snorkelology Logo Sticker v2.png',
+  //   alt: 'Image showing Snorkelology Logo sticker design'
+  // },{
+  //   src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
+  //   alt: 'Snorkelling Britain book cover in 3D '
+  // }]
 
   constructor(
     private _http: HttpService,
@@ -36,6 +44,7 @@ export class ShopComponent {
     this.shop.basket.add(this.shop.item("0001"),1);
     this.shop.basket.add(this.shop.item("0002"),0);
     this.shop.basket.add(this.shop.item("0003"),0);
+    this.shop.basket.add(this.shop.item("0004"),0);
   }
   
   async ngOnInit() {
