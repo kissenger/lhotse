@@ -27,13 +27,6 @@ export class ShopComponent {
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
   public stage = stage;
-  // public testimages = [{
-  //   src: 'assets/photos/shop/Snorkelology Logo Sticker v2.png',
-  //   alt: 'Image showing Snorkelology Logo sticker design'
-  // },{
-  //   src: 'assets/photos/content/snorkelling-britain-100-marine-adventures-book-cover-3d.jpg',
-  //   alt: 'Snorkelling Britain book cover in 3D '
-  // }]
 
   constructor(
     private _http: HttpService,

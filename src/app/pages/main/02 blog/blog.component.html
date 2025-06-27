@@ -24,11 +24,13 @@
       <app-blog-card [data]="post"></app-blog-card>
     }
   </div>
-  <div #leftArrow class="arrow-container"> 
-    <app-svg-arrow direction="left" (click)="onClickLeft()"></app-svg-arrow>
+
+  <div #leftArrow class="arrow left">
+    <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
   </div>
-  <div #rightArrow class="arrow-container">        
+  <div #rightArrow class="arrow right">
     <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
   </div>
+
 </div>
 

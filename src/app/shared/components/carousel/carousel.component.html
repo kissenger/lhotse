@@ -1,11 +1,26 @@
-<div #carouselContainer class="carousel-container">
+<div  class="carousel-container">
 
   <div #carousel class="carousel">
 
     @for (image of images; track $index) {
-      <div #imageContainer class="image-container">
-        <img [ngSrc]="image.src" [alt]="image.alt" [priority]="image.priority!!" fill>
+
+      <div class="carousel-image">
+
+        <img #carouselImage [ngSrc]="image.src" [alt]="image.alt" [priority]="image.priority!!" fill>
+
+        @if (image.textbox) {
+          <div class="carousel-textbox">
+            <div class="dynamic-container">
+              <h1 class="zero-margin">{{image.textbox.header}}</h1>
+              <p class="zero-margin">{{image.textbox.text}}</p>
+            </div>
+
+          </div>
+        } 
+
       </div>
+
+     
     }
 
   </div>
@@ -14,7 +29,6 @@
     <app-svg-arrow direction="left"  class="left"  (click)="showPrevImage()"></app-svg-arrow>
     <app-svg-arrow direction="right" class="right" (click)="showNextImage()"></app-svg-arrow>
   }
-
 
 </div>
 

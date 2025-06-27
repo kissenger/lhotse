@@ -21,6 +21,17 @@ export interface StockItem {
   weightInGrams: number;
 }
 
+export type CarouselImages = Array<{
+  src: string, 
+  alt: string, 
+  priority?: boolean, 
+  textbox?: {
+    header: string, 
+    text: string
+  }
+}>
+
+
 export interface BasketItem extends Omit<StockItem, 'isInStock'> {
   quantity: number;
 }
