@@ -3,7 +3,8 @@
 
 .carousel-holder {
   height: 100px;
-  width: 125px;
+  width: 100px;
+  /* margin-left: -5rem; */
 } 
 
 .basket {
@@ -21,13 +22,12 @@
 
 .row.item {
   grid-gap: 0.5rem;
-  grid-template-columns: 125px 1fr auto auto 4rem;
-
+  grid-template-columns: auto 1fr 16rem;
 }
 
 .row.summary {
   grid-gap: 2rem;
-  grid-template-columns: 1fr 4rem;
+  grid-template-columns: 1fr 8rem;
 }
 
 .last-row {
@@ -36,7 +36,7 @@
 
 .cell {
   line-height: 1;
-  place-content: center;
+  /* place-content: center; */
 }
 
 .cell > .description {
@@ -44,14 +44,32 @@
   font-size: smaller;
 }
 
-.cell.summary-text {
+.cell.totals {
+  display: flex;
+  flex-direction: row;
+  padding-right: 1rem;
+}
+
+.subtotal {
+  width: 5rem;
   text-align: right;
+}
+
+
+.unitcost {
+  width: 7rem;
+  text-align: left;
+}
+
+.row.summary > .cell {
+  text-align: right;
+  margin-right: 1rem;
 }
 
 .qty-selector {
   display: flex;
   flex-direction: row;
-  height: 2rem;
+  height: 3rem;
 }
 
 .qty-selector > * {
@@ -61,7 +79,7 @@
   border-width: 1px;
   text-align: center;
   height: 100%;
-  width: 1.5rem;
+  width: 2rem;
   padding: 0;
   margin: 0
 }
@@ -114,38 +132,34 @@
   margin-inline: auto;
 }
 
+@media (max-width: 400px) {
+  .cell {
+    font-size: small;
+  };
+}
 
 @media (max-width: 767px) {
+
   .basket {
     width: 100%;
   }
-  .item-row {
-    grid-auto-rows: 1fr;
-    /* grid-template-rows: 1fr, 1fr, 1fr; */
+
+  .row.item {
+    grid-gap: 0.25rem;
     grid-template-columns: auto 1fr auto;
   }
-  .item-image{
-    border:1px red solid;
-    grid-row: 1/4;
-    grid-column: 1/2;
+
+  .cell.totals {
+    display: flex;
+    flex-direction: column;
   }
-  .item-text {
-    grid-row: 1/4;
-    grid-column: 2/3;
+
+  .cell.totals > * {
+    width: 100%;
+    text-align: right;
+    padding-block: 0.25rem;
   }
-  .item-itemcost {
-    grid-row: 1/2;
-    grid-column: 3/4;
-  }
-  .item-quantity {
-    justify-self: right;
-    grid-row: 2/3;
-    grid-column: 3/4;
-  }
-  .item-subtotal {
-    grid-row: 3/4;
-    grid-column: 3/4;
-  }
+
   .below-basket-container {
     margin-top: 2rem;
     width: 100%;

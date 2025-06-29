@@ -22,7 +22,7 @@
 
   /* UIcard sizing */
   --line-height: 1.7;
-  --insta-box-lines: 8;
+  /* --insta-box-lines: 8; */
 }
 
 /* ===================================================
@@ -44,10 +44,11 @@ input {
   outline-width: 0px;
 }
 
+app-pages, app-root {
+  display: block;
+}
+
 html {
-  /* min-height: 100%; */
-  /* transform: translate3d(0, 0, 0); */
-  /* overflow: hidden; */
   font-weight: 300;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   scroll-behavior: smooth;
@@ -57,7 +58,7 @@ html {
 body {
   /* min-height: 100%; */
   overflow-x: hidden;  
-    /* border: 1px red solid; */
+  /* border: 1px red solid; */
   color: var(--text-colour);
   line-height: var(--line-height);
   width: 100vw;
@@ -188,9 +189,9 @@ a:visited {
 
 @media (hover: hover){
   /* if not a touch screen then add an additional right margin to accouunt for scrollbar*/
-  .dynamic-container{
+  /* .dynamic-container{
     margin-right: 1em;
-  }
+  } */
 }
 
 @media (max-width: 575px) {

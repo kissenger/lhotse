@@ -1,4 +1,5 @@
 <div class="dynamic-container">
+
   <h1>Buy Now</h1> 
   Select your items below, click to pay, and we'll pop it in the post.  It's as simple as that!
 
@@ -19,19 +20,21 @@
           <span class="description"> {{basketItem.description}} </span>  
         </div>
 
-        <div class="cell">
-          {{basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}ea
-        </div>
+        <div class="cell totals">
+          <div class="unitcost">
+            {{basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}ea
+          </div>
         
-        <div class="cell">
           <div class="qty-selector">
-            <button (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">-</button>
+            <button (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">&minus;</button>
             <input id="qty{{$index}}" name="qty-{{$index}}" type="number" min=0  [disabled]="shop.orderStatus!='draft'"  [(ngModel)]="basketItem.quantity" readonly> 
-            <button (click)="onPlusMinus(basketItem.id,1)" [disabled]="shop.orderStatus!='draft'">+</button>
+            <button (click)="onPlusMinus(basketItem.id,1)" [disabled]="shop.orderStatus!='draft'">&plus;</button>
+          </div>
+  
+          <div class="subtotal">
+            {{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
           </div>
         </div>
-  
-        <div class="cell">{{basketItem.quantity * basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
 
       </div>
     }
@@ -47,12 +50,12 @@
     </div> 
 
     <div class="row summary">
-      <div class="cell summary-text">Shipping ({{shop.basket.selectedShippingService}})</div>
+      <div class="cell">Shipping ({{shop.basket.selectedShippingService}})</div>
       <div class="cell">{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
     </div>
 
     <div class="row summary last-row">
-      <div class="cell summary-text">Total</div>
+      <div class="cell">Total</div>
       <div class="cell">{{shop.basket.totalCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
     </div>
 <!-- 
