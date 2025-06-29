@@ -1,7 +1,9 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 .env
-/src/environments/
+/src/environments/*
+!/src/environments/environment._shopItems.ts
+!/src/environments/environment._shippingOptions.ts
 /src/config/prod/sitemap.xml
 
 # Compiled output
