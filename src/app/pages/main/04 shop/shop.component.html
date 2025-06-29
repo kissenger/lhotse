@@ -17,7 +17,8 @@
 
         <div class="cell">
           {{basketItem.name}}<br>
-          <span class="description"> {{basketItem.description}} </span>  
+          <span class="description"> {{basketItem.description}} </span> <br>
+          <span class="note">{{basketItem.purchase_note}}</span> 
         </div>
 
         <div class="cell totals">
@@ -50,7 +51,10 @@
     </div> 
 
     <div class="row summary">
-      <div class="cell">Shipping ({{shop.basket.selectedShippingService}})</div>
+      <div class="cell">
+        Shipping ({{shop.basket.selectedShippingService}})<br>
+        <span class="note">Shipping options can be changed in paypal checkout</span>
+      </div>
       <div class="cell">{{shop.basket.shippingCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
     </div>
 

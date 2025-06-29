@@ -4,6 +4,7 @@ export interface StockItem {
   id: string;
   name: string;
   description: string;
+  purchase_note?: string;
   unit_amount: {
       currency_code: string,
       value: number

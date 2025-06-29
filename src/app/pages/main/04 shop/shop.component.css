@@ -21,7 +21,7 @@
 }
 
 .row.item {
-  grid-gap: 0.5rem;
+  grid-gap: 1rem;
   grid-template-columns: auto 1fr 16rem;
 }
 
@@ -39,6 +39,11 @@
   /* place-content: center; */
 }
 
+.cell > .note {
+  font-size: smaller;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
 .cell > .description {
   margin-top: 0.5rem;
   font-size: smaller;
@@ -147,6 +152,12 @@
   .row.item {
     grid-gap: 0.25rem;
     grid-template-columns: auto 1fr auto;
+  }
+  
+  .row.summary {
+    grid-gap: 0.25rem;
+    grid-template-columns: 1fr 4rem;
+    
   }
 
   .cell.totals {
