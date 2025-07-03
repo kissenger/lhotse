@@ -10,7 +10,7 @@
         fill 
         priority
       /> 
-      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: Snorkelology</div>       
+      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{!!post.imgCredit||'Emma and Gordon Taylor'}}</div>       
       <div #leftArrow class="arrow-container"> <a href="blog/{{lastSlug}}"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
       <div #rightArrow class="arrow-container"> <a href="blog/{{nextSlug}}"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
     </div>
@@ -58,7 +58,7 @@
             
             <div class="image-caption">
               {{section.imgAlt}} <br />
-              Photo credit: Snorkelology
+              Photo credit: {{!!section.imgCredit||'Emma and Gordon Taylor'}}
             </div>
 
           </div>
@@ -72,7 +72,7 @@
               referrerpolicy="strict-origin-when-cross-origin" 
               allowfullscreen>
             </iframe>
-        </div>
+          </div>
         }
         <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
       }

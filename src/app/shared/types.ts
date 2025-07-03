@@ -172,7 +172,6 @@ export interface OrderSummary {
   notes?: string
 }
 
-
 export class BlogPost {
   _id: string = '';
   slug: string = '';
@@ -183,13 +182,15 @@ export class BlogPost {
   subtitle: string = '';
   imgFname: string = '';
   imgAlt: string = '';
+  imgCredit: string = '';
   intro: string = '';
   sections = [{
     title: '', 
     content: '', 
     imgFname: '', 
     imgAlt: '', 
-    videoUrl: ''
+    videoUrl: '',
+    imgCredit: ''
   }];
   conclusion: string = '';
   createdAt: string = '';

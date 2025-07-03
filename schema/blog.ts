@@ -15,7 +15,8 @@ const blogSchema = new mongoose.Schema({
     content: {type: String},
     imgFname: {type: String},
     imgAlt: {type: String},
-    videoUrl: {type: String}
+    videoUrl: {type: String},
+    imgCredit: {type: String}
   }]},
   conclusion: {type: String, required: true}
 }, {timestamps: true})

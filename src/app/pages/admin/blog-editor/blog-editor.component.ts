@@ -81,7 +81,7 @@ export class BlogEditorComponent implements OnInit {
   }
 
   addQA() {
-    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: ""})
+    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: "", imgCredit: ""})
   }
 
   deleteQA(index: number) {

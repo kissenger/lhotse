@@ -123,10 +123,15 @@
                     </div>
         
                     <div>
-                        <label for="alt{{$index}}">Image Alt Text:</label>
+                        <label for="alt{{$index}}">Image/video Alt Text:</label>
                         <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
                     </div>  
-                    
+
+                    <div>
+                        <label for="credit{{$index}}">Image/video credit:</label>
+                        <input type="text" id="credit{{$index}}" name="credit{{$index}}" [(ngModel)]="section.imgCredit">
+                    </div>
+
                     <div>
                         <label for="videoUrl{{$index}}">Video URL:</label>
                         <input type="text" id="videoUrl{{$index}}" name="videoUrl{{$index}}" [(ngModel)]="section.videoUrl">                   
