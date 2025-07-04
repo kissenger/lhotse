@@ -41,7 +41,7 @@ blog.get('/api/blog/get-published-posts/', async (req, res) => {
 */
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
   try {
-    const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
+    const listOfSlugs: Array<{slug: string}> = await BlogModel.find({slug: 1}).sort({"createdAt": "descending"});
     const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
     const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
     const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
