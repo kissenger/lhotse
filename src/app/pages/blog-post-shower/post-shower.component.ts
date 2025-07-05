@@ -62,7 +62,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : ''
         }})
 
-        console.log(this.post);
         this.nextSlug = result.nextSlug;
         this.lastSlug = result.lastSlug;
 
