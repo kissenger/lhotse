@@ -9,6 +9,7 @@ import { ManualOrderComponent } from '@pages/admin/orders/manual-order/manual-or
 import { LoginComponent } from '@pages/admin/auth/login/login.component';
 import { RegisterComponent } from '@pages/admin/auth/register/register.component';
 import { AdminComponent } from '@pages/admin/admin.component';
+import { MapComponent } from '@pages/map/map.component';
 import { AuthGuard } from './auth.guard';
 
 export const routes: Routes = [
@@ -22,7 +23,6 @@ export const routes: Routes = [
           {name: 'About', anchor: 'about-us'},
           {name: 'Blog',  anchor: 'blog'},
           {name: 'Book',  anchor: 'snorkelling-britain'},
-          // {name: 'Shop',  anchor: 'shop'},
           {name: 'FAQs',  anchor: 'british-snorkelling-faqs'},
           {name: 'Friends', anchor: 'friends-and-partners'}
         ]}
@@ -33,6 +33,7 @@ export const routes: Routes = [
           {name: 'Back to Blogs', anchor: 'blog'}
         ]} 
       },
+      { path: 'map', component: MapComponent, data: {menuItems: [{name: 'Home',  anchor: 'home'}]}},
       { path: 'admin', component: AdminComponent, data: {menuItems: []}, canActivate: [AuthGuard]},
       { path: 'admin/orders', component: OrdersComponent, data: {menuItems: []}, canActivate: [AuthGuard]},
       { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, data: {menuItems: []}, canActivate: [AuthGuard]},      

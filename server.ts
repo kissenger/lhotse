@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { shop } from './server-shop';
 import { auth, verifyToken } from './server-auth';
 import { blog, getSlugs } from './server-blog';
+import { map } from './server-map';
 import 'dotenv/config';
 
 // if production then use port 4001; for beta and dev use 4000
@@ -66,6 +67,7 @@ export function app(): express.Express {
   server.use(shop);
   server.use(auth);
   server.use(blog);
+  server.use(map);
   // server.use(function (req, res, next) {
   //   res.header('Access-Control-Allow-Origin', '*');
   //   res.header('Access-Control-Allow-Headers', 'Origin, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Response-Time, X-PINGOTHER, X-CSRF-Token,Authorization');

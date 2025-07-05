@@ -19,6 +19,14 @@ export class HttpService {
   ) {}
 
   /*
+  MAP 
+  */
+  async getSites(visibleOnly: boolean) {
+    const request =  this.http.get<Array<BlogPost>>(`${this._backendURL}/sites/get-sites/${visibleOnly}`);
+    return await lastValueFrom<any>(request);
+  }
+
+  /*
   BLOG 
   */
   async getAllPosts() {
