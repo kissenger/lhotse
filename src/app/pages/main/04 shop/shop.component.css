@@ -89,6 +89,10 @@
   margin: 0
 }
 
+.qty-selector > button:hover {
+  cursor: pointer;
+}
+
 .qty-selector > input {
   margin-inline: -1px;
 }
