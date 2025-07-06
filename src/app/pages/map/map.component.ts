@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { MapService } from '@shared/services/map.service';
 
 @Component({
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
@@ -12,14 +13,18 @@ import { MapService } from '@shared/services/map.service';
 
 export class MapComponent {
 
+  public geoJson: any;
+
   constructor(
-    private _map: MapService,
+    public map: MapService,
     private _http: HttpService,
   ) {}
 
   async ngOnInit() {
-    let sites = await this._http.getSites(true);
-    this._map.create(sites);
+    this.geoJson = await this._http.getSites(true);
+    console.log(this.geoJson)
+    this.map.create(this.geoJson);
   }
+
 
 }

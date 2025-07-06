@@ -11,8 +11,7 @@ const siteSchema = new mongoose.Schema({
     placeName: {type: String, required: true},
     region: {type: String},    
     hasTidalPool: {type: String},
-    habitatMain: {type: String, enum: ['seagrass meadow','kelp forest','rocky reef','mearl beds','sand and gravel','chalk reef']},
-    habitatSecondary: {type: String, enum: ['seagrass meadow','kelp forest','rocky reef','mearl beds','sand and gravel','chalk reef']},
+    habitats: {type: [String], enum: ['seagrass meadow','kelp forest','rocky reef','mearl beds','sand and gravel','chalk reef']},
     snorkelTrail: {
       isSnorkelTrail: {type: Boolean},
       trailName: {type: String},
@@ -22,9 +21,7 @@ const siteSchema = new mongoose.Schema({
       isBookSite: {type: Boolean},
       buyUrl: {type: String}
     },
-    findingTheSite: {type: String},
-    gettingThere: {type: String},
-    thingsToKnow: {type: String},
+    shortDescription: {type: String},
     isCarAccess: {type: Boolean},
     parking: {
       name: {type: String},

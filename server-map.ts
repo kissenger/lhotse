@@ -17,8 +17,9 @@ map.get('/api/sites/get-sites/:visibleOnly', async (req, res) => {
 function geoJson(sites:any) {
   return {
     type: "FeatureCollection",
-    features: sites.map((s:any)=>({
+    features: sites.map((s:any,i:number)=>({
       type: "Feature",
+      id: i,
       geometry: s.location,
       properties: s.info
     }))
