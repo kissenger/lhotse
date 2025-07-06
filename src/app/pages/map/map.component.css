@@ -22,9 +22,11 @@
 
 @media (max-width: 767px) {
   #panel {
-    top: 150px;
-    right: 1rem;
-    left: 1rem;
+    top: unset;
+    bottom: 125px;
+    right: 2rem;
+    left: 2rem;
+    width: auto;
   }
 }
 

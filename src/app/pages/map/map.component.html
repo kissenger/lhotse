@@ -15,7 +15,7 @@
       <a [routerLink]="'..'" [fragment]="'snorkelling-britain'">Snorkelling Britain</a>
       <br>
     }
-    @if (this.geoJson?.features[map.selectedFeatureId]?.properties.snorkelTrail.isSnorkelTrail) {
+    @if (this.geoJson?.features[map.selectedFeatureId]?.properties.snorkelTrail.trailUrl) {
       <a href={{this.geoJson?.features[map.selectedFeatureId]?.properties.snorkelTrail.trailUrl}}>Scottish Wildlife Trust</a>
       <br>
     }
