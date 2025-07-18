@@ -71,6 +71,26 @@ button {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+
+.keywords {
+  margin-top: 0.7em;
+  margin-bottom: 0.4em;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.keywords > span {
+  background-color: whitesmoke;
+  border: 1px solid var(--border-colour);
+  padding-inline: 0.3rem;
+  margin-right: 0.3rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: -1px;
+  font-size: 0.8rem;
+  border-radius: 5px;
+}
+
 main {
   margin-top: var(--header-height)
 }

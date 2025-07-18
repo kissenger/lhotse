@@ -27,36 +27,50 @@ export class MapService {
 
     this._map.on('style.load', () => {
 
-      this._map?.addSource('sitesSource', {
-        type: "geojson", 
-        data: sites,
-        // generateId: true
+      this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
+        if (error) throw error;
+        this._map?.addImage('site-marker', image);
       });
 
+      this._map?.addSource('sitesSource', {
+        type: "geojson", 
+        data: sites
+      });
+
+      // this._map?.addLayer({
+      //   id: 'pointsLayer', 
+      //   source: 'sitesSource',
+      //   type: 'circle', 
+      //   paint: { 
+      //     'circle-radius': 20,
+      //     'circle-color': '#1D3D59'
+      //   }
+      // })
+
       this._map?.addLayer({
-        id: 'sitesLayer', 
+        id: 'symbolLayer', 
         source: 'sitesSource',
-        type: 'circle', 
-        paint: {
-          'circle-color': '#4264fb',
-          'circle-radius': 4,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff'
+        type: 'symbol', 
+        layout: { 
+          'icon-image': 'site-marker',
+          'icon-allow-overlap': true,
+          'icon-anchor': 'bottom'
         }
       })
+
+
 
     })
 
     this._map.addInteraction('click', {
       type: 'click',
-      target: { layerId: 'sitesLayer' },
+      target: { layerId: 'symbolLayer' },
       handler: ({ feature }) => {
-        // if (this.selectedFeature) {
-        //   this._map!.setFeatureState(this.selectedFeature, { selected: false });
-        // }
-        this.selectedFeatureId = feature?.id;
-
-        // this._map!.setFeatureState(feature!, { selected: true });
+        if (this.selectedFeatureId === feature?.id) {
+          this.selectedFeatureId = null;
+        } else {
+          this.selectedFeatureId = feature?.id;
+        }
       }
     });
 
@@ -72,14 +86,27 @@ export class MapService {
 
     this._map.addInteraction('mouseenter', {
       type: 'mouseenter',
-      target: { layerId: 'sitesLayer' },
-      handler: () => { this._map!.getCanvas().style.cursor = 'pointer'; }
+      target: { layerId: 'symbolLayer' },
+      handler: (e) => { 
+        // console.log(e);
+        this._map!.getCanvas().style.cursor = 'pointer';
+        // this._map!.setFeatureState(e.feature!, {hovered: true});
+        // console.log(e.feature!.state)
+        // this._map!.setLayoutProperty('')
+      }
     });
 
     this._map.addInteraction('mouseleave', {
       type: 'mouseleave',
-      target: { layerId: 'sitesLayer' },
-      handler: () => { this._map!.getCanvas().style.cursor = ''; }
+      target: { layerId: 'symbolLayer' },
+      handler: (e) => { 
+        // console.log(e)
+        this._map!.getCanvas().style.cursor = ''; 
+        // this._map!.setFeatureState({source: 'sitesSource', id: e.feature!.id!}, {hovered: false});
+        // this._map!.setFeatureState(e.feature!, {hovered: true});
+        // console.log(e.feature!.state)
+
+      }
     });
 
   }

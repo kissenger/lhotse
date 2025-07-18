@@ -1,0 +1,81 @@
+
+<!-- this is needed to avoid error where intro is not rendered  -->
+@defer (when isReadyToLoad) {
+
+  <main>
+    <div class="article-image-container">
+      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority /> 
+      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{!!post.imgCredit||'Emma and Gordon Taylor'}}</div>       
+      <div class="arrow left">  <a href="blog/{{lastSlug}}"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
+      <div class="arrow right"> <a href="blog/{{nextSlug}}"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
+    </div>
+
+    <div class="dynamic-container">
+
+      <h1>{{post.title}}</h1>
+
+      <div class="below-title-text">
+        Published {{post.createdAt | date : 'MMM YYYY'}} <br />
+        <div class="keywords">
+          @for (kw of post.keywords; track kw) {
+            <span>{{kw}}</span>
+          }
+        </div>
+      </div>
+
+      <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
+
+      @if (post.sections.length > 0) {
+        <section class="anchor" id="contents">
+          <h1>Contents</h1>
+          <ul>
+            @for(section of post.sections; track section) {
+              <li>
+                <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
+              </li>
+            } 
+          </ul>
+        </section>
+
+
+        @for (section of post.sections; track section) {
+          <a class="anchor" id="{{section.title | kebaber}}"></a>
+          <h1>{{section.title}}</h1>
+          <div [innerHTML]="section.content | sanitizer"></div>
+          @if (!!section.imgFname) {
+
+            <div class="article-image-container">
+              <img
+                [ngSrc]="section.imgFname"
+                [alt]="section.imgAlt"
+                fill 
+              /> 
+              
+              <div class="image-caption">
+                {{section.imgAlt}} <br />
+                Photo credit: {{!!section.imgCredit||'Emma and Gordon Taylor'}}
+              </div>
+
+            </div>
+          } @else if (!!section.videoUrl) {
+            <div class="youtube-container">
+              <iframe
+                [src]="section.videoUrl"
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin" 
+                allowfullscreen>
+              </iframe>
+            </div>
+          }
+          <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
+        }
+      }
+
+      <h1>Conclusion</h1>
+      <div [innerHTML]="post.conclusion | sanitizer"></div>
+
+    </div>
+  </main>
+}

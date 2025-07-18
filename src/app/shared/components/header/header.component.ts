@@ -4,11 +4,14 @@ import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/router';
+import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
+import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
+import { EmailSvgComponent } from '@shared/svg/email/email.component'
 
 @Component({
   standalone: true,
   providers: [],
-  imports: [RouterLink, CommonModule],
+  imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent  ],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -22,9 +25,17 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
 
-  public menuItems: Array<{name: string, anchor: string}> = [];
+  public menuItems: Array<{name: string, anchor: string}> = [
+    { name: 'Home',    anchor: 'home' },
+    { name: 'Blog',    anchor: 'blog' },
+    { name: 'Map',     anchor: 'map' },
+    { name: 'Book',    anchor: 'snorkelling-britain' },
+    { name: 'Shop',    anchor: 'buy-now' },
+    { name: 'Friends', anchor: 'buy-now' },
+
+  ];
   public expandDropdownMenu: boolean = false;
-  public activeAnchor: string = 'about-us';
+  public activeMenuItem?: string = 'Home';
   public isLoaded: boolean = false;
 
   constructor(
@@ -34,19 +45,13 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
   ) {
-    this._router.events
-      .pipe(filter( (e: any) => e instanceof NavigationEnd))
+    this._router.events.pipe(filter( (e: any) => e instanceof NavigationEnd))
       .subscribe( () => {
-        this.menuItems = this._route.firstChild?.snapshot.data['menuItems'];
         this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
           if (isect.ratio > 0.2) {
-            if (isect.id === "buy-now") {
-              this.activeAnchor = "snorkelling-britain";
-            } else {
-              this.activeAnchor = isect.id;
-            }
-          }
-        })
+            this.activeMenuItem = this.menuItems.find( item => item.anchor === isect.id)?.name;
+          };
+        });
     });
   }
  

@@ -1,17 +1,17 @@
 import express from 'express';
-import SiteModel from './schema/site';
+import FeatureModel from './schema/feature';
 import 'dotenv/config';
-import { features } from 'process';
 
 const map = express();
 
 map.get('/api/sites/get-sites/:visibleOnly', async (req, res) => {
-  try {
-    const sites = await SiteModel.find({showOnMap: true});
+  // try {
+    const sites = await FeatureModel.find({showOnMap: true});
+    // console.log(sites);
     res.status(201).json(geoJson(sites));
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
+  // } catch (error: any) {
+  //   res.status(500).send(error);
+  // }
 });
 
 function geoJson(sites:any) {
@@ -21,7 +21,7 @@ function geoJson(sites:any) {
       type: "Feature",
       id: i,
       geometry: s.location,
-      properties: s.info
+      properties: s.properties
     }))
   }
 }
