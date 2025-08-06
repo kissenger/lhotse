@@ -1,6 +1,6 @@
 <header>
 
-  @if (isLoaded == true) {
+   @defer {
 
     <a #brandbox class="brand-box block-animation" href="/" [ngClass]="expandDropdownMenu ? 'expand' : 'contract'" (click)="onMenuItemClick()">
       <img src="./assets/banner/snround.webp" width="100" height="100">

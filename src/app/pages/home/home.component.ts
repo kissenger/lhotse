@@ -125,9 +125,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   }
 
   hideOverlay(overlay: string) {
-    if (overlay === 'buy-now') {
-      this.hideBuyNowOverlay = true;
-    } else if (overlay === 'about-book') {
+    if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
     }
   }

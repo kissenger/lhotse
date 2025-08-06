@@ -1,6 +1,33 @@
 
 /* solution for animating height: https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/ */
 
+.deactivate {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  background-color: #1D3D59B3;
+  z-index: 1000;
+}
+.message-box {
+  width: 50%;
+  /* height: 25%; */
+  margin-inline: auto;
+  margin-top: 5rem;
+  background-color: white;
+  border: 2px solid var(--sn-colour);
+  z-index: 1001;
+  border-radius: 5px;
+  padding: 2rem;
+}
+.message-box > h1 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 1rem 0 1rem 0;
+  font-weight: 400;
+}
+
 .carousel-holder {
   height: 100px;
   width: 100px;
