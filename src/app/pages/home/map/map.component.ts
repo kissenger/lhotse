@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { MapService } from '@shared/services/map.service';
+import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { EmailSvgComponent } from '@shared/svg/email/email.component';
 import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component';
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -16,16 +18,31 @@ import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
 export class MapComponent {
 
   public geoJson: any;
+  private _scrSubs: Subscription | null = null;
 
   constructor(
     public map: MapService,
     private _http: HttpService,
+    private _scrollSpy: ScrollspyService,
+    
   ) {}
 
   async ngOnInit() {
+    // lazy load map to minimise loading charges
     this.geoJson = await this._http.getSites(true);
-    console.log(this.geoJson)
-    this.map.create(this.geoJson);
+    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+      if (isect.ratio > 0.2) {
+        if (isect.id === "maps") {
+          if (!this.map.exists) {
+            this.map.create(this.geoJson);
+          }
+        }        
+      }
+    })
+  }
+
+  ngOnDestroy() {
+    this._scrSubs?.unsubscribe();
   }
 
 

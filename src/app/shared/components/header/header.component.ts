@@ -28,10 +28,10 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   public menuItems: Array<{name: string, anchor: string}> = [
     { name: 'Home',    anchor: 'home' },
     { name: 'Blog',    anchor: 'blog' },
-    { name: 'Map',     anchor: 'map' },
     { name: 'Book',    anchor: 'snorkelling-britain' },
     { name: 'Shop',    anchor: 'buy-now' },
-    { name: 'Friends', anchor: 'buy-now' },
+    { name: 'Map',     anchor: 'maps' },
+    { name: 'Friends', anchor: 'friends-and-partners' },
 
   ];
   public expandDropdownMenu: boolean = false;

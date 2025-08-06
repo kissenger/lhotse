@@ -39,7 +39,6 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
 
     const json = await result.json();
     if (Array.isArray(json.details)) {
-      console.log(json.details)
       throw new Error(json.details[0]);
     } else {
       const resp = await logShopEvent( orderNumber, 
@@ -229,7 +228,6 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken
         }
 
       })
-      // console.log(result)
       res.status(201).json(result.map(o=>o.orderSummary));
     }
     

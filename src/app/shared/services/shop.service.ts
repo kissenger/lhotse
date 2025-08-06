@@ -161,7 +161,7 @@ class Basket {
     private _discountCode: string = '';
     private _orderType: OrderType = 'manualOrder';
     private _parcelType: ParcelType = shippingOptions[0];
-    private _selectedShippingService: string | undefined;
+    public selectedShippingService: string = "Royal Mail Tracked 48";
 
     // Add an item to the basket with a qty = 1
     add(stockItem: StockItem, quantity: number) {
@@ -173,11 +173,17 @@ class Basket {
 
     // Increments the basket quantity, checking to ensure maximum allowable order weight is not violated, and tha qty>=0
     incrementQty(itemId: string, inc: number) {
-        const item = this._basketItems.find(item=>item.id===itemId)!;
-        if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < shippingOptions.slice(-1)[0].maxWeight) ) {
-            item.quantity += inc;
-            this.setParcelType();
-        } 
+      const item = this._basketItems.find(item=>item.id===itemId)!;
+      if ( (item.quantity + inc >= 0) && (this.totalOrderWeight + inc * item.weightInGrams < shippingOptions.slice(-1)[0].maxWeight) ) {
+        item.quantity += inc;
+        this.setParcelType();
+      } 
+    }
+
+    setQty(itemId: string, qty: number) {
+      const item = this._basketItems.find(item=>item.id===itemId)!;
+      item.quantity = qty;
+      this.setParcelType();
     }
 
     // Select parcel based on size and weight of items in basket
@@ -246,12 +252,13 @@ class Basket {
 
     get shippingCost(): number {
         
-        if (this._selectedShippingService) {
+        if (this.selectedShippingService) {
             try {
-                return this._parcelType!.services.find( s => s.label===this._selectedShippingService)!.cost;
+                return this._parcelType!.services.find( s => s.label===this.selectedShippingService)!.cost;
             } catch {
-                this._selectedShippingService = undefined;
-                this._parcelType!.services[0].cost;
+              throw new Error("shipping option not found")
+                // this.selectedShippingService = undefined;
+                // this._parcelType!.services[0].cost;
             }
         } 
         return this._parcelType!.services[0].cost;
@@ -261,20 +268,12 @@ class Basket {
         return this._parcelType!;
     }
 
-    set selectedShippingService(label: string) {
-        this._selectedShippingService = label;
-    }
-
-    get selectedShippingService() {
-        return this._selectedShippingService || this._parcelType!.services[0].label;
-    }    
-
     // called only when paypal pay button is pressed
     get paypalShippingOptions(): Array<PayPalShippingOption> {
         return this._parcelType!.services.map( (s,i) => ({
             id: s.label,
             label: s.label,
-            selected: this._selectedShippingService ? this._selectedShippingService===s.label : i===0,
+            selected: this.selectedShippingService ? this.selectedShippingService===s.label : i===0,
             type: 'SHIPPING',
             amount: {
                 currency_code: 'GBP',

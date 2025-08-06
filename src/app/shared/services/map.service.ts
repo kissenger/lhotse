@@ -15,6 +15,10 @@ export class MapService {
   constructor() {
   }
 
+  get exists() {
+    return !!this._map
+  }
+
   create(sites: any) {
 
     this._map = new mapboxgl.Map({

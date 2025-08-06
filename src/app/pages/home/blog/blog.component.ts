@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, ViewChild } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';

@@ -45,31 +45,6 @@ export class OrdersComponent  {
     navigator.clipboard.writeText(emails.join(";"))
   }
 
-  copyAddresses() {
-    let addresses = this.orders.map(o=>this.getAddress(o)+"\n")
-    navigator.clipboard.writeText(addresses.join("\n"))
-  }
-
-  copyLabel(order: OrderSummary) {
-    this.labelElements.toArray().forEach( (elem) => {
-      if (elem.nativeElement.id === order.orderNumber) {
-        const data = new ClipboardItem({"text/html": elem.nativeElement.innerHTML});
-        navigator.clipboard.write([data]);
-      }
-    })
-
-  }
-
-  getAddress(order: OrderSummary) {
-    return (order.user.name+"\n"+
-      (order.user.organisation||'')+"\n"+
-      (order.user.address.address_line_1||'')+"\n"+
-      (order.user.address.address_line_2||'')+"\n"+
-      (order.user.address.admin_area_2||'')+"\n"+
-      (order.user.address.admin_area_1||'')+"\n"+
-      order.user.address.postal_code).replaceAll(/[\n]+/g,"\n");
-  }
-
   newOrder() {
     this._router.navigateByUrl(`/admin/orders/manual/`); 
   }

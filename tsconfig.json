@@ -8,6 +8,13 @@
         "node"
       ],
     "baseUrl": "./",
+    "paths": {
+      "@environments/*": ["./src/environments/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@pages/*": ["./src/app/pages/*"],
+      "@schema/*": ["./schema/*"]
+    },
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
@@ -27,14 +34,7 @@
     "lib": [
       "ES2022",
       "dom"
-    ],
-    "paths": {
-      "@environments/*": ["./src/environments/*"],
-      "@assets/*": ["./src/assets/*"],
-      "@shared/*": ["./src/app/shared/*"],
-      "@pages/*": ["./src/app/pages/*"],
-      "@schema/*": ["./schema/*"]
-    }
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -49,6 +49,6 @@
     "server-shop.ts"
   ],
   "include": [
-    "src/**/*.d.ts"
+    "src/**/*.ts"
   ]  
 }

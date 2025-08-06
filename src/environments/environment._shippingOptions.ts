@@ -55,8 +55,8 @@ export const shippingOptions = {
         cost: 4.29,
       }]
     },{
-      packageType: "Medium Parcel",
-      maxWeight: 4000,
+      packageType: "Medium Parcel 10kg",
+      maxWeight: 10000,
       maxDimensions: {
         thickness: 460,
         width: 460,
@@ -71,6 +71,24 @@ export const shippingOptions = {
       },{
         label: "Royal Mail Tracked 24",
         cost: 7.90,
+      }]  
+    },{
+      packageType: "Medium Parcel 20kg",
+      maxWeight: 20000,
+      maxDimensions: {
+        thickness: 460,
+        width: 460,
+        length: 610
+      },
+      packaging: {
+        weight: 300,
+      },
+      services: [{
+        label: "Royal Mail Tracked 48",
+        cost: 10.80
+      },{
+        label: "Royal Mail Tracked 24",
+        cost: 12.60,
       }]  
     }
   ]  

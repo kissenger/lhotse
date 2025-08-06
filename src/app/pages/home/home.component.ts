@@ -7,7 +7,8 @@ import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SEOService } from           '@shared/services/seo.service';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
-import { BlogComponent } from        '@pages/blog/blog.component';
+import { BlogComponent } from        '@pages/home/blog/blog.component';
+import { MapComponent } from         '@pages/home/map/map.component';
 import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
@@ -17,8 +18,8 @@ import { PartnersComponent } from    '@pages/home/partners/partners.component';
   standalone: true,
   providers: [BlogComponent, ScreenService],
   imports: [
-    SlideshowComponent, AboutUsComponent, ShopComponent,
-    FAQComponent, PartnersComponent, BookComponent, NgClass, 
+    SlideshowComponent, AboutUsComponent, ShopComponent, MapComponent,
+    FAQComponent, BlogComponent, PartnersComponent, BookComponent, NgClass, 
     RouterLink, NgOptimizedImage
   ],
   selector: 'app-home',
@@ -97,15 +98,14 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     });
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
-        if (isect.id === "buy-now" || isect.id === "snorkelling-britain") {
+        if (isect.id === "blog") {
           this.hideAboutBookOverlay = true;
-        }
+        }        
         if (isect.id === "snorkelling-britain") {
           this.hideBuyNowOverlay = false;
         } else {
           this.hideBuyNowOverlay = true;
         }
-    
       }
     })
   }

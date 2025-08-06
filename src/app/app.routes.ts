@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { BlogEditorComponent } from '@pages/admin/blog-editor/blog-editor.component';
-import { PostShowerComponent } from '@pages/blog/blog-post-shower/post-shower.component';
+import { PostShowerComponent } from '@pages/home/blog/blog-post-shower/post-shower.component';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
 import { OrdersComponent } from '@pages/admin/orders/orders.component'
@@ -8,18 +8,21 @@ import { ManualOrderComponent } from '@pages/admin/orders/manual-order/manual-or
 import { LoginComponent } from '@pages/admin/auth/login/login.component';
 import { RegisterComponent } from '@pages/admin/auth/register/register.component';
 import { AdminComponent } from '@pages/admin/admin.component';
-import { MapComponent } from '@pages/map/map.component';
+import { MapComponent } from '@pages/home/map/map.component';
 import { AuthGuard } from './auth.guard';
-import { BlogComponent } from '@pages/blog/blog.component';
+import { BlogComponent } from '@pages/home/blog/blog.component';
 
 export const routes: Routes = [
 
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },      
-  { path: 'blog', component: BlogComponent },      
+  { path: 'blog', loadComponent: () =>
+    import('@pages/home/blog/blog.component').then((m) => m.BlogComponent)
+  },  
   { path: 'blog/:slug', component: PostShowerComponent },
-  { path: 'map', component: MapComponent },
-
+  { path: 'map', loadComponent: () =>
+      import('@pages/home/map/map.component').then((m) => m.MapComponent)
+  },
 
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders', component: OrdersComponent, canActivate: [AuthGuard]},
