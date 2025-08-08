@@ -16,13 +16,11 @@ export const routes: Routes = [
 
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },      
-  { path: 'blog', loadComponent: () =>
-    import('@pages/home/blog/blog.component').then((m) => m.BlogComponent)
-  },  
-  { path: 'blog/:slug', component: PostShowerComponent },
-  { path: 'map', loadComponent: () =>
-      import('@pages/home/map/map.component').then((m) => m.MapComponent)
+  { path: 'blog', component: BlogComponent },  
+  { path: 'blog/:slug', loadComponent: () =>
+    import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent )
   },
+  { path: 'map', component: MapComponent  },
 
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders', component: OrdersComponent, canActivate: [AuthGuard]},
