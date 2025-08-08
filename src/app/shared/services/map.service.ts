@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector, ProviderToken } from '@angular/core';
 import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
 
@@ -12,9 +12,10 @@ export class MapService {
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeatureId: any = null;
 
-  constructor() {
-  }
-
+  constructor(
+    private injector: Injector
+  ) {}
+  
   get exists() {
     return !!this._map
   }
