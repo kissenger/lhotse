@@ -7,7 +7,8 @@
   left: 0px;
   height: 100%;
   width: 100%;
-  background-color: #1D3D59B3;
+  /* background-color: #1D3D59B3; */
+  background-color: #FFFFFFB3;
   z-index: 1000;
 }
 .message-box {
