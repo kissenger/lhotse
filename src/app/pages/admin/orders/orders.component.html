@@ -182,12 +182,12 @@
           </div>
 
           <div class="order-line">
-            @for (item of order.items; track item) {
-              <div class="title">Items</div>
-              <div class="value" [ngClass]="item.name.includes('Signed') ? 'blue' : ''">
-                {{item.name}}
-              </div>  
-            }
+            <div class="title">Items</div>
+            <div class="value">
+              @for (item of order.items; track item) {
+                  {{item.quantity}} x {{item.name}}<br>
+              }
+            </div>  
           </div>
           <div class="order-line">
             <div class="title">Shipping Option</div>

@@ -101,6 +101,7 @@ table {
     background-color:whitesmoke;
     width: 40%;
     white-space: pre-line;
+    /* display: block; */
 }
 
 .label {

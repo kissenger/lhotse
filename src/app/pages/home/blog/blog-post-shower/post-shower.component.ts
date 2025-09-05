@@ -42,13 +42,17 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    // console.log(this.stage)
+    console.log(this.stage)
     this._routeSubs = this._route.params.subscribe(async params => {
+      console.log(params)
+      console.log(!params['slug'].match('map'))
 
         // this is a hack to avoid an error 
-      if (!params['slug'].match('map')) {
+      // if (!params['slug'].match('map')) {
+        console.log('if')
 
         const result = await this._http.getPostBySlug(params['slug']);
+        console.log(result)
 
         this.post = result.article;
         this.post.intro = this._htmler.transform(result.article.intro);
@@ -79,7 +83,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         this._seo.addStructuredData(entity);
         
         this.isReadyToLoad = true;
-      }
+      // }
     });
   }
 

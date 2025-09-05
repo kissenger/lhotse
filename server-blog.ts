@@ -40,6 +40,7 @@ blog.get('/api/blog/get-published-posts/', async (req, res) => {
   Returns: BlogPost
 */
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
+  console.log('here')
   try {
     const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
     const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 

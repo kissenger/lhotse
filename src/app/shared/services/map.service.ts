@@ -10,7 +10,7 @@ export class MapService {
 
   private _map?: mapboxgl.Map;
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
-  public selectedFeatureId: any = null;
+  public selectedFeature: any = null;
 
   constructor(
     private injector: Injector
@@ -34,47 +34,66 @@ export class MapService {
 
       this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
         if (error) throw error;
-        this._map?.addImage('site-marker', image);
+        this._map?.addImage('site-marker-blue', image);
       });
+
+      this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-yellow-2.png', (error, image: any) => {
+        if (error) throw error;
+        this._map?.addImage('site-marker-yellow', image);
+      });      
 
       this._map?.addSource('sitesSource', {
         type: "geojson", 
         data: sites
       });
 
-      // this._map?.addLayer({
-      //   id: 'pointsLayer', 
-      //   source: 'sitesSource',
-      //   type: 'circle', 
-      //   paint: { 
-      //     'circle-radius': 20,
-      //     'circle-color': '#1D3D59'
-      //   }
-      // })
-
       this._map?.addLayer({
         id: 'symbolLayer', 
         source: 'sitesSource',
         type: 'symbol', 
         layout: { 
-          'icon-image': 'site-marker',
+          'icon-image': 'site-marker-blue',
           'icon-allow-overlap': true,
           'icon-anchor': 'bottom'
-        }
+        },
       })
 
-
+      this._map?.addLayer({
+        id: 'symbolLayerHighlight', 
+        source: 'sitesSource',
+        type: 'symbol', 
+        layout: { 
+          'icon-image': 'site-marker-yellow',
+          'icon-allow-overlap': true,
+          'icon-anchor': 'bottom',
+          'icon-size': 1.1,
+          'icon-offset': [0,2]
+        },
+        paint: {
+          'icon-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            1.0,
+            0
+          ],
+        }
+      })      
 
     })
 
     this._map.addInteraction('click', {
       type: 'click',
       target: { layerId: 'symbolLayer' },
-      handler: ({ feature }) => {
-        if (this.selectedFeatureId === feature?.id) {
-          this.selectedFeatureId = null;
+      handler: ({feature}) => {
+        if (this.selectedFeature?.id === feature?.id) {
+          this.selectedFeature = null;
+          this._map!.setFeatureState(feature!, { selected: false });
         } else {
-          this.selectedFeatureId = feature?.id;
+          if (this.selectedFeature) {
+            this._map!.setFeatureState(this.selectedFeature, { selected: false });
+          }
+          this.selectedFeature = feature;
+          this._map!.setFeatureState(feature!, { selected: true });
         }
       }
     });
@@ -82,9 +101,9 @@ export class MapService {
     this._map.addInteraction('map-click', {
       type: 'click',
       handler: () => {
-        if (this.selectedFeatureId) {
-          // this._map!.setFeatureState(this.selectedFeature, { selected: false });
-          this.selectedFeatureId = null;
+        if (this.selectedFeature?.id) {
+          this._map!.setFeatureState(this.selectedFeature, { selected: false });
+          this.selectedFeature = null;
         }
       }
     });
