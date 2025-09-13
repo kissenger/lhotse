@@ -44,12 +44,10 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   ngOnInit() {
     console.log(this.stage)
     this._routeSubs = this._route.params.subscribe(async params => {
-      console.log(params)
-      console.log(!params['slug'].match('map'))
 
-        // this is a hack to avoid an error 
+      // this is a hack to avoid an error 
+      // not clear what error so commented out ....
       // if (!params['slug'].match('map')) {
-        console.log('if')
 
         const result = await this._http.getPostBySlug(params['slug']);
         console.log(result)

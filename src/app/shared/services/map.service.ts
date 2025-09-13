@@ -11,6 +11,7 @@ export class MapService {
   private _map?: mapboxgl.Map;
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeature: any = null;
+  private _sites: any;
 
   constructor(
     private injector: Injector
@@ -20,8 +21,34 @@ export class MapService {
     return !!this._map
   }
 
+  deselectSymbol() {
+    this._map!.setFeatureState(this.selectedFeature, { selected: false });
+    this.selectedFeature = null;
+  }
+
+  get selectedSymbolId() {
+    return this.selectedFeature?.id;
+  }
+
+  get popupPosition() {
+    // let width = this._map?.getContainer().clientWidth;
+    if (!!this.selectedSymbolId) {
+      let lngLat = this._sites.features[this.selectedSymbolId].geometry.coordinates;
+      let xy = this._map?.project(lngLat);
+      if (xy!.x < 350) {
+        return "right"
+      } else {
+        return "left"
+      }
+    } else {
+      return "none"
+    }
+
+  }
+
   create(sites: any) {
 
+    this._sites = sites;
     this._map = new mapboxgl.Map({
       accessToken: mapboxToken,
       container: 'map', 
@@ -96,6 +123,7 @@ export class MapService {
           this._map!.setFeatureState(feature!, { selected: true });
         }
       }
+
     });
 
     this._map.addInteraction('map-click', {
@@ -112,11 +140,7 @@ export class MapService {
       type: 'mouseenter',
       target: { layerId: 'symbolLayer' },
       handler: (e) => { 
-        // console.log(e);
         this._map!.getCanvas().style.cursor = 'pointer';
-        // this._map!.setFeatureState(e.feature!, {hovered: true});
-        // console.log(e.feature!.state)
-        // this._map!.setLayoutProperty('')
       }
     });
 
@@ -124,12 +148,7 @@ export class MapService {
       type: 'mouseleave',
       target: { layerId: 'symbolLayer' },
       handler: (e) => { 
-        // console.log(e)
-        this._map!.getCanvas().style.cursor = ''; 
-        // this._map!.setFeatureState({source: 'sitesSource', id: e.feature!.id!}, {hovered: false});
-        // this._map!.setFeatureState(e.feature!, {hovered: true});
-        // console.log(e.feature!.state)
-
+        this._map!.getCanvas().style.cursor = '';
       }
     });
 
