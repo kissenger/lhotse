@@ -43,11 +43,23 @@ export class BlogError extends Error {
   }
 }
 
-mongoose.connect(MONGODB_CONNECTION_STR);
-mongoose.connection
-  .once('error', () => console.log('xxx'))
-  .on('close', () => console.log('MongoDB disconnected'))
-  .once('open', () => console.log('MongoDB connected') );
+// Define function to retry connection if initial attempt fails
+// Once initial connection is successful, mongoose with auto reconnect
+// https://team.goodeggs.com/reconnecting-to-mongodb-when-mongoose-connect-fails-at-startup-83ca8496ca02
+let connectToMongoose = () => {
+  return mongoose.connect(MONGODB_CONNECTION_STR).then(
+    () => {
+      console.log('Mongoose connection successful')
+    },
+    (error) => {
+      console.error('Mongoose failed to connect, retrying...')
+      console.error(error);
+      setTimeout(connectToMongoose, 5000);
+    }
+  )
+}
+
+connectToMongoose();
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
@@ -68,14 +80,6 @@ export function app(): express.Express {
   server.use(auth);
   server.use(blog);
   server.use(map);
-  // server.use(function (req, res, next) {
-  //   res.header('Access-Control-Allow-Origin', '*');
-  //   res.header('Access-Control-Allow-Headers', 'Origin, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Response-Time, X-PINGOTHER, X-CSRF-Token,Authorization');
-  //   res.header('Access-Control-Allow-Methods', '*');
-  //   res.header('Access-Control-Expose-Headers', 'X-Api-Version, X-Request-Id, X-Response-Time');
-  //   res.header('Access-Control-Max-Age', '1000');
-  //   next()
-  // });
 
   server.get('/api/ping/', (req, res) => {
     res.status(201).json({hello: 'world'});
