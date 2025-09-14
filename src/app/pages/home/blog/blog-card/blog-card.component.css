@@ -2,11 +2,13 @@
   align-self: start;
   display: flex;
   flex-direction: column;
-  width: 400px;
+  width: 300px;
+  min-height: 500px;
   overflow: hidden;
   transition: all 0.25s;
   margin-inline: 1em;
   scroll-behavior: smooth;
+  /* border: 1px red solid; */
 }
 
 .blog-card:hover {
@@ -47,22 +49,5 @@ h2 {
   font-size: 0.9em;
 }
 
-/* .kws {
-  margin-block: 0.7em;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-} */
-
-/* .kw {
-  background-color: whitesmoke;
-  border: 1px solid var(--border-colour);
-  padding-inline: 0.25em;
-  margin-right: 0.25em;
-  margin-bottom: 0.25rem;
-  letter-spacing: -1px;
-  font-size: 0.7em;
-  border-radius: 5px;
-} */
 
 
