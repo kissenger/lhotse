@@ -1,0 +1,26 @@
+/* HTML: <div class="loader"></div> */
+
+.loader-container {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 80vh;
+  width: 100%;
+  background-color: #FAF9F6;
+  align-content: center;
+}
+
+.loader {
+  width: 15px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: loading-animation 2s infinite linear alternate;
+  margin: auto;
+}
+
+@keyframes loading-animation {
+    0%  {box-shadow: 20px 0 #000, -20px 0 #0002; background: #000 }
+    33% {box-shadow: 20px 0 #000, -20px 0 #0002; background: #0002}
+    66% {box-shadow: 20px 0 #0002,-20px 0 #000;  background: #0002}
+    100%{box-shadow: 20px 0 #0002,-20px 0 #000;  background: #000 }
+}

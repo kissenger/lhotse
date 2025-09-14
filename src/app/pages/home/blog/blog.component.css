@@ -1,6 +1,7 @@
 .browser-container {
   position:relative;
   scroll-behavior: smooth;
+  min-height: 80vh;;
 }
 
 .arrow {

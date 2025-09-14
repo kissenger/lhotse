@@ -30,7 +30,7 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     { name: 'Blog',    anchor: 'blog' },
     { name: 'Book',    anchor: 'snorkelling-britain' },
     { name: 'Shop',    anchor: 'buy-now' },
-    { name: 'Map',     anchor: 'maps' },
+    { name: 'Map',     anchor: 'snorkelling-map-of-britain' },
     { name: 'Friends', anchor: 'friends-and-partners' },
 
   ];

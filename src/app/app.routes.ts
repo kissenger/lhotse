@@ -13,15 +13,13 @@ import { AuthGuard } from './auth.guard';
 import { BlogComponent } from '@pages/home/blog/blog.component';
 
 export const routes: Routes = [
-
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },      
   { path: 'blog', component: BlogComponent },  
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent )
   },
-  { path: 'map', component: MapComponent  },
-
+  { path: 'snorkelling-map-of-britain', component: MapComponent  },
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders', component: OrdersComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, canActivate: [AuthGuard]},      

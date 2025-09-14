@@ -1,5 +1,5 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideRouter, withInMemoryScrolling, withRouterConfig } from '@angular/router';
+import { provideRouter, withInMemoryScrolling, withRouterConfig, PreloadAllModules, withPreloading } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
@@ -14,7 +14,9 @@ export const appConfig: ApplicationConfig = {
     AuthGuard,
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
-      withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
+      // withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
+      withInMemoryScrolling({scrollPositionRestoration: 'enabled'}),
+      withPreloading(PreloadAllModules)
     ), 
     provideClientHydration(),
     provideHttpClient(

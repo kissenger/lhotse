@@ -6,11 +6,12 @@ import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { EmailSvgComponent } from '@shared/svg/email/email.component';
 import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component';
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
+import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
-  imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent ],
+  imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, LoaderComponent ],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
@@ -35,7 +36,7 @@ export class MapComponent {
     this.geoJson = await this._http.getSites(true);
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( async (isect) => {
       if (isect.ratio > 0.2) {
-        if (isect.id === "maps") {
+        if (isect.id === "snorkelling-map-of-britain") {
           if (!this.map) {
             this.map = await this._lazyServiceInjector.get<MapService>(() =>
               import('@shared/services/map.service').then((m) => m.MapService)
