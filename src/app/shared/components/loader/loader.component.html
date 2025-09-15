@@ -1,5 +1,7 @@
 <div class="loader-container">
-  <div class="loader">
-  
-  </div>
+  @if (loadingState === 'loading') {
+    <div class="loader"></div>
+  } @else {
+    Content could not be loaded :(
+  }
 </div>

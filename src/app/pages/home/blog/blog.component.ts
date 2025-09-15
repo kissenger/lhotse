@@ -1,16 +1,18 @@
-import { Component, ElementRef, EventEmitter, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
+import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
 
 
+
 @Component({
   standalone: true,
-  imports: [ BlogCardComponent, SvgArrowComponent, CommonModule ],
+  imports: [ BlogCardComponent, SvgArrowComponent, CommonModule, LoaderComponent ],
   selector: 'app-blog',
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.css'],
@@ -24,9 +26,9 @@ export class BlogComponent {
 
   public filteredPosts: Array<BlogPost> = [];
   public allPosts: Array<BlogPost> = [];
-  public isBlogDataEmitter = new EventEmitter();
   public uniqueKeywords: Array<string> = [];
   public selectedKeywords: Array<string> = [];
+  public loadingState: 'loading' | 'failed' | 'success' = 'loading';
 
   constructor(
     private _http: HttpService,
@@ -40,11 +42,11 @@ export class BlogComponent {
     this._route.params.subscribe( async () => {
       try {
         this.allPosts = await this._http.getPublishedPosts();
-        this.isBlogDataEmitter.emit(this.allPosts.length !== 0);
+        this.loadingState = 'success';
         this.filteredPosts = this.allPosts;
         this.getUniqueKeywords();
       } catch (error) {
-        this.isBlogDataEmitter.emit(true);
+        this.loadingState = 'failed';
         console.log(error);
       }
     });

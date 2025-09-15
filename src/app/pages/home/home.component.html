@@ -70,8 +70,10 @@
   </div>
 
   <div #anchor class="anchor" id="snorkelling-map-of-britain">
-    @defer {
+    @defer (on viewport) {
       <app-map></app-map>
+    } @placeholder {
+      <app-loader loadingState="loading"></app-loader>
     }
     <div #window id="windowOne" class="window"></div>  
   </div>

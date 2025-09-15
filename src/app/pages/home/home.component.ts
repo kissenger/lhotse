@@ -1,4 +1,4 @@
-import { ActivatedRoute, Router, RouterLink, Scroll} from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -13,15 +13,17 @@ import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
+import { LoaderComponent } from      "@shared/components/loader/loader.component";
 
 @Component({
   standalone: true,
   providers: [BlogComponent, ScreenService],
   imports: [
     SlideshowComponent, AboutUsComponent, ShopComponent, MapComponent,
-    FAQComponent, BlogComponent, PartnersComponent, BookComponent, NgClass, 
-    RouterLink, NgOptimizedImage
-  ],
+    FAQComponent, BlogComponent, PartnersComponent, BookComponent, NgClass,
+    RouterLink, NgOptimizedImage,
+    LoaderComponent
+],
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
@@ -32,7 +34,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
-  private _dataSubs: Subscription;
   private _scrSubs: Subscription | null = null;
   public isBlogData = true;
   public hideAboutBookOverlay = false;
@@ -50,28 +51,10 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
     private _route: ActivatedRoute,
-    private _router: Router,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-    private _seo: SEOService,
-    private _blogComponent: BlogComponent
+    private _seo: SEOService
   ) {
-
-    // Fragment navigation is dealt with manually, as automatic implementation was not working correctly
-    // For auto, add the following line to app.config.ts:
-    // withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
-    this._router.events.subscribe((event: any) => {
-      if (event instanceof Scroll && event.anchor) {
-        console.log(event.anchor)
-        setTimeout(() => {
-          document.querySelector('#' + event.anchor)?.scrollIntoView();
-        }, 200);
-      }
-    });
-
-    this._dataSubs = this._blogComponent.isBlogDataEmitter.subscribe( (value) => {
-      this.isBlogData = value;
-    });
 
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
@@ -98,6 +81,12 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   ngAfterContentChecked() {
     if (!isPlatformBrowser(PLATFORM_ID)) {
       this.isReadyToLoad = true;
+    }
+
+    // this is a hack to fix the broken scroll to fragment feature in angular
+    let target = document.querySelector('#' + this._route.snapshot.fragment);
+    if (target) {
+      target?.scrollIntoView();
     }
   }
   
@@ -146,7 +135,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   }
 
   ngOnDestroy() {
-    this._dataSubs?.unsubscribe();
     this._scrSubs?.unsubscribe();
   }
 

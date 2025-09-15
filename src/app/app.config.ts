@@ -14,8 +14,8 @@ export const appConfig: ApplicationConfig = {
     AuthGuard,
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
-      // withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
-      withInMemoryScrolling({scrollPositionRestoration: 'enabled'}),
+      withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
+      // withInMemoryScrolling({scrollPositionRestoration: 'enabled', anchorScrolling: 'disabled'}),
       withPreloading(PreloadAllModules)
     ), 
     provideClientHydration(),

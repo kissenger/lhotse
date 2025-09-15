@@ -12,7 +12,11 @@
   position: relative;
   width: 100%;
 }
-
+.map-placeholder {
+  background-color: aqua;
+  height: 500px;
+  width: 500px;
+}
 .overlay {
   position: fixed;
   display: flex;

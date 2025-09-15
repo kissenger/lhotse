@@ -5,13 +5,14 @@ import 'dotenv/config';
 const map = express();
 
 map.get('/api/sites/get-sites/:visibleOnly', async (req, res) => {
-  // try {
+  try {
     const sites = await FeatureModel.find({showOnMap: true});
     // console.log(sites);
     res.status(201).json(geoJson(sites));
-  // } catch (error: any) {
-  //   res.status(500).send(error);
-  // }
+  } catch (error: any) {
+    console.log(error);
+    res.status(500).send(error);
+  }
 });
 
 function geoJson(sites:any) {

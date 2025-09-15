@@ -48,109 +48,123 @@ export class MapService {
 
   create(sites: any) {
 
-    this._sites = sites;
-    this._map = new mapboxgl.Map({
-      accessToken: mapboxToken,
-      container: 'map', 
-      style: 'mapbox://styles/mapbox/standard',
-      bounds: this._startingBounds,
-      fitBoundsOptions: { padding: 15 },
-    });
+    return new Promise<void>( (resolve, reject) => {
 
-    this._map.on('style.load', () => {
+      this._sites = sites;
 
-      this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
-        if (error) throw error;
-        this._map?.addImage('site-marker-blue', image);
+      this._map = new mapboxgl.Map({
+        accessToken: mapboxToken,
+        container: 'map', 
+        style: 'mapbox://styles/mapbox/standard',
+        bounds: this._startingBounds,
+        fitBoundsOptions: { padding: 15 },
       });
 
-      this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-yellow-2.png', (error, image: any) => {
-        if (error) throw error;
-        this._map?.addImage('site-marker-yellow', image);
-      });      
-
-      this._map?.addSource('sitesSource', {
-        type: "geojson", 
-        data: sites
-      });
-
-      this._map?.addLayer({
-        id: 'symbolLayer', 
-        source: 'sitesSource',
-        type: 'symbol', 
-        layout: { 
-          'icon-image': 'site-marker-blue',
-          'icon-allow-overlap': true,
-          'icon-anchor': 'bottom'
-        },
+      this._map?.on('error', (error) => {
+        reject(error);
       })
 
-      this._map?.addLayer({
-        id: 'symbolLayerHighlight', 
-        source: 'sitesSource',
-        type: 'symbol', 
-        layout: { 
-          'icon-image': 'site-marker-yellow',
-          'icon-allow-overlap': true,
-          'icon-anchor': 'bottom',
-          'icon-size': 1.1,
-          'icon-offset': [0,2]
-        },
-        paint: {
-          'icon-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'selected'], false],
-            1.0,
-            0
-          ],
-        }
-      })      
+      this._map?.on('load', () => {
+        resolve();
+      })
 
-    })
+      this._map?.on('style.load', () => {
 
-    this._map.addInteraction('click', {
-      type: 'click',
-      target: { layerId: 'symbolLayer' },
-      handler: ({feature}) => {
-        if (this.selectedFeature?.id === feature?.id) {
-          this.selectedFeature = null;
-          this._map!.setFeatureState(feature!, { selected: false });
-        } else {
-          if (this.selectedFeature) {
-            this._map!.setFeatureState(this.selectedFeature, { selected: false });
+        this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('site-marker-blue', image);
+        });
+
+        this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-yellow-2.png', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('site-marker-yellow', image);
+        });      
+
+        this._map?.addSource('sitesSource', {
+          type: "geojson", 
+          data: sites
+        });
+
+        this._map?.addLayer({
+          id: 'symbolLayer', 
+          source: 'sitesSource',
+          type: 'symbol', 
+          layout: { 
+            'icon-image': 'site-marker-blue',
+            'icon-allow-overlap': true,
+            'icon-anchor': 'bottom'
+          },
+        })
+
+        this._map?.addLayer({
+          id: 'symbolLayerHighlight', 
+          source: 'sitesSource',
+          type: 'symbol', 
+          layout: { 
+            'icon-image': 'site-marker-yellow',
+            'icon-allow-overlap': true,
+            'icon-anchor': 'bottom',
+            'icon-size': 1.1,
+            'icon-offset': [0,2]
+          },
+          paint: {
+            'icon-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              1.0,
+              0
+            ],
           }
-          this.selectedFeature = feature;
-          this._map!.setFeatureState(feature!, { selected: true });
+        })      
+
+      })
+
+      this._map?.addInteraction('click', {
+        type: 'click',
+        target: { layerId: 'symbolLayer' },
+        handler: ({feature}) => {
+          if (this.selectedFeature?.id === feature?.id) {
+            this.selectedFeature = null;
+            this._map!.setFeatureState(feature!, { selected: false });
+          } else {
+            if (this.selectedFeature) {
+              this._map!.setFeatureState(this.selectedFeature, { selected: false });
+            }
+            this.selectedFeature = feature;
+            this._map!.setFeatureState(feature!, { selected: true });
+          }
         }
-      }
 
-    });
+      });
 
-    this._map.addInteraction('map-click', {
-      type: 'click',
-      handler: () => {
-        if (this.selectedFeature?.id) {
-          this._map!.setFeatureState(this.selectedFeature, { selected: false });
-          this.selectedFeature = null;
+      this._map?.addInteraction('map-click', {
+        type: 'click',
+        handler: () => {
+          if (this.selectedFeature?.id) {
+            this._map!.setFeatureState(this.selectedFeature, { selected: false });
+            this.selectedFeature = null;
+          }
         }
-      }
+      });
+
+      this._map?.addInteraction('mouseenter', {
+        type: 'mouseenter',
+        target: { layerId: 'symbolLayer' },
+        handler: (e) => { 
+          this._map!.getCanvas().style.cursor = 'pointer';
+        }
+      });
+
+      this._map?.addInteraction('mouseleave', {
+        type: 'mouseleave',
+        target: { layerId: 'symbolLayer' },
+        handler: (e) => { 
+          this._map!.getCanvas().style.cursor = '';
+        }
+      });
+    
     });
 
-    this._map.addInteraction('mouseenter', {
-      type: 'mouseenter',
-      target: { layerId: 'symbolLayer' },
-      handler: (e) => { 
-        this._map!.getCanvas().style.cursor = 'pointer';
-      }
-    });
-
-    this._map.addInteraction('mouseleave', {
-      type: 'mouseleave',
-      target: { layerId: 'symbolLayer' },
-      handler: (e) => { 
-        this._map!.getCanvas().style.cursor = '';
-      }
-    });
 
   }
 

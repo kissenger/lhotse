@@ -4,23 +4,25 @@
   position: absolute;
   top: 0px;
   left: 0px;
-  height: 80vh;
+  height: 100%;
   width: 100%;
   background-color: #FAF9F6;
   align-content: center;
+  text-align: center;
 }
 
 .loader {
   width: 15px;
   aspect-ratio: 1;
   border-radius: 50%;
-  animation: loading-animation 2s infinite linear alternate;
+  animation: loading-animation 1.5s infinite linear;
   margin: auto;
 }
 
 @keyframes loading-animation {
-    0%  {box-shadow: 20px 0 #000, -20px 0 #0002; background: #000 }
-    33% {box-shadow: 20px 0 #000, -20px 0 #0002; background: #0002}
-    66% {box-shadow: 20px 0 #0002,-20px 0 #000;  background: #0002}
-    100%{box-shadow: 20px 0 #0002,-20px 0 #000;  background: #000 }
+    0%    {box-shadow: 20px 0 #1d3d5971,   -20px 0 #1D3D5971; background: #1D3D5971}
+    25%   {box-shadow: 20px 0 #1D3D5971,   -20px 0 #1D3D59FF; background: #1D3D5971}
+    50%   {box-shadow: 20px 0 #1D3D5970,   -20px 0 #1D3D5971; background: #1D3D59FF}
+    75%   {box-shadow: 20px 0 #1D3D59FF,   -20px 0 #1D3D5971; background: #1D3D5971}
+    100%  {box-shadow: 20px 0 #1D3D5971,   -20px 0 #1D3D5971; background: #1D3D5971}
 }

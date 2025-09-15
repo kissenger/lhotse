@@ -20,18 +20,24 @@
 
   <div class="browser-container">
 
-    <div #browser class="browser dynamic-container">
-      @for (post of filteredPosts; track post) {
-        <app-blog-card [data]="post"></app-blog-card>
-      }
-    </div>
+    @if (loadingState !== 'success') {
+      <app-loader [loadingState]="loadingState"></app-loader>
+    } @else {
 
-    <div #leftArrow class="arrow left">
-      <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
-    </div>
-    <div #rightArrow class="arrow right">
-      <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
-    </div>
+      <div #browser class="browser dynamic-container">
+        @for (post of filteredPosts; track post) {
+          <app-blog-card [data]="post"></app-blog-card>
+        }
+      </div>
+
+      <div #leftArrow class="arrow left">
+        <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
+      </div>
+      <div #rightArrow class="arrow right">
+        <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
+      </div>
+
+    }
 
   </div>
 <!-- } -->

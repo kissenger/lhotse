@@ -1,15 +1,29 @@
 
+.map-container {
+  position: relative;
+  height: 80vh;
+  width: 100%;
+  /* border: red solid 2px; */
+}
+
 #map {
   /* margin: auto; */
-  height: 80vh;
+  height: 100%;
   width: 100%;
   /* border: 1px red solid; */
   /* position: relative; */
 }
 
-.map-container {
-  position: relative;
+.map-not-available {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+  background-color: #FAF9F6;
   /* border: red solid 2px; */
+  align-content: center;
+  text-align: center;
 }
 
 .panel {

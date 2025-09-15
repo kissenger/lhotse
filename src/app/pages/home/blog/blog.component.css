@@ -1,8 +1,22 @@
 .browser-container {
-  position:relative;
+  position: relative;
   scroll-behavior: smooth;
   min-height: 500px;
+  height: 0;
 }
+
+.blog-not-available {
+  /* position: absolute; */
+  /* top: 0px; */
+  /* left: 0px; */
+  height: 100%;
+  width: 100%;
+  background-color: #FAF9F6;
+  /* border: red solid 2px; */
+  align-content: center;
+  text-align: center;
+}
+
 
 .arrow {
   opacity: 0;
