@@ -22,18 +22,18 @@
 
     @if (loadingState !== 'success') {
       <app-loader [loadingState]="loadingState"></app-loader>
-    } @else {
 
+    } @else {
       <div #browser class="browser dynamic-container">
         @for (post of filteredPosts; track post) {
           <app-blog-card [data]="post"></app-blog-card>
         }
       </div>
 
-      <div #leftArrow class="arrow left">
+      <div #arrows class="arrow left">
         <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
       </div>
-      <div #rightArrow class="arrow right">
+      <div #arrows class="arrow right">
         <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
       </div>
 

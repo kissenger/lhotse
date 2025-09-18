@@ -47,49 +47,40 @@
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  <div #anchor class="anchor" id="blog">
-    @defer {
+  @defer {
+    <div #anchor class="anchor" id="blog">
       <app-blog></app-blog>
-    }
-    <div #window id="windowTwo" class="window"></div>  
+      <div #window id="windowTwo" class="window"></div>  
+    </div>
 
-  </div>
-
-  <div #anchor class="anchor" id="snorkelling-britain">
-    @defer {
+    <div #anchor class="anchor" id="snorkelling-britain">
       <app-book></app-book>  
-    }
-    <div #window id="windowThree" class="window"></div>
-  </div>
+      <div #window id="windowThree" class="window"></div>
+    </div>
 
-  <div #anchor class="anchor" id="buy-now">
-    @defer {
+
+    <div #anchor class="anchor" id="buy-now">
       <app-shop></app-shop>
-    }
-    <div #window id="windowFour" class="window"></div>
-  </div>
+      <div #window #windowFour id="windowFour" class="window"></div>
+    </div>
 
-  <div #anchor class="anchor" id="snorkelling-map-of-britain">
-    @defer (on viewport) {
-      <app-map></app-map>
-    } @placeholder {
-      <app-loader loadingState="loading"></app-loader>
-    }
-    <div #window id="windowOne" class="window"></div>  
-  </div>
 
-  <div #anchor class="anchor" id="british-snorkelling-faqs">
-    @defer {
+    <div #anchor class="anchor" id="snorkelling-map-of-britain">
+      @defer (on viewport(windowFour)) {
+        <app-map></app-map>
+      } 
+      <div #window id="windowOne" class="window"></div>  
+    </div>
+
+    <div #anchor class="anchor" id="british-snorkelling-faqs">
       <app-faq></app-faq>
-    }
-    <div #window id="windowTwo" class="window"></div>
-  </div>
+      <div #window id="windowTwo" class="window"></div>
+    </div>
 
-  <div #anchor class="anchor" id="friends-and-partners">
-    @defer {
+    <div #anchor class="anchor" id="friends-and-partners">
       <app-partners></app-partners>
-    }
-  </div>
+    </div>
+  }
   
 </main>
 

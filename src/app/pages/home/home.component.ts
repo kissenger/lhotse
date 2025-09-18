@@ -1,7 +1,6 @@
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SEOService } from           '@shared/services/seo.service';
@@ -13,7 +12,6 @@ import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
-import { LoaderComponent } from      "@shared/components/loader/loader.component";
 
 @Component({
   standalone: true,
@@ -21,8 +19,7 @@ import { LoaderComponent } from      "@shared/components/loader/loader.component
   imports: [
     SlideshowComponent, AboutUsComponent, ShopComponent, MapComponent,
     FAQComponent, BlogComponent, PartnersComponent, BookComponent, NgClass,
-    RouterLink, NgOptimizedImage,
-    LoaderComponent
+    RouterLink, NgOptimizedImage
 ],
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -34,7 +31,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
-  private _scrSubs: Subscription | null = null;
   public isBlogData = true;
   public hideAboutBookOverlay = false;
   public hideBuyNowOverlay = true;
@@ -55,7 +51,15 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     private _screen: ScreenService,
     private _seo: SEOService
   ) {
-
+        // this is a hack to fix the broken scroll to fragment feature in angular
+    setTimeout(() => {
+      let target = document.querySelector('#' + this._route.snapshot.fragment);
+    console.log(target)
+      if (target) {
+        target?.scrollIntoView();
+      }
+    }, 500)
+    
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
@@ -82,17 +86,17 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     if (!isPlatformBrowser(PLATFORM_ID)) {
       this.isReadyToLoad = true;
     }
-
-    // this is a hack to fix the broken scroll to fragment feature in angular
-    let target = document.querySelector('#' + this._route.snapshot.fragment);
-    if (target) {
-      target?.scrollIntoView();
-    }
   }
   
   ngAfterViewInit() {
+
     this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
-    this.loadBackgroundImages();
+
+    //watch for changes as querylist will change when deferred views are loaded
+    this.windows.changes.subscribe( () => {
+      this.loadBackgroundImages();
+    });
+ 
     this.widthDescriptor = this._screen.widthDescriptor;
     this._screen.resize.subscribe( (hasOrientationChanged) => {
       this.widthDescriptor = this._screen.widthDescriptor;
@@ -100,7 +104,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
         this.loadBackgroundImages();
       }
     });
-    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+    this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
       if (isect.ratio > 0.2) {
         if (isect.id === "blog") {
           this.hideAboutBookOverlay = true;
@@ -135,7 +139,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   }
 
   ngOnDestroy() {
-    this._scrSubs?.unsubscribe();
   }
 
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
@@ -7,8 +7,6 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-
-
 
 @Component({
   standalone: true,
@@ -19,10 +17,8 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 })
 
 export class BlogComponent {
-
-  @ViewChild('browser') browser!: ElementRef;
-  @ViewChild('leftArrow') leftArrow!: ElementRef;
-  @ViewChild('rightArrow') rightArrow!: ElementRef;
+  @ViewChildren('browser') browser!: QueryList<ElementRef>;
+  @ViewChildren('arrows') arrows!: QueryList<ElementRef>;
 
   public filteredPosts: Array<BlogPost> = [];
   public allPosts: Array<BlogPost> = [];
@@ -54,23 +50,36 @@ export class BlogComponent {
   }
 
   ngAfterViewInit() {
-    this.checkArrows();
-    this.browser.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+    this.arrows.changes.subscribe( () => {
+      this.checkArrows();
+    });
+    
+    this.browser.changes.subscribe( () => {
+      this.browser.first.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+    });
   }
 
   checkArrows() {
-    const scrollPosition = this.browser.nativeElement.scrollLeft;
-    const maxScrollPosition = this.browser.nativeElement.scrollWidth - this._screen.width - 18;
-    this.leftArrow.nativeElement.style.opacity = this.browser.nativeElement.scrollLeft !== 0 ? "1" : "0";
-    this.rightArrow.nativeElement.style.opacity = scrollPosition < 0.9 * maxScrollPosition  ? "1" : "0";
+    this.arrows.forEach( (arrow) => {
+
+      const scrollPosition = this.browser.first.nativeElement.scrollLeft;
+      const maxScrollPosition = this.browser.first.nativeElement.scrollWidth - this._screen.width - 18;
+
+      if (arrow.nativeElement.classList.contains("left")) {
+        arrow.nativeElement.style.opacity = this.browser.first.nativeElement.scrollLeft !== 0 ? "1" : "0";
+      } else if (arrow.nativeElement.classList.contains("right")) {
+        arrow.nativeElement.style.opacity = scrollPosition < 0.9 * maxScrollPosition  ? "1" : "0";
+      }
+
+    })
   }
 
   public onClickLeft() {
-    this.browser.nativeElement.scrollLeft -= this._screen.width * 0.9;
+    this.browser.first.nativeElement.scrollLeft -= this._screen.width * 0.9;
   }
 
   public onClickRight() {
-    this.browser.nativeElement.scrollLeft += this._screen.width * 0.9;  
+    this.browser.first.nativeElement.scrollLeft += this._screen.width * 0.9;  
   }
 
   getUniqueKeywords() {
