@@ -15,7 +15,6 @@ import { BlogComponent } from '@pages/home/blog/blog.component';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },      
-  { path: 'blog', component: BlogComponent },  
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent )
   },

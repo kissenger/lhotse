@@ -3,7 +3,7 @@ import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 
 export class MapService {

@@ -9,6 +9,7 @@ import { LoaderComponent } from '@shared/components/loader/loader.component';
 @Component({
   standalone: true,
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, LoaderComponent ],
+  // providers: [MapService],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],

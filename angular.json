@@ -32,7 +32,11 @@
             ]          
           },
           "configurations": {
-            
+            "analyze-bundle": {
+              "sourceMap": true,
+              "outputHashing": "none",
+              "namedChunks": true
+            },
             "prod": {
               "ssr": {
                 "entry": "server.ts"
@@ -94,7 +98,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "3mb"
+                  "maximumError": "1mb"
                 },
                 {
                   "type": "anyComponentStyle",
