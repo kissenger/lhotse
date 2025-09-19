@@ -54,7 +54,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
         // this is a hack to fix the broken scroll to fragment feature in angular
     setTimeout(() => {
       let target = document.querySelector('#' + this._route.snapshot.fragment);
-    console.log(target)
       if (target) {
         target?.scrollIntoView();
       }
@@ -90,7 +89,22 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   
   ngAfterViewInit() {
 
-    this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
+    this.anchors.changes.subscribe( () => {
+      this._scrollSpy.observeChildren(this.anchors);   // subscribed to in header component
+      
+      this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+        if (isect.ratio > 0.2) {
+          if (isect.id === "blog") {
+            this.hideAboutBookOverlay = true;
+          }        
+          if (isect.id === "snorkelling-britain") {
+            this.hideBuyNowOverlay = false;
+          } else {
+            this.hideBuyNowOverlay = true;
+          }
+        }
+      })
+    });
 
     //watch for changes as querylist will change when deferred views are loaded
     this.windows.changes.subscribe( () => {
@@ -104,18 +118,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
         this.loadBackgroundImages();
       }
     });
-    this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
-      if (isect.ratio > 0.2) {
-        if (isect.id === "blog") {
-          this.hideAboutBookOverlay = true;
-        }        
-        if (isect.id === "snorkelling-britain") {
-          this.hideBuyNowOverlay = false;
-        } else {
-          this.hideBuyNowOverlay = true;
-        }
-      }
-    })
+
   }
 
   loadBackgroundImages() {
