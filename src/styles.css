@@ -15,7 +15,8 @@
   /* --sn-colour: #294146; */
   --text-colour: var(--sn-colour);
   --text-colour-header: #FFFF;
-  --text-colour-link: #009AF7; /*remember to change a::after for external link svg*/
+  --text-colour-link: #009AF7; 
+
   /* --banner-colour: #00000066; */
   --banner-colour: #1D3D59B3;
   --border-colour: #DEE2E6;

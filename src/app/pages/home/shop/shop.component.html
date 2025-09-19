@@ -43,7 +43,7 @@
         
           <div class="qty-selector">
             <button (click)="onPlusMinus(basketItem.id,-1)" [disabled]="shop.orderStatus!='draft'">&minus;</button>
-            <input id="qty{{$index}}" name="qty-{{$index}}" type="number" min=0  [disabled]="shop.orderStatus!='draft'"  [(ngModel)]="basketItem.quantity" readonly> 
+            <input name="qty{{$index}}" id="qty{{$index}}" name="qty-{{$index}}" type="number" min=0  [disabled]="shop.orderStatus!='draft'"  [(ngModel)]="basketItem.quantity" aria-label="Enter order quantity" readonly> 
             <button (click)="onPlusMinus(basketItem.id,1)" [disabled]="shop.orderStatus!='draft'">&plus;</button>
           </div>
   

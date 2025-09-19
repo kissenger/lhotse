@@ -32,11 +32,6 @@
             ]          
           },
           "configurations": {
-            "analyze-bundle": {
-              "sourceMap": true,
-              "outputHashing": "none",
-              "namedChunks": true
-            },
             "prod": {
               "ssr": {
                 "entry": "server.ts"
@@ -76,7 +71,11 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],     
-              "outputHashing": "all"
+              "optimization": true,               
+              "extractLicenses": false,
+              "sourceMap": true,              
+              "outputHashing": "all",
+              "namedChunks": true              
             },
 
             "beta": {          
@@ -113,7 +112,11 @@
                   "with": "src/environments/environment.beta.ts"
                 }
               ],     
-              "outputHashing": "all"
+              "optimization": true,               
+              "extractLicenses": false,
+              "sourceMap": true,              
+              "outputHashing": "all",
+              "namedChunks": true                   
             },
 
 
@@ -123,11 +126,12 @@
                 "entry": "server.ts"
               },                                         
               "outputPath": "dist/dev",              
-              "optimization": false,               
+              "optimization": true,               
               "extractLicenses": false,
               "sourceMap": true,
               "index": "src/config/beta/index.html",
               "outputHashing": "all",
+              "namedChunks": true,
               "assets": [
                 "src/favicon.ico",
                 "src/assets"    
