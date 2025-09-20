@@ -29,7 +29,6 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true,
             "allowedCommonJsDependencies": [
                 "mongodb",
                 "dotenv"
