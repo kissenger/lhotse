@@ -1,5 +1,5 @@
 import express from 'express';
-import FeatureModel from './schema/feature';
+import FeatureModel from '../schema/feature';
 import 'dotenv/config';
 
 const map = express();

@@ -1,9 +1,9 @@
 import express from 'express';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
-import { ShopError } from 'server';
-import { getConfirmationEmailBody } from 'server-shop-conf-email';
-import { getPostedEmailBody } from 'server-shop-posted-email';
+import { ShopError } from 'src/server';
+import { getConfirmationEmailBody } from 'src/server-shop-conf-email';
+import { getPostedEmailBody } from 'src/server-shop-posted-email';
 import { verifyToken } from './server-auth'
 import 'dotenv/config';
 

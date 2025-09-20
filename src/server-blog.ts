@@ -1,7 +1,7 @@
 
 import express from 'express';
-import BlogModel from './schema/blog';
-import { BlogError } from 'server';
+import BlogModel from '../schema/blog';
+import { BlogError } from 'src/server';
 import { verifyToken } from './server-auth'
 import 'dotenv/config';
 
@@ -14,6 +14,16 @@ const blog = express();
 blog.get('/api/blog/get-all-posts/', async (req, res) => {
   try {
     const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
+    res.status(201).json(result);
+  } catch (error: any) { 
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+blog.get('/api/blog/get-all-slugs/', async (req, res) => {
+  try {
+    const result = await getSlugs();
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);

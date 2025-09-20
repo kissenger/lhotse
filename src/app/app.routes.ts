@@ -10,7 +10,7 @@ import { RegisterComponent } from '@pages/admin/auth/register/register.component
 import { AdminComponent } from '@pages/admin/admin.component';
 import { MapComponent } from '@pages/home/map/map.component';
 import { AuthGuard } from './auth.guard';
-import { BlogComponent } from '@pages/home/blog/blog.component';
+// import { BlogComponent } from '@pages/home/blog/blog.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },

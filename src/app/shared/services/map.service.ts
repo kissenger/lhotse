@@ -1,4 +1,4 @@
-import { Injectable, Injector, ProviderToken } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
 

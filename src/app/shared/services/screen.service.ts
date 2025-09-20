@@ -1,4 +1,4 @@
-import { EventEmitter, Inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { EventEmitter, inject, Inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { DeviceOrientation, WidthDescriptor } from '@shared/types';
 import { ViewportRuler } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
@@ -18,16 +18,16 @@ export class ScreenService implements OnDestroy{
   private _widthDescriptor?: WidthDescriptor = undefined;
   private _viewportChangeSubs: Subscription | undefined;
   private _hasOrientationChanged: boolean = false;
+  private _viewportRuler = inject(ViewportRuler);
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private viewportRuler: ViewportRuler,
     private ngZone: NgZone
   ) {
     if (isPlatformBrowser(this.platformId)) {
       this.onResize();
     }
-    this._viewportChangeSubs = this.viewportRuler.change(200).subscribe(() => {
+    this._viewportChangeSubs = this._viewportRuler.change(200).subscribe(() => {
       this.ngZone.run(() => {
         this.onResize();
         this.resize.emit(this._hasOrientationChanged);
@@ -36,7 +36,7 @@ export class ScreenService implements OnDestroy{
   }
 
   onResize() {
-    const {width, height} = this.viewportRuler.getViewportSize();
+    const {width, height} = this._viewportRuler.getViewportSize();
     this._screenWidth = width;
     this._screenHeight = height;
     let lastOrientation = this._deviceOrientation;

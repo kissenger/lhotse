@@ -11,8 +11,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {   
+          "builder": "@angular/build:application",
+          "options": {  
+            "outputMode": "server", 
+            "ssr": {
+              "entry": "src/server.ts"
+            },                        
             "externalDependencies": [
               "mongoose"
             ],    
@@ -33,9 +37,6 @@
           },
           "configurations": {
             "prod": {
-              "ssr": {
-                "entry": "server.ts"
-              },
               "tsConfig": "tsconfig.json",                     
               "outputPath": "dist/prod",              
               "assets": [
@@ -78,10 +79,7 @@
               "namedChunks": true              
             },
 
-            "beta": {          
-              "ssr": {
-                "entry": "server.ts"
-              },        
+            "beta": {      
               "tsConfig": "tsconfig.json",                
               "outputPath": "dist/beta",
               "assets": [
@@ -121,10 +119,7 @@
 
 
             "development": {
-              "tsConfig": "tsconfig.json",  
-              "ssr": {
-                "entry": "server.ts"
-              },                                         
+              "tsConfig": "tsconfig.json",                                      
               "outputPath": "dist/dev",              
               "optimization": true,               
               "extractLicenses": false,

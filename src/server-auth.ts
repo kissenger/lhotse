@@ -2,7 +2,7 @@ import express from 'express';
 import UserModel from '@schema/user';
 import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
-import { AuthError } from 'server';
+import { AuthError } from 'src/server';
 import 'dotenv/config';
 
 const auth = express();
