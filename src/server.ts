@@ -13,6 +13,8 @@ import 'dotenv/config';
 // BUILD_DATE variable is written to .env by the build script, and provided to script to write sitemap
 const BUILD_DATE = process.env['BUILD_DATE'];
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
+console.log(ENVIRONMENT);
+console.log(BUILD_DATE)
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -46,10 +48,12 @@ app.use((req, res, next) => {
 });
 
 if (isMainModule(import.meta.url)) {
-const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
+  const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
     console.log(`Node Express server listening on http://localhost:${PORT}`);
   });
+} else {
+  console.log('error')
 }
 
 export const reqHandler = createNodeRequestHandler(app);
@@ -99,6 +103,7 @@ async function generateSitemap(buildDate?: string) {
       file.write(`${tab.repeat(1)}</url>${eol}`);      
     });
     file.write('</urlset>');
+    console.log('Sitemap generated')
   });
 }
 
