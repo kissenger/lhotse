@@ -46,6 +46,7 @@ app.use((req, res, next) => {
     )
     .catch(next);
 });
+console.log(import.meta.url)
 
 if (isMainModule(import.meta.url)) {
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
