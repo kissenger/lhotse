@@ -92,7 +92,8 @@ export class MapService {
           layout: { 
             'icon-image': 'site-marker-blue',
             'icon-allow-overlap': true,
-            'icon-anchor': 'bottom'
+            'icon-anchor': 'bottom',
+            'icon-size': 1.0,
           },
         })
 
@@ -104,7 +105,7 @@ export class MapService {
             'icon-image': 'site-marker-yellow',
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 1.1,
+            'icon-size': 1.0,
             'icon-offset': [0,2]
           },
           paint: {

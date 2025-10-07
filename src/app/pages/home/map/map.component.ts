@@ -6,6 +6,7 @@ import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { LazyServiceInjector } from '@shared/services/lazyloader.service';
+import { environment } from '@environments/environment';
 
 @Component({
   standalone: true,
@@ -31,7 +32,8 @@ export class MapComponent {
   async ngOnInit() {
   
     try {
-      this.geoJson = await this._http.getSites(true);
+      const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
+      this.geoJson = await this._http.getSites(visibility);
       this.map = await this._lazyServiceInjector.get<MapService>(() =>
         import('@shared/services/map.service').then((m) => m.MapService)
       );

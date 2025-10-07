@@ -6,8 +6,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build:ssr": "ng build --configuration development",
-    "server": "node ./dist/dev/server/server.mjs",
-    "watch": "ng build --watch --configuration development",
+    "serve": "node ./dist/dev/server/server.mjs",
+    "watch:ssr": "ng build --watch --configuration development",
     "deploy:master": "ng build --configuration prod",
     "deploy:beta": "ng build --configuration beta"
   },

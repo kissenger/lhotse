@@ -1,25 +1,24 @@
 import mongoose, {model} from 'mongoose';
 
 const featureSchema = new mongoose.Schema({
-  showOnMap: {type: Boolean},
+  showOnMap: {type: String, enum: ['No','Development','Production']},
   location: {
     type: {type: String, required: true},
     coordinates: {type: [Number], required: true}
   },
   properties: {
-    featureType: { type: String, enum: ['site','shop','instructor'], required: true },
-    instructor: {
+    featureType: { type: String, enum: ['site','shop','organisation'], required: true },
+    organisation: {
       businessName: {type: String, required: true},
       placeName: {type: String},
       region: {type: String},
-      instructorType: {type: String, enum: ['BSAC School','PADI School','Independent']},
-      qualifications: [{
+      organisationType: {type: String, enum: ['BSAC School','PADI School','Independent Instructor']},
+      qualificationsOffered: [{
         agency: {type: String},
         qualification: {type: String}
       }],
-      services: [{type: String}],
+      servicesOffered: [{type: String, enum: ['Kit Purchase','Kit Hire','Snorkel Qualifications','Guided Snorkelling','Boat Snorkelling','Snorkelling Guidebook']}],
       shortDescription: {type: String},
-      bookings: {type: String},
       socials: [{
         name: {type: String},
         url: {type: String},

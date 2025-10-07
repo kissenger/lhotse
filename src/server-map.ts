@@ -4,9 +4,12 @@ import 'dotenv/config';
 
 const map = express();
 
-map.get('/api/sites/get-sites/:visibleOnly', async (req, res) => {
+map.get('/api/sites/get-sites/*', async (req, res) => {
+
+  let visibility = <string>Object.values(req.params)[0];
+  
   try {
-    const sites = await FeatureModel.find({showOnMap: true});
+    const sites = await FeatureModel.find({$or: [{showOnMap: visibility.split('/')}]});
     // console.log(sites);
     res.status(201).json(geoJson(sites));
   } catch (error: any) {
