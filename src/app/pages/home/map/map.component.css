@@ -32,13 +32,29 @@
   /* margin: 1rem; */
   width: 300px;
   z-index: 1000;
-  border: 1px var(--border-colour) solid;
   border-radius: 5px;
   font-size: smaller;
   display: none;
   background-color: white;
-  padding: 1rem;
   line-height: 1.5rem;
+}
+
+.panel-topbar {
+  border-radius: 5px 5px 0 0;
+  height: 2rem;
+  background-color: var(--sn-colour);
+  color: white;
+  padding-inline: 1rem;
+}
+
+.panel-content {
+  border: 1px var(--border-colour) solid;
+  padding: 1rem;
+  border-radius: 0 0 5px 5px;
+}
+
+.panel-content > h4 {
+  margin: 0px;
 }
 
 .panel.none {
@@ -53,6 +69,18 @@
 .panel.right {
   display: block;
   right: 1rem;
+}
+
+
+
+.icon-container {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+}
+
+.icon-container > div {
+  margin-block: auto;
 }
 
 @media (max-width: 767px) {

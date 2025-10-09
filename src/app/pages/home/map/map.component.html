@@ -1,4 +1,3 @@
-<!-- @defer { -->
   <div class="dynamic-container">
 
     <h1>British Snorkelling Map</h1> 
@@ -14,74 +13,73 @@
 
       @if (loadingState !== 'success') {
         <app-loader [loadingState]="loadingState"></app-loader>    
-      } @else {
+      }
+       @else {
         <div class="panel" [class]="map?.popupPosition">
-          <div class="close-icon" (click)="map?.deselectSymbol()">
-            <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#1D3D59" fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" /></svg>
-          </div>
 
           @let feature = this.geoJson?.features[map?.selectedSymbolId]?.properties;
 
-          @if (feature?.featureType === 'site') {
-            
-            <h4>{{feature.site.placeName}}</h4>
-            <h3>{{feature.site.siteName}}</h3>
-            
-            <div class="keywords">
-              @for (item of feature.site.habitats; track item) {
-                <span>{{item}}</span>
-              }
-            </div> 
-            
-            <div class="description">
-              {{feature.site.shortDescription}}
+          <!-- This is needed so that null feature doesnt trigger this block  -->
+          @if (!!feature) {          
 
+            <div class="panel-topbar">
+              {{feature.featureType}}
+              <div class="close-icon" (click)="map?.deselectSymbol()">
+                <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" /></svg>
+              </div>
             </div>
             
+            <div class="panel-content">
 
-            <!-- <h4>Find Out More</h4> -->
-            @for (item of feature.site.furtherInfo; track item.url) {
-              <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" href={{item.url}}>{{item.title}}</a>
-              <br>
-            }
+              {{feature.placeName}}
+              <h3>{{feature.name}}</h3>
 
-          }
-
-          @else if (feature?.featureType === 'instructor') {
-            
-            <h3>{{feature.instructor.businessName}}</h3>
-            {{feature.instructor.shortDescription}}
-
-            <h4>Services offered</h4>
-            <div class="keywords">
-              @for (item of feature.instructor.services; track item) {
-                <span>{{item}}</span>
-              }
-            </div>
-
-
-            <h4>For more information</h4>
-            @for (item of feature.instructor.socials; track item) {
-              <a class="suppress-external-link" [href]="item.url">
-                @switch (item.type) {
-                  @case ('YouTube') {
-                    <app-svg-youtube theme="darkOnLight"></app-svg-youtube>
-                  }
-                  @case ('instagram') {
-                    <app-svg-instagram theme="darkOnLight"></app-svg-instagram>
-
-                  }
-                  @case ('email') {
-                    <app-svg-email theme="darkOnLight"></app-svg-email>
-                  }
+              <div class="keywords">
+                @for (item of feature.categories; track item) {
+                  <span>{{item}}</span>
                 }
-              </a>
-            }
-            
+              </div> 
+              
+              <div class="description">
+                {{feature.description}}
+              </div>
+
+              <h4>Find Out More</h4>
+              @if (feature.featureType == 'Snorkelling Site') {
+                @for (item of feature.moreInfo; track item) {
+                  <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" 
+                    href={{item.url}}>{{item.title}}</a>
+                  <br>                
+                }
+              } @else {
+                <div class="icon-container">
+                  @for (item of feature.moreInfo; track item) {
+                    <div class="icon">
+                      @switch (item.icon) {
+                        @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
+                        @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
+                        @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
+                        @case ('phone')     { <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> }
+                        @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
+                        @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
+                      }
+                    </div>
+                    <div class="url">
+                      @if (!!item.url) {
+                        <a [href]="item.url">{{item.url}}</a>
+                      } @else {
+                        {{item.text}}
+                      }
+                    </div>
+
+                    <!-- </a> -->
+                  }
+                </div>
+              } 
+            </div>
           }
+
         </div>
       }
-      
     </div>
   </div>
-<!-- } -->

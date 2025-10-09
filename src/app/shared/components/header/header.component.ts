@@ -7,11 +7,12 @@ import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/route
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
 import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
 import { EmailSvgComponent } from '@shared/svg/email/email.component'
+import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 
 @Component({
   standalone: true,
   providers: [],
-  imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent  ],
+  imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, FacebookSvgComponent  ],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']

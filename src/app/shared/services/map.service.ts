@@ -32,7 +32,8 @@ export class MapService {
 
   get popupPosition() {
     // let width = this._map?.getContainer().clientWidth;
-    if (!!this.selectedSymbolId) {
+    //cant use !!selectedSymbolId as this filters out id=0
+    if (typeof this.selectedSymbolId === "number") {
       let lngLat = this._sites.features[this.selectedSymbolId].geometry.coordinates;
       let xy = this._map?.project(lngLat);
       if (xy!.x < 350) {
@@ -60,52 +61,52 @@ export class MapService {
         fitBoundsOptions: { padding: 15 },
       });
 
-      this._map?.on('error', (error) => {
-        reject(error);
-      })
-
-      this._map?.on('load', () => {
-        resolve();
-      })
-
+      this._map?.on('error', (error) => { reject(error); })
+      this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
+
+        this._map?.loadImage('assets/icons/snorkel-waves-icon-2.png', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('site-marker', image);
+        });
 
         this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
           if (error) throw error;
-          this._map?.addImage('site-marker-blue', image);
-        });
-
-        this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-yellow-2.png', (error, image: any) => {
-          if (error) throw error;
-          this._map?.addImage('site-marker-yellow', image);
-        });      
+          this._map?.addImage('organisation-marker', image);
+        });        
 
         this._map?.addSource('sitesSource', {
           type: "geojson", 
           data: sites
         });
 
+        // main symbol layer
         this._map?.addLayer({
           id: 'symbolLayer', 
           source: 'sitesSource',
           type: 'symbol', 
           layout: { 
-            'icon-image': 'site-marker-blue',
+            'icon-image': ['match', ['get','featureType'], 
+                'Snorkelling Site', 'site-marker',
+                'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 1.0,
+            'icon-size': 0.7
           },
         })
 
+        // duplicate with larger symbol size, only shown in click
         this._map?.addLayer({
           id: 'symbolLayerHighlight', 
           source: 'sitesSource',
           type: 'symbol', 
           layout: { 
-            'icon-image': 'site-marker-yellow',
+            'icon-image': ['match', ['get','featureType'], 
+                'Snorkelling Site', 'site-marker',
+                'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 1.0,
+            'icon-size': 0.9,
             'icon-offset': [0,2]
           },
           paint: {
@@ -116,7 +117,10 @@ export class MapService {
               0
             ],
           }
-        })      
+        }) 
+        
+
+
 
       })
 

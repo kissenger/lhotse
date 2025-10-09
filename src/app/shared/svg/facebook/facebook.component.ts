@@ -2,11 +2,11 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   standalone: true,
-  selector: 'app-svg-email',
-  templateUrl: './email.component.html'
+  selector: 'app-svg-facebook',
+  templateUrl: './facebook.component.html'
 })
 
-export class EmailSvgComponent { 
+export class FacebookSvgComponent { 
   @Input() public theme?: 'lightOnDark' | 'darkOnLight';
   @Input() public height?: string;
   public fillColour?: string;
@@ -16,8 +16,8 @@ export class EmailSvgComponent {
   }
 
   ngOnInit() {
-    this.height = this.height ?? '25px';
-    this.strokeColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59';
+    this.height = this.height ?? '30px';
+    this.strokeColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59'; 
     this.fillColour = this.theme === 'lightOnDark' ? '#1D3D59' : '#FFFFFF';
   }
 

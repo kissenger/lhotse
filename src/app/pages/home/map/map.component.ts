@@ -7,10 +7,14 @@ import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { LazyServiceInjector } from '@shared/services/lazyloader.service';
 import { environment } from '@environments/environment';
+import { WebsiteSvgComponent } from '@shared/svg/website/website.component';
+import { PhoneSvgComponent } from '@shared/svg/phone/phone.component';
+import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 
 @Component({
   standalone: true,
-  imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, LoaderComponent ],
+  imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
+    FacebookSvgComponent, PhoneSvgComponent, LoaderComponent ],
   // providers: [MapService],
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -25,7 +29,6 @@ export class MapComponent {
 
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
-    // public map: MapService,
     private _http: HttpService,
   ) {}
 
@@ -34,6 +37,7 @@ export class MapComponent {
     try {
       const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
       this.geoJson = await this._http.getSites(visibility);
+      console.log(this.geoJson)
       this.map = await this._lazyServiceInjector.get<MapService>(() =>
         import('@shared/services/map.service').then((m) => m.MapService)
       );
