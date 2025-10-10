@@ -71,8 +71,12 @@
   right: 1rem;
 }
 
-
-
+.icon {
+  display: inline-block;
+  margin-right: 0.5rem;
+  /* border: 1px red solid; */
+}
+/* 
 .icon-container {
   margin-top: 0.5rem;
   display: grid;
@@ -81,7 +85,7 @@
 
 .icon-container > div {
   margin-block: auto;
-}
+} */
 
 @media (max-width: 767px) {
   .panel.right, .panel.left {

@@ -44,7 +44,7 @@
                 {{feature.description}}
               </div>
 
-              <h4>Find Out More</h4>
+              Find Out More <br>
               @if (feature.featureType == 'Snorkelling Site') {
                 @for (item of feature.moreInfo; track item) {
                   <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" 
@@ -52,29 +52,36 @@
                   <br>                
                 }
               } @else {
-                <div class="icon-container">
                   @for (item of feature.moreInfo; track item) {
                     <div class="icon">
-                      @switch (item.icon) {
-                        @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
-                        @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
-                        @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
-                        @case ('phone')     { <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> }
-                        @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
-                        @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
-                      }
+                      <a class="suppress-external-link" [href]="item.url">
+                        @switch (item.icon) {
+                          @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
+                          @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
+                          @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
+                          <!-- @case ('phone')     { <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> } -->
+                          @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
+                          @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
+                        }
+                      </a>
                     </div>
-                    <div class="url">
+                    <!--<div class="url">
                       @if (!!item.url) {
                         <a [href]="item.url">{{item.url}}</a>
                       } @else {
                         {{item.text}}
                       }
-                    </div>
+                    </div> -->
 
                     <!-- </a> -->
                   }
-                </div>
+                  <br>
+                  @let phoneNo = checkforPhone(feature.moreInfo);
+                  @if ( !!phoneNo )  {
+                    <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> 
+                    {{phoneNo}}
+                  }
+                <!-- </div> -->
               } 
             </div>
           }

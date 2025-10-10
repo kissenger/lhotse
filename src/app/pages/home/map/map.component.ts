@@ -37,7 +37,6 @@ export class MapComponent {
     try {
       const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
       this.geoJson = await this._http.getSites(visibility);
-      console.log(this.geoJson)
       this.map = await this._lazyServiceInjector.get<MapService>(() =>
         import('@shared/services/map.service').then((m) => m.MapService)
       );
@@ -48,5 +47,11 @@ export class MapComponent {
       this.loadingState = 'failed';
     }
   }
+
+  checkforPhone(iconArr: [{icon: string, text?: string, url?: string}]) {
+    const phone = iconArr.find(a => a.icon === "phone")
+    console.log(phone)
+    return phone?.text
+  }  
   
 }
