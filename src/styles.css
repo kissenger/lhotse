@@ -135,7 +135,7 @@ iframe {
   color: white;
 }
 
-.icon:hover {
+.icon-grow:hover {
   cursor: pointer;
   transform: scale(1.1);
 }

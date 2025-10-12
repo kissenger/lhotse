@@ -219,3 +219,24 @@ export type OrderStatus =
     password?: string;
     role?: 'admin' | 'user';
   }
+
+
+export interface Feature {
+  id: string; 
+  type: 'Feature';
+  geometry:  {
+    type: 'Point',
+    coordinates: [number, number]
+  };
+  properties: FeatureProperties;
+}
+
+  export interface FeatureProperties {
+    symbolSortOrder: number;
+    region: string;
+    placeName: string;
+    name: string;
+    description: string;
+    categories: Array<string>;
+    moreInfo: Array<{title?: string, icon?: string, url?: string, text?: string}>
+  }

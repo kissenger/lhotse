@@ -29,6 +29,7 @@
 .panel {
   position: absolute;
   top: 1rem;
+  max-height: calc(100% - 2rem);
   /* margin: 1rem; */
   width: 300px;
   z-index: 1000;
@@ -37,6 +38,7 @@
   display: none;
   background-color: white;
   line-height: 1.5rem;
+  overflow-y: auto;
 }
 
 .panel-topbar {
@@ -45,11 +47,33 @@
   background-color: var(--sn-colour);
   color: white;
   padding-inline: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+}
+
+.panel-topbar > .title {
+  /* height: 100%; */
+  align-content: center;
+  margin-right: auto;
+}
+
+.panel-topbar > .close-icon {
+  /* height: 100%; */
+  margin-block: auto;
+  align-content: center;
+  transition: all 0.25s;
+}
+
+.panel-topbar > .close-icon:hover {
+  cursor: pointer;
+  transform: scale(1.15);
 }
 
 .panel-content {
   border: 1px var(--border-colour) solid;
   padding: 1rem;
+  padding-top: 0.5rem;
   border-radius: 0 0 5px 5px;
 }
 
@@ -71,11 +95,26 @@
   right: 1rem;
 }
 
+.phone-number {
+  display: inline-block;
+  align-content: center;
+  margin-left: -0.25rem;
+  margin-bottom: 0.1rem;
+}
+
+.icons {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+}
+
 .icon {
   display: inline-block;
   margin-right: 0.5rem;
-  /* border: 1px red solid; */
+  margin-top: 0.25rem;
 }
+
 /* 
 .icon-container {
   margin-top: 0.5rem;
@@ -114,19 +153,14 @@ h3 {
   margin-bottom: 0;
 }
 
-.description {
+.description, .caveat {
   margin-top: 0;
   margin-bottom: 0.7rem;
 }
 
-.close-icon {
-  position: absolute;
-  top: 0px;
-  right: 2px;
-  transition: all 0.25s;
+.caveat {
+  font-style: italic;
+  font-size: smaller;
 }
 
-.close-icon:hover {
-  cursor: pointer;
-  transform: scale(1.15);
-}
+

@@ -10,11 +10,12 @@ import { environment } from '@environments/environment';
 import { WebsiteSvgComponent } from '@shared/svg/website/website.component';
 import { PhoneSvgComponent } from '@shared/svg/phone/phone.component';
 import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
+import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component';
 
 @Component({
   standalone: true,
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
-    FacebookSvgComponent, PhoneSvgComponent, LoaderComponent ],
+    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent ],
   // providers: [MapService],
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -48,10 +49,5 @@ export class MapComponent {
     }
   }
 
-  checkforPhone(iconArr: [{icon: string, text?: string, url?: string}]) {
-    const phone = iconArr.find(a => a.icon === "phone")
-    console.log(phone)
-    return phone?.text
-  }  
   
 }

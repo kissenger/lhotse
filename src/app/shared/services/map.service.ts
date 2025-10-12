@@ -1,6 +1,8 @@
 import { Injectable, Injector } from '@angular/core';
 import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
+import { MapboxGeoJSONFeature } from 'mapbox-gl';
+import { Feature } from '@shared/types';
 
 @Injectable({
   providedIn: 'root'
@@ -47,6 +49,19 @@ export class MapService {
 
   }
 
+  indexOfArrayMaximum(arr: Array<number> | undefined) {
+    if (arr === undefined) return -1
+    let max = arr[0];
+    let index = 0;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] > max) {
+        index = i;
+        max = arr[i];
+      }
+    }
+    return index;
+  }
+
   create(sites: any) {
 
     return new Promise<void>( (resolve, reject) => {
@@ -75,10 +90,7 @@ export class MapService {
           this._map?.addImage('organisation-marker', image);
         });        
 
-        this._map?.addSource('sitesSource', {
-          type: "geojson", 
-          data: sites
-        });
+        this._map?.addSource('sitesSource', {type: "geojson", data: sites});
 
         // main symbol layer
         this._map?.addLayer({
@@ -91,7 +103,8 @@ export class MapService {
                 'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 0.7
+            'icon-size': 0.7,
+            'symbol-sort-key': ['get', 'symbolSortOrder']
           },
         })
 
@@ -107,7 +120,8 @@ export class MapService {
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
             'icon-size': 0.9,
-            'icon-offset': [0,2]
+            'icon-offset': [0,2],
+            'symbol-sort-key': ['get','symbolSortOrder']
           },
           paint: {
             'icon-opacity': [
@@ -119,15 +133,18 @@ export class MapService {
           }
         }) 
         
-
-
-
       })
 
       this._map?.addInteraction('click', {
         type: 'click',
         target: { layerId: 'symbolLayer' },
-        handler: ({feature}) => {
+        handler: (e) => {
+          // look for multiple features under the click, and set the one with the highest sortOrder as selected
+          // this should be the one highest in the stack
+          const features = this._map?.queryRenderedFeatures(e.point, {layers: ['symbolLayer']});
+          const index = this.indexOfArrayMaximum(features?.map(f=>f.properties!['symbolSortOrder']));
+          const feature = features![index];
+
           if (this.selectedFeature?.id === feature?.id) {
             this.selectedFeature = null;
             this._map!.setFeatureState(feature!, { selected: false });

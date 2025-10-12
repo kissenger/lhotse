@@ -23,15 +23,17 @@
           @if (!!feature) {          
 
             <div class="panel-topbar">
-              {{feature.featureType}}
+              <div class="title">
+                {{feature.featureType}}
+              </div>
               <div class="close-icon" (click)="map?.deselectSymbol()">
-                <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" /></svg>
+                <app-svg-close-icon theme="lightOnDark"></app-svg-close-icon>
               </div>
             </div>
             
             <div class="panel-content">
 
-              {{feature.placeName}}
+              {{feature.location.locality ?? feature.location.postalTown}}, {{feature.location.county}}
               <h3>{{feature.name}}</h3>
 
               <div class="keywords">
@@ -44,44 +46,43 @@
                 {{feature.description}}
               </div>
 
-              Find Out More <br>
               @if (feature.featureType == 'Snorkelling Site') {
+                <div class="caveat">
+                  Information provided is for guidance only.  You are responsible for your snorkelling safety.
+                </div>
+                Find Out More <br>
                 @for (item of feature.moreInfo; track item) {
                   <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" 
                     href={{item.url}}>{{item.title}}</a>
                   <br>                
                 }
               } @else {
+                Find Out More <br>  
+                <div class="icons">
                   @for (item of feature.moreInfo; track item) {
-                    <div class="icon">
+                    <div class="icon icon-grow">
                       <a class="suppress-external-link" [href]="item.url">
                         @switch (item.icon) {
                           @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
                           @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
                           @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
-                          <!-- @case ('phone')     { <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> } -->
                           @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
                           @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
                         }
                       </a>
                     </div>
-                    <!--<div class="url">
-                      @if (!!item.url) {
-                        <a [href]="item.url">{{item.url}}</a>
-                      } @else {
-                        {{item.text}}
-                      }
-                    </div> -->
 
-                    <!-- </a> -->
                   }
-                  <br>
-                  @let phoneNo = checkforPhone(feature.moreInfo);
-                  @if ( !!phoneNo )  {
-                    <app-svg-phone     theme="darkOnLight" height="20px"></app-svg-phone> 
-                    {{phoneNo}}
+                  
+                  @for (item of feature.moreInfo; track item) {
+                    @if ( item.icon === 'phone' )  {
+                      <div class="icon icon-phone">
+                        <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
+                      </div> 
+                      <div class="phone-number">{{item.text}}</div>
+                    }
                   }
-                <!-- </div> -->
+                </div>
               } 
             </div>
           }
