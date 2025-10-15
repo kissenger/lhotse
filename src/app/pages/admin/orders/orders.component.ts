@@ -100,6 +100,14 @@ export class OrdersComponent  {
     })
     document.body.style.cursor = 'auto';
     console.log(sums)
+
+    this.numberOfCopies = this.orders.reduce((acc,cv)=> 
+      cv.items.reduce((a,c)=>{
+        if (c.id === '001' || c.id === '002') return a+c.quantity
+        else return a
+      },0) + acc, 0);
+
+      console.log(this.numberOfCopies);
     
 
     // this.countMediaCopies    = this.orders.map(o=>o.orderType==='freeMediaOrder'?o.items[0].quantity:0).reduce((a,b)=> a+b,0);
