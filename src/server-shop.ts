@@ -280,7 +280,6 @@ shop.post('/api/shop/send-posted-email', verifyToken, async (req, res) => {
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
 shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
-  console.log(req.body)
   let setField =`orderSummary.timeStamps.${req.body.set}`;
   await logShopEvent(req.body.orderNumber, {
     '$set': {

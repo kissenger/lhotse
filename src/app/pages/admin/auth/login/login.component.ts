@@ -33,7 +33,6 @@ export class LoginComponent {
 
     try {
       document.body.style.cursor = 'wait';
-      console.log(this.user)
       let res = await this._http.login(this.user);
       document.body.style.cursor = 'auto';
       this._auth.token = res.token;

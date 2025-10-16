@@ -185,7 +185,6 @@ class Basket {
       const item = this._basketItems.find(item=>item.id===itemId)!;
       item.quantity = qty;
       this.setParcelType();
-      console.log(this.setParcelType)
     }
 
     // Select parcel based on size and weight of items in basket

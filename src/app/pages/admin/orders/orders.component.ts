@@ -100,9 +100,6 @@ export class OrdersComponent  {
       }
     })
     document.body.style.cursor = 'auto';
-    console.log(sums)
-
-    // console.log(this.orders)
 
     this.numberOfCopies = this.orders.reduce((acc,cv)=> 
       cv.items.reduce((a,c)=>{

@@ -16,7 +16,6 @@ export class YoutubeSvgComponent {
 
   ngOnInit() {
     this.height = this.height ?? '30px';
-    console.log(this.height)
     this.fillColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59';
   }
 

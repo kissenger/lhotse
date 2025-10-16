@@ -55,7 +55,7 @@ export class BlogComponent {
     });
     
     this.browser.changes.subscribe( () => {
-      this.browser.first.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this));
+      this.browser.first.nativeElement.addEventListener("scrollend", this.checkArrows.bind(this), {passive: true});
     });
   }
 

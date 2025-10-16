@@ -14,8 +14,6 @@ const AUTH_KEY = process.env['AUTH_KEY'];
 
 auth.post('/api/auth/login', async (req, res) => {
 
-  console.log(req.body)
-
   try {
 
     const {username, password} = req.body.user;
