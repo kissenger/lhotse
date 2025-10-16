@@ -58,20 +58,23 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
         target?.scrollIntoView();
       }
     }, 500)
+
+    const description = `Snorkelology is a website from the authors of Snorkelling Britain - 
+    explore our website for British snorkelling information, inspiring snorkelling articles, 
+    and new snorkelling map of Britain.`;
     
     this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
-      underwater photography, sealife, marinelife`);
-    this._seo.updateDescription(`Snorkelology is a website from the authors of Snorkelling Britain - explore
-      our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.`);
+      underwater photography, sealife, marinelife, snorkelling map, map`);
+    this._seo.updateDescription(description);
     this._seo.addStructuredData(`{
       "@context": "http://schema.org",
       "@type": "Organization",
       "name": "Snorkelology",
       "url": "https://snorkelology.co.uk",
       "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": "Snorkelology is a website from the authors of Snorkelling Britain - explore our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.",
+      "description": ${description}
       "sameAs": [
         "https://instagram.com/snorkelology",
         "https://www.youtube.com/@snorkelology", 
