@@ -161,6 +161,7 @@ class Basket {
     private _discountCode: string = '';
     private _orderType: OrderType = 'manualOrder';
     private _parcelType: ParcelType = shippingOptions[0];
+    private _otherShippingCost: number = 0;
     public selectedShippingService: string = "Royal Mail Tracked 48";
 
     // Add an item to the basket with a qty = 1
@@ -184,6 +185,7 @@ class Basket {
       const item = this._basketItems.find(item=>item.id===itemId)!;
       item.quantity = qty;
       this.setParcelType();
+      console.log(this.setParcelType)
     }
 
     // Select parcel based on size and weight of items in basket
@@ -250,18 +252,17 @@ class Basket {
         return this.basketProperties.weight + this._parcelType!.packaging.weight;
     }
 
+    set shippingCost(value: number) {
+      this._otherShippingCost = value;
+    }
+
     get shippingCost(): number {
         
-        if (this.selectedShippingService) {
-            try {
-                return this._parcelType!.services.find( s => s.label===this.selectedShippingService)!.cost;
-            } catch {
-              throw new Error("shipping option not found")
-                // this.selectedShippingService = undefined;
-                // this._parcelType!.services[0].cost;
-            }
-        } 
-        return this._parcelType!.services[0].cost;
+      if (this.selectedShippingService) {
+        if (this.selectedShippingService==="Other") return this._otherShippingCost;
+        else return this._parcelType!.services.find( s => s.label===this.selectedShippingService)!.cost;
+      } 
+      return this._parcelType!.services[0].cost;
     }    
     
     get parcelType(): ParcelType {

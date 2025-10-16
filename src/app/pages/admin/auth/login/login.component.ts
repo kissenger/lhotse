@@ -33,13 +33,15 @@ export class LoginComponent {
 
     try {
       document.body.style.cursor = 'wait';
+      console.log(this.user)
       let res = await this._http.login(this.user);
       document.body.style.cursor = 'auto';
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
     } catch (error: any) {
+      document.body.style.cursor = 'auto';
       console.log(error);
-      // this._toaster.show(<string>error.error.message, 'error');
+      this._toaster.show(<string>error.error.message, 'error');
     }
   }
 

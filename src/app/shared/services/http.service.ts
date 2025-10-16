@@ -94,7 +94,9 @@ export class HttpService {
   }    
 
   async setTimestamp(orderNumber: string, set: OrderStatus) {
+    console.log(orderNumber, set)
     const request = this._http.post(`${this._backendURL}/shop/set-order-status`, {orderNumber, set});
+    console.log(request);
     return await lastValueFrom<any>(request);
   }    
 

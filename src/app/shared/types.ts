@@ -167,7 +167,9 @@ export interface OrderSummary {
     refunded?: string,
     errorCreated?: string,
     postedEmailSent?: string,
-    orderCancelled?: string
+    orderCancelled?: string,
+    invoiced?: string,
+    invoicePaid?: string
   },
   notes?: string
 }
@@ -209,7 +211,9 @@ export type OrderStatus =
   'returned' | 
   'refunded' |
   'postedEmailSent'|
-  'orderCancelled';
+  'orderCancelled'|
+  'invoiced'|
+  'invoicePaid';
 
 
   export interface AuthUser {

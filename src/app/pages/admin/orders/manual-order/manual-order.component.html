@@ -10,6 +10,11 @@
   </div>
 
   <div>
+    <label for="First Name">Name</label>
+    <input type="text" id="name" name="name" [(ngModel)]="shop.user.name">
+  </div>
+
+  <div>
     <label for="org">Organisation</label>
     <input type="text" id="org" name="org" [(ngModel)]="shop.user.organisation">
   </div>
@@ -54,6 +59,11 @@
   </div>
 
   <div>
+    <label for="shippingCostOther">Shipping Cost:</label>
+    <input type="number" id="shippingCostOther" [disabled]="shop.basket.selectedShippingService!=='Other'" name="shippingCostOther" [(ngModel)]="shop.basket.shippingCost">
+  </div>
+
+  <div>
     <label for="qty">Quantity:</label>
     <input type="text" id="qty" name="qty" [(ngModel)]="selectedQty" (change)="onQuantityChange()">
   </div>
@@ -92,6 +102,7 @@
       <option value="replacementOrder">Replacement (No Charge)</option>
       <option value="regularOrder">Regular Order (Charged)</option>
       <option value="retailOrder">Retail Order (Charged)</option>
+      <option value="retailSaleOrReturn">Retail - Sale or Return</option>
     </select>
   </div>
 

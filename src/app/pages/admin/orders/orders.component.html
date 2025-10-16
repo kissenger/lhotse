@@ -76,7 +76,8 @@
             <div class="order-line">
               <div class="title">PayPal Order ID</div>
               <div class="value">{{ order.payPalOrderId ?? '' }}</div>
-            </div>            
+            </div>
+
             @if (order.timeStamps?.orderCreated) {
               <div class="order-line">
                 <div class="title">Order Created</div>
@@ -113,6 +114,9 @@
                 <div class="value">{{order.timeStamps?.posted}}</div>
                 @if (!order.timeStamps?.postedEmailSent && !order.timeStamps?.returned && !order.timeStamps?.orderCancelled) {
                   <div class="action">
+                    @if (order.endPoint === 'manual' && !order.timeStamps?.invoiced) {
+                      <button (click)="onSetStatus(order.orderNumber, 'invoiced')">Invoiced</button>
+                    }
                     <button (click)="onSendEmail(order.orderNumber)">Send Email</button>
                     <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
                     <button (click)="onUnsetStatus(order.orderNumber, 'posted')">Undo Step</button>
@@ -164,6 +168,36 @@
                 </div>
               </div>
             }
+
+            @if (order.timeStamps?.invoiced) {
+              <div class="order-line">
+                <div class="title">Invoiced</div>
+                <div class="value">{{order.timeStamps?.invoiced}}</div>
+                <div class="action">
+                @if (!order.timeStamps?.invoicePaid) {
+                  <div class="action">
+                    <button (click)="onSetStatus(order.orderNumber, 'invoicePaid')">Invoice Paid</button>
+                    <button (click)="onUnsetStatus(order.orderNumber, 'invoiced')">Undo Step</button>
+                  </div>
+                }
+                </div>
+              </div>
+            }
+
+            @if (order.timeStamps?.invoicePaid) {
+              <div class="order-line">
+                <div class="title">Invoice Paid</div>
+                <div class="value">{{order.timeStamps?.invoicePaid}}</div>
+                <div class="action">
+                @if (!order.timeStamps?.refunded) {
+                  <div class="action">
+                    <button (click)="onUnsetStatus(order.orderNumber, 'invoicePaid')">Undo Step</button>
+                  </div>
+                }
+                </div>
+              </div>
+            }
+
             <div class="order-line">
               <div class="title">API Endpoint</div>
               <div class="value">{{ order.endPoint }}</div>
@@ -195,11 +229,7 @@
           </div>
           <div class="order-line">
             <div class="title">Item Cost</div>
-            <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
-              @if (order.orderType !== 'manualOrder') {
-                (user was not charged)
-              }
-            </div>
+            <div class="value"> {{ order.costBreakdown.items | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
           </div>
           <div class="order-line">
             <div class="title">Discount</div>
@@ -221,7 +251,11 @@
           <div class="order-line">
             <div class="title">Discount Code</div>
             <div class="value"> {{ order.discountInfo?.discountCode}}</div>
-          </div>                                
+          </div>         
+          <div class="order-line">
+            <div class="title">Order Type</div>
+            <div class="value"> {{ order.orderType}}</div>
+          </div>                              
           <div class="order-line">
             <div class="title">Order Note</div>
             <div class="value"> {{ order.notes }}</div>

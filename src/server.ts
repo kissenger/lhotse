@@ -30,10 +30,12 @@ app.get('/api/ping/', (req, res) => {
   res.status(201).json({hello: 'world'}); 
 })
 
+app.use(express.json()); // this is needed to interprete req.body
 app.use(shop);
 app.use(auth);
 app.use(blog);
 app.use(map);
+
 /**
  * End of API routes
  */

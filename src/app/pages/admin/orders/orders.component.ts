@@ -26,6 +26,7 @@ export class OrdersComponent  {
   public numberOfCopies: number = 0;
   public orderValue: string = '';
   public orders: Array<OrderSummary> = [];
+  public timeStamps: Array<{}> = [];
 
   @ViewChildren('label') labelElements!: QueryList<ElementRef>;
   
@@ -101,9 +102,11 @@ export class OrdersComponent  {
     document.body.style.cursor = 'auto';
     console.log(sums)
 
+    // console.log(this.orders)
+
     this.numberOfCopies = this.orders.reduce((acc,cv)=> 
       cv.items.reduce((a,c)=>{
-        if (c.id === '001' || c.id === '002') return a+c.quantity
+        if (c.id === '0001' || c.id === '0002') return a+c.quantity
         else return a
       },0) + acc, 0);
 
@@ -119,18 +122,18 @@ export class OrdersComponent  {
   }
 
 
-  async onSetStatus(orderNumber: string | undefined, set: OrderStatus) {
+  async onSetStatus(orderNumber: string | undefined, set: string) {
     try {
-      await this._http.setTimestamp(orderNumber ?? '', set );
+      await this._http.setTimestamp(orderNumber ?? '', <OrderStatus>set );
       this.getOrders();
     } catch (error) {
       console.error(error);
     }
   }
 
-  async onUnsetStatus(orderNumber: string | undefined, unset: OrderStatus) {
+  async onUnsetStatus(orderNumber: string | undefined, unset?: string) {
     try {
-      await this._http.unsetTimestamp(orderNumber ?? '', unset);
+      await this._http.unsetTimestamp(orderNumber ?? '', <OrderStatus>unset);
       this.getOrders();
     } catch (error) {
       console.error(error);

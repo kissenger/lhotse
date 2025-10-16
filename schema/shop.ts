@@ -63,6 +63,8 @@ const shopSchema = new mongoose.Schema({
       errorCreated: {type: Date},
       postedEmailSent: {type: Date || null},
       edited: {type: Date},
+      invoiced: {type: Date},
+      invoicePaid: {type: Date} 
     },
     notes: {type: String}
   }

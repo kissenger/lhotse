@@ -17,6 +17,9 @@ export const shippingOptions = {
       },{
         label: "Royal Mail 1st Class",
         cost: 1.70         
+      },{
+        label: "Other",
+        cost: 0.00
       }]
     },{
       packageType: "Large Letter",
@@ -35,6 +38,9 @@ export const shippingOptions = {
       },{
         label: "Royal Mail Tracked 24",
         cost: 3.60,
+      },{
+        label: "Other",
+        cost: 0.00
       }]
     },{
       packageType: "Small Parcel",
@@ -53,6 +59,9 @@ export const shippingOptions = {
       },{
         label: "Royal Mail Tracked 24",
         cost: 4.29,
+      },{
+        label: "Other",
+        cost: 0.00
       }]
     },{
       packageType: "Medium Parcel 10kg",
@@ -71,6 +80,9 @@ export const shippingOptions = {
       },{
         label: "Royal Mail Tracked 24",
         cost: 7.90,
+      },{
+        label: "Other",
+        cost: 0.00
       }]  
     },{
       packageType: "Medium Parcel 20kg",
@@ -89,6 +101,9 @@ export const shippingOptions = {
       },{
         label: "Royal Mail Tracked 24",
         cost: 12.60,
+      },{
+        label: "Other",
+        cost: 0.00
       }]  
     }
   ]  
