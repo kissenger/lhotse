@@ -18,15 +18,13 @@ export const routes: Routes = [
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent )
   },
-  { path: 'snorkelling-map-of-britain', component: MapComponent  },
+  { path: 'map', pathMatch: 'full', redirectTo: "#snorkelling-map-of-britain"},
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders', component: OrdersComponent, canActivate: [AuthGuard]},
   { path: 'admin/orders/manual/:orderNumber', component: ManualOrderComponent, canActivate: [AuthGuard]},      
   { path: 'admin/blogeditor', component: BlogEditorComponent, canActivate: [AuthGuard]},
   { path: 'admin/login', component: LoginComponent },
-  { path: 'admin/register', component: RegisterComponent },
-
-
+  // { path: 'admin/register', component: RegisterComponent },
   { path: '**', component: PageNotFoundComponent}
 
 ];
