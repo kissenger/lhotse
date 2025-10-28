@@ -12,6 +12,9 @@ const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT"
 const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
 const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
+// const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
+// const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
+// const PAYPAL_ENDPOINT = 'https://api-m.paypal.com';
 const EMAIL_CONFIG = {
   service: 'gmail', 
   host: "stmp.gmail.com",

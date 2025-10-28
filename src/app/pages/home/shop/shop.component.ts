@@ -95,6 +95,7 @@ export class ShopComponent {
           },
 
           async onShippingAddressChange(data, actions) {
+            console.log(data.shippingAddress)
             if (data.shippingAddress.countryCode !== "GB") {
               that.toaster.show("Sorry, we are not currently shipping outside the UK", "warning");
               // @ts-expect-error
