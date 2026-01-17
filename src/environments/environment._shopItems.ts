@@ -3,7 +3,7 @@ export const shopItems = {
     id: "0001",
     name: "Snorkelling Britain",
     description: "Snorkelling Britain guidebook",
-    unit_amount: { currency_code: 'GBP', value: 18.99 },
+    unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 14.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
       alt: 'Snorkelling Britain book cover in 3D '
@@ -20,9 +20,8 @@ export const shopItems = {
     name: "Snorkelling Britain Signed",
     description: "Snorkelling Britain guidebook, signed by the authors",
     purchase_note: "Please get in touch if there is a specific message you would like",
-    unit_amount: { currency_code: 'GBP', value: 18.99 },
+    unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 15.99 },
     images: [{
-
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
       alt: 'Snorkelling Britain book cover in 3D '
     }],
@@ -35,9 +34,9 @@ export const shopItems = {
     weightInGrams: 685
   }, {
     id: "0003",
-    name: "Snorkelology logo stickers",
+    name: "Pack of 5 Snorkelology logo stickers",
     description: "Pack of 5 x Snorkelology logo sticker (50mm diameter)",
-    unit_amount: { currency_code: 'GBP', value: 3.99 },
+    unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
       src: 'photos/shop/Snorkelology Logo Sticker v2.png',
       alt: 'Image showing Snorkelology Logo sticker design'
@@ -51,9 +50,9 @@ export const shopItems = {
     weightInGrams: 10
   },{
     id: "0004",
-    name: "Snorkelling Britain postcards",
-    description: "5 x Snorkelling Britain postcards",
-    unit_amount: { currency_code: 'GBP', value: 3.99 },
+    name: "Pack of 4 Snorkelling Britain postcards",
+    description: "Pack of 4 x Snorkelling Britain postcards",
+    unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-postcard-site-37-chesil-cove.jpg',
       alt: 'Snorkelling Britain Postcard Site 37 - Chesil Cove'
@@ -65,10 +64,7 @@ export const shopItems = {
       alt: 'Snorkelling Britain Postcard Site 60 - Killidraught Bay'
     },{
       src: 'photos/shop/snorkelling-britain-postcard-site-83-port-dearg.jpg',
-      alt: 'Snorkelling Britain Postcard Site 83 - POrt Dearg'
-    },{
-      src: 'photos/shop/snorkelling-britain-postcard-site-93-cricceath.jpg',
-      alt: 'Snorkelling Britain Postcard Site 93 - Cricceath'
+      alt: 'Snorkelling Britain Postcard Site 83 - Port Dearg'
     },{
       src: 'photos/shop/snorkelling-britain-postcard-back.jpg',
       alt: 'Snorkelling Britain Postcard Back View'

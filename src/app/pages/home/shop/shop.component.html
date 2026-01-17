@@ -38,7 +38,12 @@
 
         <div class="cell totals">
           <div class="unitcost">
-            {{basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}ea
+            @if (!!basketItem.unit_amount.rrp) {
+              <div class="strikethrough">
+                RRP {{basketItem.unit_amount.rrp | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
+              </div>
+            }
+            {{basketItem.unit_amount.value | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}
           </div>
         
           <div class="qty-selector">
@@ -77,18 +82,6 @@
       <div class="cell">Total</div>
       <div class="cell">{{shop.basket.totalCost | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>
     </div>
-<!-- 
-    <div class="summary-row-revealer" [ngClass]="shop.basket.discountPercent ? 'show' : ''">
-      <div >
-        <div class="summary-row">
-          <div class="summary-text">{{shop.basket.discountPercent}}% Discount</div>
-          <div class="summary-subtotal">{{shop.basket.discountValue  | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }}</div>            
-        
-        </div>     
-      </div>
-    </div> 
-
-  </div> -->
 
   @if (shop.orderStatus === "draft") {
     <div class="below-basket-container">

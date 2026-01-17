@@ -50,7 +50,7 @@
 
 .row.item {
   grid-gap: 1rem;
-  grid-template-columns: auto 1fr 16rem;
+  grid-template-columns: auto 1fr 20rem;
 }
 
 .row.summary {
@@ -91,7 +91,13 @@
 
 .unitcost {
   width: 7rem;
-  text-align: left;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .row.summary > .cell {
@@ -103,6 +109,7 @@
   display: flex;
   flex-direction: row;
   height: 3rem;
+  margin-inline: 0.2rem;
 }
 
 .qty-selector > * {
@@ -114,7 +121,7 @@
   height: 100%;
   width: 2rem;
   padding: 0;
-  margin: 0
+  margin: 0;
 }
 
 .qty-selector > button:hover {

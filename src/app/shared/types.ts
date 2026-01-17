@@ -7,6 +7,7 @@ export interface StockItem {
   purchase_note?: string;
   unit_amount: {
       currency_code: string,
+      rrp?: number,
       value: number
   },
   dimensions: {
