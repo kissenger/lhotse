@@ -27,6 +27,11 @@ export class BlogComponent implements OnInit {
   public selectedKeywords: Array<string> = [];
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
 
+  // Blog page text content (DRY - defined once in component)
+  public readonly pageHeading = 'Learn About British Snorkelling';
+  public readonly pageDescription = 'Find out more about snorkelling in Britain with Snorkelology ... we have written some information-packed articles to give hints and tips to new and experienced snorkellers alike. Have a dig around, and let us know if there are any British snorkelling topics you\'d like us to cover.';
+  public readonly filterLabel = 'Filter by keyword:';
+
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
