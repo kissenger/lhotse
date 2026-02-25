@@ -5,7 +5,8 @@
     "allowSyntheticDefaultImports": true,
     "outDir": "./out-tsc/app",
     "types": [
-      "node"
+      "node",
+      "jasmine"
     ],
     "baseUrl": "./",
     "paths": {
