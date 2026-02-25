@@ -37,7 +37,7 @@ export class ExportFileService {
       csvData += o.orderNumber + ",";
       csvData += o.items[0].quantity * 0.75 + ',';
       csvData += this.royalMailServiceCodes(o.shippingOption) + ',';
-      csvData += o.user.name.replaceAll(',','').split(/ (.*)/).filter(a=>a!='').join(',') + ',';
+      csvData += o.user.name.replaceAll(',','').split(/ (.*)/).filter((a: string)=>a!='').join(',') + ',';
       csvData += (o.user.email_address||'') + ',';
       csvData += (o.user.organisation||'').replaceAll(',','') + ',';
       csvData += (o.user.address.address_line_1||'').replaceAll(',','') + ',';
