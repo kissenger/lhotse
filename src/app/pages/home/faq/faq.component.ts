@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { SEOService, SchemaFAQPage } from '@shared/services/seo.service';
+import { SEOService } from '@shared/services/seo.service';
+import { SchemaFAQPage } from '@shared/types';
 
 @Component({
   standalone: true,

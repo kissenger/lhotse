@@ -7,7 +7,8 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { SEOService, SchemaBlogPosting } from '@shared/services/seo.service';
+import { SEOService } from '@shared/services/seo.service';
+import { SchemaBlogPosting } from '@shared/types';
 
 @Component({
   standalone: true,

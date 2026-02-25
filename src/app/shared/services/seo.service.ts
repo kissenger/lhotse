@@ -1,62 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {Inject, Injectable, PLATFORM_ID, Renderer2, RendererFactory2} from '@angular/core'; 
 import { Meta, Title } from '@angular/platform-browser';
-
-// TypeScript interfaces for structured data schemas
-export interface SchemaOrganization {
-  '@context': string;
-  '@type': 'Organization';
-  name: string;
-  url: string;
-  logo?: string;
-  description?: string;
-  sameAs?: string[];
-}
-
-export interface SchemaBlogPosting {
-  '@context': string;
-  '@type': 'BlogPosting';
-  headline: string;
-  description?: string;
-  image?: string;
-  datePublished?: string;
-  dateModified?: string;
-  author?: { '@type': 'Person'; name: string };
-  mainEntity?: { '@type': 'Article' };
-}
-
-export interface SchemaProduct {
-  '@context': string;
-  '@type': 'Product';
-  name: string;
-  description?: string;
-  image?: string;
-  price?: number;
-  priceCurrency?: string;
-  availability?: string;
-  sku?: string;
-}
-
-export interface SchemaFAQPage {
-  '@context': string;
-  '@type': 'FAQPage';
-  mainEntity: Array<{
-    '@type': 'Question';
-    name: string;
-    acceptedAnswer: { '@type': 'Answer'; text: string };
-  }>;
-}
-
-export interface SchemaBreadcrumb {
-  '@context': string;
-  '@type': 'BreadcrumbList';
-  itemListElement: Array<{
-    '@type': 'ListItem';
-    position: number;
-    name: string;
-    item?: string;
-  }>;
-}
+import { SchemaOrganization, SchemaBlogPosting, SchemaProduct, SchemaFAQPage, SchemaBreadcrumb } from '@shared/types';
 
 @Injectable({
   providedIn: 'root'
