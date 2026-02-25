@@ -3,7 +3,7 @@ import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
-import { SEOService } from           '@shared/services/seo.service';
+import { SEOService, SchemaOrganization } from           '@shared/services/seo.service';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';
@@ -63,24 +63,26 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     explore our website for British snorkelling information, inspiring snorkelling articles, 
     and new snorkelling map of Britain.`;
     
-    this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
+    this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
       underwater photography, sealife, marinelife, snorkelling map, map`);
     this._seo.updateDescription(description);
-    this._seo.addStructuredData(`{
-      "@context": "http://schema.org",
-      "@type": "Organization",
-      "name": "Snorkelology",
-      "url": "https://snorkelology.co.uk",
-      "logo": "https://snorkelology.co.uk/banner/snround.webp",
-      "description": ${description}
-      "sameAs": [
-        "https://instagram.com/snorkelology",
-        "https://www.youtube.com/@snorkelology", 
-        "https://www.facebook.com/snorkelology"
+    
+    const orgSchema: SchemaOrganization = {
+      '@context': 'http://schema.org',
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      url: 'https://snorkelology.co.uk',
+      logo: 'https://snorkelology.co.uk/banner/snround.webp',
+      description: description,
+      sameAs: [
+        'https://instagram.com/snorkelology',
+        'https://www.youtube.com/@snorkelology', 
+        'https://www.facebook.com/snorkelology'
       ]
-    }`)
+    };
+    this._seo.addOrganizationSchema(orgSchema);
     
   }
 

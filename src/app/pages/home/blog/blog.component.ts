@@ -1,4 +1,4 @@
-import { Component, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChild, ViewChildren, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
@@ -7,6 +7,7 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { SEOService, SchemaBlogPosting } from '@shared/services/seo.service';
 
 @Component({
   standalone: true,
@@ -16,7 +17,7 @@ import { CommonModule, DOCUMENT } from '@angular/common';
   styleUrls: ['./blog.component.css'],
 })
 
-export class BlogComponent {
+export class BlogComponent implements OnInit {
   @ViewChildren('browser') browser!: QueryList<ElementRef>;
   @ViewChildren('arrows') arrows!: QueryList<ElementRef>;
 
@@ -30,6 +31,7 @@ export class BlogComponent {
     private _http: HttpService,
     private _route: ActivatedRoute,
     private _screen: ScreenService,
+    private _seo: SEOService
   ) {
   }
 
@@ -41,12 +43,34 @@ export class BlogComponent {
         this.loadingState = 'success';
         this.filteredPosts = this.allPosts;
         this.getUniqueKeywords();
+        
+        // Add BlogPosting schema for each blog post
+        this._addBlogSchemas();
       } catch (error) {
         this.loadingState = 'failed';
         console.log(error);
       }
     });
     
+  }
+
+  private _addBlogSchemas() {
+    this.allPosts.forEach(post => {
+      const blogSchema: SchemaBlogPosting = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.subtitle || post.intro || post.title,
+        image: post.imgFname ? `https://snorkelology.co.uk/assets/photos/articles/${post.imgFname}` : undefined,
+        datePublished: post.createdAt,
+        dateModified: post.updatedAt || post.createdAt,
+        author: {
+          '@type': 'Person',
+          name: 'Snorkelology'
+        }
+      };
+      this._seo.addBlogPostingSchema(blogSchema);
+    });
   }
 
   ngAfterViewInit() {

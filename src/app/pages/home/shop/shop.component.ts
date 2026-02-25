@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
-// import { ErrorService } from '@shared/services/error.service';
+import { SEOService, SchemaProduct } from '@shared/services/seo.service';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -21,7 +21,7 @@ import { stage } from '@shared/globals';
   styleUrls: ['./shop.component.css', '../home.component.css']
 })
 
-export class ShopComponent {
+export class ShopComponent implements OnInit {
 
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
@@ -32,6 +32,7 @@ export class ShopComponent {
     private _http: HttpService,
     public shop: ShopService,
     public toaster: ToastService,
+    private _seo: SEOService
   ) {
     this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
@@ -40,7 +41,30 @@ export class ShopComponent {
     this.shop.basket.add(this.shop.item("0004"),0);
   }
   
-  async ngOnInit() {
+  ngOnInit() {
+    // Add Product schema for each shop item
+    this.shop.items.forEach(item => {
+      if (item.unit_amount && item.unit_amount.value) {
+        const productSchema: SchemaProduct = {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: item.name,
+          description: item.description,
+          image: item.images?.[0]?.src ? `https://snorkelology.co.uk/assets/${item.images[0].src}` : undefined,
+          price: item.unit_amount.value,
+          priceCurrency: item.unit_amount.currency_code,
+          availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          sku: item.id
+        };
+        this._seo.addProductSchema(productSchema);
+      }
+    });
+    
+    // Initialize PayPal
+    this._initPayPal();
+  }
+  
+  private async _initPayPal() {
 
     let paypal;
     
