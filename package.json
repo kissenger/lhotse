@@ -9,7 +9,10 @@
     "serve": "node ./dist/dev/server/server.mjs",
     "watch:ssr": "ng build --watch --configuration development",
     "deploy:master": "ng build --configuration prod",
-    "deploy:beta": "ng build --configuration beta"
+    "deploy:beta": "ng build --configuration beta",
+    "test:seo": "node ./tools/test-seo.js",
+    "test": "ng test --watch=false --browsers=ChromeHeadless",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
   },
   "private": true,
   "dependencies": {
