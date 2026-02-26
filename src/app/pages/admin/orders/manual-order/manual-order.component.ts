@@ -5,6 +5,7 @@ import { ShopService, User } from '@shared/services/shop.service'
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { switchMap, of, from } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -37,20 +38,26 @@ export class ManualOrderComponent  {
     
   ngOnInit() {
 
-    this._routeSubs = this._route.params.subscribe(async params => {
-      if (params['orderNumber']) {
-        // this.shop.reset();
-        this.isEditMode = true;
-        let order = await this._http.getOrderByOrderNumber(params['orderNumber']);
-        this._orderNumber = params['orderNumber'];
-        this.shop.basket.orderType = order.orderType;
-        if (order?.notes) {
-          (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
+    this._routeSubs = this._route.params
+      .pipe(
+        switchMap((params: { [key: string]: string }) => {
+          if (params['orderNumber']) {
+            this.isEditMode = true;
+            return this._http.getOrderByOrderNumber(params['orderNumber']);
+          }
+          return of(null);
+        })
+      )
+      .subscribe((order: OrderSummary | null) => {
+        if (order) {
+          this._orderNumber = order.orderNumber ?? '';
+          this.shop.basket.orderType = order.orderType ?? this.shop.basket.orderType;
+          if (order.notes) {
+            (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
+          }
+          this.shop.user.setDetails = order.user;
         }
-        this.shop.user.setDetails = order.user;
-        // this.shop.basket.updateQuantity("0001",order.items[0].quantity);
-      }
-    })
+      });
   }
 
   async onCancel() {
@@ -73,8 +80,10 @@ export class ManualOrderComponent  {
   }
 
   async onSelectionChange() {
-    let order = await this._http.getOrderByOrderNumber(this.selectedOrderNumber);
-    this.shop.user.setDetails = order.user;
+    from(this._http.getOrderByOrderNumber(this.selectedOrderNumber))
+      .subscribe((order: OrderSummary) => {
+        this.shop.user.setDetails = order.user;
+      });
   }
 
   async fillDropdown() {
