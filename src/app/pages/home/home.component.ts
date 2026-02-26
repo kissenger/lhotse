@@ -69,6 +69,19 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
       underwater photography, sealife, marinelife, snorkelling map, map`);
     this._seo.updateDescription(description);
+
+    // also update social tags for the homepage
+    const homepageImage = 'https://snorkelology.co.uk/banner/snround.webp';
+    this._seo.updateOpenGraph({
+      site_name: 'Snorkelology',
+      type: 'website',
+      image: homepageImage
+    });
+    this._seo.updateTwitterCard({
+      card: 'summary_large_image',
+      image: homepageImage,
+      site: '@snorkelology'
+    });
     
     const orgSchema: SchemaOrganization = {
       '@context': 'http://schema.org',

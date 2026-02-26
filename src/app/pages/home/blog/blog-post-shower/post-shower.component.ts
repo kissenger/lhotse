@@ -69,7 +69,22 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         this._seo.updateCanonincalUrl(this._route.snapshot.url.join('/'));
         this._seo.updateTitle(this.post.title);
         this._seo.updateKeywords(this.post.keywords.join(', '));
-        this._seo.updateDescription(`A blog post from the authors of Snorkelling Britain - ${this.post.subtitle}`);
+        const description = `A blog post from the authors of Snorkelling Britain - ${this.post.subtitle}`;
+        this._seo.updateDescription(description);
+
+        // social meta: use the post image if we have one
+        const imageUrl = this.post.imgFname ?
+            `https://snorkelology.co.uk/assets/photos/articles/${this.post.imgFname}` :
+            'https://snorkelology.co.uk/banner/snround.webp';
+        this._seo.updateOpenGraph({
+          type: 'article',
+          image: imageUrl
+        });
+        this._seo.updateTwitterCard({
+          card: 'summary_large_image',
+          image: imageUrl,
+          site: '@snorkelology'
+        });
 
         let entity: string;
         if (this.post.type === 'faq') {

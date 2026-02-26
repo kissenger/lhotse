@@ -42,6 +42,20 @@ export class FAQComponent implements OnInit {
   ];
 
   ngOnInit() {
+    // page SEO/social metadata
+    this._seo.updateCanonicalUrl('/faq');
+    this._seo.updateTitle(this.pageHeading);
+    this._seo.updateDescription(this.pageDescription);
+    this._seo.updateOpenGraph({
+      type: 'website',
+      image: 'https://snorkelology.co.uk/banner/snround.webp'
+    });
+    this._seo.updateTwitterCard({
+      card: 'summary_large_image',
+      image: 'https://snorkelology.co.uk/banner/snround.webp',
+      site: '@snorkelology'
+    });
+
     const faqSchema: SchemaFAQPage = {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',

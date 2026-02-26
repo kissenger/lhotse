@@ -43,6 +43,21 @@ export class ShopComponent implements OnInit {
   }
   
   ngOnInit() {
+    // page metadata for shop
+    const shopDesc = 'Snorkelology shop – buy stickers, books and other snorkelling-themed products.';
+    this._seo.updateCanonicalUrl('/shop');
+    this._seo.updateTitle('Snorkelology Shop');
+    this._seo.updateDescription(shopDesc);
+    this._seo.updateOpenGraph({
+      type: 'website',
+      image: 'https://snorkelology.co.uk/banner/snround.webp'
+    });
+    this._seo.updateTwitterCard({
+      card: 'summary_large_image',
+      image: 'https://snorkelology.co.uk/banner/snround.webp',
+      site: '@snorkelology'
+    });
+
     // Add Product schema for each shop item
     this.shop.items.forEach(item => {
       if (item.unit_amount && item.unit_amount.value) {

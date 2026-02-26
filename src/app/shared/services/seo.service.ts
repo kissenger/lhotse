@@ -25,10 +25,18 @@ export class SEOService {
 
   updateTitle(title: string) {
     this._title.setTitle(title);
+
+    // mirror title into social tags so each page has OpenGraph/Twitter titles
+    this.updateOpenGraph({ title });
+    this.updateTwitterCard({ title });
   }
 
   updateCanonicalUrl(url: string) {
-    this._meta.updateTag({ name: 'link', rel: 'canonical', href: this._canonicalBaseUrl+url})
+    const href = this._canonicalBaseUrl + url;
+    this._meta.updateTag({ name: 'link', rel: 'canonical', href });
+
+    // add to social metadata too
+    this.updateOpenGraph({ url: href });
   }
 
   // Deprecated: Use updateCanonicalUrl instead
@@ -37,11 +45,15 @@ export class SEOService {
   }
 
   updateDescription(desc: string) {
-    this._meta.updateTag({ name: 'description', content: desc})
+    this._meta.updateTag({ name: 'description', content: desc});
+
+    // keep OG/twitter description in sync
+    this.updateOpenGraph({ description: desc });
+    this.updateTwitterCard({ description: desc });
   }
 
   updateKeywords(kws: string) { 
-    this._meta.updateTag({ name: 'keywords', content: kws})
+    this._meta.updateTag({ name: 'keywords', content: kws});
   }  
 
   /**
@@ -56,6 +68,37 @@ export class SEOService {
       script.text = typeof ldJson === 'string' ? ldJson : JSON.stringify(ldJson);
       this._renderer.appendChild(this._document.head, script);
     }
+  }
+
+  /**
+   * Generic helper to update one or more OpenGraph properties.
+   * Accepts an object of property:value pairs (without the "og:" prefix).
+   */
+  updateOpenGraph(tags: {[key: string]: string | undefined}) {
+    Object.entries(tags).forEach(([key, value]) => {
+      if (!value) { return; }
+      this._meta.updateTag({ property: `og:${key}`, content: value });
+    });
+  }
+
+  /**
+   * Generic helper to update Twitter card meta tags. The keys should come
+   * without the "twitter:" prefix (e.g. {card: 'summary', title: '...' }).
+   */
+  updateTwitterCard(tags: {[key: string]: string | undefined}) {
+    Object.entries(tags).forEach(([key, value]) => {
+      if (!value) { return; }
+      this._meta.updateTag({ name: `twitter:${key}`, content: value });
+    });
+  }
+
+  /**
+   * Convenience for setting the social image on both networks.
+   */
+  updateSocialImage(url: string) {
+    if (!url) { return; }
+    this.updateOpenGraph({ image: url });
+    this.updateTwitterCard({ image: url });
   }
 
   /**
