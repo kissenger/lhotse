@@ -9,6 +9,7 @@ import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.compon
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
 import { SchemaBlogPosting } from '@shared/types';
+import { switchMap } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -41,40 +42,40 @@ export class BlogComponent implements OnInit {
   ) {
   }
 
-  async ngOnInit() {
-
-    this._route.params.subscribe( async () => {
-      try {
-        this.allPosts = await this._http.getPublishedPosts();
-        this.loadingState = 'success';
-        this.filteredPosts = this.allPosts;
-        this.getUniqueKeywords();
-        
-        // Add BlogPosting schema for each blog post
-        this._addBlogSchemas();
-
-        // update page-level SEO / social metadata
-        const url = '/blog';
-        this._seo.updateCanonicalUrl(url);
-        this._seo.updateTitle(this.pageHeading);
-        this._seo.updateDescription(this.pageDescription);
-        this._seo.updateOpenGraph({
-          type: 'website',
-          image: 'https://snorkelology.co.uk/banner/snround.webp'
-        });
-        this._seo.updateTwitterCard({
-          card: 'summary_large_image',
-          image: 'https://snorkelology.co.uk/banner/snround.webp',
-          site: '@snorkelology'
-        });
-      } catch (error) {
-        this.loadingState = 'failed';
-        console.log(error);
-      }
-    });
-    
+  ngOnInit() {
+    this._route.params
+      .pipe(
+        switchMap(() => this._http.getPublishedPosts())
+      )
+      .subscribe({
+        next: (posts) => {
+          this.allPosts = posts;
+          this.loadingState = 'success';
+          this.filteredPosts = this.allPosts;
+          this.getUniqueKeywords();
+          // Add BlogPosting schema for each blog post
+          this._addBlogSchemas();
+          // update page-level SEO / social metadata
+          const url = '/blog';
+          this._seo.updateCanonicalUrl(url);
+          this._seo.updateTitle(this.pageHeading);
+          this._seo.updateDescription(this.pageDescription);
+          this._seo.updateOpenGraph({
+            type: 'website',
+            image: 'https://snorkelology.co.uk/banner/snround.webp'
+          });
+          this._seo.updateTwitterCard({
+            card: 'summary_large_image',
+            image: 'https://snorkelology.co.uk/banner/snround.webp',
+            site: '@snorkelology'
+          });
+        },
+        error: (error) => {
+          this.loadingState = 'failed';
+          console.log(error);
+        }
+      });
   }
-
   private _addBlogSchemas() {
     this.allPosts.forEach(post => {
       const blogSchema: SchemaBlogPosting = {
