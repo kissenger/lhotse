@@ -4,7 +4,7 @@ import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLAT
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SEOService } from           '@shared/services/seo.service';
-// import { SchemaOrganization } from   '@shared/types'; // Remove if not used
+import { SchemaOrganization } from   '@shared/types';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';

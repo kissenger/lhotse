@@ -4,11 +4,11 @@ import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { BlogCardComponent } from './blog-card/blog-card.component';
-// import { ScreenService } from '@shared/services/screen.service'; // Unused, commented for review
+import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { SEOService } from '@shared/services/seo.service';
-// import { SchemaBlogPosting } from '@shared/types'; // Unused, commented for review
+import { SchemaBlogPosting } from '@shared/types';
 
 @Component({
   standalone: true,

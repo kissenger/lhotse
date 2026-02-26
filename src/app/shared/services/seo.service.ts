@@ -1,7 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {Inject, Injectable, PLATFORM_ID, Renderer2, RendererFactory2} from '@angular/core'; 
 import { Meta, Title } from '@angular/platform-browser';
-// import { SchemaOrganization, SchemaBlogPosting, SchemaProduct, SchemaFAQPage, SchemaBreadcrumb } from '@shared/types'; // Remove if not used
+import { SchemaOrganization, SchemaBlogPosting, SchemaProduct, SchemaFAQPage, SchemaBreadcrumb } from '@shared/types';
 
 @Injectable({
   providedIn: 'root'
