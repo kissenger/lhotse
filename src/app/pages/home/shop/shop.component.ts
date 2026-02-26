@@ -44,7 +44,7 @@ export class ShopComponent implements OnInit {
   
   ngOnInit() {
     // page metadata for shop
-    const shopDesc = 'Snorkelology shop – buy stickers, books and other snorkelling-themed products.';
+    const shopDesc = 'Snorkelology shop – Buy Snorkelling Britain direct from the authors.';
     this._seo.updateCanonicalUrl('/shop');
     this._seo.updateTitle('Snorkelology Shop');
     this._seo.updateDescription(shopDesc);

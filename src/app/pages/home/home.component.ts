@@ -61,8 +61,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     }, 500)
 
     const description = `Snorkelology is a website from the authors of Snorkelling Britain - 
-    explore our website for British snorkelling information, inspiring snorkelling articles, 
-    and new snorkelling map of Britain.`;
+    Explore our NEW snorkelling map of Britain or visit out micro store.`;
     
     this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
@@ -71,7 +70,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateDescription(description);
 
     // also update social tags for the homepage
-    const homepageImage = 'https://snorkelology.co.uk/banner/snround.webp';
+    const homepageImage = "./assets/banner/snround.webp"
     this._seo.updateOpenGraph({
       site_name: 'Snorkelology',
       type: 'website',
