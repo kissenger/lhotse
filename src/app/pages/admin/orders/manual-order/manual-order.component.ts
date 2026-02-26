@@ -5,7 +5,7 @@ import { ShopService, User } from '@shared/services/shop.service'
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { switchMap, of, from } from 'rxjs';
+import { switchMap, of } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -80,10 +80,12 @@ export class ManualOrderComponent  {
   }
 
   async onSelectionChange() {
-    from(this._http.getOrderByOrderNumber(this.selectedOrderNumber))
-      .subscribe((order: OrderSummary) => {
-        this.shop.user.setDetails = order.user;
-      });
+    try {
+      const order = await this._http.getOrderByOrderNumber(this.selectedOrderNumber);
+      this.shop.user.setDetails = order.user;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async fillDropdown() {

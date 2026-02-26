@@ -51,8 +51,16 @@ export class OrdersComponent  {
   }
 
   async onDeactivate(orderNumber: string) {
-    let respose = await this._http.deactivateOrder(orderNumber); 
-    this.getOrders();
+    // Optimistic update: remove from list immediately
+    const originalOrders = [...this.orders];
+    this.orders = this.orders.filter(o => o.orderNumber !== orderNumber);
+    try {
+      await this._http.deactivateOrder(orderNumber);
+    } catch (error) {
+      // Revert on error
+      this.orders = originalOrders;
+      console.error(error);
+    }
   }
 
   onUpdateList() {
@@ -120,19 +128,38 @@ export class OrdersComponent  {
 
 
   async onSetStatus(orderNumber: string | undefined, set: string) {
+    // Optimistic update: update local state immediately
+    const order = this.orders.find(o => o.orderNumber === orderNumber);
+    const originalTimestamps = order?.timeStamps ? { ...order.timeStamps } : undefined;
+    if (order) {
+      order.timeStamps = { ...order.timeStamps, [set]: new Date().toISOString() };
+    }
     try {
-      await this._http.setTimestamp(orderNumber ?? '', <OrderStatus>set );
-      this.getOrders();
+      await this._http.setTimestamp(orderNumber ?? '', <OrderStatus>set);
     } catch (error) {
+      // Revert on error
+      if (order && originalTimestamps !== undefined) {
+        order.timeStamps = originalTimestamps;
+      }
       console.error(error);
     }
   }
 
   async onUnsetStatus(orderNumber: string | undefined, unset?: string) {
+    // Optimistic update: remove timestamp from local state immediately
+    const order = this.orders.find(o => o.orderNumber === orderNumber);
+    const originalTimestamps = order?.timeStamps ? { ...order.timeStamps } : undefined;
+    if (order && unset && order.timeStamps) {
+      const { [unset]: _, ...rest } = order.timeStamps as Record<string, any>;
+      order.timeStamps = rest as typeof order.timeStamps;
+    }
     try {
       await this._http.unsetTimestamp(orderNumber ?? '', <OrderStatus>unset);
-      this.getOrders();
     } catch (error) {
+      // Revert on error
+      if (order && originalTimestamps !== undefined) {
+        order.timeStamps = originalTimestamps;
+      }
       console.error(error);
     }
   }
@@ -147,20 +174,40 @@ export class OrdersComponent  {
   }
 
   async addNote(orderNumber?: string) {
+    const noteInput = <HTMLInputElement>document.getElementById(`notes${orderNumber}`);
+    const note = noteInput.value;
+    // Optimistic update: append note to local state immediately
+    const order = this.orders.find(o => o.orderNumber === orderNumber);
+    const originalNotes = order?.notes;
+    if (order) {
+      order.notes = order.notes ? `${order.notes}\n${note}` : note;
+    }
     try {
-      const note = (<HTMLInputElement>document.getElementById(`notes${orderNumber}`)).value;
       await this._http.addNote(orderNumber!, note);
-      this.getOrders();
+      noteInput.value = ''; // Clear input on success
     } catch (error) {
+      // Revert on error
+      if (order) {
+        order.notes = originalNotes;
+      }
       console.error(error);
     }
   }
 
   async onSendEmail(orderNumber?: string) {
+    // Optimistic update: mark as emailed immediately
+    const order = this.orders.find(o => o.orderNumber === orderNumber);
+    const originalTimestamps = order?.timeStamps ? { ...order.timeStamps } : undefined;
+    if (order) {
+      order.timeStamps = { ...order.timeStamps, postedEmailSent: new Date().toISOString() };
+    }
     try {
       await this._http.sendPostedEmail(orderNumber);
-      this.getOrders();
     } catch (error) {
+      // Revert on error
+      if (order && originalTimestamps !== undefined) {
+        order.timeStamps = originalTimestamps;
+      }
       console.error(error);
     }
   }
