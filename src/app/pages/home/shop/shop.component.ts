@@ -6,7 +6,7 @@ import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
 import { SEOService } from '@shared/services/seo.service';
-import {SchemaProduct} from '@shared/types';
+// import {SchemaProduct} from '@shared/types'; // Unused, commented for review
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 import { ToastService } from '@shared/services/toast.service';

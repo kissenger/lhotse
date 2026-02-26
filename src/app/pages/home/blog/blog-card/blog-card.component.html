@@ -1,9 +1,9 @@
-<div class="blog-card" [routerLink]="'/blog/'+data.slug">
+<div class="blog-card" [routerLink]="'/blog/'+data.slug" aria-label="Read blog post: {{data.title}}">
 
   <div class="photo">
       <img
         [ngSrc]="data.imgFname"
-        [alt]="data.imgAlt"
+        [alt]="data.imgAlt || 'Blog post image for ' + data.title"
         fill /> 
 
   </div>

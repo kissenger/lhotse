@@ -4,7 +4,7 @@ import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLAT
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SEOService } from           '@shared/services/seo.service';
-import { SchemaOrganization } from   '@shared/types';
+// import { SchemaOrganization } from   '@shared/types'; // Remove if not used
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';
@@ -64,6 +64,8 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     Explore our NEW snorkelling map of Britain or visit out micro store.`;
     
     this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
+    // Example hreflang for English (update as needed for other languages)
+    this._seo.updateHreflang('en', 'https://snorkelology.co.uk/' + this._route.snapshot.url.join('/'));
     this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
     this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
       underwater photography, sealife, marinelife, snorkelling map, map`);

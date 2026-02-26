@@ -6,7 +6,7 @@
 
       <div class="carousel-image">
 
-        <img #carouselImage [ngSrc]="image.src" [alt]="image.alt" [priority]="image.priority!!" fill>
+        <img #carouselImage [ngSrc]="image.src" [alt]="image.alt || 'Carousel image'" [priority]="image.priority!!" fill>
 
         @if (image.textbox) {
           <div class="carousel-textbox">

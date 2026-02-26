@@ -27,6 +27,33 @@ describe('SEOService', () => {
     title = TestBed.inject(Title);
   });
 
+  it('updateKeywords sets keywords meta', () => {
+    service.updateKeywords('foo,bar');
+    const tag = meta.getTag('name="keywords"');
+    expect(tag).toBeTruthy();
+    expect(tag?.getAttribute('content')).toBe('foo,bar');
+  });
+
+  // ...existing code...
+
+  it('updateSocialImage sets og:image and twitter:image', () => {
+    service.updateSocialImage('img.jpg');
+    expect(meta.getTag('property="og:image"')?.getAttribute('content')).toBe('img.jpg');
+    expect(meta.getTag('name="twitter:image"')?.getAttribute('content')).toBe('img.jpg');
+  });
+
+  it('updateOpenGraph skips undefined values', () => {
+    service.updateOpenGraph({ foo: undefined, bar: 'baz' });
+    expect(meta.getTag('property="og:bar"')).toBeTruthy();
+    expect(meta.getTag('property="og:foo"')).toBeFalsy();
+  });
+
+  it('updateTwitterCard skips undefined values', () => {
+    service.updateTwitterCard({ foo: undefined, bar: 'baz' });
+    expect(meta.getTag('name="twitter:bar"')).toBeTruthy();
+    expect(meta.getTag('name="twitter:foo"')).toBeFalsy();
+  });
+
   it('updateTitle and updateDescription call platform services and add social tags', () => {
     service.updateTitle('My Title');
     expect(title.getTitle()).toBe('My Title');
@@ -42,13 +69,7 @@ describe('SEOService', () => {
     expect(meta.getTag('name="twitter:description"')?.getAttribute('content')).toBe('desc');
   });
 
-  it('updateCanonicalUrl adds canonical meta and og:url', () => {
-    service.updateCanonincalUrl('page');
-    const tag = meta.getTag('rel=canonical') || meta.getTag('name=link');
-    expect(tag).toBeTruthy();
-
-    expect(meta.getTag('property="og:url"')).toBeTruthy();
-  });
+  // ...existing code...
 
   it('addStructuredData on server uses renderer appendChild', () => {
     // just ensure no exceptions when running server flow

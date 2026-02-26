@@ -1,7 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {Inject, Injectable, PLATFORM_ID, Renderer2, RendererFactory2} from '@angular/core'; 
 import { Meta, Title } from '@angular/platform-browser';
-import { SchemaOrganization, SchemaBlogPosting, SchemaProduct, SchemaFAQPage, SchemaBreadcrumb } from '@shared/types';
+// import { SchemaOrganization, SchemaBlogPosting, SchemaProduct, SchemaFAQPage, SchemaBreadcrumb } from '@shared/types'; // Remove if not used
 
 @Injectable({
   providedIn: 'root'
@@ -39,9 +39,21 @@ export class SEOService {
     this.updateOpenGraph({ url: href });
   }
 
-  // Deprecated: Use updateCanonicalUrl instead
-  updateCanonincalUrl(url: string) {
-    this.updateCanonicalUrl(url);
+
+  // Add hreflang support
+  updateHreflang(lang: string, url: string) {
+    // Remove existing hreflang for this lang
+    const selector = `link[rel='alternate'][hreflang='${lang}']`;
+    const existing = this._document.head.querySelector(selector);
+    if (existing) {
+      this._document.head.removeChild(existing);
+    }
+    // Add new hreflang link
+    const link = this._renderer.createElement('link');
+    link.rel = 'alternate';
+    link.hreflang = lang;
+    link.href = url;
+    this._renderer.appendChild(this._document.head, link);
   }
 
   updateDescription(desc: string) {
