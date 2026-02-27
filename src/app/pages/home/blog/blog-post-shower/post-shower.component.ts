@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
@@ -36,7 +36,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     private _seo: SEOService,
     private _htmler: HtmlerPipe,
     private _router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private _cdr: ChangeDetectorRef
   ) {
     this.post = new BlogPost();
     this.isReadyToLoad = false;
@@ -51,9 +52,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         switchMap((params: { [key: string]: string }) => this._http.getPostBySlug(params['slug']))
       )
       .subscribe((result: any) => {
+        console.log(result);
         if (!result || !result.article) return;
         this.post = result.article;
+        console.log(this.post);
         this.post.intro = this._htmler.transform(result.article.intro ?? '');
+        console.log(this.post.intro);
         this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
         this.post.sections = (result.article.sections ?? []).map((s: any) => ({
           title: s.title ?? '',
@@ -65,6 +69,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         }));
         this.nextSlug = result.nextSlug ?? '';
         this.lastSlug = result.lastSlug ?? '';
+
         this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/') ?? '');
         this._seo.updateTitle(this.post.title ?? '');
         this._seo.updateKeywords((this.post.keywords ?? []).join(', '));
@@ -91,6 +96,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         }
         this._seo.addStructuredData(entity);
         this.isReadyToLoad = true;
+        this._cdr.detectChanges();
       });
   }
 
