@@ -8,7 +8,7 @@ describe('MapComponent', () => {
   let comp: MapComponent;
 
   beforeEach(async () => {
-    const mockLazy = { get: async () => ({ create: async () => {} }) };
+    const mockLazy = { get: async () => ({ create: async () => {}, selectionChanged: { subscribe: () => ({ unsubscribe() {} }) } }) };
     const mockHttp = { getSites: async () => ({ type: 'FeatureCollection', features: [] }) };
     const mockSeo = { addStructuredData: jasmine.createSpy('addStructuredData') };
     await TestBed.configureTestingModule({ imports: [MapComponent], providers: [
@@ -20,9 +20,9 @@ describe('MapComponent', () => {
     comp = f.componentInstance;
   });
 
-  it('creates map component and ngOnInit handles success', async () => {
+  it('creates map component and ngAfterViewInit handles success', async () => {
     expect(comp).toBeTruthy();
-    await comp.ngOnInit();
+    await comp.ngAfterViewInit();
     expect(comp.loadingState === 'success' || comp.loadingState === 'failed').toBeTrue();
     // structured data call should occur even when empty list is returned
     const seo = TestBed.inject(SEOService) as any;
@@ -42,7 +42,7 @@ describe('MapComponent', () => {
     const seo = TestBed.inject(SEOService) as any;
     seo.addStructuredData.calls.reset();
 
-    await comp.ngOnInit();
+    await comp.ngAfterViewInit();
     expect(seo.addStructuredData).toHaveBeenCalled();
     const arg = seo.addStructuredData.calls.mostRecent().args[0];
     expect(arg['@graph']).toBeDefined();

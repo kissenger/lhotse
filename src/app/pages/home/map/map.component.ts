@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { SEOService } from '@shared/services/seo.service';
 import { MapService } from '@shared/services/map.service';
@@ -16,26 +17,28 @@ import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component
 @Component({
   standalone: true,
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
-    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent ],
+    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass ],
   // providers: [MapService],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
 })
 
-export class MapComponent {
+export class MapComponent implements AfterViewInit, OnDestroy {
 
   public geoJson: any = null;
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
   public map?: MapService;
+  private _selectionSub?: import('rxjs').Subscription;
 
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
-    private _seo: SEOService
+    private _seo: SEOService,
+    private _cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnInit() {
+  async ngAfterViewInit() {
   
     try {
       const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
@@ -65,11 +68,23 @@ export class MapComponent {
         import('@shared/services/map.service').then((m) => m.MapService)
       );
       await this.map.create(this.geoJson);
+      // React to selection changes coming from MapService (mapbox events)
+      this._selectionSub = this.map.selectionChanged.subscribe(() => {
+        this._cdr.detectChanges();
+      });
       this.loadingState = 'success';
+      this._cdr.detectChanges();
+      console.log('Map created successfully');
+
     } catch (error) {
       console.log(error);
       this.loadingState = 'failed';
+      this._cdr.detectChanges();
     }
+  }
+
+  ngOnDestroy() {
+    this._selectionSub?.unsubscribe();
   }
 
   

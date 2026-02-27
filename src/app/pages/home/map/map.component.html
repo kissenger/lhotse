@@ -15,7 +15,7 @@
         <app-loader [loadingState]="loadingState"></app-loader>    
       }
        @else {
-        <div class="panel" [class]="map?.popupPosition">
+        <div class="panel" [ngClass]="map?.popupPosition">
 
           @let feature = this.geoJson?.features[map?.selectedSymbolId]?.properties;
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -22,7 +22,7 @@ import { stage } from '@shared/globals';
   styleUrls: ['./shop.component.css', '../home.component.css']
 })
 
-export class ShopComponent implements OnInit {
+export class ShopComponent implements OnInit, AfterViewInit {
 
 
   public qty: number = 0;
@@ -61,8 +61,14 @@ export class ShopComponent implements OnInit {
         this._seo.addProductSchema(productSchema);
       }
     });
-    
-    // Initialize PayPal
+  }
+
+  ngAfterViewInit() {
+    // Only run PayPal on the browser (avoid SSR issues)
+    if (typeof window === 'undefined') {
+      return;
+    }
+    // Initialize PayPal once the view (and button container) exists
     this._initPayPal();
   }
   

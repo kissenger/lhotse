@@ -3,6 +3,7 @@ import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
 import { MapboxGeoJSONFeature } from 'mapbox-gl';
 import { Feature } from '@shared/types';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,8 @@ export class MapService {
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeature: any = null;
   private _sites: any;
+  // Emits whenever the selected feature changes (including clear)
+  public readonly selectionChanged = new Subject<void>();
 
   constructor(
     private injector: Injector
@@ -26,6 +29,7 @@ export class MapService {
   deselectSymbol() {
     this._map!.setFeatureState(this.selectedFeature, { selected: false });
     this.selectedFeature = null;
+    this.selectionChanged.next();
   }
 
   get selectedSymbolId() {
@@ -148,12 +152,14 @@ export class MapService {
           if (this.selectedFeature?.id === feature?.id) {
             this.selectedFeature = null;
             this._map!.setFeatureState(feature!, { selected: false });
+            this.selectionChanged.next();
           } else {
             if (this.selectedFeature) {
               this._map!.setFeatureState(this.selectedFeature, { selected: false });
             }
             this.selectedFeature = feature;
             this._map!.setFeatureState(feature!, { selected: true });
+            this.selectionChanged.next();
           }
         }
 
@@ -165,6 +171,7 @@ export class MapService {
           if (this.selectedFeature?.id) {
             this._map!.setFeatureState(this.selectedFeature, { selected: false });
             this.selectedFeature = null;
+            this.selectionChanged.next();
           }
         }
       });
