@@ -5,8 +5,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build:ssr": "ng build --configuration development",
     "serve": "node ./dist/dev/server/server.mjs",
+    "serve:prod": "node ./dist/prod/server/server.mjs",
+    "serve:beta": "node ./dist/beta/server/server.mjs",
     "watch:ssr": "ng build --watch --configuration development",
     "deploy:master": "ng build --configuration prod",
     "deploy:beta": "ng build --configuration beta",
