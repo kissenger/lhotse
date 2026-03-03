@@ -13,15 +13,10 @@ import 'dotenv/config';
 // BUILD_DATE variable is written to .env by the build script, and provided to script to write sitemap
 const BUILD_DATE = process.env['BUILD_DATE'];
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
-console.log(ENVIRONMENT);
-console.log(BUILD_DATE)
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
-
-connectToMongoose();
-generateSitemap(BUILD_DATE);
 
 /**
  * Start of API routes
@@ -52,16 +47,21 @@ app.use((req, res, next) => {
     )
     .catch(next);
 });
-console.log(import.meta.url)
 
-// if (isMainModule(import.meta.url)) {
+// Only run side effects (DB connection, sitemap generation, listening on a port)
+// when this module is executed as the main entry, not when imported for SSR builds.
+if (isMainModule(import.meta.url)) {
+  console.log(ENVIRONMENT);
+  console.log(BUILD_DATE);
+
+  connectToMongoose();
+  generateSitemap(BUILD_DATE);
+
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
     console.log(`Node Express server listening on http://localhost:${PORT}`);
   });
-// } else {
-//   console.log('error')
-// }
+}
 
 export const reqHandler = createNodeRequestHandler(app);
 
@@ -131,7 +131,6 @@ export class AuthError extends Error {
 export class BlogError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "ShopError"
+    this.name = "BlogError"
   }
 }
-
