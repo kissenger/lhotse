@@ -54,14 +54,14 @@ app.use((req, res, next) => {
 });
 console.log(import.meta.url)
 
-if (isMainModule(import.meta.url)) {
+// if (isMainModule(import.meta.url)) {
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
     console.log(`Node Express server listening on http://localhost:${PORT}`);
   });
-} else {
-  console.log('error')
-}
+// } else {
+//   console.log('error')
+// }
 
 export const reqHandler = createNodeRequestHandler(app);
 
