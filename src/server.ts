@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 
 // Only run side effects (DB connection, sitemap generation, listening on a port)
 // when this module is executed as the main entry, not when imported for SSR builds.
-if (isMainModule(import.meta.url)) {
+// if (isMainModule(import.meta.url)) {
   console.log(ENVIRONMENT);
   console.log(BUILD_DATE);
 
@@ -59,9 +59,9 @@ if (isMainModule(import.meta.url)) {
 
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
-    console.log(`Node Express server listening on http://localhost:${PORT}`);
+    console.log(`Node Express server listening on port ${PORT}`);
   });
-}
+// }
 
 export const reqHandler = createNodeRequestHandler(app);
 
@@ -73,13 +73,14 @@ export const reqHandler = createNodeRequestHandler(app);
 function connectToMongoose()  {
   const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
   const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
-  const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
+  const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`;
   return mongoose.connect(MONGODB_CONNECTION_STR).then(
     () => {
       console.log('Mongoose connection successful')
     },
     (error) => {
-      console.error('Mongoose failed to connect, retrying...')
+      console.error('Mongoose failed to connect, retrying...');
+      console.error('connection string:');
       console.error(error);
       setTimeout(connectToMongoose, 5000);
     }

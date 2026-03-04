@@ -19,7 +19,7 @@ describe('HttpService', () => {
   it('getPublishedPosts should call backend and return data', async () => {
     const mock = [{ title: 'b' }];
     const p = service.getPublishedPosts();
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-published-posts/`;
+    const expectedUrl = `/api/blog/get-published-posts/`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
@@ -30,7 +30,7 @@ describe('HttpService', () => {
   it('getPostBySlug should call backend and return data', async () => {
     const mock = { article: { title: 'c' }, nextSlug: 'n', lastSlug: 'l' };
     const p = service.getPostBySlug('slug');
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-post-by-slug/slug`;
+    const expectedUrl = `/api/blog/get-post-by-slug/slug`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
@@ -41,7 +41,7 @@ describe('HttpService', () => {
   it('getAllSlugs should call backend and return data', async () => {
     const mock = ['a','b'];
     const p = service.getAllSlugs();
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-all-slugs/`;
+    const expectedUrl = `/api/blog/get-all-slugs/`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
@@ -52,7 +52,7 @@ describe('HttpService', () => {
   it('upsertPost should call backend and return data', async () => {
     const mock = [{ title: 'd' }];
     const p = service.upsertPost({ title: 'd' } as any);
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/upsert-post/`;
+    const expectedUrl = `/api/blog/upsert-post/`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('POST');
     req.flush(mock);
@@ -63,7 +63,7 @@ describe('HttpService', () => {
   it('deletePost should call backend and return data', async () => {
     const mock = [{ title: 'e' }];
     const p = service.deletePost('id');
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/delete-post/id`;
+    const expectedUrl = `/api/blog/delete-post/id`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
@@ -79,7 +79,7 @@ describe('HttpService', () => {
   it('getPublishedPosts should GET published posts (extra)', async () => {
     const mock = [{ title: 'p' }];
     const p = service.getPublishedPosts();
-    const req = httpMock.expectOne(`${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-published-posts/`);
+    const req = httpMock.expectOne(`/api/blog/get-published-posts/`);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
     const res = await p;
@@ -90,7 +90,7 @@ describe('HttpService', () => {
     const slug = 'post-1';
     const mock = { article: { title: 'x' }, nextSlug: '', lastSlug: '' };
     const p = service.getPostBySlug(slug);
-    const req = httpMock.expectOne(`${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-post-by-slug/${slug}`);
+    const req = httpMock.expectOne(`/api/blog/get-post-by-slug/${slug}`);
     expect(req.request.method).toBe('GET');
     req.flush(mock);
     const res = await p;
@@ -100,14 +100,14 @@ describe('HttpService', () => {
   it('createPaypalOrder and capturePaypalPayment should POST to backend', async () => {
     const order = { amount: 1 } as any;
     const create = service.createPaypalOrder(null, order);
-    const req = httpMock.expectOne(`${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/shop/create-paypal-order/`);
+    const req = httpMock.expectOne(`/api/shop/create-paypal-order/`);
     expect(req.request.method).toBe('POST');
     req.flush({ id: 'ok' });
     const res = await create;
     expect(res.id).toEqual('ok');
 
     const capture = service.capturePaypalPayment('ON', 'PAYID');
-    const req2 = httpMock.expectOne(`${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/shop/capture-paypal-payment/`);
+    const req2 = httpMock.expectOne(`/api/shop/capture-paypal-payment/`);
     expect(req2.request.method).toBe('POST');
     req2.flush({ status: 'captured' });
     const cres = await capture;
@@ -117,7 +117,7 @@ describe('HttpService', () => {
   it('getAllPosts should call backend and return data', async () => {
     const mock = [{ title: 'a' }];
     const p = service.getAllPosts();
-    const expectedUrl = `${environment.PROTOCOL}://${environment.BASE_URL}/${environment.BACKEND_SEGMENT}/blog/get-all-posts/`;
+    const expectedUrl = `/api/blog/get-all-posts/`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('GET');
     req.flush(mock);

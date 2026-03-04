@@ -5,7 +5,6 @@ import { Subscription } from 'rxjs';
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
-import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-editor',
@@ -19,7 +18,7 @@ import { environment } from '@environments/environment';
 export class BlogEditorComponent implements OnInit {
 
   private _window;
-  public baseURL: string = `${environment.PROTOCOL}://${environment.BASE_URL}/blog/`;
+  public baseURL: string = `/api/blog/`;
 
   public uniqueKeywords: Array<string> = [];
   public selectedPost: BlogPost = new BlogPost;
