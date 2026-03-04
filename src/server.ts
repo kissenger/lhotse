@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 
 // Only run side effects (DB connection, sitemap generation, listening on a port)
 // when this module is executed as the main entry, not when imported for SSR builds.
-// if (isMainModule(import.meta.url)) {
+if (isMainModule(import.meta.url) || process.env['pm_id']) {
   console.log(ENVIRONMENT);
   console.log(BUILD_DATE);
 
@@ -61,7 +61,7 @@ app.use((req, res, next) => {
   app.listen(PORT, () => {
     console.log(`Node Express server listening on port ${PORT}`);
   });
-// }
+}
 
 export const reqHandler = createNodeRequestHandler(app);
 
