@@ -11,6 +11,7 @@ export class SEOService {
 
   private _canonicalBaseUrl = 'https://snorkelology.co.uk/'
   private _renderer: Renderer2;
+  private _structuredDataCache = new Set<string>();
   
   constructor(
     @Inject(DOCUMENT) private _document: Document,
@@ -75,9 +76,15 @@ export class SEOService {
    */
   addStructuredData(ldJson: string | object) {
     if (!isPlatformBrowser(this.platformId)) {
+      const serialized = typeof ldJson === 'string' ? ldJson : JSON.stringify(ldJson);
+      if (this._structuredDataCache.has(serialized)) {
+        return;
+      }
+      this._structuredDataCache.add(serialized);
+
       const script = this._renderer.createElement('script');
       script.type = 'application/ld+json';
-      script.text = typeof ldJson === 'string' ? ldJson : JSON.stringify(ldJson);
+      script.text = serialized;
       this._renderer.appendChild(this._document.head, script);
     }
   }

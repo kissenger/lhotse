@@ -1,4 +1,4 @@
-import { Component, ElementRef, QueryList, ViewChild, ViewChildren, OnInit } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, OnInit, Output, EventEmitter } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
@@ -7,7 +7,6 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { SEOService } from '@shared/services/seo.service';
 import { SchemaBlogPosting } from '@shared/types';
 import { switchMap } from 'rxjs';
 
@@ -22,6 +21,7 @@ import { switchMap } from 'rxjs';
 export class BlogComponent implements OnInit {
   @ViewChildren('browser') browser!: QueryList<ElementRef>;
   @ViewChildren('arrows') arrows!: QueryList<ElementRef>;
+  @Output() structuredDataChange = new EventEmitter<object[]>();
 
   public filteredPosts: Array<BlogPost> = [];
   public allPosts: Array<BlogPost> = [];
@@ -37,8 +37,7 @@ export class BlogComponent implements OnInit {
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
-    private _screen: ScreenService,
-    private _seo: SEOService
+    private _screen: ScreenService
   ) {
   }
 
@@ -53,22 +52,7 @@ export class BlogComponent implements OnInit {
           this.loadingState = 'success';
           this.filteredPosts = this.allPosts;
           this.getUniqueKeywords();
-          // Add BlogPosting schema for each blog post
-          this._addBlogSchemas();
-          // update page-level SEO / social metadata
-          const url = '/blog';
-          this._seo.updateCanonicalUrl(url);
-          this._seo.updateTitle(this.pageHeading);
-          this._seo.updateDescription(this.pageDescription);
-          this._seo.updateOpenGraph({
-            type: 'website',
-            image: 'https://snorkelology.co.uk/banner/snround.webp'
-          });
-          this._seo.updateTwitterCard({
-            card: 'summary_large_image',
-            image: 'https://snorkelology.co.uk/banner/snround.webp',
-            site: '@snorkelology'
-          });
+          this.structuredDataChange.emit(this._createBlogSchemas());
         },
         error: (error) => {
           this.loadingState = 'failed';
@@ -76,9 +60,9 @@ export class BlogComponent implements OnInit {
         }
       });
   }
-  private _addBlogSchemas() {
-    this.allPosts.forEach(post => {
-      const blogSchema: SchemaBlogPosting = {
+  private _createBlogSchemas(): SchemaBlogPosting[] {
+    return this.allPosts.map(post => {
+      return {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
         headline: post.title,
@@ -91,7 +75,6 @@ export class BlogComponent implements OnInit {
           name: 'Snorkelology'
         }
       };
-      this._seo.addBlogPostingSchema(blogSchema);
     });
   }
 

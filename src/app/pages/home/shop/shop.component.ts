@@ -1,11 +1,10 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
-import { SEOService } from '@shared/services/seo.service';
 import {SchemaProduct} from '@shared/types';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
@@ -23,6 +22,7 @@ import { stage } from '@shared/globals';
 })
 
 export class ShopComponent implements OnInit, AfterViewInit {
+  @Output() structuredDataChange = new EventEmitter<object[]>();
 
 
   public qty: number = 0;
@@ -33,8 +33,7 @@ export class ShopComponent implements OnInit, AfterViewInit {
   constructor(
     private _http: HttpService,
     public shop: ShopService,
-    public toaster: ToastService,
-    private _seo: SEOService
+    public toaster: ToastService
   ) {
     this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),1);
@@ -44,7 +43,7 @@ export class ShopComponent implements OnInit, AfterViewInit {
   }
   
   ngOnInit() {
-    // Add Product schema for each shop item
+    const productSchemas: SchemaProduct[] = [];
     this.shop.items.forEach(item => {
       if (item.unit_amount && item.unit_amount.value) {
         const productSchema: SchemaProduct = {
@@ -58,9 +57,11 @@ export class ShopComponent implements OnInit, AfterViewInit {
           availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           sku: item.id
         };
-        this._seo.addProductSchema(productSchema);
+        productSchemas.push(productSchema);
       }
     });
+
+    this.structuredDataChange.emit(productSchemas);
   }
 
   ngAfterViewInit() {

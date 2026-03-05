@@ -13,6 +13,7 @@ import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
+import { StructuredDataRegistryService } from '@shared/services/structured-data-registry.service';
 
 @Component({
   standalone: true,
@@ -50,7 +51,8 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-    private _seo: SEOService
+    private _seo: SEOService,
+    private _structuredDataRegistry: StructuredDataRegistryService
   ) {
         // this is a hack to fix the broken scroll to fragment feature in angular
     setTimeout(() => {
@@ -60,9 +62,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
       }
     }, 500)
 
-    const description = `Snorkelology is a website from the authors of Snorkelling Britain - 
-    Explore our NEW snorkelling map of Britain or visit our micro store.`;
-    
+    const description = `A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain, dive in to engaging snorkelling features, and buy Snorkelling Britain direct from the authors.`; 
     this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
     // Example hreflang for English (update as needed for other languages)
     this._seo.updateHreflang('en', 'https://snorkelology.co.uk/' + this._route.snapshot.url.join('/'));
@@ -98,7 +98,13 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
       ]
     };
     this._seo.addOrganizationSchema(orgSchema);
+    this._structuredDataRegistry.clear();
     
+  }
+
+  onStructuredDataChange(source: string, schemas: object | object[]) {
+    this._structuredDataRegistry.register(source, schemas);
+    this._structuredDataRegistry.getAll().forEach(schema => this._seo.addStructuredData(schema));
   }
 
   ngAfterContentChecked() {

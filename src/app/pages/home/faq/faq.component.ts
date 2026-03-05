@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { SEOService } from '@shared/services/seo.service';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { SchemaFAQPage } from '@shared/types';
 
 @Component({
@@ -9,8 +8,9 @@ import { SchemaFAQPage } from '@shared/types';
   styleUrls: ['../home.component.css']
 })
 export class FAQComponent implements OnInit {
+  @Output() structuredDataChange = new EventEmitter<object>();
 
-  constructor(private _seo: SEOService) {}
+  constructor() {}
 
   pageHeading = 'Frequently Asked Questions';
   pageDescription = 'Here are some of the most common questions we get asked about snorkelling in Britain. If you have a question that isn\'t answered here, please get in touch and we\'ll do our best to answer it and add it to this page.';
@@ -42,20 +42,6 @@ export class FAQComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // page SEO/social metadata
-    this._seo.updateCanonicalUrl('/faq');
-    this._seo.updateTitle(this.pageHeading);
-    this._seo.updateDescription(this.pageDescription);
-    this._seo.updateOpenGraph({
-      type: 'website',
-      image: 'https://snorkelology.co.uk/banner/snround.webp'
-    });
-    this._seo.updateTwitterCard({
-      card: 'summary_large_image',
-      image: 'https://snorkelology.co.uk/banner/snround.webp',
-      site: '@snorkelology'
-    });
-
     const faqSchema: SchemaFAQPage = {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
@@ -69,7 +55,7 @@ export class FAQComponent implements OnInit {
       }))
     };
     
-    this._seo.addFAQPageSchema(faqSchema);
+    this.structuredDataChange.emit(faqSchema);
   }
 
 }

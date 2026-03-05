@@ -77,7 +77,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         this._seo.updateDescription(description);
         // social meta: use the post image if we have one
         const imageUrl = this.post.imgFname ?
-            `https://snorkelology.co.uk/assets/photos/articles/${this.post.imgFname}` :
+            `https://snorkelology.co.uk/assets/${this.post.imgFname}` :
             'https://snorkelology.co.uk/banner/snround.webp';
         this._seo.updateOpenGraph({
           type: 'article',
