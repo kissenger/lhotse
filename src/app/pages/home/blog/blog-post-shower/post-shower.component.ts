@@ -4,7 +4,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
 import { BlogPost } from '@shared/types';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { SEOService } from '@shared/services/seo.service';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
@@ -33,7 +32,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     private _http: HttpService,
     @Inject(PLATFORM_ID) private platformId: any,
     private _route: ActivatedRoute,
-    private _seo: SEOService,
     private _htmler: HtmlerPipe,
     private _router: Router,
     private sanitizer: DomSanitizer,
@@ -69,98 +67,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         }));
         this.nextSlug = result.nextSlug ?? '';
         this.lastSlug = result.lastSlug ?? '';
-
-        this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/') ?? '');
-        this._seo.updateTitle(this.post.title ?? '');
-        this._seo.updateKeywords((this.post.keywords ?? []).join(', '));
-        const description = `A blog post from the authors of Snorkelling Britain - ${this.post.subtitle ?? ''}`;
-        this._seo.updateDescription(description);
-        // social meta: use the post image if we have one
-        const imageUrl = this.post.imgFname ?
-            `https://snorkelology.co.uk/assets/${this.post.imgFname}` :
-            'https://snorkelology.co.uk/banner/snround.webp';
-        this._seo.updateOpenGraph({
-          type: 'article',
-          image: imageUrl
-        });
-        this._seo.updateTwitterCard({
-          card: 'summary_large_image',
-          image: imageUrl,
-          site: '@snorkelology'
-        });
-        let entity: string;
-        if (this.post.type === 'faq') {
-          entity = this.makeFaqEntity();
-        } else {
-          entity = this.makeArticleEntity();
-        }
-        this._seo.addStructuredData(entity);
         this.isReadyToLoad = true;
         this._cdr.detectChanges();
       });
-  }
-
-  makeArticleEntity(): string {
-    return JSON.stringify({
-      '@context': 'https://schema.org/',
-      '@type': 'Blog',
-      '@id': 'https://snorkelology.co.uk/',
-      'mainEntityOfPage': 'https://snorkelology.co.uk/',
-      'name': 'Snorkelology Blog',
-      'description': 'A blog post from the authors of Snorkelling Britain',
-      'publisher': {
-        '@context': 'http://schema.org',
-        '@type': 'Organization',
-        'name': 'Snorkelology',
-        'url': 'https://snorkelology.co.uk',
-        'logo': 'https://snorkelology.co.uk/banner/snround.webp',
-        'description': 'Snorkelology is a website from the authors of Snorkelling Britain - explore our website for snorkelling sites, snorkelling gear recommendations and inspiring underwater photography.',
-        'sameAs': [
-          'https://instagram.com/snorkelology',
-          'https://www.youtube.com/@snorkelology',
-          'https://www.facebook.com/snorkelology'
-        ]
-      },
-      'blogPost': [{
-        '@type': 'BlogPosting',
-        '@id': `https://snorkelology.co.uk/blog/${this.post.slug}`,
-        'mainEntityOfPage': `https://snorkelology.co.uk/blog/${this.post.slug}`,
-        'headline': this.post.title,
-        'name': this.post.title,
-        'datePublished': this.post.createdAt,
-        'dateModified': this.post.updatedAt,
-        'description': `A blog post from the authors of Snorkelling Britain - ${this.post.subtitle}`,
-        'author': {
-          '@type': 'organization',
-          '@id': 'https://snorkelology.co.uk',
-          'name': 'Snorkelology'
-        },
-        'image': {
-          '@type': 'ImageObject',
-          '@id': `https://snorkelology.co.uk/assets/${this.post.imgFname}`,
-          'url': `https://snorkelology.co.uk/assets/${this.post.imgFname}`
-        },
-        'url': `https://snorkelology.co.uk/blog/${this.post.slug}`
-      }]
-    });
-  }
-
-  makeFaqEntity(): string {
-    const entity = (this.post.sections ?? []).map((q: any) => ({
-      '@type': 'Question',
-      'name': q.title,
-      'acceptedAnswer': {
-        '@type': 'Answer',
-        'text': q.content.replace(/"/g, '\''),
-        'datePublished': this.post.createdAt,
-        'dateModified': this.post.updatedAt
-      }
-    }));
-    return JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': entity
-    });
   }
 
   ngOnDestroy() {

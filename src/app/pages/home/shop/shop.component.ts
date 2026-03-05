@@ -1,11 +1,10 @@
-import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
 import { loadScript } from "@paypal/paypal-js";
 import { environment } from '@environments/environment';
 import { HttpService } from '@shared/services/http.service';
-import {SchemaProduct} from '@shared/types';
 import { OrderOutcomeComponent } from './order-outcome/order-outcome.component';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 import { ToastService } from '@shared/services/toast.service';
@@ -22,9 +21,6 @@ import { stage } from '@shared/globals';
 })
 
 export class ShopComponent implements OnInit, AfterViewInit {
-  @Output() structuredDataChange = new EventEmitter<object[]>();
-
-
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
@@ -43,25 +39,6 @@ export class ShopComponent implements OnInit, AfterViewInit {
   }
   
   ngOnInit() {
-    const productSchemas: SchemaProduct[] = [];
-    this.shop.items.forEach(item => {
-      if (item.unit_amount && item.unit_amount.value) {
-        const productSchema: SchemaProduct = {
-          '@context': 'https://schema.org',
-          '@type': 'Product',
-          name: item.name,
-          description: item.description,
-          image: item.images?.[0]?.src ? `https://snorkelology.co.uk/assets/${item.images[0].src}` : undefined,
-          price: item.unit_amount.value,
-          priceCurrency: item.unit_amount.currency_code,
-          availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          sku: item.id
-        };
-        productSchemas.push(productSchema);
-      }
-    });
-
-    this.structuredDataChange.emit(productSchemas);
   }
 
   ngAfterViewInit() {

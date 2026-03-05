@@ -3,8 +3,6 @@ import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
 import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
-import { SEOService } from           '@shared/services/seo.service';
-import { SchemaOrganization } from   '@shared/types';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';
@@ -13,7 +11,6 @@ import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
-import { StructuredDataRegistryService } from '@shared/services/structured-data-registry.service';
 
 @Component({
   standalone: true,
@@ -50,61 +47,17 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     @Inject(PLATFORM_ID) private platformId: any,
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
-    private _screen: ScreenService,
-    private _seo: SEOService,
-    private _structuredDataRegistry: StructuredDataRegistryService
+    private _screen: ScreenService
   ) {
-        // this is a hack to fix the broken scroll to fragment feature in angular
-    setTimeout(() => {
-      let target = document.querySelector('#' + this._route.snapshot.fragment);
-      if (target) {
-        target?.scrollIntoView();
-      }
-    }, 500)
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        const target = document.querySelector('#' + this._route.snapshot.fragment);
+        if (target) {
+          target.scrollIntoView();
+        }
+      }, 500);
+    }
 
-    const description = `A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain, dive in to engaging snorkelling features, and buy Snorkelling Britain direct from the authors.`; 
-    this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
-    // Example hreflang for English (update as needed for other languages)
-    this._seo.updateHreflang('en', 'https://snorkelology.co.uk/' + this._route.snapshot.url.join('/'));
-    this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
-    this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
-      underwater photography, sealife, marinelife, snorkelling map, map`);
-    this._seo.updateDescription(description);
-
-    // also update social tags for the homepage
-    const homepageImage = "./assets/snorkelology opengraph image.png"
-    this._seo.updateOpenGraph({
-      site_name: 'Snorkelology',
-      type: 'website',
-      image: homepageImage
-    });
-    this._seo.updateTwitterCard({
-      card: 'summary_large_image',
-      image: homepageImage,
-      site: '@snorkelology'
-    });
-    
-    const orgSchema: SchemaOrganization = {
-      '@context': 'http://schema.org',
-      '@type': 'Organization',
-      name: 'Snorkelology',
-      url: 'https://snorkelology.co.uk',
-      logo: 'https://snorkelology.co.uk/banner/snround.webp',
-      description: description,
-      sameAs: [
-        'https://instagram.com/snorkelology',
-        'https://www.youtube.com/@snorkelology', 
-        'https://www.facebook.com/snorkelology'
-      ]
-    };
-    this._seo.addOrganizationSchema(orgSchema);
-    this._structuredDataRegistry.clear();
-    
-  }
-
-  onStructuredDataChange(source: string, schemas: object | object[]) {
-    this._structuredDataRegistry.register(source, schemas);
-    this._structuredDataRegistry.getAll().forEach(schema => this._seo.addStructuredData(schema));
   }
 
   ngAfterContentChecked() {

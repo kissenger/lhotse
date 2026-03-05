@@ -6,8 +6,10 @@ import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResp
 import mongoose from 'mongoose';
 import { shop } from './server-shop';
 import { auth } from './server-auth';
-import { blog, getSlugs } from './server-blog';
-import { map } from './server-map';
+import { blog, getSlugs, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
+import { getPlacesForSeo, map } from './server-map';
+import { shopItems } from './environments/environment._shopItems';
+import { faqItems } from './app/shared/faq-data';
 import 'dotenv/config';
 
 // BUILD_DATE variable is written to .env by the build script, and provided to script to write sitemap
@@ -42,9 +44,33 @@ app.use(map);
 app.use(express.static(browserDistFolder, {maxAge: '1y',index: false,redirect: false,}),);
 
 app.use((req, res, next) => {
-  angularApp.handle(req).then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+  angularApp.handle(req)
+    .then(async (response) => {
+      if (!response) {
+        next();
+        return;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+
+      if (req.method === 'GET' && contentType.includes('text/html')) {
+        const html = await response.text();
+        const withSeo = await injectSeoIntoHtml(req.path, html);
+        const headers = new Headers(response.headers);
+        headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
+
+        const rewritten = new Response(withSeo, {
+          status: response.status,
+          statusText: response.statusText,
+          headers
+        });
+
+        writeResponseToNodeResponse(rewritten, res);
+        return;
+      }
+
+      writeResponseToNodeResponse(response, res);
+    })
     .catch(next);
 });
 
@@ -134,4 +160,214 @@ export class BlogError extends Error {
     super(message);
     this.name = "BlogError"
   }
+}
+
+interface SeoPayload {
+  title: string;
+  description: string;
+  keywords?: string;
+  canonicalPath: string;
+  ogType: string;
+  ogImage: string;
+  schemas: object[];
+}
+
+const SITE_URL = 'https://snorkelology.co.uk';
+const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
+
+async function injectSeoIntoHtml(pathname: string, html: string) {
+  const payload = await getSeoPayload(pathname);
+  if (!payload) {
+    return html;
+  }
+
+  const ogUrl = `${SITE_URL}${payload.canonicalPath.startsWith('/') ? payload.canonicalPath : `/${payload.canonicalPath}`}`;
+  const sanitizedTitle = escapeHtmlAttr(payload.title);
+  const sanitizedDescription = escapeHtmlAttr(payload.description);
+  const sanitizedKeywords = escapeHtmlAttr(payload.keywords || '');
+  const sanitizedCanonical = escapeHtmlAttr(ogUrl);
+  const sanitizedImage = escapeHtmlAttr(payload.ogImage);
+  const sanitizedOgType = escapeHtmlAttr(payload.ogType);
+
+  let result = html;
+  result = result.replace(/<title>.*?<\/title>/i, `<title>${sanitizedTitle}</title>`);
+  result = result.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${sanitizedDescription}">`);
+  result = result.replace(/<meta\s+name="keywords"\s+content="[^"]*"\s*\/?>/i, `<meta name="keywords" content="${sanitizedKeywords}">`);
+  result = result.replace(/<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${sanitizedCanonical}">`);
+  result = result.replace(/<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:type" content="${sanitizedOgType}">`);
+  result = result.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${sanitizedTitle}">`);
+  result = result.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${sanitizedDescription}">`);
+  result = result.replace(/<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${sanitizedImage}">`);
+  result = result.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${sanitizedCanonical}">`);
+  result = result.replace(/<meta\s+name="twitter:card"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:card" content="summary_large_image">`);
+  result = result.replace(/<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${sanitizedTitle}">`);
+  result = result.replace(/<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${sanitizedDescription}">`);
+  result = result.replace(/<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${sanitizedImage}">`);
+
+  return injectJsonLdIntoHead(result, payload.schemas);
+}
+
+async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
+  if (pathname === '/' || pathname === '/home') {
+    return getHomeSeoPayload();
+  }
+
+  if (pathname.startsWith('/blog/')) {
+    const slug = pathname.split('/').filter(Boolean)[1];
+    if (!slug) {
+      return null;
+    }
+    return getBlogSeoPayload(slug);
+  }
+
+  return null;
+}
+
+async function getHomeSeoPayload(): Promise<SeoPayload> {
+  const description = 'A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain, dive in to engaging snorkelling features, and buy Snorkelling Britain direct from the authors.';
+  const keywords = 'snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling, underwater photography, sealife, marinelife, snorkelling map, map';
+  const orgSchema = {
+    '@context': 'http://schema.org',
+    '@type': 'Organization',
+    name: 'Snorkelology',
+    url: SITE_URL,
+    logo: `${SITE_URL}/banner/snround.webp`,
+    description,
+    sameAs: [
+      'https://instagram.com/snorkelology',
+      'https://www.youtube.com/@snorkelology',
+      'https://www.facebook.com/snorkelology'
+    ]
+  };
+
+  const productSchemas = (shopItems.SHOP_ITEMS || []).map((item: any) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: item.name,
+    description: item.description,
+    image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+    price: item.unit_amount?.value,
+    priceCurrency: item.unit_amount?.currency_code,
+    availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    sku: item.id
+  }));
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer
+      }
+    }))
+  };
+
+  const blogSchemas = await getPublishedPostsForSeo().then(posts =>
+    posts.map((post: any) => ({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: post.subtitle || post.intro || post.title,
+      image: post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : undefined,
+      datePublished: post.createdAt,
+      dateModified: post.updatedAt || post.createdAt,
+      author: {
+        '@type': 'Person',
+        name: 'Snorkelology'
+      }
+    }))
+  ).catch(() => []);
+
+  const mapPlaces = await getPlacesForSeo().catch(() => []);
+  const mapSchema = mapPlaces.length ? {
+    '@context': 'https://schema.org',
+    '@graph': mapPlaces
+  } : null;
+
+  const schemas = [orgSchema, ...productSchemas, faqSchema, ...blogSchemas, ...(mapSchema ? [mapSchema] : [])];
+
+  return {
+    title: 'Snorkelology - From the Authors of Snorkelling Britain',
+    description,
+    keywords,
+    canonicalPath: '/',
+    ogType: 'website',
+    ogImage: DEFAULT_SOCIAL_IMAGE,
+    schemas
+  };
+}
+
+async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
+  const post = await getPublishedPostBySlugForSeo(slug);
+  if (!post) {
+    return null;
+  }
+
+  const description = `A blog post from the authors of Snorkelling Britain - ${post.subtitle || ''}`;
+  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : `${SITE_URL}/banner/snround.webp`;
+  const isFaqType = post.type === 'faq';
+
+  const schema = isFaqType
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: (post.sections || []).map((section: any) => ({
+          '@type': 'Question',
+          name: section.title,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: section.content || ''
+          }
+        }))
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.subtitle || post.intro || post.title,
+        image,
+        datePublished: post.createdAt,
+        dateModified: post.updatedAt || post.createdAt,
+        author: {
+          '@type': 'Person',
+          name: 'Snorkelology'
+        }
+      };
+
+  return {
+    title: post.title || 'Snorkelology Blog',
+    description,
+    keywords: (post.keywords || []).join(', '),
+    canonicalPath: `/blog/${slug}`,
+    ogType: isFaqType ? 'website' : 'article',
+    ogImage: image,
+    schemas: [schema]
+  };
+}
+
+function escapeHtmlAttr(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function injectJsonLdIntoHead(html: string, schemas: object[]) {
+  if (!schemas.length) {
+    return html;
+  }
+
+  const scripts = schemas
+    .map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
+    .join('');
+
+  if (html.includes('</head>')) {
+    return html.replace('</head>', `${scripts}</head>`);
+  }
+
+  return `${scripts}${html}`;
 }

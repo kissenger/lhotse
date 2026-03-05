@@ -1,4 +1,4 @@
-import { Component, ElementRef, QueryList, ViewChildren, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
@@ -6,8 +6,7 @@ import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { SchemaBlogPosting } from '@shared/types';
+import { CommonModule } from '@angular/common';
 import { switchMap } from 'rxjs';
 
 @Component({
@@ -21,7 +20,6 @@ import { switchMap } from 'rxjs';
 export class BlogComponent implements OnInit {
   @ViewChildren('browser') browser!: QueryList<ElementRef>;
   @ViewChildren('arrows') arrows!: QueryList<ElementRef>;
-  @Output() structuredDataChange = new EventEmitter<object[]>();
 
   public filteredPosts: Array<BlogPost> = [];
   public allPosts: Array<BlogPost> = [];
@@ -52,7 +50,6 @@ export class BlogComponent implements OnInit {
           this.loadingState = 'success';
           this.filteredPosts = this.allPosts;
           this.getUniqueKeywords();
-          this.structuredDataChange.emit(this._createBlogSchemas());
         },
         error: (error) => {
           this.loadingState = 'failed';
@@ -60,24 +57,6 @@ export class BlogComponent implements OnInit {
         }
       });
   }
-  private _createBlogSchemas(): SchemaBlogPosting[] {
-    return this.allPosts.map(post => {
-      return {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: post.title,
-        description: post.subtitle || post.intro || post.title,
-        image: post.imgFname ? `https://snorkelology.co.uk/assets/photos/articles/${post.imgFname}` : undefined,
-        datePublished: post.createdAt,
-        dateModified: post.updatedAt || post.createdAt,
-        author: {
-          '@type': 'Person',
-          name: 'Snorkelology'
-        }
-      };
-    });
-  }
-
   ngAfterViewInit() {
     this.arrows.changes.subscribe( () => {
       this.checkArrows();

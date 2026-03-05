@@ -103,4 +103,20 @@ async function getSlugs() {
   return slugs;
 }
 
-export { blog, getSlugs};
+async function getPublishedPostsForSeo() {
+  const posts = await BlogModel.find(
+    { isPublished: true },
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1 }
+  ).sort({ "createdAt": "descending" });
+  return posts;
+}
+
+async function getPublishedPostBySlugForSeo(slug: string) {
+  const post = await BlogModel.findOne(
+    { isPublished: true, slug },
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1 }
+  );
+  return post;
+}
+
+export { blog, getSlugs, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };

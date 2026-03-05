@@ -30,4 +30,25 @@ function geoJson(sites:any) {
   }
 }
 
-export {map};
+async function getPlacesForSeo() {
+  const sites = await FeatureModel.find(
+    { showOnMap: { $in: ['Production', 'Development'] } },
+    { location: 1, properties: 1 }
+  );
+
+  return sites.map((site: any) => {
+    const coords = site.location?.coordinates || [];
+    return {
+      '@type': 'Place',
+      name: site.properties?.name,
+      description: site.properties?.description,
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: coords[1],
+        longitude: coords[0]
+      }
+    };
+  });
+}
+
+export { map, getPlacesForSeo };
