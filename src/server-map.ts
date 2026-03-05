@@ -41,7 +41,8 @@ async function getPlacesForSeo() {
     return {
       '@type': 'Place',
       name: site.properties?.name,
-      description: site.properties?.description,
+      description: site.properties?.featureType + ': ' + site.properties?.description,
+      address: site.properties?.location,
       geo: {
         '@type': 'GeoCoordinates',
         latitude: coords[1],
