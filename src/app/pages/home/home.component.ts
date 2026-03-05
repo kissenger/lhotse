@@ -72,7 +72,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
     this._seo.updateDescription(description);
 
     // also update social tags for the homepage
-    const homepageImage = "./assets/snorkelology opengraph image.jpg"
+    const homepageImage = "./assets/snorkelology opengraph image.png"
     this._seo.updateOpenGraph({
       site_name: 'Snorkelology',
       type: 'website',
