@@ -30,6 +30,26 @@ function geoJson(sites:any) {
   }
 }
 
+function toPostalAddress(location: any) {
+  if (!location || typeof location !== 'object') {
+    return undefined;
+  }
+
+  const address = {
+    '@type': 'PostalAddress',
+    addressLocality: location.locality || location.postalTown,
+    addressRegion: location.county,
+    streetAddress: location.adminLevel3,
+    postalCode: location.postcode || location.postalCode,
+    addressCountry: location.country || location.countryCode
+  } as any;
+
+  const hasAddressValue = Object.entries(address)
+    .some(([key, value]) => key !== '@type' && !!value);
+
+  return hasAddressValue ? address : undefined;
+}
+
 async function getPlacesForSeo() {
   const sites = await FeatureModel.find(
     { showOnMap: { $in: ['Production', 'Development'] } },
@@ -44,7 +64,7 @@ async function getPlacesForSeo() {
       name: site.properties?.name,
       description: site.properties?.featureType + ': ' + site.properties?.description,
       keywords: categories.length ? categories.join(', ') : undefined,
-      address: site.properties?.location,
+      address: toPostalAddress(site.properties?.location),
       geo: {
         '@type': 'GeoCoordinates',
         latitude: coords[1],
