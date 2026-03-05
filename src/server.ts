@@ -246,10 +246,15 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     name: item.name,
     description: item.description,
     image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
-    price: item.unit_amount?.value,
-    priceCurrency: item.unit_amount?.currency_code,
-    availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    sku: item.id
+    sku: item.id,
+    offers: {
+      '@type': 'Offer',
+      price: item.unit_amount?.value,
+      priceCurrency: item.unit_amount?.currency_code,
+      availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      url: `${SITE_URL}/#buy-now`
+    }
   }));
 
   const faqSchema = {
