@@ -7,16 +7,24 @@ const featureSchema = new mongoose.Schema({
     coordinates: {type: [Number], required: true}
   },
   properties: {
-    featureType: { type: String, enum: ['Site','Organisation'], required: true },
-    organisationType: { type: String },
+    featureType: { type: String, required: true },
+    symbolSortOrder: { type: Number },
     name: {type: String, required: true},
-    placeName: {type: String, required: true},
     region: {type: String},    
+    imageUrl: { type: String },
+    location: {
+      adminLevel3: { type: String },
+      county: { type: String },
+      locality: { type: String },
+      postalTown: { type: String }
+    },
     description: {type: String},
     categories: {type: [String]},
     moreInfo: [{
       title: {type: String}, 
+      icon: {type: String},
       url: {type: String},
+      text: {type: String},
       preferred: {type: Boolean}
     }],
     siteInfo: {
@@ -35,7 +43,7 @@ const featureSchema = new mongoose.Schema({
     },
     researchNotes: {
       isVisited: {type: Boolean},
-      isPriorityToVisit: {type: Boolean},
+      visitPriority: {type: Boolean},
       notes: {type: String},
       links: {type: [String]},
       credits: {type: String},

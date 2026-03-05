@@ -34,14 +34,16 @@ async function getPlacesForSeo() {
   const sites = await FeatureModel.find(
     { showOnMap: { $in: ['Production', 'Development'] } },
     { location: 1, properties: 1 }
-  );
+  ).lean();
 
   return sites.map((site: any) => {
     const coords = site.location?.coordinates || [];
+    const categories = site.properties?.categories || [];
     return {
       '@type': 'Place',
       name: site.properties?.name,
       description: site.properties?.featureType + ': ' + site.properties?.description,
+      keywords: categories.length ? categories.join(', ') : undefined,
       address: site.properties?.location,
       geo: {
         '@type': 'GeoCoordinates',
