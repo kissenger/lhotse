@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
+import { ThemedSvgBase } from '../themed-svg.base';
 
 @Component({
   standalone: true,
@@ -6,19 +7,14 @@ import { Component, Input } from '@angular/core';
   templateUrl: './email.component.html'
 })
 
-export class EmailSvgComponent { 
-  @Input() public theme?: 'lightOnDark' | 'darkOnLight';
-  @Input() public height?: string;
+export class EmailSvgComponent extends ThemedSvgBase {
   public fillColour?: string;
   public strokeColour?: string;
 
-  constructor() {
-  }
-
   ngOnInit() {
-    this.height = this.height ?? '25px';
-    this.strokeColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59';
-    this.fillColour = this.theme === 'lightOnDark' ? '#1D3D59' : '#FFFFFF';
+    this.setDefaultHeight('25px');
+    this.strokeColour = this.primaryColour;
+    this.fillColour = this.inverseColour;
   }
 
 }

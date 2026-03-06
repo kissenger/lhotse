@@ -35,14 +35,15 @@ export class RegisterComponent {
   ) {}
 
   async onSubmit() {
+    document.body.style.cursor = 'wait';
     try {
-      document.body.style.cursor = 'wait';
-      let res = await this._http.register(this.user);
-      document.body.style.cursor = 'auto';
+      const res = await this._http.register(this.user);
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
-    } catch (error) {
-      // this._toaster.show(<string>error.message, 'error');
+    } catch (error: any) {
+      this._toaster.show(<string>error?.error?.message || 'Registration failed', 'error');
+    } finally {
+      document.body.style.cursor = 'auto';
     }
   }
 

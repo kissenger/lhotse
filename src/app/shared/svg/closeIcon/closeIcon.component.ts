@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
+import { ThemedSvgBase } from '../themed-svg.base';
 
 @Component({
   standalone: true,
@@ -6,19 +7,12 @@ import { Component, Input } from '@angular/core';
   templateUrl: './closeIcon.component.html'
 })
 
-export class CloseIconSvgComponent { 
-  @Input() public theme?: 'lightOnDark' | 'darkOnLight';
-  @Input() public height?: string;
-  // public fillColour?: string;
+export class CloseIconSvgComponent extends ThemedSvgBase {
   public strokeColour?: string;
 
-  constructor() {
-  }
-
   ngOnInit() {
-    this.height = this.height ?? '10px';
-    this.strokeColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59';
-    // this.fillColour = this.theme === 'lightOnDark' ? '#1D3D59' : '#FFFFFF';
+    this.setDefaultHeight('10px');
+    this.strokeColour = this.primaryColour;
   }
 
 }

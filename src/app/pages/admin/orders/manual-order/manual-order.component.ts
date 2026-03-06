@@ -92,10 +92,9 @@ export class ManualOrderComponent  {
 
     // let orders: Array<OrderSummary> = [];
     try {
-      let os = await this._http.getOrders(true, true, false, 'completed', '')
-      this.orders = os.filter( (o:any) => !!o.orderNumber);
+      const os = await this._http.getOrders(true, true, false, 'completed', '') as Array<OrderSummary>;
+      this.orders = os.filter((o: OrderSummary) => !!o.orderNumber);
     } catch (error) {
-      document.body.style.cursor = 'auto';
       console.error(error);
     }
 

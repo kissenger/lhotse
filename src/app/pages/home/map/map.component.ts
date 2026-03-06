@@ -51,7 +51,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       });
       this.loadingState = 'success';
       this._cdr.detectChanges();
-      console.log('Map created successfully');
 
     } catch (error) {
       console.log(error);

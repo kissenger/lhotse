@@ -15,8 +15,6 @@ import { output, Pipe, PipeTransform } from '@angular/core';
 */
 
 export class HtmlerPipe implements PipeTransform {
-    constructor() {}
-    
     transform(rawString: string): string {
         let outputString = this.insertLinks(rawString);
         outputString = this.insertBlockQuotes(outputString);

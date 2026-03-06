@@ -17,7 +17,7 @@ describe('HttpService', () => {
   });
 
   it('getPublishedPosts should call backend and return data', async () => {
-    const mock = [{ title: 'b' }];
+    const mock: any = [{ title: 'b' }];
     const p = service.getPublishedPosts();
     const expectedUrl = `/api/blog/get-published-posts/`;
     const req = httpMock.expectOne(expectedUrl);
@@ -28,7 +28,7 @@ describe('HttpService', () => {
   });
 
   it('getPostBySlug should call backend and return data', async () => {
-    const mock = { article: { title: 'c' }, nextSlug: 'n', lastSlug: 'l' };
+    const mock: any = { article: { title: 'c' }, nextSlug: 'n', lastSlug: 'l' };
     const p = service.getPostBySlug('slug');
     const expectedUrl = `/api/blog/get-post-by-slug/slug`;
     const req = httpMock.expectOne(expectedUrl);
@@ -50,7 +50,7 @@ describe('HttpService', () => {
   });
 
   it('upsertPost should call backend and return data', async () => {
-    const mock = [{ title: 'd' }];
+    const mock: any = [{ title: 'd' }];
     const p = service.upsertPost({ title: 'd' } as any);
     const expectedUrl = `/api/blog/upsert-post/`;
     const req = httpMock.expectOne(expectedUrl);
@@ -61,7 +61,7 @@ describe('HttpService', () => {
   });
 
   it('deletePost should call backend and return data', async () => {
-    const mock = [{ title: 'e' }];
+    const mock: any = [{ title: 'e' }];
     const p = service.deletePost('id');
     const expectedUrl = `/api/blog/delete-post/id`;
     const req = httpMock.expectOne(expectedUrl);
@@ -77,7 +77,7 @@ describe('HttpService', () => {
 
   // Additional tests from http.service.extra.spec.ts
   it('getPublishedPosts should GET published posts (extra)', async () => {
-    const mock = [{ title: 'p' }];
+    const mock: any = [{ title: 'p' }];
     const p = service.getPublishedPosts();
     const req = httpMock.expectOne(`/api/blog/get-published-posts/`);
     expect(req.request.method).toBe('GET');
@@ -88,7 +88,7 @@ describe('HttpService', () => {
 
   it('getPostBySlug should GET post and return article (extra)', async () => {
     const slug = 'post-1';
-    const mock = { article: { title: 'x' }, nextSlug: '', lastSlug: '' };
+    const mock: any = { article: { title: 'x' }, nextSlug: '', lastSlug: '' };
     const p = service.getPostBySlug(slug);
     const req = httpMock.expectOne(`/api/blog/get-post-by-slug/${slug}`);
     expect(req.request.method).toBe('GET');
@@ -115,7 +115,7 @@ describe('HttpService', () => {
   });
 
   it('getAllPosts should call backend and return data', async () => {
-    const mock = [{ title: 'a' }];
+    const mock: any = [{ title: 'a' }];
     const p = service.getAllPosts();
     const expectedUrl = `/api/blog/get-all-posts/`;
     const req = httpMock.expectOne(expectedUrl);

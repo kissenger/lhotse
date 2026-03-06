@@ -10,7 +10,6 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
   
   try {
     const sites = await FeatureModel.find({$or: [{showOnMap: visibility.split('/')}]});
-    // console.log(sites);
     res.status(201).json(geoJson(sites));
   } catch (error: any) {
     console.log(error);

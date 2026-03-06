@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -20,7 +20,7 @@ import { stage } from '@shared/globals';
   styleUrls: ['./shop.component.css', '../home.component.css']
 })
 
-export class ShopComponent implements OnInit, AfterViewInit {
+export class ShopComponent implements AfterViewInit {
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
@@ -38,9 +38,6 @@ export class ShopComponent implements OnInit, AfterViewInit {
     this.shop.basket.add(this.shop.item("0004"),0);
   }
   
-  ngOnInit() {
-  }
-
   ngAfterViewInit() {
     // Only run PayPal on the browser (avoid SSR issues)
     if (typeof window === 'undefined') {
@@ -105,7 +102,6 @@ export class ShopComponent implements OnInit, AfterViewInit {
           },
 
           async onShippingAddressChange(data, actions) {
-            console.log(data.shippingAddress)
             if (data.shippingAddress.countryCode !== "GB") {
               that.toaster.show("Sorry, we are not currently shipping outside the UK", "warning");
               // @ts-expect-error

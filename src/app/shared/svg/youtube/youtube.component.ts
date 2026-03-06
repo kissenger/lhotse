@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
+import { ThemedSvgBase } from '../themed-svg.base';
 
 @Component({
   standalone: true,
@@ -6,17 +7,12 @@ import { Component, Input } from '@angular/core';
   templateUrl: './youtube.component.html'
 })
 
-export class YoutubeSvgComponent { 
-  @Input() public theme?: 'lightOnDark' | 'darkOnLight';
-  @Input() public height?: string;
+export class YoutubeSvgComponent extends ThemedSvgBase {
   public fillColour?: string;
 
-  constructor() {
-  }
-
   ngOnInit() {
-    this.height = this.height ?? '30px';
-    this.fillColour = this.theme === 'lightOnDark' ? '#FFFFFF' : '#1D3D59';
+    this.setDefaultHeight('30px');
+    this.fillColour = this.primaryColour;
   }
 
 }

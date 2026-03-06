@@ -1,9 +1,9 @@
-import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
-import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Router, ActivatedRoute, RouterLink, NavigationEnd} from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink, NavigationEnd} from '@angular/router';
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
 import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
 import { EmailSvgComponent } from '@shared/svg/email/email.component'
@@ -18,7 +18,7 @@ import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
   styleUrls: ['./header.component.css']
 })
 
-export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
+export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
   @ViewChild('brandbox') brandBox!: ElementRef;
@@ -37,17 +37,15 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';
-  public isLoaded: boolean = false;
 
   constructor(
-    @Inject(ActivatedRoute) private _route: ActivatedRoute,
     @Inject(Router) private _router: Router,
-    @Inject(DOCUMENT) private _document: Document,    
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
   ) {
-    this._router.events.pipe(filter( (e: any) => e instanceof NavigationEnd))
-      .subscribe( () => {
+    this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this._scrSubs?.unsubscribe();
         this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
           if (isect.ratio > 0.2) {
             this.activeMenuItem = this.menuItems.find( item => item.anchor === isect.id)?.name;
@@ -62,12 +60,6 @@ export class HeaderComponent implements AfterViewInit, AfterContentChecked, OnDe
     }
   }
   
-  ngAfterContentChecked() {
-    if (!isPlatformBrowser(PLATFORM_ID)) {
-      this.isLoaded = true;
-    }
-  }
-
   onHamburgerClick() {
     this.brandBox.nativeElement.classList.remove("block-animation");
     this.expandDropdownMenu = !this.expandDropdownMenu;

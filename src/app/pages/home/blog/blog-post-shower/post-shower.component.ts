@@ -50,12 +50,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         switchMap((params: { [key: string]: string }) => this._http.getPostBySlug(params['slug']))
       )
       .subscribe((result: any) => {
-        console.log(result);
         if (!result || !result.article) return;
         this.post = result.article;
-        console.log(this.post);
         this.post.intro = this._htmler.transform(result.article.intro ?? '');
-        console.log(this.post.intro);
         this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
         this.post.sections = (result.article.sections ?? []).map((s: any) => ({
           title: s.title ?? '',

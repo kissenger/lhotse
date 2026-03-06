@@ -30,17 +30,16 @@ export class LoginComponent {
   ) {}
 
   async onSubmit() {
-
+    document.body.style.cursor = 'wait';
     try {
-      document.body.style.cursor = 'wait';
-      let res = await this._http.login(this.user);
-      document.body.style.cursor = 'auto';
+      const res = await this._http.login(this.user);
       this._auth.token = res.token;
       this._router.navigate(['/admin']); 
     } catch (error: any) {
+      console.error(error);
+      this._toaster.show(<string>error?.error?.message || 'Login failed', 'error');
+    } finally {
       document.body.style.cursor = 'auto';
-      console.log(error);
-      this._toaster.show(<string>error.error.message, 'error');
     }
   }
 
