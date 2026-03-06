@@ -1,5 +1,5 @@
 
-import { ElementRef, EventEmitter, Inject, Injectable, PLATFORM_ID, QueryList } from '@angular/core';
+import { ElementRef, EventEmitter, Inject, Injectable, NgZone, PLATFORM_ID, QueryList } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
@@ -12,7 +12,8 @@ export class ScrollspyService {
   private _ob$: any;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: any
+    @Inject(PLATFORM_ID) private platformId: any,
+    private ngZone: NgZone
   ) {
     if(isPlatformBrowser(this.platformId)) {
       this._ob$ = new IntersectionObserver( (io: Array<IntersectionObserverEntry>) => {
@@ -32,10 +33,12 @@ export class ScrollspyService {
 
   intersectHandler(el: Array<IntersectionObserverEntry>) {
     el.forEach( (el) => {
-      this.intersectionEmitter.emit({
-        id: el.target.id, 
-        class: el.target.className,
-        ratio: el.intersectionRatio
+      this.ngZone.run(() => {
+        this.intersectionEmitter.emit({
+          id: el.target.id,
+          class: el.target.className,
+          ratio: el.intersectionRatio
+        });
       });
     });
   }

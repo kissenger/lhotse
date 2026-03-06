@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "serve": "node ./dist/dev/server/server.mjs",
+    "start": "ng  serve",
+    "serve": "node --watch ./dist/dev/server/server.mjs",
     "serve:prod": "node ./dist/prod/server/server.mjs",
     "serve:beta": "node ./dist/beta/server/server.mjs",
     "watch:ssr": "ng build --watch --configuration development",
