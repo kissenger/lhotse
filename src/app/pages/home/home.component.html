@@ -47,7 +47,7 @@
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  @defer (when isReadyToLoad) {
+  @defer (on immediate) {
     <div #anchor class="anchor" id="blog">
       <app-blog></app-blog>
       <div #window id="windowTwo" class="window"></div>  
