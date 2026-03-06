@@ -162,7 +162,7 @@ export class BlogError extends Error {
     this.name = "BlogError"
   }
 }
-
+ 
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
 const DEFAULT_OG_LOGO = `${SITE_URL}/assets/banner/snround.webp`;

@@ -39,7 +39,8 @@
             "server": "src/main.server.ts",
             "allowedCommonJsDependencies": [
                 "mongodb",
-                "dotenv"
+              "dotenv",
+              "mapbox-gl"
             ]          
           },
           "configurations": {
