@@ -12,10 +12,10 @@ export class PartnersComponent {
 
   public images = [
     {
-      url: "partners/bsac-logo.png",
+      url: "partners/bsac-logo.webp",
       href: 'https://www.bsac.com/',
       alt: 'British Sub Aqua Club Logo',
-      size: { height: 100, width: 62}
+      size: { height: 100, width: 147}
     },   
     {
       url: "partners/christaylorphoto-small.webp",
