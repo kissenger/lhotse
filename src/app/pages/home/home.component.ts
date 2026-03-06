@@ -1,8 +1,10 @@
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
+import { SEOService } from           '@shared/services/seo.service';
+import { SchemaOrganization } from   '@shared/types';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';
@@ -25,7 +27,7 @@ import { PartnersComponent } from    '@pages/home/partners/partners.component';
   styleUrls: ['./home.component.css']
 })
 
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent implements AfterViewInit, AfterContentChecked {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
@@ -34,7 +36,7 @@ export class HomeComponent implements AfterViewInit {
   public hideAboutBookOverlay = false;
   public hideBuyNowOverlay = true;
   public widthDescriptor?: string;
-  public isReadyToLoad = true;
+  public isReadyToLoad = false;
 
   staticBackgrounds: {[windowOne: string]: string} = {
     windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
@@ -47,17 +49,62 @@ export class HomeComponent implements AfterViewInit {
     @Inject(PLATFORM_ID) private platformId: any,
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
-    private _screen: ScreenService
+    private _screen: ScreenService,
+    private _seo: SEOService
   ) {
-    if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => {
-        const target = document.querySelector('#' + this._route.snapshot.fragment);
-        if (target) {
-          target.scrollIntoView();
-        }
-      }, 500);
-    }
+        // this is a hack to fix the broken scroll to fragment feature in angular
+    setTimeout(() => {
+      let target = document.querySelector('#' + this._route.snapshot.fragment);
+      if (target) {
+        target?.scrollIntoView();
+      }
+    }, 500)
 
+    const description = `Snorkelology is a website from the authors of Snorkelling Britain - 
+    Explore our NEW snorkelling map of Britain or visit our micro store.`;
+    
+    this._seo.updateCanonicalUrl(this._route.snapshot.url.join('/'));
+    // Example hreflang for English (update as needed for other languages)
+    this._seo.updateHreflang('en', 'https://snorkelology.co.uk/' + this._route.snapshot.url.join('/'));
+    this._seo.updateTitle('Snorkelology - From the Authors of Snorkelling Britain');
+    this._seo.updateKeywords(`snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling,
+      underwater photography, sealife, marinelife, snorkelling map, map`);
+    this._seo.updateDescription(description);
+
+    // also update social tags for the homepage
+    const homepageImage = "./assets/snorkelology opengraph image.png"
+    this._seo.updateOpenGraph({
+      site_name: 'Snorkelology',
+      type: 'website',
+      image: homepageImage
+    });
+    this._seo.updateTwitterCard({
+      card: 'summary_large_image',
+      image: homepageImage,
+      site: '@snorkelology'
+    });
+    
+    const orgSchema: SchemaOrganization = {
+      '@context': 'http://schema.org',
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      url: 'https://snorkelology.co.uk',
+      logo: 'https://snorkelology.co.uk/banner/snround.webp',
+      description: description,
+      sameAs: [
+        'https://instagram.com/snorkelology',
+        'https://www.youtube.com/@snorkelology', 
+        'https://www.facebook.com/snorkelology'
+      ]
+    };
+    this._seo.addOrganizationSchema(orgSchema);
+    
+  }
+
+  ngAfterContentChecked() {
+    if (!isPlatformBrowser(PLATFORM_ID)) {
+      this.isReadyToLoad = true;
+    }
   }
   
   ngAfterViewInit() {
@@ -118,4 +165,3 @@ export class HomeComponent implements AfterViewInit {
   }
 
 }
-
