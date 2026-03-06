@@ -191,29 +191,31 @@ async function injectSeoIntoHtml(pathname: string, html: string) {
 
   let result = html;
   result = result.replace(/<title>.*?<\/title>/i, `<title>${sanitizedTitle}</title>`);
-  result = result.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${sanitizedDescription}">`);
-  result = result.replace(/<meta\s+name="keywords"\s+content="[^"]*"\s*\/?>/i, `<meta name="keywords" content="${sanitizedKeywords}">`);
-  result = result.replace(/<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${sanitizedCanonical}">`);
-  result = result.replace(/<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:type" content="${sanitizedOgType}">`);
-  result = result.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${sanitizedTitle}">`);
-  result = result.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${sanitizedDescription}">`);
-  result = result.replace(/<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${sanitizedImage}">`);
-  result = result.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${sanitizedCanonical}">`);
-  result = result.replace(/<meta\s+name="twitter:card"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:card" content="summary_large_image">`);
-  result = result.replace(/<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${sanitizedTitle}">`);
-  result = result.replace(/<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${sanitizedDescription}">`);
-  result = result.replace(/<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${sanitizedImage}">`);
+  result = upsertMetaTag(result, 'name', 'description', sanitizedDescription);
+  result = upsertMetaTag(result, 'name', 'keywords', sanitizedKeywords);
+  result = upsertCanonicalTag(result, sanitizedCanonical);
+  result = upsertMetaTag(result, 'property', 'og:type', sanitizedOgType);
+  result = upsertMetaTag(result, 'property', 'og:title', sanitizedTitle);
+  result = upsertMetaTag(result, 'property', 'og:description', sanitizedDescription);
+  result = upsertMetaTag(result, 'property', 'og:image', sanitizedImage);
+  result = upsertMetaTag(result, 'property', 'og:url', sanitizedCanonical);
+  result = upsertMetaTag(result, 'name', 'twitter:card', 'summary_large_image');
+  result = upsertMetaTag(result, 'name', 'twitter:title', sanitizedTitle);
+  result = upsertMetaTag(result, 'name', 'twitter:description', sanitizedDescription);
+  result = upsertMetaTag(result, 'name', 'twitter:image', sanitizedImage);
 
   return injectJsonLdIntoHead(result, payload.schemas);
 }
 
 async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
-  if (pathname === '/' || pathname === '/home') {
+  const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+
+  if (normalizedPath === '/' || normalizedPath === '/home') {
     return getHomeSeoPayload();
   }
 
-  if (pathname.startsWith('/blog/')) {
-    const slug = pathname.split('/').filter(Boolean)[1];
+  if (normalizedPath.startsWith('/blog/')) {
+    const slug = normalizedPath.split('/').filter(Boolean)[1];
     if (!slug) {
       return null;
     }
@@ -359,6 +361,40 @@ function escapeHtmlAttr(value: string) {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function insertIntoHeadOrPrefix(html: string, tag: string) {
+  if (/<\/head>/i.test(html)) {
+    return html.replace(/<\/head>/i, `${tag}</head>`);
+  }
+  return `${tag}${html}`;
+}
+
+function upsertMetaTag(html: string, key: 'name' | 'property', keyValue: string, content: string) {
+  const escapedValue = escapeRegExp(keyValue);
+  const tagRegex = new RegExp(`<meta\\b(?=[^>]*\\b${key}=["']${escapedValue}["'])[^>]*>`, 'i');
+  const replacement = `<meta ${key}="${keyValue}" content="${content}">`;
+
+  if (tagRegex.test(html)) {
+    return html.replace(tagRegex, replacement);
+  }
+
+  return insertIntoHeadOrPrefix(html, replacement);
+}
+
+function upsertCanonicalTag(html: string, href: string) {
+  const tagRegex = /<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/i;
+  const replacement = `<link rel="canonical" href="${href}">`;
+
+  if (tagRegex.test(html)) {
+    return html.replace(tagRegex, replacement);
+  }
+
+  return insertIntoHeadOrPrefix(html, replacement);
 }
 
 function injectJsonLdIntoHead(html: string, schemas: object[]) {
