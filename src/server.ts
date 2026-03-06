@@ -165,7 +165,8 @@ export class BlogError extends Error {
 
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
-const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/banner/snround.webp`;
+const DEFAULT_OG_LOGO = `${SITE_URL}/assets/banner/snround.webp`;
+const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.png`;
 
 async function injectSeoIntoHtml(pathname: string, html: string) {
   const payload = await getSeoPayload(pathname);
@@ -195,7 +196,7 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
 }
 
 async function getHomeSeoPayload(): Promise<SeoPayload> {
-  const description = 'A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain, dive in to engaging snorkelling features, and buy Snorkelling Britain direct from the authors.';
+  const description = 'A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain and buy Snorkelling Britain direct from the authors.';
   const keywords = 'snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling, underwater photography, sealife, marinelife, snorkelling map, map';
   const orgSchema = {
     '@context': 'http://schema.org',
@@ -272,6 +273,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     canonicalPath: '/',
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
+    ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas
   };
@@ -321,6 +323,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     canonicalPath: `/blog/${slug}`,
     ogType: isFaqType ? 'website' : 'article',
     ogImage: image,
+    ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas: [schema]
   };

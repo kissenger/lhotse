@@ -9,6 +9,7 @@ describe('server-seo-injection', () => {
     keywords: 'one, two',
     canonicalPath: '/home',
     ogType: 'website',
+    ogLogo: 'https://img.test/logo.png',
     twitterImage: 'https://img.test/a.png',
     ogImage: 'https://img.test/a.png',
     schemas: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'Snorkelology' }]
@@ -49,6 +50,7 @@ describe('server-seo-injection', () => {
         <meta property="og:title" content>
         <meta property="og:description" content>
         <meta property="og:image" content>
+        <meta property="og:logo" content>
         <meta property="og:url" content>
         <meta name="twitter:card" content>
         <meta name="twitter:title" content>
@@ -64,6 +66,7 @@ describe('server-seo-injection', () => {
     expect(result).toContain('<title>Title &quot;with&quot; &lt;chars&gt;</title>');
     expect(result).toContain('<meta name="description" content="Desc &amp; details">');
     expect(result).toContain('<meta property="og:image" content="https://img.test/a.png">');
+    expect(result).toContain('<meta property="og:logo" content="https://img.test/logo.png">');
     expect(result).toContain('<meta property="og:url" content="https://snorkelology.co.uk/home">');
     expect(result).toContain('<meta name="twitter:card" content="summary_large_image">');
     expect(result).toContain('<script type="application/ld+json">');

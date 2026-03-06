@@ -5,6 +5,7 @@ export interface SeoPayload {
   canonicalPath: string;
   ogType: string;
   ogImage: string;
+  ogLogo: string;
   twitterImage: string;
   schemas: object[];
 }
@@ -16,6 +17,7 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
   const sanitizedKeywords = escapeHtmlAttr(payload.keywords || '');
   const sanitizedCanonical = escapeHtmlAttr(ogUrl);
   const sanitizedImage = escapeHtmlAttr(payload.ogImage);
+  const sanitizedLogo = escapeHtmlAttr(payload.ogLogo);
   const sanitizedImageTwtr = escapeHtmlAttr(payload.twitterImage);
   const sanitizedOgType = escapeHtmlAttr(payload.ogType);
 
@@ -28,6 +30,7 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
   result = upsertMetaTag(result, 'property', 'og:title', sanitizedTitle);
   result = upsertMetaTag(result, 'property', 'og:description', sanitizedDescription);
   result = upsertMetaTag(result, 'property', 'og:image', sanitizedImage);
+  result = upsertMetaTag(result, 'property', 'og:logo', sanitizedLogo);
   result = upsertMetaTag(result, 'property', 'og:url', sanitizedCanonical);
   result = upsertMetaTag(result, 'name', 'twitter:card', 'summary_large_image');
   result = upsertMetaTag(result, 'name', 'twitter:title', sanitizedTitle);
