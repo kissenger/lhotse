@@ -258,7 +258,11 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     }))
   ).catch(() => []);
 
-  const mapPlaces = await getPlacesForSeo().catch(() => []);
+  const mapPlaces = await getPlacesForSeo().catch((error) => {
+    // Keep SSR response resilient, but surface why map JSON-LD was skipped.
+    console.error('SEO map schema generation failed:', error);
+    return [];
+  });
   const mapSchema = mapPlaces.length ? {
     '@context': 'https://schema.org',
     '@graph': mapPlaces
