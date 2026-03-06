@@ -285,7 +285,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     return null;
   }
 
-  const description = `A feature from Snorkelology - ${post.subtitle || ''}`;
+  const description = `${post.subtitle || ''}`;
   const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
   const isFaqType = post.type === 'faq';
 
