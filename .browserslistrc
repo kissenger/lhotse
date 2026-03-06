@@ -1,0 +1,12 @@
+# Broader targets for compatibility, including older Safari/Android.
+# Keep this aligned with your real support policy.
+last 2 Chrome major versions
+last 2 Edge major versions
+last 2 Firefox major versions
+Safari >= 13
+iOS >= 13
+Android >= 8
+ChromeAndroid >= 95
+not dead
+not IE 11
+not op_mini all

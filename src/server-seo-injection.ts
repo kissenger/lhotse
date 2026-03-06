@@ -5,6 +5,7 @@ export interface SeoPayload {
   canonicalPath: string;
   ogType: string;
   ogImage: string;
+  twitterImage: string;
   schemas: object[];
 }
 
@@ -15,6 +16,7 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
   const sanitizedKeywords = escapeHtmlAttr(payload.keywords || '');
   const sanitizedCanonical = escapeHtmlAttr(ogUrl);
   const sanitizedImage = escapeHtmlAttr(payload.ogImage);
+  const sanitizedImageTwtr = escapeHtmlAttr(payload.twitterImage);
   const sanitizedOgType = escapeHtmlAttr(payload.ogType);
 
   let result = html;
@@ -30,7 +32,7 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
   result = upsertMetaTag(result, 'name', 'twitter:card', 'summary_large_image');
   result = upsertMetaTag(result, 'name', 'twitter:title', sanitizedTitle);
   result = upsertMetaTag(result, 'name', 'twitter:description', sanitizedDescription);
-  result = upsertMetaTag(result, 'name', 'twitter:image', sanitizedImage);
+  result = upsertMetaTag(result, 'name', 'twitter:image', sanitizedImageTwtr);
 
   return injectJsonLdIntoHead(result, payload.schemas);
 }

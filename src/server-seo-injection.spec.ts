@@ -9,6 +9,7 @@ describe('server-seo-injection', () => {
     keywords: 'one, two',
     canonicalPath: '/home',
     ogType: 'website',
+    twitterImage: 'https://img.test/a.png',
     ogImage: 'https://img.test/a.png',
     schemas: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'Snorkelology' }]
   };

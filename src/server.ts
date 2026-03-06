@@ -165,6 +165,7 @@ export class BlogError extends Error {
 
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
+const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/banner/snround.webp`;
 
 async function injectSeoIntoHtml(pathname: string, html: string) {
   const payload = await getSeoPayload(pathname);
@@ -271,6 +272,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     canonicalPath: '/',
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas
   };
 }
@@ -319,6 +321,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     canonicalPath: `/blog/${slug}`,
     ogType: isFaqType ? 'website' : 'article',
     ogImage: image,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas: [schema]
   };
 }
