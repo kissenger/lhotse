@@ -367,24 +367,50 @@ async function getOrderSummary(orderNumber: string) {
  * FUNCTION: Create order summary
  ****************************************************************/
 async function setOrderSummary(orderNumber: string) {
-  const order = await ShopModel.findOne({orderNumber});
-  let newOrder = await logShopEvent(orderNumber, {
-    '$set': {
-      'orderSummary.orderNumber': orderNumber,
-      'orderSummary.payPalOrderId': order?.paypal?.id,
-      'orderSummary.user.name': order?.paypal?.approved.purchase_units[0].shipping.name.full_name,
-      'orderSummary.user.address': order?.paypal?.approved.purchase_units[0].shipping.address,
-      'orderSummary.user.email_address': order?.paypal?.approved.payer.email_address,
-      'orderSummary.items': order?.paypal?.intent.purchase_units[0].items,
-      'orderSummary.costBreakdown.items': order?.paypal?.intent.purchase_units[0].amount.breakdown.item_total.value,
-      'orderSummary.costBreakdown.shipping': order?.paypal?.intent.purchase_units[0].amount.breakdown.shipping.value,
-      'orderSummary.costBreakdown.discount': order?.paypal?.intent.purchase_units[0].amount.breakdown.discount.value,
-      'orderSummary.costBreakdown.total': order?.paypal?.intent.purchase_units[0].amount.value,
-      'orderSummary.endPoint': order?.paypal?.endPoint,
-      'orderSummary.shippingOption': order?.paypal?.approved.purchase_units[0].shipping.options[0].label
-    }
-  })
-  return newOrder.orderSummary; 
+  try {
+    const order = await ShopModel.findOne({orderNumber});
+    const approved = order?.paypal?.approved;
+    const intent = order?.paypal?.intent;
+
+    const approvedPurchaseUnit = approved?.purchase_units?.[0];
+    const intentPurchaseUnit = intent?.purchase_units?.[0];
+    const shipping = approvedPurchaseUnit?.shipping;
+    const payer = approved?.payer;
+    const amount = intentPurchaseUnit?.amount;
+    const breakdown = amount?.breakdown;
+
+    const setFields: Record<string, any> = {
+      'orderSummary.orderNumber': orderNumber
+    };
+
+    const fullName = shipping?.name?.full_name;
+    const fallbackName = [payer?.name?.given_name, payer?.name?.surname].filter(Boolean).join(' ').trim();
+    const userName = fullName || fallbackName;
+
+    if (order?.paypal?.id !== undefined) setFields['orderSummary.payPalOrderId'] = order.paypal.id;
+    if (userName) setFields['orderSummary.user.name'] = userName;
+    if (shipping?.address !== undefined) setFields['orderSummary.user.address'] = shipping.address;
+    if (payer?.email_address) setFields['orderSummary.user.email_address'] = payer.email_address;
+    if (intentPurchaseUnit?.items !== undefined) setFields['orderSummary.items'] = intentPurchaseUnit.items;
+    if (breakdown?.item_total?.value !== undefined) setFields['orderSummary.costBreakdown.items'] = breakdown.item_total.value;
+    if (breakdown?.shipping?.value !== undefined) setFields['orderSummary.costBreakdown.shipping'] = breakdown.shipping.value;
+    if (breakdown?.discount?.value !== undefined) setFields['orderSummary.costBreakdown.discount'] = breakdown.discount.value;
+    if (amount?.value !== undefined) setFields['orderSummary.costBreakdown.total'] = amount.value;
+    if (order?.paypal?.endPoint !== undefined) setFields['orderSummary.endPoint'] = order.paypal.endPoint;
+
+    const selectedShipping = shipping?.options?.find((o: any) => o?.selected) ?? shipping?.options?.[0];
+    if (selectedShipping?.label) setFields['orderSummary.shippingOption'] = selectedShipping.label;
+
+    const newOrder = await logShopEvent(orderNumber, {
+      '$set': setFields
+    });
+
+    return newOrder.orderSummary;
+  } catch (error) {
+    console.error(error);
+    const fallbackOrder = await ShopModel.findOne({orderNumber}, {'orderSummary': 1});
+    return fallbackOrder?.orderSummary ?? { orderNumber };
+  }
 }
 
 /*****************************************************************

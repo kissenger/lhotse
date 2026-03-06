@@ -310,6 +310,7 @@ export class BlogPost {
   conclusion: string = '';
   createdAt: string = '';
   updatedAt: string = '';
+  author?: string;
 }
 
 export type DeviceOrientation = 'landscape' | 'portrait' | undefined;

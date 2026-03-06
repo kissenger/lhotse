@@ -311,8 +311,8 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     return null;
   }
 
-  const description = `A blog post from the authors of Snorkelling Britain - ${post.subtitle || ''}`;
-  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : `${SITE_URL}/banner/snround.webp`;
+  const description = `A feature from Snorkelology - ${post.subtitle || ''}`;
+  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
   const isFaqType = post.type === 'faq';
 
   const schema = isFaqType
@@ -338,7 +338,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         dateModified: post.updatedAt || post.createdAt,
         author: {
           '@type': 'Person',
-          name: 'Snorkelology'
+          name: post.author || 'Snorkelology'
         }
       };
 

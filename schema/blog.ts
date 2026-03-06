@@ -18,7 +18,8 @@ const blogSchema = new mongoose.Schema({
     videoUrl: {type: String},
     imgCredit: {type: String}
   }]},
-  conclusion: {type: String, required: true}
+  conclusion: {type: String, required: true},
+  author: {type: String}
 }, {timestamps: true})
 
 const BlogModel = model('post', blogSchema);

@@ -5,12 +5,12 @@
         [ngSrc]="data.imgFname"
         [alt]="data.imgAlt || 'Blog post image for ' + data.title"
         fill /> 
-
   </div>
 
-  <h2>{{data.title}}</h2>
+  <h2 class="title">{{data.title}}</h2>
+  <div class="author">By {{data.author || 'Snorkelology'}}</div>  
   <div class="subtitle">{{data.subtitle}}</div>
-  <div class="keywords">
+  <div class="keywords">     
     @for (kw of data.keywords; track kw) {
       <span>{{kw}}</span>
     }

@@ -15,7 +15,7 @@
       <h1>{{post.title}}</h1>
 
       <div class="below-title-text">
-        Published {{post.createdAt | date : 'MMM YYYY'}} <br />
+        Published {{post.createdAt | date : 'MMM YYYY'}} by {{post.author || 'Snorkelology'}} <br />
         <div class="keywords">
           @for (kw of post.keywords; track kw) {
             <span>{{kw}}</span>
