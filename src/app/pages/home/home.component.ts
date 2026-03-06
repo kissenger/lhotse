@@ -1,6 +1,6 @@
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgClass, NgOptimizedImage } from '@angular/common';
-import { AfterContentChecked, AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
@@ -25,7 +25,7 @@ import { PartnersComponent } from    '@pages/home/partners/partners.component';
   styleUrls: ['./home.component.css']
 })
 
-export class HomeComponent implements AfterViewInit, AfterContentChecked {
+export class HomeComponent implements AfterViewInit {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
@@ -34,7 +34,7 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
   public hideAboutBookOverlay = false;
   public hideBuyNowOverlay = true;
   public widthDescriptor?: string;
-  public isReadyToLoad = false;
+  public isReadyToLoad = true;
 
   staticBackgrounds: {[windowOne: string]: string} = {
     windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
@@ -58,12 +58,6 @@ export class HomeComponent implements AfterViewInit, AfterContentChecked {
       }, 500);
     }
 
-  }
-
-  ngAfterContentChecked() {
-    if (!isPlatformBrowser(PLATFORM_ID)) {
-      this.isReadyToLoad = true;
-    }
   }
   
   ngAfterViewInit() {

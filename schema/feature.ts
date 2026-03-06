@@ -20,6 +20,10 @@ const featureSchema = new mongoose.Schema({
     },
     description: {type: String},
     categories: {type: [String]},
+    contact: {
+      name: {type: String},
+      email: {type: String}
+    },
     moreInfo: [{
       title: {type: String}, 
       icon: {type: String},
