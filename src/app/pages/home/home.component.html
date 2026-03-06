@@ -1,6 +1,6 @@
 <main>
 
-  @defer (when isReadyToLoad) {
+  @if (isReadyToLoad) {
     <div class="overlay about-book" [ngClass]="hideAboutBookOverlay ? 'hide-overlay' : ''">
       <a [routerLink]="'.'" [fragment]="'snorkelling-britain'" (click)="hideOverlay('about-book')">
         @if (widthDescriptor === "small") {
