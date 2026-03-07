@@ -20,7 +20,7 @@ RETENTION_DAYS="30"
 #
 # Environment variables:
 # - ENV_FILE (default: <repo_root>/.env)
-# - MONGO_URI (default: mongodb://127.0.0.1:27017)
+# - MONGO_URI (required)
 # - BACKUP_PASSPHRASE (optional; enables AES-256 encryption with openssl)
 #
 # Script settings (edit in this file):
@@ -41,8 +41,18 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-MONGO_URI="${MONGO_URI:-mongodb://127.0.0.1:27017}"
+MONGO_URI="${MONGO_URI:-}"
 BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
+
+if [[ -z "${MONGO_URI}" ]]; then
+  echo "MONGO_URI is required in ${ENV_FILE}." >&2
+  echo "If your .env has values with spaces, wrap them in quotes." >&2
+  exit 1
+fi
+
+# Log the URI source for troubleshooting without exposing credentials.
+MONGO_URI_MASKED="$(echo "${MONGO_URI}" | sed -E 's#(mongodb(\+srv)?://)[^@]+@#\1***@#')"
+echo "Using MONGO_URI from ${ENV_FILE}: ${MONGO_URI_MASKED}"
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"

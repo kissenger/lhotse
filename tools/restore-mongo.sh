@@ -112,6 +112,7 @@ BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 
 if [[ -z "${MONGO_URI}" ]]; then
   echo "MONGO_URI is required in ${ENV_FILE}." >&2
+  echo "If your .env has values with spaces, wrap them in quotes." >&2
   exit 1
 fi
 
