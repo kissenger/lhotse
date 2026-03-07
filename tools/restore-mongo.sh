@@ -10,19 +10,9 @@ set -euo pipefail
 # MongoDB restore script for backups created by tools/backup-mongo.sh.
 # Requires: mongorestore, tar, gzip. Optional: openssl (for .enc backups).
 #
-# Environment variables:
-# - ENV_FILE (default: <repo_root>/.env)
-# - MONGO_URI (required)
-# - BACKUP_PASSPHRASE (required only for .enc backups)
-#
-# Script settings (edit in this file):
-# - BACKUP_ROOT
-#
-# Usage:
-#   ./restore-mongo.sh --latest --yes --db SOURCE_DB [--target-db TARGET_DB] [--drop]
-#   ./restore-mongo.sh --file /var/backups/mongodb/dump-20260307-021500.tar.gz --yes --db SOURCE_DB [--target-db TARGET_DB] [--drop]
-#   ENV_FILE=/etc/lhotse.env ./restore-mongo.sh --latest --yes --db snorkelology --target-db snorkelology_restore_test
-
+# RUN AS:
+# sh ./tools/restore-mongo.sh --yes --file /home/gort1975/mongo_backups/dump-20260307-112203.tar.gz --db snorkelology
+# 
 
 ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"

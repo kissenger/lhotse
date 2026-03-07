@@ -49,23 +49,32 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       .pipe(
         switchMap((params: { [key: string]: string }) => this._http.getPostBySlug(params['slug']))
       )
-      .subscribe((result: any) => {
-        if (!result || !result.article) return;
-        this.post = result.article;
-        this.post.intro = this._htmler.transform(result.article.intro ?? '');
-        this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
-        this.post.sections = (result.article.sections ?? []).map((s: any) => ({
-          title: s.title ?? '',
-          content: this._htmler.transform(s.content ?? ''),
-          imgFname: s.imgFname ?? '',
-          imgAlt: s.imgAlt ?? '',
-          imgCredit: s.imgCredit ?? '',
-          videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : ''
-        }));
-        this.nextSlug = result.nextSlug ?? '';
-        this.lastSlug = result.lastSlug ?? '';
-        this.isReadyToLoad = true;
-        this._cdr.detectChanges();
+      .subscribe({
+        next: (result: any) => {
+          if (!result || !result.article) {
+            this._router.navigateByUrl('/404');
+            return;
+          }
+
+          this.post = result.article;
+          this.post.intro = this._htmler.transform(result.article.intro ?? '');
+          this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
+          this.post.sections = (result.article.sections ?? []).map((s: any) => ({
+            title: s.title ?? '',
+            content: this._htmler.transform(s.content ?? ''),
+            imgFname: s.imgFname ?? '',
+            imgAlt: s.imgAlt ?? '',
+            imgCredit: s.imgCredit ?? '',
+            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : ''
+          }));
+          this.nextSlug = result.nextSlug ?? '';
+          this.lastSlug = result.lastSlug ?? '';
+          this.isReadyToLoad = true;
+          this._cdr.detectChanges();
+        },
+        error: () => {
+          this._router.navigateByUrl('/404');
+        }
       });
   }
 

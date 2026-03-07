@@ -51,17 +51,26 @@ blog.get('/api/blog/get-published-posts/', async (req, res) => {
 */
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
   try {
-    const listOfSlugs: Array<{slug: string}> = await BlogModel.find({isPublished: true}, {slug: 1}).sort({"createdAt": "descending"});
-    const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug); 
-    const lastSlug = listOfSlugs[index-1 < 0 ? listOfSlugs.length-1 : index-1].slug;
-    const nextSlug = listOfSlugs[index+1 > listOfSlugs.length-1 ? 0: index+1].slug;
-    const article = await BlogModel.findOne({slug: req.params.slug});
-    if (article){
-      res.status(201).json({article, lastSlug, nextSlug});
-    } else {
-      throw new BlogError('Not Found')
+    const slug = req.params.slug;
+    const article = await BlogModel.findOne({ slug, isPublished: true });
+    if (!article) {
+      throw new BlogError('Not Found');
     }
+
+    const listOfSlugs: Array<{slug: string}> = await BlogModel.find({ isPublished: true }, { slug: 1 }).sort({ "createdAt": "descending" });
+    const index = listOfSlugs.map(r => r.slug).indexOf(slug);
+    if (index < 0 || listOfSlugs.length === 0) {
+      throw new BlogError('Not Found');
+    }
+
+    const lastSlug = listOfSlugs[(index - 1 + listOfSlugs.length) % listOfSlugs.length].slug;
+    const nextSlug = listOfSlugs[(index + 1) % listOfSlugs.length].slug;
+    res.status(200).json({ article, lastSlug, nextSlug });
   } catch (error: any) {
+    if (error?.name === 'BlogError') {
+      res.status(404).json({ message: 'Not Found' });
+      return;
+    }
     res.status(500).send(error);
   }
 });
