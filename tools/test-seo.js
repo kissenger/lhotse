@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
+// Purpose: lightweight CI/local smoke test for static SEO tags in env index files.
+// This verifies the generated beta/prod index.html files include core meta tags
+// (canonical, Open Graph, Twitter) and ensures beta remains noindex.
+// Run from repo root with: node tools/test-seo.js
+
 const root = process.cwd();
 const files = [
   { name: 'prod', file: path.join(root, 'src', 'config', 'prod', 'index.html') },

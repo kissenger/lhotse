@@ -199,6 +199,8 @@ export class BlogPost {
   createdAt: string = '';
   updatedAt: string = '';
   author?: string;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
 }
 
 export type DeviceOrientation = 'landscape' | 'portrait' | undefined;

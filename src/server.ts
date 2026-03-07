@@ -98,10 +98,14 @@ export const reqHandler = createNodeRequestHandler(app);
  * @returns 
  */
 function connectToMongoose()  {
-  const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
-  const MONGODB_DBNAME = process.env['MONGODB_DBNAME'];
-  const MONGODB_CONNECTION_STR = `mongodb+srv://root:${MONGODB_PASSWORD}@cluster0.5h6di.gcp.mongodb.net/${MONGODB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0`;
-  return mongoose.connect(MONGODB_CONNECTION_STR).then(
+  const MONGO_URI = process.env['MONGO_URI'];
+  if (!MONGO_URI) {
+    console.error('MONGO_URI is not set in environment; retrying...');
+    setTimeout(connectToMongoose, 5000);
+    return Promise.resolve();
+  }
+
+  return mongoose.connect(MONGO_URI).then(
     () => {
       console.log('Mongoose connection successful')
     },

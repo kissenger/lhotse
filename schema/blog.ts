@@ -19,8 +19,16 @@ const blogSchema = new mongoose.Schema({
     imgCredit: {type: String}
   }]},
   conclusion: {type: String, required: true},
-  author: {type: String}
+  author: {type: String},
+  isDeleted: {type: Boolean, default: false, index: true},
+  deletedAt: {type: Date, default: null}
 }, {timestamps: true})
+
+// Exclude soft-deleted posts from standard queries by default.
+blogSchema.pre(/^find/, function (this: any, next) {
+  this.where({ isDeleted: { $ne: true } });
+  next();
+});
 
 const BlogModel = model('post', blogSchema);
 

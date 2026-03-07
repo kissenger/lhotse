@@ -73,6 +73,8 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
     } else {
       delete req.body._id;
       delete req.body.createdAt;
+      req.body.isDeleted = false;
+      req.body.deletedAt = null;
       await BlogModel.create(req.body);
     }
     const result = await BlogModel.find({});
@@ -89,7 +91,10 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
 */
 blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
   try {
-    await BlogModel.deleteOne({_id: req.params._id});
+    await BlogModel.findOneAndUpdate(
+      { _id: req.params._id },
+      { isDeleted: true, deletedAt: new Date(), isPublished: false }
+    );
     const result = await BlogModel.find({});
     res.status(201).json(result);
   } catch (error: any) {

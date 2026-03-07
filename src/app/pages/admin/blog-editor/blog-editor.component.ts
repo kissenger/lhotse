@@ -83,6 +83,11 @@ export class BlogEditorComponent implements OnInit {
   }
 
   deleteQA(index: number) {
+    const confirmed = this._window?.confirm?.('Delete this section? This cannot be undone.');
+    if (!confirmed) {
+      return;
+    }
+
     this.selectedPost.sections.splice(index,1); 
   }
 
