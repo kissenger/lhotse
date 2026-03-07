@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+
+# If invoked with sh/dash, re-run with bash so pipefail and bash syntax work.
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # MongoDB restore script for backups created by tools/backup-mongo.sh.

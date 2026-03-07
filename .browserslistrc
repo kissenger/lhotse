@@ -1,12 +1,9 @@
-# Broader targets for compatibility, including older Safari/Android.
-# Keep this aligned with your real support policy.
+# Angular-compatible browser support policy.
 last 2 Chrome major versions
+last 1 Firefox version
 last 2 Edge major versions
-last 2 Firefox major versions
-Safari >= 13
-iOS >= 13
-Android >= 8
-ChromeAndroid >= 95
-not dead
+last 2 Safari major versions
+last 2 iOS major versions
+Firefox ESR
 not IE 11
 not op_mini all
