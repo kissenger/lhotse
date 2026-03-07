@@ -24,7 +24,7 @@ set -euo pipefail
 #   ENV_FILE=/etc/lhotse.env ./restore-mongo.sh --latest --yes --db snorkelology --target-db snorkelology_restore_test
 
 
-ENV_FILE="/home/gort1975/.env"
+ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
 
 SHOW_HELP=0
