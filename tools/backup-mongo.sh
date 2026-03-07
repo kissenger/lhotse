@@ -8,6 +8,7 @@ fi
 set -euo pipefail
 
 # Backup behavior config lives in-script by request.
+ENV_FILE="/home//gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
 MIRROR_DIR=""
 DB_NAMES="snorkelology"
@@ -28,8 +29,6 @@ RETENTION_DAYS="30"
 # - RETENTION_DAYS
 # - MIRROR_DIR
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/../.env}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Environment file not found: ${ENV_FILE}" >&2
