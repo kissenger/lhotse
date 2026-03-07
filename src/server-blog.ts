@@ -52,7 +52,7 @@ blog.get('/api/blog/get-published-posts/', async (req, res) => {
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
   try {
     const slug = req.params.slug;
-    const article = await BlogModel.findOne({ slug, isPublished: true });
+    const article = await BlogModel.findOne({ slug });
     if (!article) {
       throw new BlogError('Not Found');
     }

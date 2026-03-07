@@ -18,7 +18,7 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 export class BlogEditorComponent implements OnInit {
 
   private _window;
-  public baseURL: string = `/api/blog/`;
+  public baseURL: string = `/blog/`;
 
   public uniqueKeywords: Array<string> = [];
   public selectedPost: BlogPost = new BlogPost;
