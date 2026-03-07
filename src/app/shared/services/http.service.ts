@@ -33,7 +33,12 @@ export class HttpService {
   }
 
   async getPostBySlug(slug: string) {
-    const request =  this._http.get<{article: BlogPost, nextSlug: string, lastSlug: string}>(`/api/blog/get-post-by-slug/${slug}`);
+    const request =  this._http.get<{article: BlogPost}>(`/api/blog/get-post-by-slug/${slug}`);
+    return await lastValueFrom(request);
+  }
+
+  async getLastAndNextSlugs(slug: string) {
+    const request =  this._http.get<{lastSlug: string, nextSlug: string}>(`/api/blog/get-last-and-next-slugs/${slug}`);
     return await lastValueFrom(request);
   }
 

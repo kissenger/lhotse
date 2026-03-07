@@ -13,7 +13,9 @@ const blog = express();
 */
 blog.get('/api/blog/get-all-posts/', async (req, res) => {
   try {
-    const result = await BlogModel.find({}).sort({"createdAt": "descending"});;
+    const result = await BlogModel
+      .find({})
+      .sort({"createdAt": "descending"});
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
@@ -22,11 +24,15 @@ blog.get('/api/blog/get-all-posts/', async (req, res) => {
 });
 
 blog.get('/api/blog/get-all-slugs/', async (req, res) => {
+  console.log('test')
   try {
-    const result = await getSlugs();
-    res.status(201).json(result);
+    const result =  await getSlugs(false);
+    if (!result || result.length === 0) {
+      throw new BlogError('Error fetching slugs');
+    };
+    console.log(result);  
+    res.status(201).json(result); 
   } catch (error: any) { 
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -50,6 +56,7 @@ blog.get('/api/blog/get-published-posts/', async (req, res) => {
   Returns: BlogPost
 */
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
+
   try {
     const slug = req.params.slug;
     const article = await BlogModel.findOne({ slug });
@@ -57,15 +64,33 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
       throw new BlogError('Not Found');
     }
 
-    const listOfSlugs: Array<{slug: string}> = await BlogModel.find({ isPublished: true }, { slug: 1 }).sort({ "createdAt": "descending" });
-    const index = listOfSlugs.map(r => r.slug).indexOf(slug);
+    res.status(200).json({ article });
+
+  } catch (error: any) {
+    if (error?.name === 'BlogError') {
+      res.status(404).json({ message: 'Not Found' });
+      return;
+    }
+    res.status(500).send(error);
+  }
+});
+
+blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
+
+  try {
+
+    const listOfSlugs: Array<{slug: string}> = await getSlugs(true);
+    const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug);
+
     if (index < 0 || listOfSlugs.length === 0) {
-      throw new BlogError('Not Found');
+      throw new BlogError('Error finding next or last slug');
     }
 
     const lastSlug = listOfSlugs[(index - 1 + listOfSlugs.length) % listOfSlugs.length].slug;
     const nextSlug = listOfSlugs[(index + 1) % listOfSlugs.length].slug;
-    res.status(200).json({ article, lastSlug, nextSlug });
+
+    res.status(200).json({lastSlug, nextSlug });
+    
   } catch (error: any) {
     if (error?.name === 'BlogError') {
       res.status(404).json({ message: 'Not Found' });
@@ -94,6 +119,17 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
   }
 });
 
+async function getSlugs(includeUnpublished: boolean = false) {
+  const result =  await BlogModel.find(
+    includeUnpublished ? {} : { isPublished: true }, 
+    {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"}
+  );
+  if (!result || result.length === 0) {
+    throw new BlogError('Not Found');
+  };
+  return result;
+};
+
 /* 
   Get post specified by _id, and if successful return result of find all
   Returns: Array<BlogPost>
@@ -111,11 +147,6 @@ blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
     res.status(500).send(error);
   }
 });
-
-async function getSlugs() {
-  const slugs = await BlogModel.find({isPublished: true}, {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"});
-  return slugs;
-}
 
 async function getPublishedPostsForSeo() {
   const posts = await BlogModel.find(

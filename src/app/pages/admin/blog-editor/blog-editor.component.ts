@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { BlogPost } from '@shared/types';
 import { Subscription } from 'rxjs';
@@ -28,6 +28,7 @@ export class BlogEditorComponent implements OnInit {
   constructor(
       private _http: HttpService,
       private _kebaber: KebaberPipe,
+      private _cdr: ChangeDetectorRef,
       @Inject(DOCUMENT) private _document: Document
     ) {
       this._window = _document.defaultView;
@@ -141,5 +142,6 @@ export class BlogEditorComponent implements OnInit {
     this.posts = [this.selectedPost];
     this.posts.push(...newData);  
     this.getUniqueKeywords();
+    this._cdr.detectChanges();
   }
 }

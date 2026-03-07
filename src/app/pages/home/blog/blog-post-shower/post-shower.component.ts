@@ -26,6 +26,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   nextSlug: string;
   lastSlug: string = '';
   stage: any = stage;
+  showUpdatedAt: boolean = false;
   private _routeSubs: Subscription | undefined;
 
   constructor(
@@ -47,7 +48,18 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   ngOnInit() {
     this._routeSubs = this._route.params
       .pipe(
-        switchMap((params: { [key: string]: string }) => this._http.getPostBySlug(params['slug']))
+        switchMap(async (params: { [key: string]: string }) => {
+          const slug = params['slug'];
+          const [postResult, slugResult] = await Promise.all([
+            this._http.getPostBySlug(slug),
+            this._http.getLastAndNextSlugs(slug)
+          ]);
+
+          return {
+            ...postResult,
+            ...slugResult
+          };
+        })
       )
       .subscribe({
         next: (result: any) => {
@@ -70,6 +82,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.nextSlug = result.nextSlug ?? '';
           this.lastSlug = result.lastSlug ?? '';
           this.isReadyToLoad = true;
+          const updatedMonth: Date = new Date(this.post.updatedAt);
+          const createdMonth: Date = new Date(this.post.createdAt);
+          if (updatedMonth > new Date(createdMonth.setMonth(createdMonth.getMonth()+1)) ) {
+            this.showUpdatedAt = true;
+          }
+          console.log(this.post)
           this._cdr.detectChanges();
         },
         error: () => {
