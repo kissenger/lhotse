@@ -16,6 +16,7 @@ import 'dotenv/config';
 // BUILD_DATE variable is written to .env by the build script, and provided to script to write sitemap
 const BUILD_DATE = process.env['BUILD_DATE'];
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
+const SKIP_SEO_DB_LOOKUPS = process.env['SKIP_SEO_DB_LOOKUPS'] === 'true';
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -246,27 +247,31 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     }))
   };
 
-  const blogSchemas = await getPublishedPostsForSeo().then(posts =>
-    posts.map((post: any) => ({
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.title,
-      description: post.subtitle || post.intro || post.title,
-      image: post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : undefined,
-      datePublished: post.createdAt,
-      dateModified: post.updatedAt || post.createdAt,
-      author: {
-        '@type': 'Person',
-        name: 'Snorkelology'
-      }
-    }))
-  ).catch(() => []);
+  const blogSchemas = SKIP_SEO_DB_LOOKUPS
+    ? []
+    : await getPublishedPostsForSeo().then(posts =>
+      posts.map((post: any) => ({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.subtitle || post.intro || post.title,
+        image: post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : undefined,
+        datePublished: post.createdAt,
+        dateModified: post.updatedAt || post.createdAt,
+        author: {
+          '@type': 'Person',
+          name: 'Snorkelology'
+        }
+      }))
+    ).catch(() => []);
 
-  const mapPlaces = await getPlacesForSeo().catch((error) => {
-    // Keep SSR response resilient, but surface why map JSON-LD was skipped.
-    console.error('SEO map schema generation failed:', error);
-    return [];
-  });
+  const mapPlaces = SKIP_SEO_DB_LOOKUPS
+    ? []
+    : await getPlacesForSeo().catch((error) => {
+      // Keep SSR response resilient, but surface why map JSON-LD was skipped.
+      console.error('SEO map schema generation failed:', error);
+      return [];
+    });
   const mapSchema = mapPlaces.length ? {
     '@context': 'https://schema.org',
     '@graph': mapPlaces
@@ -288,6 +293,10 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
 }
 
 async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
+  if (SKIP_SEO_DB_LOOKUPS) {
+    return null;
+  }
+
   const post = await getPublishedPostBySlugForSeo(slug);
   if (!post) {
     return null;
