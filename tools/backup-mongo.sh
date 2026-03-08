@@ -8,7 +8,7 @@ fi
 set -euo pipefail
 
 # Backup behavior config lives in-script by request.
-ENV_FILE="/home//gort1975/snorkelology/.env"
+ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
 MIRROR_DIR=""
 DB_NAMES="snorkelology"
