@@ -14,6 +14,8 @@
     "test:seo": "node ./tests/test-seo.js",
     "test:paypal": "node ./tests/test-paypal-integration.js",
     "test:shop-backend": "node ./tests/test-shop-backend-integration.js",
+    "sitemap:generate": "node ./tools/generate-sitemap.mjs",
+    "sitemap:nightly": "bash ./tools/run-sitemap-nightly.sh",
     "test:ui": "playwright test",
     "test:ui:paypal": "playwright test tests/e2e/paypal-ui.spec.js",
     "test:ui:paypal:sandbox": "playwright test tests/e2e/paypal-sandbox-nightly.spec.js",

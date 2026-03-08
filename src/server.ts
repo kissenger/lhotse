@@ -1,20 +1,17 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
-import { createWriteStream } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
 import { shop } from './server-shop';
 import { auth } from './server-auth';
-import { blog, getSlugs, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
+import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
 import { getPlacesForSeo, map } from './server-map';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
 import 'dotenv/config';
 
-// BUILD_DATE variable is written to .env by the build script, and provided to script to write sitemap
-const BUILD_DATE = process.env['BUILD_DATE'];
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const SKIP_SEO_DB_LOOKUPS = process.env['SKIP_SEO_DB_LOOKUPS'] === 'true';
 const app = express();
@@ -76,14 +73,12 @@ app.use((req, res, next) => {
     .catch(next);
 });
 
-// Only run side effects (DB connection, sitemap generation, listening on a port)
+// Only run side effects (DB connection and listening on a port)
 // when this module is executed as the main entry, not when imported for SSR builds.
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   console.log(ENVIRONMENT);
-  console.log(BUILD_DATE);
 
   connectToMongoose();
-  generateSitemap(BUILD_DATE);
 
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
@@ -117,34 +112,6 @@ function connectToMongoose()  {
       setTimeout(connectToMongoose, 5000);
     }
   )
-}
-
-/**
- * Function to generate a sitemap from the available blog slugs
- * @param buildDate 
- */
-async function generateSitemap(buildDate?: string) {
-  const slugs = await getSlugs();
-  const fname = ENVIRONMENT === 'PRODUCTION' ? 'dist/prod/browser/sitemap.xml' : 'src/config/prod/sitemap.xml';
-  const file = createWriteStream(fname);
-  const eol = '\r\n'
-  const tab = '   ';
-  file.on('open', () => {
-    file.write(`<?xml version="1.0" encoding="UTF-8"?>${eol}`);
-    file.write(`<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">${eol}`);
-    file.write(`${tab.repeat(1)}<url>${eol}`);
-    file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk</loc>${eol}`);
-    file.write(`${tab.repeat(2)}<lastmod>${buildDate || new Date().toISOString()}</lastmod>${eol}`);
-    file.write(`${tab.repeat(1)}</url>${eol}`);
-    slugs.forEach( s => {
-      file.write(`${tab.repeat(1)}<url>${eol}`);
-      file.write(`${tab.repeat(2)}<loc>https://snorkelology.co.uk/blog/${s.slug}</loc>${eol}`);
-      file.write(`${tab.repeat(2)}<lastmod>${s.updatedAt.toISOString()}</lastmod>${eol}`);
-      file.write(`${tab.repeat(1)}</url>${eol}`);      
-    });
-    file.write('</urlset>');
-    console.log('Sitemap generated')
-  });
 }
 
 export class ShopError extends Error {
