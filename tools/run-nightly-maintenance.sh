@@ -17,20 +17,26 @@ FAILURE_OUTPUT=""
 HAS_FAILURE=0
 
 check_email_setup() {
+  local ts=""
   local output=""
+  ts="$(date -Iseconds)"
 
   if ! command -v msmtp >/dev/null 2>&1; then
-    printf '%s\n' "FAILURE: msmtp command not found" >&2
+    echo "FAILURE: msmtp command not found" >&2
     return 1
   fi
 
   if ! output="$(printf 'Subject: nightly-maintenance-health-check\n\nhealth-check only (no send)\n' | msmtp --pretend -a default "${MAIL_TO}" 2>&1)"; then
-    printf '%s\n' "FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
+    echo "FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
+    append_failure "FAILURE: email health-check failed (msmtp --pretend -a default)"
     if [[ -n "${output}" ]]; then
-      printf '%s\n' "${output}" >&2
+      echo "${output}" >&2
+      append_failure "${output}"
     fi
     return 1
   fi
+
+  echo "[${ts}] Email health-check passed (no email sent)" >&2
 
   return 0
 }
@@ -87,25 +93,20 @@ run_check() {
   return 0
 }
 
-
-ts="$(date -Iseconds)"
-echo "[${ts}] Running email health-check (no email will be sent)" >&2
-if check_email_setup; then
-  echo "[${ts}] email health-check passed (no email sent)" >&2
-  exit 0
-fi
-
-echo "[${ts}] email health-check failed" >&2
-exit 1
-
-
+check_email_setup || HAS_FAILURE=1
 run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
 run_check "run-sitemap-nightly.sh" || HAS_FAILURE=1
 run_check "run-mongo-backup-nightly.sh" || HAS_FAILURE=1
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
   if [[ -n "${FAILURE_OUTPUT}" ]]; then
-    echo -e "Subject: Error from nightly maintenance\n\n${FAILURE_OUTPUT}" | msmtp -a default "${MAIL_TO}"
+    if command -v msmtp >/dev/null 2>&1; then
+      if ! echo -e "Subject: Error from nightly maintenance\n\n${FAILURE_OUTPUT}" | msmtp -a default "${MAIL_TO}"; then
+        echo "[$(date -Iseconds)] FAILURE: Could not send failure email via msmtp" >&2
+      fi
+    else
+      echo "[$(date -Iseconds)] FAILURE: msmtp command not found; cannot send failure email" >&2
+    fi
   fi
   exit 1
 fi
