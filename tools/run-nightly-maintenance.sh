@@ -87,17 +87,17 @@ run_check() {
   return 0
 }
 
-if [[ "${1:-}" == "--check-email" ]]; then
-  ts="$(date -Iseconds)"
-  printf '%s\n' "[${ts}] Running email health-check (no email will be sent)"
-  if check_email_setup; then
-    printf '%s\n' "[${ts}] email health-check passed (no email sent)"
-    exit 0
-  fi
 
-  printf '%s\n' "[${ts}] email health-check failed" >&2
-  exit 1
+ts="$(date -Iseconds)"
+echo "[${ts}] Running email health-check (no email will be sent)" >&2
+if check_email_setup; then
+  echo "[${ts}] email health-check passed (no email sent)" >&2
+  exit 0
 fi
+
+echo "[${ts}] email health-check failed" >&2
+exit 1
+
 
 run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
 run_check "run-sitemap-nightly.sh" || HAS_FAILURE=1
