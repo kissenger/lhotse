@@ -16,6 +16,27 @@ MAIL_TO="gordon.taylor@hotmail.co.uk"
 FAILURE_OUTPUT=""
 HAS_FAILURE=0
 
+check_email_setup() {
+  local ts="$(date -Iseconds)"
+  local output=""
+
+  if ! command -v msmtp >/dev/null 2>&1; then
+    echo "[${ts}] FAILURE: msmtp command not found" >&2
+    return 1
+  fi
+
+  if ! output="$(msmtp --serverinfo --account=default 2>&1)"; then
+    echo "[${ts}] FAILURE: email health-check failed (msmtp --serverinfo --account=default)" >&2
+    if [[ -n "${output}" ]]; then
+      echo "${output}" >&2
+    fi
+    return 1
+  fi
+
+  echo "[${ts}] email health-check passed (no email sent)"
+  return 0
+}
+
 append_failure() {
   local text="$1"
 
@@ -67,6 +88,11 @@ run_check() {
 
   return 0
 }
+
+if [[ "${1:-}" == "--check-email" ]]; then
+  check_email_setup
+  exit $?
+fi
 
 run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
 run_check "run-sitemap-nightly.sh" || HAS_FAILURE=1
