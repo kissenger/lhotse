@@ -20,14 +20,14 @@ check_email_setup() {
   local output=""
 
   if ! command -v msmtp >/dev/null 2>&1; then
-    echo "FAILURE: msmtp command not found" >&2
+    printf '%s\n' "FAILURE: msmtp command not found" >&2
     return 1
   fi
 
   if ! output="$(printf 'Subject: nightly-maintenance-health-check\n\nhealth-check only (no send)\n' | msmtp --pretend -a default "${MAIL_TO}" 2>&1)"; then
-    echo "FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
+    printf '%s\n' "FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
     if [[ -n "${output}" ]]; then
-      echo "${output}" >&2
+      printf '%s\n' "${output}" >&2
     fi
     return 1
   fi
@@ -89,13 +89,13 @@ run_check() {
 
 if [[ "${1:-}" == "--check-email" ]]; then
   ts="$(date -Iseconds)"
-  echo "[${ts}] Running email health-check (no email will be sent)"
+  printf '%s\n' "[${ts}] Running email health-check (no email will be sent)"
   if check_email_setup; then
-    echo "[${ts}] email health-check passed (no email sent)"
+    printf '%s\n' "[${ts}] email health-check passed (no email sent)"
     exit 0
   fi
 
-  echo "[${ts}] email health-check failed" >&2
+  printf '%s\n' "[${ts}] email health-check failed" >&2
   exit 1
 fi
 
