@@ -25,8 +25,8 @@ check_email_setup() {
     return 1
   fi
 
-  if ! output="$(msmtp --serverinfo --account=default 2>&1)"; then
-    echo "[${ts}] FAILURE: email health-check failed (msmtp --serverinfo --account=default)" >&2
+  if ! output="$(printf 'Subject: nightly-maintenance-health-check\n\nhealth-check only (no send)\n' | msmtp --pretend -a default "${MAIL_TO}" 2>&1)"; then
+    echo "[${ts}] FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
     if [[ -n "${output}" ]]; then
       echo "${output}" >&2
     fi
