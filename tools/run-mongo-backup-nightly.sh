@@ -12,6 +12,19 @@ fail() {
   exit 1
 }
 
+run_quiet() {
+  local error_prefix="$1"
+  shift
+  local output=""
+
+  if ! output="$("$@" 2>&1)"; then
+    if [[ -n "${output}" ]]; then
+      fail "${error_prefix}. ${output}"
+    fi
+    fail "${error_prefix}"
+  fi
+}
+
 # Backup behavior config lives in-script by request.
 ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
@@ -78,14 +91,14 @@ if [[ -n "${DB_NAMES}" ]]; then
   for db in "${DBS[@]}"; do
     db_trimmed="$(echo "${db}" | xargs)"
     [[ -z "${db_trimmed}" ]] && continue
-    mongodump --uri="${MONGO_URI}" --db="${db_trimmed}" --out="${WORK_DIR}"
+    run_quiet "mongodump failed for database ${db_trimmed}" mongodump --uri="${MONGO_URI}" --db="${db_trimmed}" --out="${WORK_DIR}"
   done
 else
-  mongodump --uri="${MONGO_URI}" --out="${WORK_DIR}"
+  run_quiet "mongodump failed" mongodump --uri="${MONGO_URI}" --out="${WORK_DIR}"
 fi
 
 # Create a compressed archive and remove uncompressed dump data.
-tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
+run_quiet "archive creation failed" tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
 
 if [[ -n "${BACKUP_PASSPHRASE}" ]]; then
   if ! command -v openssl >/dev/null 2>&1; then
@@ -93,7 +106,7 @@ if [[ -n "${BACKUP_PASSPHRASE}" ]]; then
   fi
 
   ENC_PATH="${ARCHIVE_PATH}.enc"
-  openssl enc -aes-256-cbc -salt -pbkdf2 -in "${ARCHIVE_PATH}" -out "${ENC_PATH}" -pass "pass:${BACKUP_PASSPHRASE}"
+  run_quiet "backup encryption failed" openssl enc -aes-256-cbc -salt -pbkdf2 -in "${ARCHIVE_PATH}" -out "${ENC_PATH}" -pass "pass:${BACKUP_PASSPHRASE}"
   rm -f "${ARCHIVE_PATH}"
   ARCHIVE_PATH="${ENC_PATH}"
 fi
@@ -103,8 +116,8 @@ if [[ -n "${MIRROR_DIR}" ]]; then
   if ! command -v rsync >/dev/null 2>&1; then
     fail "rsync not found but MIRROR_DIR is set"
   fi
-  rsync -a --delete "${BACKUP_ROOT}/" "${MIRROR_DIR}/"
+  run_quiet "backup mirror sync failed" rsync -a --delete "${BACKUP_ROOT}/" "${MIRROR_DIR}/"
 fi
 
 # Delete old archives beyond retention period.
-find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
+run_quiet "backup retention cleanup failed" find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete

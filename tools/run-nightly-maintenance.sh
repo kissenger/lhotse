@@ -8,6 +8,10 @@ fi
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+LOG_DIR="${REPO_ROOT}/logs"
+LOG_FILE="${LOG_DIR}/nightly-maintenance.log"
+MAIL_TO="gordon.taylor@hotmail.co.uk"
 ALL_OUTPUT=""
 HAS_FAILURE=0
 
@@ -52,6 +56,8 @@ run_check() {
     return 1
   fi
 
+  append_output "[$(date -Iseconds)] ${script_name} ran ok"
+
   return 0
 }
 
@@ -59,10 +65,18 @@ run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
 run_check "run-sitemap-nightly.sh" || HAS_FAILURE=1
 run_check "run-mongo-backup-nightly.sh" || HAS_FAILURE=1
 
-if [[ -n "${ALL_OUTPUT}" ]]; then
-  echo -e "Subject: Error from nightly maintenance\n\n${ALL_OUTPUT}" | msmtp -a default gordon.taylor@hotmail.co.uk
-fi
+mkdir -p "${LOG_DIR}"
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
+  if [[ -n "${ALL_OUTPUT}" ]]; then
+    echo -e "Subject: Error from nightly maintenance\n\n${ALL_OUTPUT}" | msmtp -a default "${MAIL_TO}"
+  fi
   exit 1
+fi
+
+if [[ -n "${ALL_OUTPUT}" ]]; then
+  {
+    echo "[$(date -Iseconds)] Nightly maintenance succeeded"
+    echo "${ALL_OUTPUT}"
+  } >> "${LOG_FILE}"
 fi
