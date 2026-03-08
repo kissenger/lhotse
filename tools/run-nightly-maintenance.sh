@@ -17,23 +17,21 @@ FAILURE_OUTPUT=""
 HAS_FAILURE=0
 
 check_email_setup() {
-  local ts="$(date -Iseconds)"
   local output=""
 
   if ! command -v msmtp >/dev/null 2>&1; then
-    echo "[${ts}] FAILURE: msmtp command not found" >&2
+    echo "FAILURE: msmtp command not found" >&2
     return 1
   fi
 
   if ! output="$(printf 'Subject: nightly-maintenance-health-check\n\nhealth-check only (no send)\n' | msmtp --pretend -a default "${MAIL_TO}" 2>&1)"; then
-    echo "[${ts}] FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
+    echo "FAILURE: email health-check failed (msmtp --pretend -a default)" >&2
     if [[ -n "${output}" ]]; then
       echo "${output}" >&2
     fi
     return 1
   fi
 
-  echo "[${ts}] email health-check passed (no email sent)"
   return 0
 }
 
@@ -90,8 +88,15 @@ run_check() {
 }
 
 if [[ "${1:-}" == "--check-email" ]]; then
-  check_email_setup
-  exit $?
+  ts="$(date -Iseconds)"
+  echo "[${ts}] Running email health-check (no email will be sent)"
+  if check_email_setup; then
+    echo "[${ts}] email health-check passed (no email sent)"
+    exit 0
+  fi
+
+  echo "[${ts}] email health-check failed" >&2
+  exit 1
 fi
 
 run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
