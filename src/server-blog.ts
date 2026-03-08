@@ -159,7 +159,7 @@ async function getPublishedPostsForSeo() {
 async function getPublishedPostBySlugForSeo(slug: string) {
   const post = await BlogModel.findOne(
     { isPublished: true, slug },
-    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1 }
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1 }
   );
   return post;
 }

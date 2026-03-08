@@ -255,7 +255,12 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     ogImage: DEFAULT_SOCIAL_IMAGE,
     ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
-    schemas
+    schemas,
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
   };
 }
 
@@ -270,8 +275,36 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   }
 
   const description = `${post.subtitle || ''}`;
-  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
+  const image = post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
   const isFaqType = post.type === 'faq';
+  const publishedIso = new Date(post.createdAt || new Date()).toISOString();
+  const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
+  const authorName = post.author || 'Snorkelology';
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: `${SITE_URL}/blog`
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title || 'Article',
+        item: `${SITE_URL}/blog/${slug}`
+      }
+    ]
+  };
 
   const schema = isFaqType
     ? {
@@ -292,11 +325,11 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         headline: post.title,
         description: post.subtitle || post.intro || post.title,
         image,
-        datePublished: post.createdAt,
-        dateModified: post.updatedAt || post.createdAt,
+        datePublished: publishedIso,
+        dateModified: modifiedIso,
         author: {
           '@type': 'Person',
-          name: post.author || 'Snorkelology'
+          name: authorName
         }
       };
 
@@ -309,7 +342,15 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     ogImage: image,
     ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
-    schemas: [schema]
+    schemas: [breadcrumbSchema, schema],
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' },
+      { key: 'property', keyValue: 'article:published_time', content: publishedIso },
+      { key: 'property', keyValue: 'article:modified_time', content: modifiedIso },
+      { key: 'property', keyValue: 'article:author', content: authorName }
+    ]
   };
 }
 

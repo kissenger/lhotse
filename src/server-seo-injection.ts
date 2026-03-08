@@ -1,3 +1,9 @@
+export interface SeoMetaTag {
+  key: 'name' | 'property';
+  keyValue: string;
+  content: string;
+}
+
 export interface SeoPayload {
   title: string;
   description: string;
@@ -8,6 +14,7 @@ export interface SeoPayload {
   ogLogo: string;
   twitterImage: string;
   schemas: object[];
+  metaTags?: SeoMetaTag[];
 }
 
 export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, siteUrl: string) {
@@ -36,6 +43,10 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
   result = upsertMetaTag(result, 'name', 'twitter:title', sanitizedTitle);
   result = upsertMetaTag(result, 'name', 'twitter:description', sanitizedDescription);
   result = upsertMetaTag(result, 'name', 'twitter:image', sanitizedImageTwtr);
+
+  for (const meta of payload.metaTags || []) {
+    result = upsertMetaTag(result, meta.key, meta.keyValue, escapeHtmlAttr(meta.content));
+  }
 
   return injectJsonLdIntoHead(result, payload.schemas);
 }

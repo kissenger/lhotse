@@ -1,10 +1,11 @@
-import { mkdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import 'dotenv/config';
 
 const SITE_URL = (process.env.SITEMAP_SITE_URL || 'https://snorkelology.co.uk').replace(/\/$/, '');
 const API_BASE_URL = (process.env.SITEMAP_API_BASE_URL || 'http://127.0.0.1:4001').replace(/\/$/, '');
 const SITEMAP_PATH = process.env.SITEMAP_PATH || 'dist/prod/browser/sitemap.xml';
+const BUILD_MARKER_PATH = process.env.SITEMAP_BUILD_MARKER_PATH || 'dist/prod/browser/index.html';
 
 function xmlEscape(value) {
   return String(value)
@@ -18,6 +19,20 @@ function xmlEscape(value) {
 function normalizeLastMod(value) {
   const date = value ? new Date(value) : new Date();
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+async function resolveRootLastMod() {
+  const envBuildDate = process.env.LAST_BUILD_DATE || process.env.BUILD_DATE;
+  if (envBuildDate) {
+    return normalizeLastMod(envBuildDate);
+  }
+
+  try {
+    const markerStats = await stat(resolve(BUILD_MARKER_PATH));
+    return normalizeLastMod(markerStats.mtime.toISOString());
+  } catch {
+    return new Date().toISOString();
+  }
 }
 
 function toSitemapXml(entries) {
@@ -72,11 +87,12 @@ async function writeSitemapAtomically(xml) {
 async function main() {
   console.log(`[sitemap] Fetching slugs from ${API_BASE_URL}`);
   const slugs = await fetchPublishedSlugs();
+  const rootLastMod = await resolveRootLastMod();
 
   const entries = [
     {
       loc: SITE_URL,
-      lastmod: new Date().toISOString()
+      lastmod: rootLastMod
     },
     ...slugs
       .filter((item) => item && typeof item.slug === 'string' && item.slug.trim() !== '')
