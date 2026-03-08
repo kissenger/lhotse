@@ -7,27 +7,21 @@ fi
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+SITEMAP_SCRIPT="/home/gort1975/snorkelology/tools/generate-sitemap.mjs"
+SITEMAP_OUTPUT_DIR="/home/gort1975/snorkelology/dist/prod/browser"
 
-# Optional env file for server-specific overrides.
-ENV_FILE="${ENV_FILE:-${PROJECT_ROOT}/.env}"
-LOG_FILE="${LOG_FILE:-${PROJECT_ROOT}/logs/sitemap-nightly.log}"
+echo "[$(date -Iseconds)] Starting nightly sitemap generation"
 
-if [[ -f "${ENV_FILE}" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  source "${ENV_FILE}"
-  set +a
-fi
-
-mkdir -p "$(dirname -- "${LOG_FILE}")"
-
-echo "[$(date -Iseconds)] Starting nightly sitemap generation" | tee -a "${LOG_FILE}"
-
-if ! node "${PROJECT_ROOT}/tools/generate-sitemap.mjs" >>"${LOG_FILE}" 2>&1; then
-  echo "[$(date -Iseconds)] FAILURE: nightly sitemap generation failed" | tee -a "${LOG_FILE}"
+if [[ ! -f "${SITEMAP_SCRIPT}" ]]; then
+  echo "[$(date -Iseconds)] FAILURE: sitemap generator not found at ${SITEMAP_SCRIPT}" >&2
   exit 1
 fi
 
-echo "[$(date -Iseconds)] Nightly sitemap generation complete" | tee -a "${LOG_FILE}"
+mkdir -p "${SITEMAP_OUTPUT_DIR}"
+
+if ! SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_SCRIPT}"; then
+  echo "[$(date -Iseconds)] FAILURE: nightly sitemap generation failed" >&2
+  exit 1
+fi
+
+echo "[$(date -Iseconds)] Nightly sitemap generation complete"
