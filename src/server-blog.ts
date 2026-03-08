@@ -140,9 +140,9 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
   }
 });
 
-async function getSlugs(includeUnpublished: boolean = false) {
+async function getSlugs(onlyPublishedPosts: boolean = true) {
   const result =  await BlogModel.find(
-    includeUnpublished ? {} : { isPublished: true }, 
+    onlyPublishedPosts ? { isPublished: true } : {}, 
     {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"}
   );
   if (!result || result.length === 0) {
