@@ -37,6 +37,20 @@ blog.get('/api/blog/get-all-slugs/', async (req, res) => {
   }
 });
 
+  blog.get('/api/blog/get-sitemap-entries/', async (req, res) => {
+    try {
+      const result = await BlogModel.find(
+        { isPublished: true },
+        { slug: 1, updatedAt: 1, imgFname: 1 }
+      ).sort({ "createdAt": "descending" });
+
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).send(error);
+    }
+  });
+
 /* 
   Get all data for all posts
   Returns: Array<BlogPost>

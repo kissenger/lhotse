@@ -275,7 +275,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   }
 
   const description = `${post.subtitle || ''}`;
-  const image = post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
+  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
   const isFaqType = post.type === 'faq';
   const publishedIso = new Date(post.createdAt || new Date()).toISOString();
   const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
