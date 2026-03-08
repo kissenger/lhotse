@@ -2,9 +2,9 @@ import { mkdir, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const SITE_URL = 'https://snorkelology.co.uk';
-const API_BASE_URL = 'https://192.168.1.136:4001';
-const SITEMAP_PATH = 'dist/prod/browser/sitemap.xml';
-const BUILD_MARKER_PATH = 'dist/prod/browser/index.html';
+const API_BASE_URL = 'http://127.0.0.1:4001';
+const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/beta/browser/sitemap.xml';
+const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/beta/browser/index.html';
 const STATIC_URL_PATHS = [];
 
 function xmlEscape(value) {
@@ -41,26 +41,14 @@ function asAbsoluteAssetUrl(pathOrFileName) {
 async function resolveRootLastMod() {
   try {
     const markerStats = await stat(resolve(BUILD_MARKER_PATH));
-    return normalizeLastMod(markerStats.mtime.toISOString());
-  } catch {
-    return null;
+    const mtimeIso = markerStats?.mtime?.toISOString?.();
+    if (!mtimeIso) {
+      throw new Error(`Build marker mtime missing for ${BUILD_MARKER_PATH}`);
+    }
+    return normalizeLastMod(mtimeIso);
+  } catch (error) {
+    throw new Error(`Unable to determine build date from ${BUILD_MARKER_PATH}: ${error instanceof Error ? error.message : String(error)}`);
   }
-}
-
-function resolveRootLastModFromEntries(entries) {
-  const timestamps = entries
-    .map((item) => normalizeLastMod(item?.updatedAt))
-    .filter(Boolean)
-    .map((value) => new Date(value))
-    .filter((date) => !Number.isNaN(date.getTime()))
-    .map((date) => date.toISOString());
-
-  if (!timestamps.length) {
-    return new Date().toISOString();
-  }
-
-  timestamps.sort();
-  return timestamps[timestamps.length - 1];
 }
 
 function toSitemapXml(entries) {
@@ -144,7 +132,7 @@ async function writeSitemapAtomically(xml) {
 async function main() {
   console.log(`[sitemap] Fetching sitemap entries from ${API_BASE_URL}`);
   const sitemapEntries = await fetchSitemapEntries();
-  const rootLastMod = (await resolveRootLastMod()) || resolveRootLastModFromEntries(sitemapEntries);
+  const rootLastMod = await resolveRootLastMod();
 
   const entries = [
     {
