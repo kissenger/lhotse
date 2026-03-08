@@ -1,12 +1,11 @@
 import { mkdir, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import 'dotenv/config';
 
-const SITE_URL = (process.env.SITEMAP_SITE_URL || 'https://snorkelology.co.uk').replace(/\/$/, '');
-const API_BASE_URL = (process.env.SITEMAP_API_BASE_URL || 'http://127.0.0.1:4001').replace(/\/$/, '');
-const SITEMAP_PATH = process.env.SITEMAP_PATH || 'dist/prod/browser/sitemap.xml';
-const BUILD_MARKER_PATH = process.env.SITEMAP_BUILD_MARKER_PATH || 'dist/prod/browser/index.html';
-const STATIC_URL_PATHS = ['/home'];
+const SITE_URL = 'https://snorkelology.co.uk';
+const API_BASE_URL = 'https://192.168.1.136:4001';
+const SITEMAP_PATH = 'dist/prod/browser/sitemap.xml';
+const BUILD_MARKER_PATH = 'dist/prod/browser/index.html';
+const STATIC_URL_PATHS = [];
 
 function xmlEscape(value) {
   return String(value)
@@ -40,17 +39,28 @@ function asAbsoluteAssetUrl(pathOrFileName) {
 }
 
 async function resolveRootLastMod() {
-  const envBuildDate = process.env.LAST_BUILD_DATE || process.env.BUILD_DATE;
-  if (envBuildDate) {
-    return normalizeLastMod(envBuildDate);
-  }
-
   try {
     const markerStats = await stat(resolve(BUILD_MARKER_PATH));
     return normalizeLastMod(markerStats.mtime.toISOString());
   } catch {
+    return null;
+  }
+}
+
+function resolveRootLastModFromEntries(entries) {
+  const timestamps = entries
+    .map((item) => normalizeLastMod(item?.updatedAt))
+    .filter(Boolean)
+    .map((value) => new Date(value))
+    .filter((date) => !Number.isNaN(date.getTime()))
+    .map((date) => date.toISOString());
+
+  if (!timestamps.length) {
     return new Date().toISOString();
   }
+
+  timestamps.sort();
+  return timestamps[timestamps.length - 1];
 }
 
 function toSitemapXml(entries) {
@@ -78,24 +88,46 @@ function toSitemapXml(entries) {
   return `${lines.join(eol)}${eol}`;
 }
 
-async function fetchSitemapEntries() {
-  const url = `${API_BASE_URL}/api/blog/get-sitemap-entries/`;
+async function fetchJson(url) {
   const response = await fetch(url, {
     headers: {
       Accept: 'application/json'
     }
   });
 
-  if (!response.ok) {
-    throw new Error(`Sitemap entries fetch failed: ${response.status} ${response.statusText}`);
+  return response;
+}
+
+async function fetchSitemapEntries() {
+  const entriesUrl = `${API_BASE_URL}/api/blog/get-sitemap-entries/`;
+  const response = await fetchJson(entriesUrl);
+
+  if (response.ok) {
+    const payload = await response.json();
+    if (!Array.isArray(payload)) {
+      throw new Error('Sitemap entries fetch returned a non-array payload.');
+    }
+    return payload;
   }
 
-  const payload = await response.json();
-  if (!Array.isArray(payload)) {
-    throw new Error('Sitemap entries fetch returned a non-array payload.');
+  const fallbackUrl = `${API_BASE_URL}/api/blog/get-all-slugs/`;
+  const fallbackResponse = await fetchJson(fallbackUrl);
+
+  if (!fallbackResponse.ok) {
+    throw new Error(`Sitemap entries fetch failed: ${response.status} ${response.statusText}; fallback failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
   }
 
-  return payload;
+  const fallbackPayload = await fallbackResponse.json();
+  if (!Array.isArray(fallbackPayload)) {
+    throw new Error('Sitemap fallback slug fetch returned a non-array payload.');
+  }
+
+  // Fallback endpoint does not include imgFname; keep image list empty in that case.
+  return fallbackPayload.map((item) => ({
+    slug: item?.slug,
+    updatedAt: item?.updatedAt,
+    imgFname: null
+  }));
 }
 
 async function writeSitemapAtomically(xml) {
@@ -112,7 +144,7 @@ async function writeSitemapAtomically(xml) {
 async function main() {
   console.log(`[sitemap] Fetching sitemap entries from ${API_BASE_URL}`);
   const sitemapEntries = await fetchSitemapEntries();
-  const rootLastMod = await resolveRootLastMod();
+  const rootLastMod = (await resolveRootLastMod()) || resolveRootLastModFromEntries(sitemapEntries);
 
   const entries = [
     {
