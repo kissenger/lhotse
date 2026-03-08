@@ -7,6 +7,11 @@ fi
 
 set -euo pipefail
 
+fail() {
+  echo "[$(date -Iseconds)] FAILURE: $1" >&2
+  exit 1
+}
+
 # Backup behavior config lives in-script by request.
 ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
@@ -31,8 +36,7 @@ RETENTION_DAYS="30"
 
 
 if [[ ! -f "${ENV_FILE}" ]]; then
-  echo "Environment file not found: ${ENV_FILE}" >&2
-  exit 1
+  fail "Environment file not found: ${ENV_FILE}"
 fi
 
 # Export everything loaded from .env so child commands can use it.
@@ -45,14 +49,8 @@ MONGO_URI="${MONGO_URI:-}"
 BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 
 if [[ -z "${MONGO_URI}" ]]; then
-  echo "MONGO_URI is required in ${ENV_FILE}." >&2
-  echo "If your .env has values with spaces, wrap them in quotes." >&2
-  exit 1
+  fail "MONGO_URI is required in ${ENV_FILE}. If your .env has values with spaces, wrap them in quotes."
 fi
-
-# Log the URI source for troubleshooting without exposing credentials.
-MONGO_URI_MASKED="$(echo "${MONGO_URI}" | sed -E 's#(mongodb(\+srv)?://)[^@]+@#\1***@#')"
-echo "Using MONGO_URI from ${ENV_FILE}: ${MONGO_URI_MASKED}"
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"
@@ -65,8 +63,7 @@ mkdir -p "${BACKUP_ROOT}"
 # Prevent overlapping runs.
 exec 9>"${LOCK_FILE}"
 if ! flock -n 9; then
-  echo "Backup already running; exiting." >&2
-  exit 1
+  fail "Backup already running"
 fi
 
 cleanup() {
@@ -75,8 +72,6 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "${WORK_DIR}"
-
-echo "[$(date -Iseconds)] Starting MongoDB backup"
 
 if [[ -n "${DB_NAMES}" ]]; then
   IFS=',' read -r -a DBS <<< "${DB_NAMES}"
@@ -94,8 +89,7 @@ tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
 
 if [[ -n "${BACKUP_PASSPHRASE}" ]]; then
   if ! command -v openssl >/dev/null 2>&1; then
-    echo "openssl not found but BACKUP_PASSPHRASE is set." >&2
-    exit 1
+    fail "openssl not found but BACKUP_PASSPHRASE is set"
   fi
 
   ENC_PATH="${ARCHIVE_PATH}.enc"
@@ -107,13 +101,10 @@ fi
 if [[ -n "${MIRROR_DIR}" ]]; then
   mkdir -p "${MIRROR_DIR}"
   if ! command -v rsync >/dev/null 2>&1; then
-    echo "rsync not found but MIRROR_DIR is set." >&2
-    exit 1
+    fail "rsync not found but MIRROR_DIR is set"
   fi
   rsync -a --delete "${BACKUP_ROOT}/" "${MIRROR_DIR}/"
 fi
 
 # Delete old archives beyond retention period.
 find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
-
-echo "[$(date -Iseconds)] Backup completed: ${ARCHIVE_PATH}"

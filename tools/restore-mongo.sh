@@ -7,7 +7,7 @@ fi
 
 set -euo pipefail
 
-# MongoDB restore script for backups created by tools/backup-mongo.sh.
+# MongoDB restore script for backups created by tools/run-mongo-backup-nightly.sh.
 # Requires: mongorestore, tar, gzip. Optional: openssl (for .enc backups).
 #
 # RUN AS:
