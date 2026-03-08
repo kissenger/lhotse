@@ -1,5 +1,6 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
+import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
@@ -275,7 +276,10 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   }
 
   const description = `${post.subtitle || ''}`;
-  const image = post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE;
+  const hasGeneratedOgImage = await generatedOgImageExists(slug);
+  const image = hasGeneratedOgImage
+    ? `${SITE_URL}/assets/photos/articles/og/${slug}-og.webp`
+    : (post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE);
   const isFaqType = post.type === 'faq';
   const publishedIso = new Date(post.createdAt || new Date()).toISOString();
   const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
@@ -352,5 +356,23 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
       { key: 'property', keyValue: 'article:author', content: authorName }
     ]
   };
+}
+
+async function generatedOgImageExists(slug: string) {
+  const candidates = [
+    resolve(process.cwd(), 'dist/prod/browser/assets/photos/articles/og', `${slug}-og.webp`),
+    resolve(process.cwd(), 'src/assets/photos/articles/og', `${slug}-og.webp`)
+  ];
+
+  for (const filePath of candidates) {
+    try {
+      await access(filePath);
+      return true;
+    } catch {
+      // Keep checking other known asset roots.
+    }
+  }
+
+  return false;
 }
 

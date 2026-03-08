@@ -1,8 +1,11 @@
 
 import express from 'express';
+import { access, mkdir } from 'node:fs/promises';
+import { basename, join, resolve } from 'node:path';
 import BlogModel from '../schema/blog';
 import { BlogError } from 'src/server';
 import { verifyToken } from './server-auth'
+import sharp from 'sharp';
 import 'dotenv/config';
 
 const blog = express();
@@ -125,6 +128,10 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
       req.body.deletedAt = null;
       await BlogModel.create(req.body);
     }
+
+    // Generate a branded OG image for social previews when a main image exists.
+    await generateBlogOgImage(req.body.slug, req.body.imgFname);
+
     const result = await BlogModel.find({});
     res.status(201).json(result);
   } catch (error: any) {
@@ -176,6 +183,116 @@ async function getPublishedPostBySlugForSeo(slug: string) {
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1 }
   );
   return post;
+}
+
+async function pathExists(filePath: string) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveArticlesDir() {
+  const candidates = [
+    process.env['OG_ARTICLES_DIR'] || '',
+    resolve(process.cwd(), 'dist/prod/browser/assets/photos/articles'),
+    resolve(process.cwd(), 'dist/dev/browser/assets/photos/articles'),
+    resolve(process.cwd(), 'dist/beta/browser/assets/photos/articles'),
+    resolve(process.cwd(), 'src/assets/photos/articles')
+  ].filter(Boolean);
+
+  for (const articlesDir of candidates) {
+    if (await pathExists(articlesDir)) {
+      return articlesDir;
+    }
+  }
+
+  return null;
+}
+
+async function resolveLogoPath() {
+  const candidates = [
+    process.env['OG_LOGO_PATH'] || '',
+    resolve(process.cwd(), 'dist/prod/browser/assets/banner/snround-hq.webp'),
+    resolve(process.cwd(), 'dist/dev/browser/assets/banner/snround-hq.webp'),
+    resolve(process.cwd(), 'dist/beta/browser/assets/banner/snround-hq.webp'),
+    resolve(process.cwd(), 'src/assets/banner/snround-hq.webp')
+  ].filter(Boolean);
+
+  for (const logoPath of candidates) {
+    if (await pathExists(logoPath)) {
+      return logoPath;
+    }
+  }
+
+  return null;
+}
+
+async function generateBlogOgImage(slug?: string, imgFname?: string) {
+  
+  const OG_WIDTH = 1200;
+  const OG_HEIGHT = 630;
+  const LOGO_WIDTH_RATIO = Number(process.env['OG_LOGO_WIDTH_RATIO'] || 0.16);
+  const LOGO_MARGIN_X = Number(process.env['OG_LOGO_MARGIN_X'] || 60);
+  const LOGO_MARGIN_Y = Number(process.env['OG_LOGO_MARGIN_Y'] || 30);
+  const LOGO_LEFT_OVERRIDE = process.env['OG_LOGO_LEFT'];
+  const LOGO_TOP_OVERRIDE = process.env['OG_LOGO_TOP'];
+  const LOGO_TARGET_WIDTH = Math.round(OG_WIDTH * LOGO_WIDTH_RATIO);
+
+  if (!slug || !imgFname) {
+    return;
+  }
+
+  const articlesDir = await resolveArticlesDir();
+  const logoPath = await resolveLogoPath();
+  if (!articlesDir || !logoPath) {
+    return;
+  }
+
+  const sourceFileName = basename(imgFname);
+  const sourcePath = join(articlesDir, sourceFileName);
+  if (!(await pathExists(sourcePath))) {
+    return;
+  }
+
+  const ogDir = join(articlesDir, 'og');
+  const ogOutputPath = join(ogDir, `${slug}-og.webp`);
+  await mkdir(ogDir, { recursive: true });
+
+  const resizedLogoBuffer = await sharp(logoPath)
+    .resize({ width: LOGO_TARGET_WIDTH, withoutEnlargement: true })
+    .png({ quality: 100 })
+    .toBuffer();
+
+  const logoMeta = await sharp(resizedLogoBuffer).metadata();
+  const logoWidth = logoMeta.width || LOGO_TARGET_WIDTH;
+  const logoHeight = logoMeta.height || LOGO_TARGET_WIDTH;
+  let logoLeft = Math.max(0, OG_WIDTH - logoWidth - LOGO_MARGIN_X);
+  let logoTop = Math.max(0, OG_HEIGHT - logoHeight - LOGO_MARGIN_Y);
+
+  // Optional absolute overrides for exact pixel placement.
+  if (LOGO_LEFT_OVERRIDE !== undefined && LOGO_TOP_OVERRIDE !== undefined) {
+    const parsedLeft = Number(LOGO_LEFT_OVERRIDE);
+    const parsedTop = Number(LOGO_TOP_OVERRIDE);
+    if (!Number.isNaN(parsedLeft) && !Number.isNaN(parsedTop)) {
+      logoLeft = Math.max(0, Math.min(parsedLeft, OG_WIDTH - logoWidth));
+      logoTop = Math.max(0, Math.min(parsedTop, OG_HEIGHT - logoHeight));
+    }
+  }
+
+  await sharp(sourcePath)
+    .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: 'center' })
+    .composite([
+      {
+        input: resizedLogoBuffer,
+        left: logoLeft,
+        top: logoTop
+      }
+    ])
+    .webp({ quality: 88 })
+    .toFile(ogOutputPath);
 }
 
 export { blog, getSlugs, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };
