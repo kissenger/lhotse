@@ -9,6 +9,8 @@ set -euo pipefail
 # - Default behavior includes hard reset to origin/<branch>.
 # - pm2 is configured in ./ecosystem.config.cjs
 
+nvm use
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
