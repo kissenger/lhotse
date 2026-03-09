@@ -67,6 +67,7 @@ set -a
 source "${ENV_FILE}"
 set +a
 
+echo $MONGO_URI
 MONGO_URI="${MONGO_URI:-}"
 BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 
