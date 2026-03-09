@@ -12,9 +12,6 @@ set -euo pipefail
 # - Default behavior includes hard reset to origin/<branch>.
 # - pm2 is configured in ./ecosystem.config.cjs
 
-. "$HOME/.nvm/nvm.sh"
-nvm use
-
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
@@ -154,11 +151,8 @@ if [[ "${TARGET_BRANCH}" = "beta" ]]; then
   cp -rnv "${REPO_ROOT}/src/assets/." "${REPO_ROOT}/dist/prod/browser/assets/"
 fi
 
-if [[ -f "${REPO_ROOT}/package-lock.json" ]]; then
-  npm ci
-else
-  npm install
-fi
+# Always use npm install for faster deployment
+npm install
 
 npm run "build:${TARGET_BRANCH}"
 
