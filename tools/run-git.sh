@@ -28,11 +28,11 @@ git checkout "$OPS_BRANCH"
 
 # 2) Create folder structure
 if [ -d "$OPS_REPO_DIR" ]; then
-  cd "$OPS_REPO_DIR"
-else
-  mkdir -p "$OPS_REPO_DIR"
-  cd "$OPS_REPO_DIR"
+  echo "Deleting existing ops repo directory: $OPS_REPO_DIR"
+  rm -rf "$OPS_REPO_DIR"
 fi
+mkdir -p "$OPS_REPO_DIR"
+cd "$OPS_REPO_DIR"
 
 mkdir -p etc/nginx/sites-available
 mkdir -p etc/nginx/sites-enabled
@@ -82,6 +82,7 @@ dpkg --get-selections > "packages/dpkg-selections-${SNAPSHOT_TS}.txt" 2>/dev/nul
 apt-mark showmanual > "packages/apt-manual-${SNAPSHOT_TS}.txt" 2>/dev/null || true
 systemctl list-unit-files --type=service > "packages/systemd-services-${SNAPSHOT_TS}.txt" 2>/dev/null || true
 
+sudo chown -R $(whoami):$(id -gn) config-backup/
 
 # 4) Commit
 git add .
