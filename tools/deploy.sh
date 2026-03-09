@@ -152,11 +152,16 @@ if [[ "${TARGET_BRANCH}" = "beta" ]]; then
 fi
 
 # Always use npm install for faster deployment
+log "Running: npm install"
 npm install
 
+log "Running: npm run build:${TARGET_BRANCH}"
 npm run "build:${TARGET_BRANCH}"
 
+log "Running: pm2 restart snorkelology_${TARGET_BRANCH}"
 pm2 restart "snorkelology_${TARGET_BRANCH}"
+
+log "Running: pm2 save"
 pm2 save
 
 log "Running health checks after PM2 restart..."
