@@ -1,0 +1,181 @@
+
+@property --angle1 {
+  syntax: '<angle>'; 
+  inherits: false;
+  initial-value: 103deg; 
+}
+
+@property --angle2 {
+  syntax: '<angle>'; 
+  inherits: false;
+  initial-value: 257deg; 
+}
+
+header {
+  position: fixed;
+  top: 0px;
+  z-index: 1000;
+  width: 100%;
+  height: var(--header-height);
+  color: var(--text-colour-header);
+  background-color: var(--sn-colour);
+  border-bottom: 2px white solid;
+  padding-inline: calc( (100vw - var(--container-width) ) / 2 );
+  box-sizing: border-box;
+  display: flex;   
+  flex-direction: row;
+  z-index: 1200;
+}  
+
+.brand-box {
+  position: relative;
+  border-radius: 50%;
+  background-image: conic-gradient(
+    transparent var(--angle1), 
+    white var(--angle1) var(--angle2),  
+    transparent var(--angle2)  
+  );  
+  margin-top: 10px;
+  width: 104px;
+  height: 104px;
+  z-index: 1200;
+}
+
+.brand-box.block-animation {
+  transition: none !important;
+  animation-duration: 0.001s !important; 
+}
+
+.brand-box > img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+
+/* this block is only visible on small screen, but strictly more correct to define here */
+  .brand-box.expand {
+    animation: expand 0.3s forwards;
+  }
+
+  .brand-box.contract {
+    animation: contract 0.3s forwards;
+  }
+
+  @keyframes expand {
+    from { --angle1: 103deg; }
+    to { --angle1: 0deg; }
+    from { --angle2: 257deg; }
+    to { --angle2: 360deg; }
+  }
+
+  @keyframes contract {
+    from { --angle1: 0deg; }
+    to { --angle1: 103deg; }
+    from { --angle2: 360deg; }
+    to { --angle2: 257deg; }
+  }
+/* end of animations */
+
+.menubar {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  height: 100%;
+}
+
+.hamburger {
+  display: none;
+  align-items: center;
+  transition: all 0.2s;
+  height: 100%;
+}
+
+.socials {
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  height: 100%;
+}
+
+.socials > a {
+  display: flex;
+  margin-inline: 0.25rem;
+}
+
+.socials > a:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.menu {
+  flex-grow: 1;
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu > li {
+  display: inline;
+  margin: 0.5rem;
+  border-bottom: 2px transparent solid;
+  transition: border-bottom 0.5s ease-in-out;
+}
+
+.menu > li:hover, .menu > li.active {
+  cursor: pointer;
+  border-bottom: 2px white solid;
+}
+
+/*  Narrow screen adjustments  */
+@media (max-width: 767px) {
+
+  .menubar {
+    flex-direction: row-reverse;
+  }
+
+  .hamburger {
+    display: flex;    
+  }
+
+  .socials {
+    justify-content: end;
+    align-items: center;
+    margin-right: 0.2rem;
+  }
+
+  .menu {
+    max-height: 0px;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 73px;
+    left: 0px;
+    right: 0px;
+    background-color: var(--sn-colour);
+    border-top: none;
+    transition: max-height 0.3s;
+    overflow: hidden;
+    border-bottom: 2px white solid;
+    z-index: 1100;
+  }
+
+  .menu.show {
+    max-height: 375px;
+  }
+
+  .menu > li {
+    display: block;
+    text-align: center;
+    width: 150px;
+    padding-block: 0.75em;
+    margin: auto;
+  } 
+
+  .menu > li:last-child {
+    margin-bottom: 1.5em;
+  }
+
+}

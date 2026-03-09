@@ -1,0 +1,15 @@
+
+svg { 
+  cursor: pointer;
+  transition: all 0.5s;
+  opacity: 0.5;
+}
+
+svg.left {
+  transform: rotate(180deg);
+}
+
+svg:hover {
+  opacity: 1;
+  /* transform: translate(0,-50%) scale(1.2); */
+}

@@ -1,0 +1,21 @@
+
+
+.page-holder {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.content-holder {
+  /* margin-bottom: auto; */
+  flex-grow: 1;
+}
+
+.toast-container {
+  position: fixed;    
+  z-index: 999;
+  bottom: 40px;
+  left: 0px;
+  right: 0px;
+}

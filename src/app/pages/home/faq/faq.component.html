@@ -1,0 +1,15 @@
+
+<div class="dynamic-container">
+
+  <h1>{{ pageHeading }}</h1>
+
+  <p>{{ pageDescription }}</p>
+
+  @for (faq of faqs; track faq.question) {
+    <h2>{{ faq.question }}</h2>
+    <p>{{ faq.answer }}</p>
+  }
+  
+</div>
+
+

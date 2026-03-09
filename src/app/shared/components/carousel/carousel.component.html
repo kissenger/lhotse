@@ -1,0 +1,32 @@
+<div  class="carousel-container">
+
+  <div #carousel class="carousel">
+
+    @for (image of images; track $index) {
+
+      <div class="carousel-image">
+
+        <img #carouselImage [ngSrc]="image.src" [alt]="image.alt || 'Carousel image'" [priority]="image.priority!!" fill>
+
+        @if (image.textbox) {
+          <div class="carousel-textbox">
+            <div class="dynamic-container">
+              <h1 class="zero-margin">{{image.textbox.header}}</h1>
+              <p class="zero-margin">{{image.textbox.text}}</p>
+            </div>
+          </div>
+        } 
+
+      </div>
+     
+    }
+
+  </div>
+
+  @if (images.length > 2) {
+    <app-svg-arrow direction="left"  class="left"  (click)="showPrevImage()"></app-svg-arrow>
+    <app-svg-arrow direction="right" class="right" (click)="showNextImage()"></app-svg-arrow>
+  }
+
+</div>
+

@@ -1,0 +1,99 @@
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ScrollspyService } from '@shared/services/scrollspy.service';
+import { ScreenService } from '@shared/services/screen.service';
+import { filter, Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink, NavigationEnd} from '@angular/router';
+import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
+import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
+import { EmailSvgComponent } from '@shared/svg/email/email.component'
+import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
+
+@Component({
+  standalone: true,
+  providers: [],
+  imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, FacebookSvgComponent  ],
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
+})
+
+export class HeaderComponent implements AfterViewInit, OnDestroy {
+
+  @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
+  @ViewChild('brandbox') brandBox!: ElementRef;
+
+  private _scrSubs: Subscription | null = null;
+  private _routeSubs: Subscription | null = null;
+
+  public menuItems: Array<{name: string, anchor: string}> = [
+    { name: 'Home',    anchor: 'home' },
+    { name: 'Blog',    anchor: 'blog' },
+    { name: 'Book',    anchor: 'snorkelling-britain' },
+    { name: 'Shop',    anchor: 'buy-now' },
+    { name: 'Map',     anchor: 'snorkelling-map-of-britain' },
+    { name: 'Friends', anchor: 'friends-and-partners' },
+
+  ];
+  public expandDropdownMenu: boolean = false;
+  public activeMenuItem?: string = 'Home';
+
+  constructor(
+    @Inject(Router) private _router: Router,
+    private _scrollSpy: ScrollspyService,
+    private _screen: ScreenService,
+  ) {
+    this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this._scrSubs?.unsubscribe();
+        this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
+          if (isect.ratio > 0.2) {
+            this.activeMenuItem = this.menuItems.find( item => item.anchor === isect.id)?.name;
+          };
+        });
+    });
+  }
+ 
+  ngAfterViewInit() {
+    if (this._screen.widthDescriptor === 'large') {
+      this.expandDropdownMenu = false;
+    }
+  }
+  
+  onHamburgerClick() {
+    this.brandBox.nativeElement.classList.remove("block-animation");
+    this.expandDropdownMenu = !this.expandDropdownMenu;
+    this.animateHamburger();
+  }
+
+  onMenuItemClick() {
+    if (this.expandDropdownMenu) {
+      this.expandDropdownMenu = false;
+      this.animateHamburger();
+    }
+  }
+
+  animateHamburger() {
+    this.animateElements.toArray().forEach( (anim) => {
+      anim.nativeElement.beginElement();
+    });
+    this.toggleAnimationDirection();
+  }
+
+  // Reverse svg animation using js - makes svg definition more simple
+  toggleAnimationDirection() {
+    this.animateElements.toArray().forEach( (anim) => {
+      let from = anim.nativeElement.getAttribute("from");
+      let to   = anim.nativeElement.getAttribute("to");
+      anim.nativeElement.setAttribute('from', to!);
+      anim.nativeElement.setAttribute('to', from!);
+    });
+  }
+
+
+  ngOnDestroy() {
+    this._scrSubs?.unsubscribe();
+    this._routeSubs?.unsubscribe();
+  }
+
+}

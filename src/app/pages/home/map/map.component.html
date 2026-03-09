@@ -1,0 +1,93 @@
+  <div class="dynamic-container">
+
+    <h1>British Snorkelling Map</h1> 
+
+    <p>
+      We have big plans for this map!  Currently populated with sites from Snorkelling Britain, we plan to add new sites
+      as our database of great British snorkelling sites expands.  We'd also like to include instructors on the map, so 
+      if you're interested in being featured, please get in touch.  
+    </p>
+
+    <div class="map-container">
+    <div id="map"></div>
+
+      @if (loadingState !== 'success') {
+        <app-loader [loadingState]="loadingState"></app-loader>    
+      }
+       @else {
+        <div class="panel" [ngClass]="map?.popupPosition">
+
+          @let feature = this.geoJson?.features[map?.selectedSymbolId]?.properties;
+
+          <!-- This is needed so that null feature doesnt trigger this block  -->
+          @if (!!feature) {          
+
+            <div class="panel-topbar">
+              <div class="title">
+                {{feature.featureType}}
+              </div>
+              <div class="close-icon" (click)="map?.deselectSymbol()">
+                <app-svg-close-icon theme="lightOnDark"></app-svg-close-icon>
+              </div>
+            </div>
+            
+            <div class="panel-content">
+
+              {{feature.location.locality ?? feature.location.postalTown}}, {{feature.location.county}}
+              <h3>{{feature.name}}</h3>
+
+              <div class="keywords">
+                @for (item of feature.categories; track item) {
+                  <span>{{item}}</span>
+                }
+              </div> 
+              
+              <div class="description">
+                {{feature.description}}
+              </div>
+
+              @if (feature.featureType == 'Snorkelling Site') {
+                <div class="caveat">
+                  Information provided is for guidance only.  You are responsible for your snorkelling safety.
+                </div>
+                Find Out More <br>
+                @for (item of feature.moreInfo; track item) {
+                  <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" 
+                    href={{item.url}}>{{item.title}}</a>
+                  <br>                
+                }
+              } @else {
+                Find Out More <br>  
+                <div class="icons">
+                  @for (item of feature.moreInfo; track item) {
+                    <div class="icon icon-grow">
+                      <a class="suppress-external-link" [href]="item.url">
+                        @switch (item.icon) {
+                          @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
+                          @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
+                          @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
+                          @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
+                          @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
+                        }
+                      </a>
+                    </div>
+
+                  }
+                  
+                  @for (item of feature.moreInfo; track item) {
+                    @if ( item.icon === 'phone' )  {
+                      <div class="icon icon-phone">
+                        <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
+                      </div> 
+                      <div class="phone-number">{{item.text}}</div>
+                    }
+                  }
+                </div>
+              } 
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  </div>

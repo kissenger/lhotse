@@ -1,0 +1,32 @@
+.errorDetails {
+    margin: 1em;
+    font-size: small;
+}
+
+.orderDetails {
+    margin: 1em;
+}
+
+.margin-top {
+    margin-top: 125px;
+}
+.grid {
+    /* margin-top: 2em; */
+    display: flex;
+    border-top: 1px var(--banner-colour) solid;
+    /* border-bottom: 1px var(--banner-colour) solid; */
+    /* grid-template-columns: repeat(4); */
+  }
+  .description-col {
+    flex-grow: 1;
+    padding: 1em;
+  }
+
+  .total-col {
+    width: 3em;
+    padding: 1em;
+  }
+
+  .last-row {
+    border-bottom: 1px var(--banner-colour) solid;
+  }

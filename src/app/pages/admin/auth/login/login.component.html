@@ -1,0 +1,28 @@
+
+<div class="page-container">
+
+  <form class="login-container">
+    
+    <div class="header">
+      Login Form
+    </div>
+
+    <div class="inputs">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" [(ngModel)]="user.username">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" [(ngModel)]="user.password">
+    </div>
+
+    <div class="buttons">
+      <button class="login-submit" [disabled]="!isValidForm()" (click)="onSubmit()">Submit</button>
+      <button class="login-cancel" (click)="onCancel()">Cancel</button>
+    </div>
+
+  </form>
+
+  <span class="link">
+    <a [routerLink]="'../register'">No Account? Register here.</a>
+  </span>
+
+</div>

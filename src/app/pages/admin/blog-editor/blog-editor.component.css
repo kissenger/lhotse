@@ -1,0 +1,101 @@
+
+.movespan {
+    margin-left: 2em;
+}
+
+.static-div {
+    padding: 1em;   
+    position: fixed;
+    top: 80px;    
+    width: 100vw;
+    background-color: white;
+    z-index: 999;
+    border-bottom: 1px var(--border-colour) solid;
+}
+
+.scrolling-div {
+    margin-top: 200px;
+    padding: 1em;
+    padding-bottom: 2em;
+}
+
+h4 {
+    display: inline-block;
+    margin-right: 2em;
+}
+
+label, .label {
+    width:150px;
+    margin-right: 2em;
+    /* display: block; */
+}
+
+.alert {
+    /* border-color: #e06c6c; */
+    border: 1px #FF6666 solid;
+    box-shadow: 0px 0px 22px -2px #FF6666;
+    outline-width: 0px;
+}
+
+input:focus, textarea:focus {
+    /* box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px rgba(91, 224, 97, 0.5); */
+    /* border: 1px solid red !important; */
+    outline-width: 0px;
+}
+
+form > div {
+    display: flex;
+    flex-direction: row;
+    margin: 0.5em;
+}
+
+
+
+
+select {
+    font-size: 1rem;
+    font-weight: 400; 
+    margin-right: 1em;
+}
+
+input, textarea {
+    font-size: 1rem;
+    font-weight: 400; 
+
+    /* width: 100%; */
+    padding: 0px;
+    margin: 0px;
+    flex-grow: 1;
+    /* display: inline-block; */
+}
+
+textarea {
+    height: 100px;
+}
+
+.qaButton {
+    width: 150px;
+    /* height: 25px; */
+    /* font-size: large; */
+}
+
+.formButton {
+    width: 100px;
+    height: 30px;
+    margin: 10px;
+    /* font-size: larger; */
+}
+
+.sureButton {
+    opacity: 0;
+}
+
+.showButton {
+    opacity: 1;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+

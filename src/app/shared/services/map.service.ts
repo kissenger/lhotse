@@ -1,0 +1,200 @@
+import { Injectable, Injector } from '@angular/core';
+import { mapboxToken } from '../globals';
+import * as mapboxgl from 'mapbox-gl';
+import { MapboxGeoJSONFeature } from 'mapbox-gl';
+import { Feature } from '@shared/types';
+import { Subject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class MapService {
+
+  private _map?: mapboxgl.Map;
+  private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
+  public selectedFeature: any = null;
+  private _sites: any;
+  // Emits whenever the selected feature changes (including clear)
+  public readonly selectionChanged = new Subject<void>();
+
+  constructor(
+    private injector: Injector
+  ) {}
+  
+  get exists() {
+    return !!this._map
+  }
+
+  deselectSymbol() {
+    this._map!.setFeatureState(this.selectedFeature, { selected: false });
+    this.selectedFeature = null;
+    this.selectionChanged.next();
+  }
+
+  get selectedSymbolId() {
+    return this.selectedFeature?.id;
+  }
+
+  get popupPosition() {
+    // let width = this._map?.getContainer().clientWidth;
+    //cant use !!selectedSymbolId as this filters out id=0
+    if (typeof this.selectedSymbolId === "number") {
+      let lngLat = this._sites.features[this.selectedSymbolId].geometry.coordinates;
+      let xy = this._map?.project(lngLat);
+      if (xy!.x < 350) {
+        return "right"
+      } else {
+        return "left"
+      }
+    } else {
+      return "none"
+    }
+
+  }
+
+  indexOfArrayMaximum(arr: Array<number> | undefined) {
+    if (arr === undefined) return -1
+    let max = arr[0];
+    let index = 0;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] > max) {
+        index = i;
+        max = arr[i];
+      }
+    }
+    return index;
+  }
+
+  create(sites: any) {
+
+    return new Promise<void>( (resolve, reject) => {
+
+      this._sites = sites;
+
+      this._map = new mapboxgl.Map({
+        accessToken: mapboxToken,
+        container: 'map', 
+        style: 'mapbox://styles/mapbox/standard',
+        bounds: this._startingBounds,
+        fitBoundsOptions: { padding: 15 },
+      });
+
+      this._map?.on('error', (error) => { reject(error); })
+      this._map?.on('load', () => {       resolve(); })
+      this._map?.on('style.load', () => {
+
+        this._map?.loadImage('assets/icons/snorkel-waves-icon-2.png', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('site-marker', image);
+        });
+
+        this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('organisation-marker', image);
+        });        
+
+        this._map?.addSource('sitesSource', {type: "geojson", data: sites});
+
+        // main symbol layer
+        this._map?.addLayer({
+          id: 'symbolLayer', 
+          source: 'sitesSource',
+          type: 'symbol', 
+          layout: { 
+            'icon-image': ['match', ['get','featureType'], 
+                'Snorkelling Site', 'site-marker',
+                'organisation-marker'],
+            'icon-allow-overlap': true,
+            'icon-anchor': 'bottom',
+            'icon-size': 0.7,
+            'symbol-sort-key': ['get', 'symbolSortOrder']
+          },
+        })
+
+        // duplicate with larger symbol size, only shown in click
+        this._map?.addLayer({
+          id: 'symbolLayerHighlight', 
+          source: 'sitesSource',
+          type: 'symbol', 
+          layout: { 
+            'icon-image': ['match', ['get','featureType'], 
+                'Snorkelling Site', 'site-marker',
+                'organisation-marker'],
+            'icon-allow-overlap': true,
+            'icon-anchor': 'bottom',
+            'icon-size': 0.9,
+            'icon-offset': [0,2],
+            'symbol-sort-key': ['get','symbolSortOrder']
+          },
+          paint: {
+            'icon-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              1.0,
+              0
+            ],
+          }
+        }) 
+        
+      })
+
+      this._map?.addInteraction('click', {
+        type: 'click',
+        target: { layerId: 'symbolLayer' },
+        handler: (e) => {
+          // look for multiple features under the click, and set the one with the highest sortOrder as selected
+          // this should be the one highest in the stack
+          const features = this._map?.queryRenderedFeatures(e.point, {layers: ['symbolLayer']});
+          const index = this.indexOfArrayMaximum(features?.map(f=>f.properties!['symbolSortOrder']));
+          const feature = features![index];
+
+          if (this.selectedFeature?.id === feature?.id) {
+            this.selectedFeature = null;
+            this._map!.setFeatureState(feature!, { selected: false });
+            this.selectionChanged.next();
+          } else {
+            if (this.selectedFeature) {
+              this._map!.setFeatureState(this.selectedFeature, { selected: false });
+            }
+            this.selectedFeature = feature;
+            this._map!.setFeatureState(feature!, { selected: true });
+            this.selectionChanged.next();
+          }
+        }
+
+      });
+
+      this._map?.addInteraction('map-click', {
+        type: 'click',
+        handler: () => {
+          if (this.selectedFeature?.id) {
+            this._map!.setFeatureState(this.selectedFeature, { selected: false });
+            this.selectedFeature = null;
+            this.selectionChanged.next();
+          }
+        }
+      });
+
+      this._map?.addInteraction('mouseenter', {
+        type: 'mouseenter',
+        target: { layerId: 'symbolLayer' },
+        handler: (e) => { 
+          this._map!.getCanvas().style.cursor = 'pointer';
+        }
+      });
+
+      this._map?.addInteraction('mouseleave', {
+        type: 'mouseleave',
+        target: { layerId: 'symbolLayer' },
+        handler: (e) => { 
+          this._map!.getCanvas().style.cursor = '';
+        }
+      });
+    
+    });
+
+
+  }
+
+}

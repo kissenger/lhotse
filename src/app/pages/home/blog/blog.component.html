@@ -1,0 +1,40 @@
+<!-- @defer { -->
+
+  <div class="dynamic-container">
+
+    <h1>{{ pageHeading }}</h1> 
+
+    <p>{{ pageDescription }}</p>
+    <p>{{ filterLabel }}
+    <button (click)="selectAll()">Select All</button>
+    <button (click)="selectNone()">Deselect All</button>
+    </p>
+    @for (kw of uniqueKeywords; track kw) {
+      <div class="kw" [class.deselected]="!selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</div>
+    }
+  </div>
+
+  <div class="browser-container">
+
+    @if (loadingState !== 'success') {
+      <app-loader [loadingState]="loadingState"></app-loader>
+
+    } @else {
+      <div #browser class="browser dynamic-container">
+        @for (post of filteredPosts; track post) {
+          <app-blog-card [data]="post"></app-blog-card>
+        }
+      </div>
+
+      <div #arrows class="arrow left">
+        <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
+      </div>
+      <div #arrows class="arrow right">
+        <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
+      </div>
+
+    }
+
+  </div>
+<!-- } -->
+

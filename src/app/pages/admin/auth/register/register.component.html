@@ -1,0 +1,27 @@
+
+<div class="page-container">
+
+  <div class="login-container">
+    
+    <div class="header">
+      Register Form
+    </div>
+
+    <form class="inputs">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" placeholder="Enter username" [ngClass]="isValidUserName()?'':'invalid-input'" [(ngModel)]="user.username">
+      <label for="email">Email Address</label>
+      <input type="text" id="email" name="email" autocomplete="email" placeholder="Enter valid email address" [ngClass]="isValidEmail()?'':'invalid-input'" [(ngModel)]="user.email">      
+      <label for="new-password">Password</label>
+      <input type="password" id="new-password" name="new-password" autocomplete="new-password"  placeholder="Enter password (8 or more characters)" [ngClass]="isValidPwd()?'':'invalid-input'" [(ngModel)]="user.password">
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password"  autocomplete="new-password" name="confirm-password" placeholder="Confirm password" [ngClass]="isValidConfPwd()?'':'invalid-input'" [(ngModel)]="confirmPassword">      
+    </form>
+
+    <div class="buttons">
+      <button class="register-submit" [disabled]="!isValidForm()" (click)="onSubmit()">Submit</button>
+      <button class="register-cancel" (click)="onCancel()">Cancel</button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,139 @@
+
+.orders-container {
+    width: 100vw;    
+    font-size: smaller;
+    margin-top: 100px;
+    min-height: 100vh;
+
+    flex-direction: row;
+}
+.side-panel {
+    position: fixed;
+    width: 25%;
+    padding-inline: 1rem;    
+}
+
+button {
+    font-size: small;
+}
+.content {
+    width: 75%;
+    margin-left: 30%;
+    float: right;
+}
+
+.panel-header {
+    width: 100%;
+    text-align: center;
+    background-color: lightgray;
+    font-weight: 700;
+    margin-top: 1rem;
+    line-height: 1.2rem;
+}
+
+.filter-table {
+    display: flex;
+    font-size: smaller;
+    flex-direction: row;
+    margin-top: 0.5rem;
+}
+
+.filter-table-left {
+    width: 40%;
+    padding-right: 0.5rem;
+
+}
+
+.filter-table-right {
+    width: auto;
+    border-left: 1px var(--border-colour) solid;
+    padding-left: 0.5rem;
+}
+
+table {
+    margin-top: 1rem;
+}
+
+.summary-table  {
+    border: 1px var(--border-colour) solid;
+    border-collapse: collapse;
+    min-width: 3rem;
+    text-align: center;
+}
+
+.summary-table > td, .summary-table > tr {
+    border: 1px var(--border-colour) solid;
+    border-collapse: collapse;
+}
+
+.order-table {
+    margin-block: 1rem;
+    margin-inline: 2rem;
+}
+
+.order-line {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    /* margin-top: -1px; */
+    border-style: solid;
+    border-color: var(--border-colour);
+    border-width: 0 1px 1px 1px;
+    line-height: 100%;
+        
+    -webkit-user-select: text;
+     -khtml-user-select: text;
+       -moz-user-select: text;
+        -ms-user-select: text;
+            user-select: text;
+}
+
+.first-line {
+    border-top: 1px var(--border-colour) solid;
+}
+
+.title {
+    width: 20%;
+    background-color:whitesmoke;
+
+}
+.value {
+    background-color:whitesmoke;
+    width: 40%;
+    white-space: pre-line;
+    /* display: block; */
+}
+
+.label {
+    font-size: 0.4em;
+}
+
+.first-line > .title, .first-line > .value {
+    font-weight: 700;
+}
+
+.action {
+    margin-inline: 0.5rem;
+}
+
+button {
+    margin-right: 0.5rem;
+}
+/* .green {
+    background-color: lightgreen;
+} */
+.grey {
+    background-color: lightgrey;
+}
+.red {
+    background-color: lightcoral;
+}
+.green {
+    background-color: lightseagreen;
+}
+.blue {
+    background-color: lightblue;
+}
+.purple {
+    background-color: plum;
+}
