@@ -47,8 +47,7 @@ run_check() {
   if ! output="$(NOTIFY_ON_FAILURE=0 LOG_FILE="${MAINT_LOG_FILE}" MAIL_TO="${MAINT_MAIL_TO}" REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}" bash "${script_path}" 2>&1)"; then
     maintenance_log_failure "${script_name} failed"
     if [[ -n "${output}" ]]; then
-      echo "$(date -Iseconds) FAILURE ${MAINT_SCRIPT_NAME} ${script_name} output:" | tee -a "${MAINT_LOG_FILE}" >&2
-      echo "${output}" | sed 's/^/    /' | tee -a "${MAINT_LOG_FILE}" >&2
+      echo "${script_name}" | tee -a "${MAINT_LOG_FILE}" >&2
     fi
     return 1
   fi

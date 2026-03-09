@@ -3,8 +3,8 @@ import { dirname, resolve } from 'node:path';
 
 const SITE_URL = 'https://snorkelology.co.uk';
 const API_BASE_URL = 'http://127.0.0.1:4001';
-const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/beta/browser/sitemap.xml';
-const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/beta/browser/index.html';
+const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/prod/browser/sitemap.xml';
+const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/prod/browser/index.html';
 const STATIC_URL_PATHS = [];
 
 function xmlEscape(value) {
