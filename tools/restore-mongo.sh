@@ -7,6 +7,12 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+source "${SCRIPT_DIR}/maintenance-common.sh"
+
+DEFAULT_LOG_FILE="${REPO_ROOT}/logs/restore-mongo.log"
+
 # MongoDB restore script for backups created by tools/run-mongo-backup-nightly.sh.
 # Requires: mongorestore, tar, gzip. Optional: openssl (for .enc backups).
 #
@@ -16,6 +22,9 @@ set -euo pipefail
 
 ENV_FILE="/home/gort1975/snorkelology/.env"
 BACKUP_ROOT="/home/gort1975/mongo_backups"
+
+maintenance_init "restore-mongo.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+WORK_DIR=""
 
 SHOW_HELP=0
 USE_LATEST=0
@@ -56,7 +65,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "Unknown argument: $1" >&2
+      maintenance_log_failure "unknown argument: $1"
       SHOW_HELP=1
       break
       ;;
@@ -83,13 +92,11 @@ EOF
 fi
 
 if [[ ${CONFIRMED} -ne 1 ]]; then
-  echo "Refusing to run without --yes (safety check)." >&2
-  exit 1
+  maintenance_fail "refusing to run without --yes (safety check)"
 fi
 
 if [[ ! -f "${ENV_FILE}" ]]; then
-  echo "Environment file not found: ${ENV_FILE}" >&2
-  exit 1
+  maintenance_fail "environment file not found: ${ENV_FILE}"
 fi
 
 set -a
@@ -101,24 +108,19 @@ MONGO_URI="${MONGO_URI:-}"
 BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 
 if [[ -z "${MONGO_URI}" ]]; then
-  echo "MONGO_URI is required in ${ENV_FILE}." >&2
-  echo "If your .env has values with spaces, wrap them in quotes." >&2
-  exit 1
+  maintenance_fail "MONGO_URI is required in ${ENV_FILE}. If your .env has values with spaces, wrap them in quotes."
 fi
 
 if [[ -n "${FILE_PATH}" && ${USE_LATEST} -eq 1 ]]; then
-  echo "Use either --latest or --file, not both." >&2
-  exit 1
+  maintenance_fail "use either --latest or --file, not both"
 fi
 
 if [[ -z "${FILE_PATH}" && ${USE_LATEST} -ne 1 ]]; then
-  echo "Provide one restore source: --latest or --file PATH." >&2
-  exit 1
+  maintenance_fail "provide one restore source: --latest or --file PATH"
 fi
 
 if [[ -z "${DB_NAME}" ]]; then
-  echo "--db SOURCE_DB is required to ensure safe restore into a new target database." >&2
-  exit 1
+  maintenance_fail "--db SOURCE_DB is required to ensure safe restore into a new target database"
 fi
 
 if [[ -z "${TARGET_DB_NAME}" ]]; then
@@ -126,38 +128,41 @@ if [[ -z "${TARGET_DB_NAME}" ]]; then
 fi
 
 if [[ "${DB_NAME}" == "${TARGET_DB_NAME}" ]]; then
-  echo "Target DB must differ from source DB to avoid overwriting existing collections." >&2
-  exit 1
+  maintenance_fail "target DB must differ from source DB to avoid overwriting existing collections"
 fi
 
 if [[ ${USE_LATEST} -eq 1 ]]; then
   FILE_PATH="$(find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -printf '%T@ %p\n' | sort -nr | head -n 1 | cut -d' ' -f2-)"
   if [[ -z "${FILE_PATH}" ]]; then
-    echo "No backup archives found in ${BACKUP_ROOT}." >&2
-    exit 1
+    maintenance_fail "no backup archives found in ${BACKUP_ROOT}"
   fi
 fi
 
 if [[ ! -f "${FILE_PATH}" ]]; then
-  echo "Backup file not found: ${FILE_PATH}" >&2
-  exit 1
+  maintenance_fail "backup file not found: ${FILE_PATH}"
 fi
 
 WORK_DIR="$(mktemp -d)"
 cleanup() {
-  rm -rf "${WORK_DIR}" || true
+  if [[ -n "${WORK_DIR}" ]]; then
+    rm -rf "${WORK_DIR}" || true
+  fi
 }
-trap cleanup EXIT
+
+finalize() {
+  local exit_code="$?"
+  cleanup
+  maintenance_finalize "${exit_code}"
+}
+trap finalize EXIT
 
 ARCHIVE_TO_EXTRACT="${FILE_PATH}"
 if [[ "${FILE_PATH}" == *.enc ]]; then
   if [[ -z "${BACKUP_PASSPHRASE}" ]]; then
-    echo "BACKUP_PASSPHRASE is required to decrypt .enc backups." >&2
-    exit 1
+    maintenance_fail "BACKUP_PASSPHRASE is required to decrypt .enc backups"
   fi
   if ! command -v openssl >/dev/null 2>&1; then
-    echo "openssl not found but encrypted backup provided." >&2
-    exit 1
+    maintenance_fail "openssl not found but encrypted backup provided"
   fi
 
   ARCHIVE_TO_EXTRACT="${WORK_DIR}/decrypted.tar.gz"
@@ -174,14 +179,23 @@ if [[ ${DROP_FLAG} -eq 1 ]]; then
 fi
 
 if [[ ! -d "${EXTRACT_DIR}/${DB_NAME}" ]]; then
-  echo "Database '${DB_NAME}' not found in backup archive." >&2
-  exit 1
+  maintenance_fail "database '${DB_NAME}' not found in backup archive"
 fi
 
 # Non-destructive restore: map source namespace to a separate target DB.
 RESTORE_ARGS+=(--nsFrom="${DB_NAME}.*" --nsTo="${TARGET_DB_NAME}.*" "${EXTRACT_DIR}/${DB_NAME}")
 
-echo "[$(date -Iseconds)] Restoring from: ${FILE_PATH}"
-echo "[$(date -Iseconds)] Source DB: ${DB_NAME} -> Target DB: ${TARGET_DB_NAME}"
-mongorestore "${RESTORE_ARGS[@]}"
-echo "[$(date -Iseconds)] Restore completed successfully"
+maintenance_log_success "restoring from ${FILE_PATH}"
+maintenance_log_success "source DB ${DB_NAME} -> target DB ${TARGET_DB_NAME}"
+
+if ! output="$(mongorestore "${RESTORE_ARGS[@]}" 2>&1)"; then
+  maintenance_log_failure "mongorestore failed"
+  if [[ -n "${output}" ]]; then
+    while IFS= read -r line; do
+      [[ -n "${line}" ]] && maintenance_log_failure "mongorestore output: ${line}"
+    done <<< "${output}"
+  fi
+  exit 1
+fi
+
+maintenance_log_success "restore completed successfully"

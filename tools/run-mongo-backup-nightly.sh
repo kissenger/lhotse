@@ -7,9 +7,18 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+source "${SCRIPT_DIR}/maintenance-common.sh"
+
+ENV_FILE="${REPO_ROOT}/.env"
+DEFAULT_LOG_FILE="${REPO_ROOT}/logs/mongo-backup-nightly.log"
+
+maintenance_init "run-mongo-backup-nightly.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+WORK_DIR=""
+
 fail() {
-  echo "[$(date -Iseconds)] FAILURE: $1" >&2
-  exit 1
+  maintenance_fail "$1"
 }
 
 run_quiet() {
@@ -49,7 +58,7 @@ RETENTION_DAYS="30"
 
 
 if [[ ! -f "${ENV_FILE}" ]]; then
-  fail "Environment file not found: ${ENV_FILE}"
+  fail "environment file not found: ${ENV_FILE}"
 fi
 
 # Export everything loaded from .env so child commands can use it.
@@ -64,6 +73,8 @@ BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 if [[ -z "${MONGO_URI}" ]]; then
   fail "MONGO_URI is required in ${ENV_FILE}. If your .env has values with spaces, wrap them in quotes."
 fi
+
+maintenance_log_success "starting MongoDB backup"
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"
@@ -80,9 +91,17 @@ if ! flock -n 9; then
 fi
 
 cleanup() {
-  rm -rf "${WORK_DIR}" || true
+  if [[ -n "${WORK_DIR}" ]]; then
+    rm -rf "${WORK_DIR}" || true
+  fi
 }
-trap cleanup EXIT
+
+finalize() {
+  local exit_code="$?"
+  cleanup
+  maintenance_finalize "${exit_code}"
+}
+trap finalize EXIT
 
 mkdir -p "${WORK_DIR}"
 
@@ -121,3 +140,5 @@ fi
 
 # Delete old archives beyond retention period.
 run_quiet "backup retention cleanup failed" find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
+
+maintenance_log_success "MongoDB backup completed: ${ARCHIVE_PATH}"

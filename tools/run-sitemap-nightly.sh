@@ -7,20 +7,33 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+source "${SCRIPT_DIR}/maintenance-common.sh"
+
 SITEMAP_SCRIPT="/home/gort1975/snorkelology/tools/generate-sitemap.mjs"
 SITEMAP_OUTPUT_DIR="/home/gort1975/snorkelology/dist/prod/browser"
+ENV_FILE="${REPO_ROOT}/.env"
+DEFAULT_LOG_FILE="${REPO_ROOT}/logs/sitemap-nightly.log"
 
-fail() {
-  echo "[$(date -Iseconds)] FAILURE: $1" >&2
-  exit 1
-}
+maintenance_init "run-sitemap-nightly.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+trap 'maintenance_finalize "$?"' EXIT
 
 if [[ ! -f "${SITEMAP_SCRIPT}" ]]; then
-  fail "sitemap generator not found at ${SITEMAP_SCRIPT}"
+  maintenance_fail "sitemap generator not found at ${SITEMAP_SCRIPT}"
 fi
 
 mkdir -p "${SITEMAP_OUTPUT_DIR}"
+maintenance_log_success "starting sitemap generation"
 
-if ! SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_SCRIPT}" >/dev/null 2>&1; then
-  fail "nightly sitemap generation failed"
+if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_SCRIPT}" 2>&1)"; then
+  maintenance_log_failure "nightly sitemap generation failed"
+  if [[ -n "${output}" ]]; then
+    while IFS= read -r line; do
+      [[ -n "${line}" ]] && maintenance_log_failure "node output: ${line}"
+    done <<< "${output}"
+  fi
+  exit 1
 fi
+
+maintenance_log_success "nightly sitemap generation completed"
