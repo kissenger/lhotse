@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+unset npm_config_prefix
+echo "npm_config_prefix after unset: $npm_config_prefix"
+
 set -euo pipefail
 
 # NOTES
@@ -10,7 +13,6 @@ set -euo pipefail
 # - pm2 is configured in ./ecosystem.config.cjs
 
 . "$HOME/.nvm/nvm.sh"
-unset npm_config_prefix
 nvm use
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
