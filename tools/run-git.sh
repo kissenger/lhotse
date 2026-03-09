@@ -72,8 +72,8 @@ mkdir -p docs
 mkdir -p scripts
 
 # 3) NGINX (live config)
-sudo cp -a /etc/nginx/sites-available/snorkelology.conf etc/nginx/sites-available/snorkelology.conf
-sudo cp -a /etc/nginx/sites-enabled/snorkelology.conf etc/nginx/sites-enabled/snorkelology.conf
+sudo cp -a /etc/nginx/sites-available/default.conf etc/nginx/sites-available/default.conf
+sudo cp -a /etc/nginx/sites-enabled/default.conf etc/nginx/sites-enabled/default.conf
 
 # 4) CRON (current user crontab)
 crontab -l > "var/spool/cron/${USER_NAME}.cron"
