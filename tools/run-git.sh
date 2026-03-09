@@ -7,8 +7,7 @@ set -euo pipefail
 
 # --- Ops repo snapshot notes ---
 # Summary:
-# - Initial run: creates repo, copies config, git init, commit.
-# - Subsequent runs: re-copy config, git add/commit (skip git init).
+# - Copies config, git add/commit (skip git init).
 # - Snapshots are not live-linked; manual refresh is needed.
 # - Never commit private keys or secrets.
 # --- End notes ---
@@ -16,9 +15,9 @@ set -euo pipefail
 COMMIT_MSG="${1:-Snapshot update}"
 
 # 0) Edit these first
-OPS_REPO_DIR=/home/gort1975/snorkelology/ops-config
+OPS_REPO_DIR=/home/gort1975/snorkelology/config-backup
 OPS_REMOTE=git@github.com:kissenger/lhotse.git
-OPS_BRANCH="server-config"
+OPS_BRANCH="config-backup"
 APP_DIR=/home/gort1975/snorkelology
 USER_NAME=$(whoami)
 HOST_NAME=$(hostname)
