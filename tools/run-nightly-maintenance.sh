@@ -43,7 +43,6 @@ run_check() {
     return 1
   fi
 
-  maintenance_log_success "starting ${script_name}"
   if ! output="$(NOTIFY_ON_FAILURE=0 LOG_FILE="${MAINT_LOG_FILE}" MAIL_TO="${MAINT_MAIL_TO}" REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}" bash "${script_path}" 2>&1)"; then
     maintenance_log_failure "${script_name} failed"
     if [[ -n "${output}" ]]; then
@@ -52,7 +51,7 @@ run_check() {
     return 1
   fi
 
-  maintenance_log_success "completed ${script_name}"
+  maintenance_log_success "${script_name} completed OK"
 
   return 0
 }

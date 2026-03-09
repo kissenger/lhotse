@@ -27,8 +27,6 @@ MAINT_LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/maintenance.log}"
 maintenance_init "run-paypal-nightly.sh" "${ENV_FILE}" "${MAINT_LOG_FILE}"
 trap 'maintenance_finalize "$?"' EXIT
 
-maintenance_log_success "starting PayPal sandbox UI test"
-
 cd "${REPO_ROOT}"
 
 if ! output="$(npm run test:ui:paypal:sandbox 2>&1)"; then
@@ -39,5 +37,3 @@ if ! output="$(npm run test:ui:paypal:sandbox 2>&1)"; then
   fi
   exit 1
 fi
-
-maintenance_log_success "PayPal sandbox UI test passed"

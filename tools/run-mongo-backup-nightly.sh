@@ -84,8 +84,6 @@ if [[ -z "${MONGO_URI}" ]]; then
   fail "MONGO_URI is required in ${ENV_FILE}. If your .env has values with spaces, wrap them in quotes."
 fi
 
-maintenance_log_success "starting MongoDB backup"
-
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"
 ARCHIVE_BASENAME="dump-${TIMESTAMP}.tar.gz"
@@ -150,5 +148,3 @@ fi
 
 # Delete old archives beyond retention period.
 run_quiet "backup retention cleanup failed" find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
-
-maintenance_log_success "MongoDB backup completed: ${ARCHIVE_PATH}"

@@ -34,7 +34,6 @@ if [[ ! -f "${SITEMAP_SCRIPT}" ]]; then
 fi
 
 mkdir -p "${SITEMAP_OUTPUT_DIR}"
-maintenance_log_success "starting sitemap generation"
 
 if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_SCRIPT}" 2>&1)"; then
   maintenance_log_failure "nightly sitemap generation failed"
@@ -45,4 +44,3 @@ if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_
   exit 1
 fi
 
-maintenance_log_success "nightly sitemap generation completed"
