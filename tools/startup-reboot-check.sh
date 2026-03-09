@@ -12,14 +12,20 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
 
-# Reboot monitor can use a dedicated environment file when deployed as a startup check.
-ENV_FILE="${REBOOT_ENV_FILE:-/usr/local/bin/.reboot_env}"
-if [[ ! -f "${ENV_FILE}" ]]; then
-    ENV_FILE="${REPO_ROOT}/.env"
+ENV_FILE="${REPO_ROOT}/.env"
+# Source .env and set unified log file
+if [[ -f "${ENV_FILE}" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${ENV_FILE}"
+    set +a
+else
+    echo "Environment file not found: ${ENV_FILE}" >&2
+    exit 1
 fi
 
-DEFAULT_LOG_FILE="${REBOOT_LOG_FILE:-/var/log/reboot_monitor.log}"
-maintenance_init "startup-reboot-check.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+MAINT_LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/maintenance.log}"
+maintenance_init "startup-reboot-check.sh" "${ENV_FILE}" "${MAINT_LOG_FILE}"
 trap 'maintenance_finalize "$?"' EXIT
 
 if [[ -z "${REBOOT_FLAG_FILE:-}" ]]; then

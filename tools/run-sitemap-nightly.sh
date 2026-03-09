@@ -14,9 +14,19 @@ source "${SCRIPT_DIR}/maintenance-common.sh"
 SITEMAP_SCRIPT="/home/gort1975/snorkelology/tools/generate-sitemap.mjs"
 SITEMAP_OUTPUT_DIR="/home/gort1975/snorkelology/dist/prod/browser"
 ENV_FILE="${REPO_ROOT}/.env"
-DEFAULT_LOG_FILE="${REPO_ROOT}/logs/sitemap-nightly.log"
+# Source .env and set unified log file
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+else
+  echo "Environment file not found: ${ENV_FILE}" >&2
+  exit 1
+fi
 
-maintenance_init "run-sitemap-nightly.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+MAINT_LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/maintenance.log}"
+maintenance_init "run-sitemap-nightly.sh" "${ENV_FILE}" "${MAINT_LOG_FILE}"
 trap 'maintenance_finalize "$?"' EXIT
 
 if [[ ! -f "${SITEMAP_SCRIPT}" ]]; then

@@ -12,9 +12,19 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
 
 ENV_FILE="${REPO_ROOT}/.env"
-DEFAULT_LOG_FILE="${REPO_ROOT}/logs/mongo-backup-nightly.log"
+# Source .env and set unified log file
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+else
+  echo "Environment file not found: ${ENV_FILE}" >&2
+  exit 1
+fi
 
-maintenance_init "run-mongo-backup-nightly.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
+MAINT_LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/maintenance.log}"
+maintenance_init "run-mongo-backup-nightly.sh" "${ENV_FILE}" "${MAINT_LOG_FILE}"
 WORK_DIR=""
 
 fail() {
@@ -67,7 +77,6 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-echo "MONGO_URI after sourcing .env: '${MONGO_URI:-}'"
 MONGO_URI="${MONGO_URI:-}"
 BACKUP_PASSPHRASE="${BACKUP_PASSPHRASE:-}"
 

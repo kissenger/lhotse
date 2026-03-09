@@ -78,4 +78,4 @@ maintenance_log_success "filesystem sync completed"
 
 # Reboot host to keep scheduled maintenance cycle predictable.
 maintenance_log_success "initiating reboot"
-/sbin/reboot now
+sudo /sbin/reboot now
