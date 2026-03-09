@@ -24,6 +24,9 @@ USER_NAME=$(whoami)
 HOST_NAME=$(hostname)
 SNAPSHOT_TS=$(date +%F-%H%M%S)
 
+# 1) Switch to target branch
+git checkout "$OPS_BRANCH"
+
 # 2) Create folder structure
 if [ -d "$OPS_REPO_DIR" ]; then
   cd "$OPS_REPO_DIR"
@@ -31,8 +34,6 @@ else
   mkdir -p "$OPS_REPO_DIR"
   cd "$OPS_REPO_DIR"
 fi
-
-git checkout "$OPS_BRANCH" 2>/dev/null || git checkout -b "$OPS_BRANCH"
 
 mkdir -p etc/nginx/sites-available
 mkdir -p etc/nginx/sites-enabled
