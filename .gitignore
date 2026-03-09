@@ -48,3 +48,7 @@ testem.log
 .DS_Store
 Thumbs.db
 node_modules
+
+# Server files
+ecosystem.config.cjs
+/config-backup
