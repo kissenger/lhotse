@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- Ops repo snapshot notes ---
-# This script copies selected server configuration files (nginx, systemd, fail2ban, logrotate, sudoers, certbot, etc.)
+# This script copies selected server configuration files (nginx, systemd, fail2ban, logrotate, certbot, etc.)
 # into structured directories within the ops repo, creating a snapshot of the current server state.
 # After copying, it typically adds and commits these files to git, ensuring versioned backups and auditability.
 # The copied files are not linked to the live config; they are static snapshots.
@@ -25,7 +25,7 @@ fi
 set -euo pipefail
 
 # --- Ops repo snapshot notes ---
-# This script copies selected server configuration files (nginx, systemd, fail2ban, logrotate, sudoers, certbot, etc.)
+# This script copies selected server configuration files (nginx, systemd, fail2ban, logrotate, certbot, etc.)
 # into structured directories within the ops repo, creating a snapshot of the current server state.
 # After copying, it typically adds and commits these files to git, ensuring versioned backups and auditability.
 # The copied files are not linked to the live config; they are static snapshots.
@@ -148,7 +148,7 @@ Contains versioned server operational config from live locations:
 - PM2 ecosystem + state snapshots
 - sshd config (no private keys)
 - firewall snapshots
-- fail2ban/logrotate/sudoers snippets
+- fail2ban/logrotate snippets
 - certbot renewal config (no private keys)
 
 DO NOT COMMIT:
