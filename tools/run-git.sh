@@ -60,7 +60,7 @@ mkdir -p etc/systemd/system
 mkdir -p etc/ssh/sshd_config.d
 mkdir -p etc/fail2ban/jail.d
 mkdir -p etc/logrotate.d
-mkdir -p etc/sudoers.d
+## mkdir -p etc/sudoers.d (removed: no sudoers backup)
 mkdir -p etc/letsencrypt/renewal
 mkdir -p var/spool/cron
 mkdir -p home/gort1975/snorkelology
@@ -82,7 +82,7 @@ crontab -l > "var/spool/cron/${USER_NAME}.cron"
 cp -a "$APP_DIR/ecosystem.config.cjs" home/gort1975/snorkelology/ecosystem.config.cjs
 cp -a /home/gort1975/.pm2/dump.pm2 home/gort1975/.pm2/dump.pm2 2>/dev/null || true
 pm2 status > "home/gort1975/.pm2/pm2-status-${SNAPSHOT_TS}.txt" || true
-pm2 ls --json > "home/gort1975/.pm2/pm2-ls-${SNAPSHOT_TS}.json" || true
+pm2 ls > "home/gort1975/.pm2/pm2-ls-${SNAPSHOT_TS}.txt" || true
 
 # 6) systemd units/timers/paths (custom)
 sudo find /etc/systemd/system -maxdepth 1 -type f \( -name "*.service" -o -name "*.timer" -o -name "*.path" \) -exec cp -a {} etc/systemd/system/ \;
@@ -103,7 +103,7 @@ sudo cp -a /etc/fail2ban/jail.d/. etc/fail2ban/jail.d/ 2>/dev/null || true
 
 # 10) Logrotate and sudoers custom snippets
 sudo cp -a /etc/logrotate.d/. etc/logrotate.d/ 2>/dev/null || true
-sudo cp -a /etc/sudoers.d/. etc/sudoers.d/ 2>/dev/null || true
+## sudo cp -a /etc/sudoers.d/. etc/sudoers.d/ 2>/dev/null || true (removed: no sudoers backup)
 
 # 11) TLS renewal config (NO private keys/certs)
 sudo cp -a /etc/letsencrypt/renewal/. etc/letsencrypt/renewal/ 2>/dev/null || true
