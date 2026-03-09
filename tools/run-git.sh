@@ -49,8 +49,12 @@ HOST_NAME=$(hostname)
 SNAPSHOT_TS=$(date +%F-%H%M%S)
 
 # 1) Create and initialize new ops repo
-# mkdir -p "$OPS_REPO_DIR"
-# cd "$OPS_REPO_DIR"
+if [ -d "$OPS_REPO_DIR" ]; then
+  cd "$OPS_REPO_DIR"
+else
+  mkdir -p "$OPS_REPO_DIR"
+  cd "$OPS_REPO_DIR"
+fi
 # git init
 
 # 2) Create folders mirroring server config domains
