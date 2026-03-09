@@ -72,8 +72,8 @@ SNAPSHOT_TS=$(date +%F-%H%M%S)
 # mkdir -p scripts
 
 # 3) NGINX (live config)
-sudo cp -a /etc/nginx/sites-available/default.conf etc/nginx/sites-available/default
-sudo cp -a /etc/nginx/sites-enabled/default.conf etc/nginx/sites-enabled/default
+sudo cp -a /etc/nginx/sites-available/default etc/nginx/sites-available/default
+sudo cp -a /etc/nginx/sites-enabled/default etc/nginx/sites-enabled/default
 
 # 4) CRON (current user crontab)
 crontab -l > "var/spool/cron/${USER_NAME}.cron"
