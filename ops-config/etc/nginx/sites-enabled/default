@@ -1,0 +1,123 @@
+
+
+###########################
+# SETUP
+###########################
+
+# Listen to http calls and redirect all calls to https, unless another listen 80 server block is matched
+server {
+    listen 80 default_server;
+    return 301 https://$host$request_uri;
+}
+
+# Listen for www and redirect to non-www
+server {
+    listen 443 ssl http2; 
+    ssl_certificate /etc/letsencrypt/live/snorkelology.co.uk/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/snorkelology.co.uk/privkey.pem; # managed by Certbot 
+    server_name www.snorkelology.co.uk;
+    return 301 https://snorkelology.co.uk$request_uri;
+}
+
+server {
+    listen 443 ssl http2; 
+    listen [::]:443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/practicenight.co.uk/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/practicenight.co.uk/privkey.pem; # managed by Certbot 
+    server_name www.practicenight.co.uk;
+    return 301 https://practicenight.co.uk$request_uri;
+}
+###########################
+# SNORKELOLOGY
+#    - snorkelology.co.uk
+#    - www.snorkelology.co.uk
+###########################
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/snorkelology.co.uk/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/snorkelology.co.uk/privkey.pem; # managed by Certbot 
+
+   server_name snorkelology.co.uk
+   # Don't need a root cos the call is proxied to server on port4001 which knows where to find the index file
+   #root /home/snorkelology/dist/prod/browser/;
+
+   expires 1y;
+   add_header Cache-Control "public, no-transform, no-cache, immutable";
+
+   location / {
+      proxy_max_temp_file_size 0;
+      proxy_pass http://192.168.1.136:4001/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_set_header X-forwarded-Host $host;
+      proxy_cache_bypass $http_upgrade;
+      client_max_body_size 50M;
+   }
+
+# ***********
+# NOTE NOTE NOTE
+# This provides a clean url to access google form
+# ***********
+   location /map/submit-info {
+      return 301 https://docs.google.com/forms/d/e/1FAIpQLSc0iQoScZywm8QV08prnIX5DFx1fD0G8M-DInyvkbOnHfvVsA/viewform;
+   }
+}
+
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/snorkelology.co.uk/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/snorkelology.co.uk/privkey.pem; # managed by Certbot 
+
+   server_name beta.snorkelology.co.uk;
+
+   expires 1y;
+   add_header Cache-Control "public, no-transform, no-cache, immutable";
+
+   location / {
+       proxy_max_temp_file_size 0;
+       proxy_pass http://192.168.1.136:4000/;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection 'upgrade';
+       proxy_set_header Host $host;
+       proxy_set_header X-forwarded-Host $host;
+       proxy_cache_bypass $http_upgrade;
+       client_max_body_size 50M;
+   }
+}
+
+
+###########################
+# PRACTICENIGHT
+# - practicenight.co.uk
+###########################
+
+server {
+   listen 443 ssl http2;
+   listen [::]:443 ssl http2;
+   ssl_certificate /etc/letsencrypt/live/practicenight.co.uk/fullchain.pem; # managed by Certbot
+   ssl_certificate_key /etc/letsencrypt/live/practicenight.co.uk/privkey.pem; # managed by Certbot 
+
+   server_name practicenight.co.uk;
+
+   expires 1y;
+   add_header Cache-Control "public, no-transform, no-cache, immutable";
+
+   location / {
+      proxy_max_temp_file_size 0;
+      proxy_http_version 1.1;
+      proxy_pass http://192.168.1.136:4005/;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_cache_bypass $http_upgrade;
+      client_max_body_size 50M;
+   }
+}
+
