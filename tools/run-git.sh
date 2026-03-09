@@ -148,7 +148,7 @@ Contains versioned server operational config from live locations:
 - PM2 ecosystem + state snapshots
 - sshd config (no private keys)
 - firewall snapshots
-- fail2ban/logrotate snippets
+- fail2ban/logrotate custom snippets
 - certbot renewal config (no private keys)
 
 DO NOT COMMIT:
@@ -219,11 +219,11 @@ git add .
 git commit -m "$COMMIT_MSG"
 
 # 17) Optional: connect remote and push
-git remote add origin "$OPS_REMOTE"
+# git remote add origin "$OPS_REMOTE"
 git branch -M master
 git push -u origin master
 
 # 18) Quick validations after backup capture
-sudo nginx -t
-pm2 status
-crontab -l
+# sudo nginx -t
+# pm2 status
+# crontab -l
