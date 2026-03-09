@@ -53,23 +53,23 @@ SNAPSHOT_TS=$(date +%F-%H%M%S)
 # cd "$OPS_REPO_DIR"
 # git init
 
-# 2) Create folders mirroring server config domains
-# mkdir -p etc/nginx/sites-available
-# mkdir -p etc/nginx/sites-enabled
-# mkdir -p etc/systemd/system
-# mkdir -p etc/ssh/sshd_config.d
-# mkdir -p etc/fail2ban/jail.d
-# mkdir -p etc/logrotate.d
-# mkdir -p etc/sudoers.d
-# mkdir -p etc/letsencrypt/renewal
-# mkdir -p var/spool/cron
-# mkdir -p home/gort1975/snorkelology
-# mkdir -p home/gort1975/.pm2
-# mkdir -p home/gort1975/.ssh
-# mkdir -p firewall
-# mkdir -p packages
-# mkdir -p docs
-# mkdir -p scripts
+2) Create folders mirroring server config domains
+mkdir -p etc/nginx/sites-available
+mkdir -p etc/nginx/sites-enabled
+mkdir -p etc/systemd/system
+mkdir -p etc/ssh/sshd_config.d
+mkdir -p etc/fail2ban/jail.d
+mkdir -p etc/logrotate.d
+mkdir -p etc/sudoers.d
+mkdir -p etc/letsencrypt/renewal
+mkdir -p var/spool/cron
+mkdir -p home/gort1975/snorkelology
+mkdir -p home/gort1975/.pm2
+mkdir -p home/gort1975/.ssh
+mkdir -p firewall
+mkdir -p packages
+mkdir -p docs
+mkdir -p scripts
 
 # 3) NGINX (live config)
 sudo cp -a /etc/nginx/sites-available/default etc/nginx/sites-available/default
