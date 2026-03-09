@@ -24,9 +24,8 @@ cd "${REPO_ROOT}"
 if ! output="$(npm run test:ui:paypal:sandbox 2>&1)"; then
   maintenance_log_failure "PayPal sandbox UI test failed"
   if [[ -n "${output}" ]]; then
-    while IFS= read -r line; do
-      [[ -n "${line}" ]] && maintenance_log_failure "npm output: ${line}"
-    done <<< "${output}"
+    echo "$(date -Iseconds) FAILURE ${MAINT_SCRIPT_NAME} npm output:" | tee -a "${MAINT_LOG_FILE}" >&2
+    echo "${output}" | sed 's/^/    /' | tee -a "${MAINT_LOG_FILE}" >&2
   fi
   exit 1
 fi

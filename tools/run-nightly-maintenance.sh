@@ -7,6 +7,17 @@ fi
 
 set -euo pipefail
 
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [[ ! -s "${NVM_SCRIPT}" ]]; then
+  fail "nvm script not found at ${NVM_SCRIPT}"
+fi
+
+# shellcheck disable=SC1090
+. "${NVM_SCRIPT}"
+nvm use
+
+cd "${REPO_ROOT}"
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
@@ -37,9 +48,8 @@ run_check() {
   if ! output="$(NOTIFY_ON_FAILURE=0 LOG_FILE="${MAINT_LOG_FILE}" MAIL_TO="${MAINT_MAIL_TO}" REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}" bash "${script_path}" 2>&1)"; then
     maintenance_log_failure "${script_name} failed"
     if [[ -n "${output}" ]]; then
-      while IFS= read -r line; do
-        [[ -n "${line}" ]] && maintenance_log_failure "${script_name} output: ${line}"
-      done <<< "${output}"
+      echo "$(date -Iseconds) FAILURE ${MAINT_SCRIPT_NAME} ${script_name} output:" | tee -a "${MAINT_LOG_FILE}" >&2
+      echo "${output}" | sed 's/^/    /' | tee -a "${MAINT_LOG_FILE}" >&2
     fi
     return 1
   fi

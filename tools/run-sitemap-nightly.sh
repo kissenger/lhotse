@@ -29,9 +29,8 @@ maintenance_log_success "starting sitemap generation"
 if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node "${SITEMAP_SCRIPT}" 2>&1)"; then
   maintenance_log_failure "nightly sitemap generation failed"
   if [[ -n "${output}" ]]; then
-    while IFS= read -r line; do
-      [[ -n "${line}" ]] && maintenance_log_failure "node output: ${line}"
-    done <<< "${output}"
+    echo "$(date -Iseconds) FAILURE ${MAINT_SCRIPT_NAME} node output:" | tee -a "${MAINT_LOG_FILE}" >&2
+    echo "${output}" | sed 's/^/    /' | tee -a "${MAINT_LOG_FILE}" >&2
   fi
   exit 1
 fi

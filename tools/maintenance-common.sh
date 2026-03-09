@@ -74,7 +74,7 @@ maintenance_log_success() {
   local message="$1"
   local line=""
 
-  line="$(date -Iseconds) SUCCESS ${MAINT_SCRIPT_NAME} ${message}"
+  line="$(date -Iseconds) ${MAINT_SCRIPT_NAME} ${message}"
   echo "${line}" | tee -a "${MAINT_LOG_FILE}"
   maintenance_trim_log
 }
