@@ -49,16 +49,20 @@ wait_for_pm2_online() {
   local attempt=1
 
   while [[ "${attempt}" -le "${max_attempts}" ]]; do
-    if pm2 describe "${app_name}" 2>/dev/null | grep -Eq 'status\s+online'; then
-      log "PM2 process ${app_name} is online"
+    local status_line
+    status_line=$(pm2 describe "${app_name}" 2>/dev/null | grep -E 'status\\s+')
+    log "PM2 status line: $status_line"
+    if echo "$status_line" | grep -Eq 'online|running'; then
+      log "PM2 process ${app_name} is online/running"
       return 0
     fi
-    log "waiting for PM2 process ${app_name} to become online (attempt ${attempt}/${max_attempts})"
+    log "waiting for PM2 process ${app_name} to become online/running (attempt ${attempt}/${max_attempts})"
     sleep "${sleep_seconds}"
     attempt=$((attempt + 1))
   done
-
-  fail "PM2 process ${app_name} did not become online"
+  log "Final PM2 describe output:"
+  pm2 describe "${app_name}"
+  fail "PM2 process ${app_name} did not become online/running"
 }
 
 wait_for_http_health() {
