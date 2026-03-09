@@ -29,7 +29,7 @@ git checkout "$OPS_BRANCH"
 # 2) Create folder structure
 if [ -d "$OPS_REPO_DIR" ]; then
   echo "Deleting existing ops repo directory: $OPS_REPO_DIR"
-  rm -rf "$OPS_REPO_DIR"
+  sudo rm -rf "$OPS_REPO_DIR"
 fi
 mkdir -p "$OPS_REPO_DIR"
 cd "$OPS_REPO_DIR"
