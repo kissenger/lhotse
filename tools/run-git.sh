@@ -53,7 +53,7 @@ SNAPSHOT_TS=$(date +%F-%H%M%S)
 # cd "$OPS_REPO_DIR"
 # git init
 
-2) Create folders mirroring server config domains
+# 2) Create folders mirroring server config domains
 mkdir -p etc/nginx/sites-available
 mkdir -p etc/nginx/sites-enabled
 mkdir -p etc/systemd/system
