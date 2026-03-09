@@ -16,10 +16,9 @@ fi
 . "${NVM_SCRIPT}"
 nvm use
 
-cd "${REPO_ROOT}"
-
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
 source "${SCRIPT_DIR}/maintenance-common.sh"
 
 ENV_FILE="${REPO_ROOT}/.env"
