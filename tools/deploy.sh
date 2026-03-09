@@ -159,6 +159,8 @@ npm run "build:${TARGET_BRANCH}"
 pm2 restart "snorkelology_${TARGET_BRANCH}"
 pm2 save
 
+log "Running health checks after PM2 restart..."
+log "HEALTHCHECK_URL: ${HEALTHCHECK_URL}"
 wait_for_pm2_online "snorkelology_${TARGET_BRANCH}" "10" "3"
 wait_for_http_health "${HEALTHCHECK_URL}" "${HEALTHCHECK_TIMEOUT_SEC}" "${HEALTHCHECK_INTERVAL_SEC}"
 
