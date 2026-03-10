@@ -61,8 +61,6 @@ run_check() {
     return 1
   fi
 
-  printSuccess "${script} completed OK"
-
   return 0
 }
 
