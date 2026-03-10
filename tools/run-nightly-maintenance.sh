@@ -17,7 +17,7 @@ SCRIPT_DIR="$(dirname -- "${SCRIPT_PATH}")"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
 
-. "/home/gort1975/snorkelology/.nvm/nvm.sh"
+. "/home/gort1975/.nvm/nvm.sh"
 nvm use
 
 ENV_FILE="${REPO_ROOT}/.env"
