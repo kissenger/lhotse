@@ -12,6 +12,8 @@ if [[ ! -s "${NVM_SCRIPT}" ]]; then
   fail "nvm script not found at ${NVM_SCRIPT}"
 fi
 
+cd "/home/gort1975/snorkelology"
+
 # shellcheck disable=SC1090
 . "${NVM_SCRIPT}"
 nvm use
