@@ -66,9 +66,9 @@ run_check() {
   return 0
 }
 
-run_check "run-paypal-nightly.sh" || HAS_FAILURE=1
-run_check "run-sitemap-nightly.sh" || HAS_FAILURE=1
-run_check "run-mongo-backup-nightly.sh" || HAS_FAILURE=1
+run_check "run-paypal-test.sh" || HAS_FAILURE=1
+run_check "run-generate-sitemap.sh" || HAS_FAILURE=1
+run_check "run-mongo-backup.sh" || HAS_FAILURE=1
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
   printError "Scheduled maintenance completed with failures"
