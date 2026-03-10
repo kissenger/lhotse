@@ -14,6 +14,7 @@ source "/home/gort1975/snorkelology/.env"
 set +a
 
 # read .env variables
+TIMESTAMP="$(date -Iseconds)"
 LOG_FILE="${LOG_FILE}"
 DB_NAMES="snorkelology"
 RETENTION_DAYS="30"
@@ -30,10 +31,10 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "$(date -Iseconds) Starting mongo backup" | tee -a "${LOG_FILE}" >&2
+echo "${TIMESTAMP} Starting mongo backup" | tee -a "${LOG_FILE}" >&2
 
 printErrorAndExit() {
-  echo "$(date -Iseconds) FAILURE ${1}" | tee -a "${LOG_FILE}" >&2
+  echo "${TIMESTAMP} FAILURE ${1}" | tee -a "${LOG_FILE}" >&2
   exit 1
 }
 
@@ -67,4 +68,4 @@ tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
 find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
 
 # Finish
-echo "$(date -Iseconds) Mongo backup completed OK" | tee -a "${LOG_FILE}" >&2
+echo "${TIMESTAMP} Mongo backup completed OK" | tee -a "${LOG_FILE}" >&2
