@@ -23,7 +23,7 @@ cd "/home/gort1975/snorkelology/"
 echo "$(date -Iseconds) Starting paypal checks" | tee -a "${LOG_FILE}" >&2
 
 # run checks
-if ! output="$(npm run test:ui:paypal:sandbox -- --config /home/gort1975/snorkelology/playwright.config.ts 2>&1)"; then
+if ! output="$(npm run test:ui:paypal:sandbox -- --config ./playwright.config.ts 2>&1)"; then
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) ${output}" | tee -a "${LOG_FILE}" >&2
   fi
