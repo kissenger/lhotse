@@ -18,7 +18,7 @@ LOG_FILE="${LOG_FILE}"
 SITEMAP_OUTPUT_DIR="${SITEMAP_OUTPUT_DIR}"
 
 # move to working directory
-cd "/gort1975/snorkelology/"
+cd "/home/gort1975/snorkelology/"
 
 # print working status
 echo "$(date -Iseconds) Starting sitemap generation" | tee -a "${LOG_FILE}" >&2

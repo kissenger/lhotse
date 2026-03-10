@@ -24,7 +24,7 @@ ARCHIVE_PATH="${BACKUP_ROOT}/dump-${TIMESTAMP}.tar.gz"
 LOCK_FILE="${BACKUP_ROOT}/.backup.lock"
 
 # move to working directory
-cd "/gort1975/snorkelology/"
+cd "/home/gort1975/snorkelology/"
 
 # print working status
 echo "$(date -Iseconds) Starting mongo backup" | tee -a "${LOG_FILE}" >&2

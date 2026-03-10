@@ -23,7 +23,7 @@ MAIL_TO="${MAIL_TO}"
 REBOOT_FLAG_FILE="/home/gort1975/snorkelology/.reboot-required"
 
 # move to working directory
-cd "/gort1975/snorkelology/"
+cd "/home/gort1975/snorkelology/"
 
 # print working status
 echo "$(date -Iseconds) ** Starting scheduled maintenance" | tee -a "${LOG_FILE}" >&2

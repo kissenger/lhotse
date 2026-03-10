@@ -17,7 +17,7 @@ set +a
 LOG_FILE="${LOG_FILE}"
 
 # move to working directory
-cd "/gort1975/snorkelology/"
+cd "/home/gort1975/snorkelology/"
 
 # print working status
 echo "$(date -Iseconds) Starting paypal checks" | tee -a "${LOG_FILE}" >&2
