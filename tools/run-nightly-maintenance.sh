@@ -8,14 +8,12 @@ fi
 set -euo pipefail
 # shellcheck disable=SC1090
 
-
-
-
-
-SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
-SCRIPT_DIR="$(dirname -- "${SCRIPT_PATH}")"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_PATH="home/gort1975/snorkelology/tools/run-nightly-maintenance.sh"
+SCRIPT_DIR="home/gort1975/snorkelology/tools"
+REPO_ROOT="home/gort1975/snorkelology"
 source "${SCRIPT_DIR}/maintenance-common.sh"
+
+cd "${REPO_ROOT}"
 
 . "/home/gort1975/.nvm/nvm.sh"
 nvm use
