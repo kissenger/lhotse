@@ -42,7 +42,7 @@ printSuccess() {
 }
 
 sendEmail() {
-  if ! printf 'Subject: %s\n\n%s\n' Server Scheduled Maintenance Error "${ERROR_LINES}" | msmtp -a default "${MAIL_TO}"; then
+  if ! echo -e "Subject: Server Scheduled Maintenance Error\n\n${ERROR_LINES}" | msmtp -a default "${MAIL_TO}"; then
     echo "$(date -Iseconds) FAILURE Unable to send failure email via msmtp" | tee -a "${LOG_FILE}" >&2
   fi
 }
