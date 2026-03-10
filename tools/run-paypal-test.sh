@@ -10,7 +10,7 @@ set -euo pipefail
 # import .env file
 set -a
 # shellcheck disable=SC1090
-source "/gort1975/snorkelology/.env"
+source "/home/gort1975/snorkelology/.env"
 set +a
 
 # read .env variables
