@@ -20,6 +20,9 @@ SITEMAP_OUTPUT_DIR="${SITEMAP_OUTPUT_DIR}"
 # move to working directory
 cd "/home/gort1975/snorkelology/"
 
+. "/home/gort1975/.nvm/nvm.sh"
+nvm use
+
 # print working status
 echo "$(date -Iseconds) Starting sitemap generation" | tee -a "${LOG_FILE}" >&2
 

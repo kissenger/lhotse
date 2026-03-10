@@ -19,6 +19,9 @@ LOG_FILE="${LOG_FILE}"
 # move to working directory
 cd "/home/gort1975/snorkelology/"
 
+. "/home/gort1975/.nvm/nvm.sh"
+nvm use
+
 # print working status
 echo "$(date -Iseconds) Starting paypal checks" | tee -a "${LOG_FILE}" >&2
 

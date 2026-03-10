@@ -28,6 +28,9 @@ cd "/home/gort1975/snorkelology/"
 # print working status
 echo "$(date -Iseconds) ** Starting scheduled maintenance" | tee -a "${LOG_FILE}" >&2
 
+. "/home/gort1975/.nvm/nvm.sh"
+nvm use
+
 printError() {
   errorMessage="$(date -Iseconds) FAILURE  ${1}"
   echo "${errorMessage}" | tee -a "${LOG_FILE}" >&2

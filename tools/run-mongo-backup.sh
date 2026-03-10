@@ -26,6 +26,9 @@ LOCK_FILE="${BACKUP_ROOT}/.backup.lock"
 # move to working directory
 cd "/home/gort1975/snorkelology/"
 
+. "/home/gort1975/.nvm/nvm.sh"
+nvm use
+
 # print working status
 echo "$(date -Iseconds) Starting mongo backup" | tee -a "${LOG_FILE}" >&2
 
