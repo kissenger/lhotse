@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# If invoked with sh/dash, re-run with bash so pipefail and bash syntax work.
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
+set -euo pipefail
+
+# import .env file
+set -a
+# shellcheck disable=SC1090
+source "/gort1975/snorkelology/.env"
+set +a
+
+# read .env variables
+LOG_FILE="${LOG_FILE}"
+
+# move to working directory
+cd "/gort1975/snorkelology/"
+
+# print working status
+echo "$(date -Iseconds) Starting paypal checks" | tee -a "${LOG_FILE}" >&2
+
+# run checks
+if ! output="$(npm run test:ui:paypal:sandbox -- --config /gort1975/snorkelology/playwright.config.ts 2>&1)"; then
+  if [[ -n "${output}" ]]; then
+    echo "$(date -Iseconds) ${output}" | tee -a "${LOG_FILE}" >&2
+  fi
+  exit 1
+fi
+
+echo "$(date -Iseconds) Paypal checks completed OK" | tee -a "${LOG_FILE}" >&2

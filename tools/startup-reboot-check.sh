@@ -1,40 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# 1. Bash Auto-Switcher
+# If invoked with sh/dash, re-run with bash so pipefail and bash syntax work.
 if [ -z "${BASH_VERSION:-}" ]; then
   exec bash "$0" "$@"
 fi
 
-# 2. Strict Mode
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-source "${SCRIPT_DIR}/maintenance-common.sh"
+# import .env file
+set -a
+# shellcheck disable=SC1090
+source "/gort1975/snorkelology/.env"
+set +a
 
-ENV_FILE="${REPO_ROOT}/.env"
-# Source .env and set unified log file
-if [[ -f "${ENV_FILE}" ]]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "${ENV_FILE}"
-    set +a
-else
-    echo "Environment file not found: ${ENV_FILE}" >&2
-    exit 1
-fi
+# read .env variables
+LOG_FILE="${LOG_FILE}"
+REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}"
 
-MAINT_LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/maintenance.log}"
-maintenance_init "startup-reboot-check.sh" "${ENV_FILE}" "${MAINT_LOG_FILE}"
-trap 'maintenance_finalize "$?"' EXIT
-
-if [[ -z "${REBOOT_FLAG_FILE:-}" ]]; then
-    maintenance_fail "REBOOT_FLAG_FILE variable missing from ${ENV_FILE}"
-fi
+sendEmail() {
+  if ! printf 'Subject: %s\n\n%s\n' Server Scheduled Maintenance Error "${ERROR_LINES}" | msmtp -a default "${MAIL_TO}"; then
+    echo "$(date -Iseconds) FAILURE Unable to send failure email via msmtp" | tee -a "${LOG_FILE}" >&2
+  fi
+}
 
 if [[ -f "${REBOOT_FLAG_FILE}" ]]; then
-    rm -f "${REBOOT_FLAG_FILE}"
-    maintenance_log_success "scheduled reboot detected and flag cleared"
+  rm -f "${REBOOT_FLAG_FILE}"
+  echo "$(date -Iseconds) Scheduled reboot detected and flag cleared" | tee -a "${LOG_FILE}" >&2
 else
-    maintenance_fail "unscheduled reboot detected"
+  echo "$(date -Iseconds) Unscheduled reboot detected, sending email alert" | tee -a "${LOG_FILE}" >&2
+  sendEmail
 fi
