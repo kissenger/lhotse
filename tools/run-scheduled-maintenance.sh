@@ -86,6 +86,6 @@ sync
 printSuccess "Filesystem sync completed"
 
 # Reboot host  
-printSuccess "Initiating reboot now ..."
-sleep 1
-sudo /sbin/reboot now
+#printSuccess "Initiating reboot now ..."
+#sleep 1
+#sudo /sbin/reboot now
