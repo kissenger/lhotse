@@ -20,7 +20,7 @@ SCRIPT_DIR="/home/gort1975/snorkelology/tools"
 HAS_FAILURE=0
 ERROR_LINES=""
 MAIL_TO="${MAIL_TO}"
-REBOOT_FLAG_FILE="/home/gort1975/snorkelology/.reboot-required"
+REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}"
 
 # move to working directory
 cd "/home/gort1975/snorkelology/"
@@ -86,6 +86,6 @@ sync
 printSuccess "Filesystem sync completed"
 
 # Reboot host  
-#printSuccess "Initiating reboot now ..."
-#sleep 1
-#sudo /sbin/reboot now
+printSuccess "Initiating reboot now ..."
+sleep 1
+sudo /sbin/reboot now
