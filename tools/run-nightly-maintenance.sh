@@ -6,11 +6,9 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 
 set -euo pipefail
+# shellcheck disable=SC1090
 
-NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
-if [[ ! -s "${NVM_SCRIPT}" ]]; then
-  fail "nvm script not found at ${NVM_SCRIPT}"
-fi
+
 
 
 
@@ -18,10 +16,11 @@ SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname -- "${SCRIPT_PATH}")"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
+echo pwd
 
-# shellcheck disable=SC1090
 . "${NVM_SCRIPT}"
 nvm use
+
 ENV_FILE="${REPO_ROOT}/.env"
 DEFAULT_LOG_FILE="${REPO_ROOT}/logs/nightly-maintenance.log"
 
