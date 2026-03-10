@@ -7,11 +7,10 @@ fi
 
 set -euo pipefail
 
-SCRIPT_PATH="/home/gort1975/snorkelology/tools/run-nightly-maintenance.sh"
-SCRIPT_DIR="/home/gort1975/snorkelology/tools"
-REPO_ROOT="/home/gort1975/snorkelology"
+SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname -- "${SCRIPT_PATH}")"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 source "${SCRIPT_DIR}/maintenance-common.sh"
-
 cd "${REPO_ROOT}"
 
 ENV_FILE="${REPO_ROOT}/.env"
@@ -32,7 +31,7 @@ trap 'maintenance_finalize "$?"' EXIT
 
 cd "${REPO_ROOT}"
 
-if ! output="$(npm run test:ui:paypal:sandbox 2>&1)"; then
+if ! output="$(npm run test:ui:paypal:sandbox -- --config ${REPO_ROOT}/playwright.config.ts 2>&1)"; then
   maintenance_log_failure "PayPal sandbox UI test failed"
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) FAILURE ${MAINT_SCRIPT_NAME} npm output:" | tee -a "${MAINT_LOG_FILE}" >&2
