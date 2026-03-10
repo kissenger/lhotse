@@ -38,7 +38,7 @@ printError() {
 }
 
 printSuccess() {
-  echo "$(date -Iseconds) SUCCESS: ${1}" | tee -a "${LOG_FILE}" >&2
+  echo "$(date -Iseconds) ${1}" | tee -a "${LOG_FILE}" >&2
 }
 
 sendEmail() {

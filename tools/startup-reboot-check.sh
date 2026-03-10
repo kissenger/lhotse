@@ -18,7 +18,7 @@ LOG_FILE="${LOG_FILE}"
 REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}"
 
 sendEmail() {
-  if ! echo -e "Subject: Server Scheduled Maintenance Error\n\n${ERROR_LINES}" | msmtp -a default "${MAIL_TO}"; then
+  if ! echo -e "Subject: Unscheduled reboot alert\n\nUnscheduled server reboot at$(date -Iseconds)" | msmtp -a default "${MAIL_TO}"; then
     echo "$(date -Iseconds) FAILURE Unable to send failure email via msmtp" | tee -a "${LOG_FILE}" >&2
   fi
 }
