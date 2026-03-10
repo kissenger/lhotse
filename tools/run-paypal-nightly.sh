@@ -10,6 +10,7 @@ set -euo pipefail
 SCRIPT_PATH="/home/gort1975/snorkelology/tools/run-nightly-maintenance.sh"
 SCRIPT_DIR="/home/gort1975/snorkelology/tools"
 REPO_ROOT="/home/gort1975/snorkelology"
+source "${SCRIPT_DIR}/maintenance-common.sh"
 
 cd "${REPO_ROOT}"
 
