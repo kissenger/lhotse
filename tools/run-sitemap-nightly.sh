@@ -7,9 +7,11 @@ fi
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-source "${SCRIPT_DIR}/maintenance-common.sh"
+SCRIPT_PATH="/home/gort1975/snorkelology/tools/run-nightly-maintenance.sh"
+SCRIPT_DIR="/home/gort1975/snorkelology/tools"
+REPO_ROOT="/home/gort1975/snorkelology"
+
+cd "${REPO_ROOT}"
 
 SITEMAP_SCRIPT="/home/gort1975/snorkelology/tools/generate-sitemap.mjs"
 SITEMAP_OUTPUT_DIR="/home/gort1975/snorkelology/dist/prod/browser"
