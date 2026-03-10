@@ -12,15 +12,13 @@ if [[ ! -s "${NVM_SCRIPT}" ]]; then
   fail "nvm script not found at ${NVM_SCRIPT}"
 fi
 
-cd "/home/gort1975/snorkelology"
-
 # shellcheck disable=SC1090
 . "${NVM_SCRIPT}"
 nvm use
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$(readlink -f -- "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname -- "${SCRIPT_PATH}")"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-cd "${REPO_ROOT}"
 source "${SCRIPT_DIR}/maintenance-common.sh"
 
 ENV_FILE="${REPO_ROOT}/.env"
