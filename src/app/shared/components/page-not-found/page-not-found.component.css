@@ -1,5 +1,8 @@
 
 .full-page-centered-container > div {
   margin-inline: auto;
-  margin-top: 10vh;
+}
+
+.full-page-centered-container {
+  margin-top: 20vh;
 }

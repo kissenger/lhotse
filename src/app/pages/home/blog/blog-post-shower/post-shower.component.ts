@@ -62,9 +62,11 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         })
       )
       .subscribe({
+        
         next: (result: any) => {
           if (!result || !result.article) {
-            this._router.navigateByUrl('/404');
+            
+            this._router.navigateByUrl(`${this._router.url}/404`);
             return;
           }
 
@@ -87,11 +89,10 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           if (updatedMonth > new Date(createdMonth.setMonth(createdMonth.getMonth()+1)) ) {
             this.showUpdatedAt = true;
           }
-          console.log(this.post)
           this._cdr.detectChanges();
         },
         error: () => {
-          this._router.navigateByUrl('/404');
+          this._router.navigateByUrl(`${this._router.url}/404`);
         }
       });
   }
