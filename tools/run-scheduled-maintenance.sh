@@ -68,6 +68,29 @@ run_check "run-paypal-test.sh" || HAS_FAILURE=1
 run_check "run-generate-sitemap.sh" || HAS_FAILURE=1
 run_check "run-mongo-backup.sh" || HAS_FAILURE=1
 
+
+
+# Test msmtp config (no email sent)
+printSuccess "Testing msmtp email configuration by verifying connection to ${MAIL_TO}"
+if msmtp --verify -a default "${MAIL_TO}"; then
+  printSuccess "msmtp config verified successfully"
+else
+  printError "msmtp config verification failed"
+fi
+
+# Let's Encrypt certificate status
+printSuccess "Checking Let's Encrypt certificate status"
+if command -v certbot >/dev/null 2>&1; then
+  certbot certificates | tee -a "${LOG_FILE}" >&2
+  next_renewal=$(certbot certificates 2>/dev/null | grep 'NEXT RENEWAL' | awk -F': ' '{print $2}')
+  if [ -n "$next_renewal" ]; then
+    printSuccess "Next renewal date: $next_renewal"
+  fi
+else
+  printError "certbot not found, skipping certificate check"
+fi
+
+
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
   printError "Scheduled maintenance completed with failures"
   sendEmail

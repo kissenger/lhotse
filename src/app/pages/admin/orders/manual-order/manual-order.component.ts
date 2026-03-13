@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { OrderSummary } from '@shared/types';
 import { ShopService, User } from '@shared/services/shop.service'
@@ -13,7 +13,8 @@ import { switchMap, of } from 'rxjs';
   imports: [ FormsModule],  
   providers: [], 
   templateUrl: './manual-order.component.html',
-  styleUrl: './manual-order.component.css'
+  styleUrl: './manual-order.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class ManualOrderComponent  {
@@ -30,7 +31,8 @@ export class ManualOrderComponent  {
     public shop: ShopService,    
     private _http: HttpService,
     @Inject(ActivatedRoute) private _route: ActivatedRoute,
-    @Inject(Router) private _router: Router   
+    @Inject(Router) private _router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.shop.reset();
     this.shop.basket.add(this.shop.item("0001"),this.selectedQty);
@@ -56,6 +58,7 @@ export class ManualOrderComponent  {
             (<HTMLInputElement>document.getElementById("existing-notes")).value = order.notes;
           }
           this.shop.user.setDetails = order.user;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -83,29 +86,20 @@ export class ManualOrderComponent  {
     try {
       const order = await this._http.getOrderByOrderNumber(this.selectedOrderNumber);
       this.shop.user.setDetails = order.user;
+      this.cdr.markForCheck();
     } catch (error) {
       console.error(error);
     }
   }
 
   async fillDropdown() {
-
-    // let orders: Array<OrderSummary> = [];
     try {
       const os = await this._http.getOrders(true, true, false, 'completed', '') as Array<OrderSummary>;
       this.orders = os.filter((o: OrderSummary) => !!o.orderNumber);
+      this.cdr.markForCheck();
     } catch (error) {
       console.error(error);
     }
-
-    //Set filters duplicates
-    // this.prefillDropdownList = [...new Set(
-    //   orders
-    //     .map( o => `${o.user.name}, ${o.user.address.address_line_1}, ${o.user.address.postal_code}`)
-    //     .sort()
-    //   )];
-
-
   }
 
 
