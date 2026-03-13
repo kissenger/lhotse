@@ -1,5 +1,5 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component, ElementRef, Inject, QueryList, ViewChildren } from '@angular/core';
+import { Component, ElementRef, Inject, QueryList, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ExportFileService } from '@shared/services/export.service';
@@ -12,7 +12,8 @@ import { OrderStatus, OrderSummary } from '@shared/types';
   imports: [NgClass, FormsModule, CurrencyPipe, RouterLink],
   providers: [],
   templateUrl: './orders.component.html',
-  styleUrl: './orders.component.css'
+  styleUrl: './orders.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OrdersComponent {
   public filterManual = true;
@@ -30,7 +31,8 @@ export class OrdersComponent {
   constructor(
     private _http: HttpService,
     private _exportCSV: ExportFileService,
-    @Inject(Router) private _router: Router
+    @Inject(Router) private _router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -76,6 +78,7 @@ export class OrdersComponent {
         this.textSearch
       )) as Array<OrderSummary>;
       this.orders = os.filter((o: OrderSummary) => !!o.orderNumber);
+      this.cdr.markForCheck();
     } catch (error) {
       console.error(error);
     } finally {
@@ -100,6 +103,7 @@ export class OrdersComponent {
         }, 0) + acc,
       0
     );
+    this.cdr.markForCheck();
   }
 
   async onSetStatus(orderNumber: string | undefined, set: string) {
