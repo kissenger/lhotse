@@ -72,8 +72,9 @@ run_check "run-mongo-backup.sh" || HAS_FAILURE=1
 ERROR_MSG=$(sudo certbot renew --cert-name snorkelology.co.uk --dry-run 2>&1)
 if [ $? -ne 0 ]; then
     printError "Certbot dry-run failed with error: ${ERROR_MSG}"
+    HAS_FAILURE=1
 else
-    printSuccess "Certbot dry-run succesful"
+    printSuccess "Certbot dry-run successful"
 fi
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
