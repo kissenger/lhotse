@@ -69,27 +69,12 @@ run_check "run-generate-sitemap.sh" || HAS_FAILURE=1
 run_check "run-mongo-backup.sh" || HAS_FAILURE=1
 
 # Let's Encrypt certificate status and dry-run renewal
-CERTBOT_CONFIG_DIR="$HOME/.certbot/config"
-CERTBOT_WORK_DIR="$HOME/.certbot/work"
-CERTBOT_LOGS_DIR="$HOME/.certbot/logs"
-mkdir -p "$CERTBOT_CONFIG_DIR" "$CERTBOT_WORK_DIR" "$CERTBOT_LOGS_DIR"
-if command -v certbot >/dev/null 2>&1; then
-  certbot renew --dry-run --config-dir "$CERTBOT_CONFIG_DIR" --work-dir "$CERTBOT_WORK_DIR" --logs-dir "$CERTBOT_LOGS_DIR" | tee -a "${LOG_FILE}" >&2
-  dryrun_status=$?
-  if [ $dryrun_status -eq 0 ]; then
-    printSuccess "Certbot dry-run succesful"
-  else
-    printError "Certbot dry-run failed"
-  fi
-  certbot certificates --config-dir "$CERTBOT_CONFIG_DIR" --work-dir "$CERTBOT_WORK_DIR" --logs-dir "$CERTBOT_LOGS_DIR" | tee -a "${LOG_FILE}" >&2
-  next_renewal=$(certbot certificates --config-dir "$CERTBOT_CONFIG_DIR" --work-dir "$CERTBOT_WORK_DIR" --logs-dir "$CERTBOT_LOGS_DIR" 2>/dev/null | grep 'NEXT RENEWAL' | awk -F': ' '{print $2}')
-  if [ -n "$next_renewal" ]; then
-    printSuccess "Certbot renewal date: $next_renewal"
-  fi
+ERROR_MSG=$(sudo certbot renew --cert-name snorkelology.co.uk --dry-run 2>&1)
+if [ $? -ne 0 ]; then
+    printError "Certbot dry-run failed with error: ${ERROR_MSG}"
 else
-  printError "Certbot not found, skipping checks"
+    printSuccess "Certbot dry-run succesful"
 fi
-
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
   printError "Scheduled maintenance completed with failures"
