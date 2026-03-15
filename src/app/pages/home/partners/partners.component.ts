@@ -1,9 +1,7 @@
 import { Component } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 
 @Component({  
   standalone: true,
-  imports: [NgOptimizedImage],
   selector: 'app-partners',
   templateUrl: './partners.component.html',
   styleUrls: ['./partners.component.css']
@@ -12,10 +10,10 @@ export class PartnersComponent {
 
   public images = [
     {
-      url: "partners/marla-logo.webp",
+      url: "partners/marla_logo.webp",
       href: 'https://www.marla.blue/',
       alt: 'Marla Blue Logo',
-      size: { height: 100, width: 147}
+      size: { height: 60, width: 273}
     },       
     {
       url: "partners/bsac-logo.webp",
