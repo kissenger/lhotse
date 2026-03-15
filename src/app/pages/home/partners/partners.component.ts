@@ -12,6 +12,12 @@ export class PartnersComponent {
 
   public images = [
     {
+      url: "partners/marla-logo.webp",
+      href: 'https://www.marla.blue/',
+      alt: 'Marla Blue Logo',
+      size: { height: 100, width: 147}
+    },       
+    {
       url: "partners/bsac-logo.webp",
       href: 'https://www.bsac.com/',
       alt: 'British Sub Aqua Club Logo',
