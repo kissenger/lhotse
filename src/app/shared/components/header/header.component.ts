@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
@@ -42,16 +42,22 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     @Inject(Router) private _router: Router,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
+    private _cdr: ChangeDetectorRef,
   ) {
-    this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
-      .subscribe(() => {
-        this._scrSubs?.unsubscribe();
-        this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe( (isect) => {
-          if (isect.ratio > 0.2) {
-            this.activeMenuItem = this.menuItems.find( item => item.anchor === isect.id)?.name;
-          };
-        });
+    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe((isect) => {
+      const activeMenuItem = this.menuItems.find((item) => item.anchor === isect.id)?.name;
+      if (activeMenuItem) {
+        this.activeMenuItem = activeMenuItem;
+        this._cdr.detectChanges();
+      }
     });
+
+    this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.syncActiveMenuItemToRoute(event.urlAfterRedirects);
+    });
+
+    this.syncActiveMenuItemToRoute(this._router.url);
   }
  
   ngAfterViewInit() {
@@ -94,6 +100,23 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
     this._routeSubs?.unsubscribe();
+  }
+
+  private syncActiveMenuItemToRoute(url: string | undefined) {
+    if (!url) {
+      return;
+    }
+
+    const [path, fragment] = url.split('#');
+    const isHomeRoute = path === '/' || path === '/home' || path === '';
+
+    if (!isHomeRoute) {
+      this.activeMenuItem = undefined;
+      return;
+    }
+
+    const activeMenuItem = this.menuItems.find((item) => item.anchor === fragment)?.name;
+    this.activeMenuItem = activeMenuItem ?? 'Home';
   }
 
 }
