@@ -38,7 +38,7 @@ export const shopItems = {
     description: "Pack of 5 x Snorkelology logo sticker (50mm diameter)",
     unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
-      src: 'photos/shop/Snorkelology Logo Sticker v2.png',
+      src: 'banner/snround.webp',
       alt: 'Image showing Snorkelology Logo sticker design'
     }],
     dimensions: {
