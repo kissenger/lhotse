@@ -1,0 +1,379 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - link "Visit Snorkelology home page" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - img "Snorkelology logo" [ref=e7]
+    - generic [ref=e8]:
+      - list [ref=e9]:
+        - listitem [ref=e10]: Home
+        - listitem [ref=e11]: Blog
+        - listitem [ref=e12]: Book
+        - listitem [ref=e13] [cursor=pointer]: Shop
+        - listitem [ref=e14]: Map
+        - listitem [ref=e15]: Friends
+      - generic [ref=e16]:
+        - link "See Snorkelology videos on Youtube" [ref=e17] [cursor=pointer]:
+          - /url: https://www.youtube.com/@snorkelology
+          - img [ref=e19]
+        - link "Find Snorkelology on Facebook" [ref=e22] [cursor=pointer]:
+          - /url: https://www.facebook.com/snorkelology
+          - img [ref=e24]
+        - link "Find Snorkelology on Instagram" [ref=e27] [cursor=pointer]:
+          - /url: https://www.instagram.com/snorkelology/
+          - img [ref=e29]
+        - link "Send Snorkelology an email" [ref=e31] [cursor=pointer]:
+          - /url: mailto:%68%65%6C%6C%6F%40%73%6E%6F%72%6B%65%6C%6F%6C%6F%67%79%2E%63%6F%2E%75%6B
+          - img [ref=e33]
+  - main [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img "Photo of child walking up a beach holding snorkelling gear with blue-green sea behind" [ref=e46]
+            - generic [ref=e48]:
+              - heading "Welcome to Snorkelology" [level=1] [ref=e49]
+              - paragraph [ref=e50]: Discover the wonders of British snorkelling for all the family
+          - generic [ref=e51]:
+            - img "Snorkelling Britain book cover with drone view of woman snorkelling behind" [ref=e52]
+            - generic [ref=e54]:
+              - heading "Snorkelling Britain" [level=1] [ref=e55]
+              - paragraph [ref=e56]: Find out about our new guidebook to 100 British snorkelling sites
+          - generic [ref=e57]:
+            - img "Photo showing children pointing at marine life while snorkelling in a rock pool" [ref=e58]
+            - generic [ref=e60]:
+              - heading "Learn about British snorkelling" [level=1] [ref=e61]
+              - paragraph [ref=e62]: Explore our content to discover a fascinating underwater world
+          - generic [ref=e63]:
+            - img "Photo of child walking up a beach holding snorkelling gear with blue-green sea behind" [ref=e64]
+            - generic [ref=e66]:
+              - heading "Welcome to Snorkelology" [level=1] [ref=e67]
+              - paragraph [ref=e68]: Discover the wonders of British snorkelling for all the family
+        - img [ref=e70] [cursor=pointer]
+        - img [ref=e72] [cursor=pointer]
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - heading "Snorkelling in Britain" [level=1] [ref=e77]
+          - paragraph [ref=e78]: Welcome to Snorkelology - where we give a glimpse beneath the waves We are all about snorkelling in Britain. Find out about the best British snorkelling sites, snorkelling hints and tips,
+          - paragraph [ref=e79]: The British coastline is one of the world's most dynamic, thriving marine habitats.
+          - paragraph [ref=e80]: This diversity is driven by the combination of high tidal range and strong currents around our shores, which bring warm, nutrient-rich waters from the Atlantic to the surface, promoting plankton growth – the foundation of the marine food chain.
+          - paragraph [ref=e81]: When conditions are right, snorkelling in Britain brings a connection with marine life that can equal any tropical location.
+          - paragraph [ref=e82]: "The sheer variety on offer is stunning: you can snorkel Scottish sea lochs, sheltered bays, shipwrecks, tidal pools, kelp forests, sandy seabeds and rocky reefs; witness sharks, seals, scorpionfish, octopus, and cuttlefish; watch the sun rising through sea arches or spy conger eels hunting in the dusk; immerse yourself in the miniature world of the many and various sea slugs and marvel at the unimaginable enormity of the oceans."
+        - img "Photo of child swimming underwater while snorkelling in Cornwall, Britain" [ref=e84]
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - heading "Learn About British Snorkelling" [level=1] [ref=e89]
+        - paragraph [ref=e90]: Find out more about snorkelling in Britain with Snorkelology ... we have written some information-packed articles to give hints and tips to new and experienced snorkellers alike. Have a dig around, and let us know if there are any British snorkelling topics you'd like us to cover.
+        - paragraph [ref=e91]:
+          - text: "Filter by keyword:"
+          - button "Select All" [ref=e92]
+          - button "Deselect All" [ref=e93]
+        - generic [ref=e94]: Advice for Beginners
+        - generic [ref=e95]: Conservation
+        - generic [ref=e96]: Cornwall
+        - generic [ref=e97]: Devon
+        - generic [ref=e98]: Dorset
+        - generic [ref=e99]: Falmouth
+        - generic [ref=e100]: In The Media
+        - generic [ref=e101]: Inspiration
+        - generic [ref=e102]: Marine Life
+        - generic [ref=e103]: Pembroke
+        - generic [ref=e104]: Photography
+        - generic [ref=e105]: Plymouth
+        - generic [ref=e106]: Seagrass
+        - generic [ref=e107]: Snorkelling Britain
+        - generic [ref=e108]: Snorkelling Gear
+        - generic [ref=e109]: Snorkelling Safety
+        - generic [ref=e110]: Snorkelling Science
+        - generic [ref=e111]: Snorkelling Sites
+        - generic [ref=e112]: Wales
+        - generic [ref=e113]: Weymouth
+      - generic [ref=e114]:
+        - generic [ref=e115]:
+          - 'generic "Read blog post: The Health Benefits of Snorkelling" [ref=e117]':
+            - img "A british snorkeller in a wetsuit snorkelling near some rocks" [ref=e119]
+            - heading "The Health Benefits of Snorkelling" [level=2] [ref=e120]
+            - generic [ref=e121]: By Snorkelology
+            - generic [ref=e122]: While snorkelling brings to mind tropical waters, Britain's cooler seas offer a wealth of unique rewards for both body and mind, as we explore further in this article.
+            - generic [ref=e124]: Snorkelling Science
+          - 'generic "Read blog post: Snorkelling and IPO" [ref=e126]':
+            - img "British snorkellers exploring a beach in excellent visibility" [ref=e128]
+            - heading "Snorkelling and IPO" [level=2] [ref=e129]
+            - generic [ref=e130]: By Snorkelology
+            - generic [ref=e131]: Immersion Pulmonary Oedema or IPO is a rare but dangerous condition that can affect snorkellers. In this article, we explore what it is and how to avoid it.
+            - generic [ref=e133]: Snorkelling Safety
+          - 'generic "Read blog post: Snorkelling Sites: Abereiddi Blue Lagoon" [ref=e135]':
+            - img "A topside shot of the Blue Lagoon at Abereiddy" [ref=e137]
+            - 'heading "Snorkelling Sites: Abereiddi Blue Lagoon" [level=2] [ref=e138]'
+            - generic [ref=e139]: By Snorkelology
+            - generic [ref=e140]: Pembroke's famous Blue Lagoon at Abereiddi is an abandoned slate quarry that is used for a range of water sports, but often overlooked for snorkelling...
+            - generic [ref=e141]:
+              - generic [ref=e142]: Snorkelling Sites
+              - generic [ref=e143]: Wales
+              - generic [ref=e144]: Pembroke
+          - 'generic "Read blog post: Beginners Guide to Snorkelling in Britain" [ref=e146]':
+            - img "Kids snorkelling in a tidal pool in Cornwall" [ref=e148]
+            - heading "Beginners Guide to Snorkelling in Britain" [level=2] [ref=e149]
+            - generic [ref=e150]: By Snorkelology
+            - generic [ref=e151]: Snorkelling is a great way to get active outdoors, but if you're new to British snorkelling how do you get started? In this blog article we take a look...
+            - generic [ref=e152]:
+              - generic [ref=e153]: Advice for Beginners
+              - generic [ref=e154]: Snorkelling Gear
+          - 'generic "Read blog post: Top Ten Reasons to Snorkel in Britain" [ref=e156]':
+            - img "Photo of a shipwreck taken while snorkelling in Orkney" [ref=e158]
+            - heading "Top Ten Reasons to Snorkel in Britain" [level=2] [ref=e159]
+            - generic [ref=e160]: By Snorkelology
+            - generic [ref=e161]: Snorkelling is all the rage at the moment, so whats all the fuss about? Here are ten reasons why you should consider Britsih snorkelling for your next summer holiday...
+            - generic [ref=e162]:
+              - generic [ref=e163]: Advice for Beginners
+              - generic [ref=e164]: Inspiration
+          - 'generic "Read blog post: The Importance of Seagrass" [ref=e166]':
+            - img "Photo of a seagrass meadow with snakelocks anemone taken in Swanage" [ref=e168]
+            - heading "The Importance of Seagrass" [level=2] [ref=e169]
+            - generic [ref=e170]: By Snorkelology
+            - generic [ref=e171]: Seagrass meadows around Britain have been in decline for the last century. In this blog article, we look into why seagrass is so important, and what we can do to support restoration efforts.
+            - generic [ref=e172]:
+              - generic [ref=e173]: Conservation
+              - generic [ref=e174]: Marine Life
+              - generic [ref=e175]: Seagrass
+          - 'generic "Read blog post: The Science of Snorkelling: Part One" [ref=e177]':
+            - img "Snorkelling gear on a beach in Norfolk" [ref=e179]
+            - 'heading "The Science of Snorkelling: Part One" [level=2] [ref=e180]'
+            - generic [ref=e181]: By Snorkelology
+            - generic [ref=e182]: Why do diving masks fog up? Why can't I use a longer snorkel? These questions and more answered in our first look into the science of snorkelling.
+            - generic [ref=e183]:
+              - generic [ref=e184]: Snorkelling Science
+              - generic [ref=e185]: Snorkelling Gear
+          - 'generic "Read blog post: Snorkelling Sites: Heybrook Bay" [ref=e187]':
+            - img "Split level photo of typical snorkelling scene" [ref=e189]
+            - 'heading "Snorkelling Sites: Heybrook Bay" [level=2] [ref=e190]'
+            - generic [ref=e191]: By Snorkelology
+            - generic [ref=e192]: Snorkelling Britain presents our favourite 100 snorkelling sites - this web-only series follows up with the 'Best of the Rest'. Our first site is Heybrook Bay near Plymouth.
+            - generic [ref=e193]:
+              - generic [ref=e194]: Inspiration
+              - generic [ref=e195]: Snorkelling Sites
+              - generic [ref=e196]: Plymouth
+              - generic [ref=e197]: Devon
+          - 'generic "Read blog post: Snorkelling Britain media roundup" [ref=e199]':
+            - img "Image showing extract from SCUBA article" [ref=e201]
+            - heading "Snorkelling Britain media roundup" [level=2] [ref=e202]
+            - generic [ref=e203]: By Snorkelology
+            - generic [ref=e204]: Snorkelling Britian has enjoyed some great media coverage since its launch in May; in this article we share our thoughts on the published articles...
+            - generic [ref=e205]:
+              - generic [ref=e206]: In The Media
+              - generic [ref=e207]: Snorkelling Britain
+          - 'generic "Read blog post: Underwater Cameras for Snorkelling" [ref=e209]':
+            - img "A snorkeller using an underwater camera while exploring a shipwreck in Orkney" [ref=e211]
+            - heading "Underwater Cameras for Snorkelling" [level=2] [ref=e212]
+            - generic [ref=e213]: By Snorkelology
+            - generic [ref=e214]: In the closing months of 2022 we found ourselves with a snorkelling book contract and no underwater camera - so how did we select the right gear for our
+            - generic [ref=e215]:
+              - generic [ref=e216]: Snorkelling Gear
+              - generic [ref=e217]: Photography
+          - 'generic "Read blog post: Snorkelling Sites: Portland Castle" [ref=e219]':
+            - img "Photo of storm pipe projecting to sea at Portland Castle" [ref=e221]
+            - 'heading "Snorkelling Sites: Portland Castle" [level=2] [ref=e222]'
+            - generic [ref=e223]: By Snorkelology
+            - generic [ref=e224]: Our next site in this series of sites that didn't quite make it into Snorkelling Britain, we explore the small beach at Portland Castle.
+            - generic [ref=e225]:
+              - generic [ref=e226]: Snorkelling Sites
+              - generic [ref=e227]: Weymouth
+              - generic [ref=e228]: Dorset
+          - 'generic "Read blog post: Snorkelling Sites: Towan Beach" [ref=e230]':
+            - img "Underwater photo of a child snorkelling at Towan Beach in Cornwall" [ref=e232]
+            - 'heading "Snorkelling Sites: Towan Beach" [level=2] [ref=e233]'
+            - generic [ref=e234]: By Snorkelology
+            - generic [ref=e235]: This quiet beach in the heart of Cornwall offers some amazing snorkelling with great rock pooling at low tide.
+            - generic [ref=e236]:
+              - generic [ref=e237]: Snorkelling Sites
+              - generic [ref=e238]: Falmouth
+              - generic [ref=e239]: Cornwall
+        - img [ref=e242] [cursor=pointer]
+        - img [ref=e245] [cursor=pointer]
+    - generic [ref=e249]:
+      - generic [ref=e250]:
+        - generic [ref=e251]:
+          - heading "Snorkelling Britain" [level=1] [ref=e252]
+          - paragraph [ref=e253]: "Find out more about snorkelling in Britain with our new book:"
+          - paragraph [ref=e254]: "'Snorkelling Britain: 100 Marine Adventures' by Emma and Gordon Taylor is out now"
+          - paragraph [ref=e255]: Packed with detailed route-finding advice, inspirational photography and with a detailed introduction covering topics such as snorkelling safety, sustainable snorkelling, getting started, and useful tips and pointers, 'Snorkelling Britain' is destined to become a benchmark publication for snorkelling in Britain.
+        - 'img "Snorkelling Britain: 100 Marine Adventures book cover 3D" [ref=e257]'
+      - generic [ref=e258]:
+        - generic [ref=e259]:
+          - heading "100 British Snorkelling Sites" [level=2] [ref=e260]
+          - list [ref=e261]:
+            - listitem [ref=e262]: Sites for beginners, families and experienced snorkellers
+            - listitem [ref=e263]: Find rocky reefs, shipwrecks, beaches, kelp forests and more
+            - listitem [ref=e264]: Clear site-finding guidance
+            - listitem [ref=e265]: Tailored safety advice for every site
+            - listitem [ref=e266]: Snorkelling sites in England, Scotland and Wales
+        - img "Snorkelling Britain book extract showing evocative photography and clear site-finding advice" [ref=e268]
+      - generic [ref=e269]:
+        - generic [ref=e270]:
+          - heading "Packed with Supporting Info" [level=2] [ref=e271]
+          - list [ref=e272]:
+            - listitem [ref=e273]: Detailed Introduction covering planning, equipment, safety and much more
+            - listitem [ref=e274]: Foreward by Sophie Rennie, BSAC's National Diving Officer and Head of Snorkelling
+            - listitem [ref=e275]: Snorkeller's guide to marine life giving a useful introduction the underwater environment
+            - listitem [ref=e276]: Ten 'Best For' lists including Urban Access, Tidal Pools, and Beginners
+        - img "Snorkelling Britain book extract showing essential information on how to get started" [ref=e278]
+      - heading "Snorkelling Britain Flick-Through" [level=2] [ref=e279]
+      - iframe [ref=e281]:
+        - generic [active] [ref=f1e1]:
+          - generic "YouTube Video Player" [ref=f1e3]
+          - button "Show player controls" [ref=f1e7] [cursor=pointer]
+    - generic [ref=e285]:
+      - heading "Buy Now" [level=1] [ref=e286]
+      - text: Select your items below, click to pay, and we'll pop it in the post. It's as simple as that!
+      - generic [ref=e287]:
+        - generic [ref=e288]:
+          - generic [ref=e293]:
+            - img "Snorkelling Britain book cover in 3D" [ref=e295]
+            - img "Snorkelling Britain book cover in 3D" [ref=e297]
+          - generic [ref=e298]:
+            - text: Snorkelling Britain
+            - text: Snorkelling Britain guidebook
+          - generic [ref=e299]:
+            - generic [ref=e300]:
+              - generic [ref=e301]: RRP £18.99
+              - text: £14.99
+            - generic [ref=e302]:
+              - button "−" [ref=e303]
+              - spinbutton "Enter order quantity" [ref=e304]: "1"
+              - button "+" [ref=e305]
+            - generic [ref=e306]: £14.99
+        - generic [ref=e307]:
+          - generic [ref=e312]:
+            - img "Snorkelling Britain book cover in 3D" [ref=e314]
+            - img "Snorkelling Britain book cover in 3D" [ref=e316]
+          - generic [ref=e317]:
+            - text: Snorkelling Britain Signed
+            - text: Snorkelling Britain guidebook, signed by the authors
+            - text: Please get in touch if there is a specific message you would like
+          - generic [ref=e318]:
+            - generic [ref=e319]:
+              - generic [ref=e320]: RRP £18.99
+              - text: £15.99
+            - generic [ref=e321]:
+              - button "−" [ref=e322]
+              - spinbutton "Enter order quantity" [ref=e323]: "0"
+              - button "+" [ref=e324]
+            - generic [ref=e325]: £0.00
+        - generic [ref=e326]:
+          - generic [ref=e331]:
+            - img "Image showing Snorkelology Logo sticker design" [ref=e333]
+            - img "Image showing Snorkelology Logo sticker design" [ref=e335]
+          - generic [ref=e336]:
+            - text: Pack of 5 Snorkelology logo stickers
+            - text: Pack of 5 x Snorkelology logo sticker (50mm diameter)
+          - generic [ref=e337]:
+            - generic [ref=e338]: £2.99
+            - generic [ref=e339]:
+              - button "−" [ref=e340]
+              - spinbutton "Enter order quantity" [ref=e341]: "0"
+              - button "+" [ref=e342]
+            - generic [ref=e343]: £0.00
+        - generic [ref=e344]:
+          - generic [ref=e348]:
+            - generic [ref=e349]:
+              - img "Snorkelling Britain Postcard Site 37 - Chesil Cove" [ref=e351]
+              - img "Snorkelling Britain Postcard Site 42 - Swanage Seagrass" [ref=e353]
+              - img "Snorkelling Britain Postcard Site 60 - Killidraught Bay" [ref=e355]
+              - img "Snorkelling Britain Postcard Site 83 - Port Dearg" [ref=e357]
+              - img "Snorkelling Britain Postcard Back View" [ref=e359]
+              - img "Snorkelling Britain Postcard Site 37 - Chesil Cove" [ref=e361]
+            - img [ref=e363] [cursor=pointer]
+            - img [ref=e365] [cursor=pointer]
+          - generic [ref=e366]:
+            - text: Pack of 4 Snorkelling Britain postcards
+            - text: Pack of 4 x Snorkelling Britain postcards
+          - generic [ref=e367]:
+            - generic [ref=e368]: £2.99
+            - generic [ref=e369]:
+              - button "−" [ref=e370]
+              - spinbutton "Enter order quantity" [ref=e371]: "0"
+              - button "+" [ref=e372]
+            - generic [ref=e373]: £0.00
+        - generic [ref=e374]:
+          - generic [ref=e375]: 0% Discount
+          - generic [ref=e376]: £0.00
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - text: Shipping (Royal Mail Tracked 48)
+            - text: Shipping options can be changed in paypal checkout
+          - generic [ref=e379]: £2.75
+        - generic [ref=e380]:
+          - generic [ref=e381]: Total
+          - generic [ref=e382]: £17.74
+        - generic [ref=e383]:
+          - textbox "Enter discount code" [ref=e384]
+          - iframe [ref=e387]:
+            - generic "PayPal" [ref=f2e2]:
+              - generic [ref=f2e3]:
+                - link "PayPal" [ref=f2e5] [cursor=pointer]
+                - link "Debit or Credit Card" [ref=f2e8] [cursor=pointer]
+                - generic [ref=f2e11]: Powered by
+    - generic [ref=e393]:
+      - heading "Frequently Asked Questions" [level=1] [ref=e394]
+      - paragraph [ref=e395]: Here are some of the most common questions we get asked about snorkelling in Britain. If you have a question that isn't answered here, please get in touch and we'll do our best to answer it and add it to this page.
+      - heading "Is it too cold to snorkel in Britain?" [level=2] [ref=e396]
+      - paragraph [ref=e397]: Not at all. In the summer the water temperature can reach 20°C or higher in the south of England. A wetsuit is recommended for year-round snorkelling or colder months, and cold water swimming can have beneficial health effects.
+      - heading "Is there any marine life to see snorkelling in Britain?" [level=2] [ref=e398]
+      - paragraph [ref=e399]: Yes! The British coastline is one of the most rich and diverse marine habitats in the world. You could see great spider crabs, small-spotted catsharks, tompot blenny, sea slugs, ballan wrasse, and many other species.
+      - heading "Is snorkelling in Britain safe?" [level=2] [ref=e400]
+      - paragraph [ref=e401]: Snorkelling comes with risks but can be enjoyed safely by developing skills slowly, testing kit in a pool first, and progressing to shallow sheltered water sites. Professional instruction through organisations like BSAC is recommended.
+      - heading "What are the best snorkelling sites in Britain?" [level=2] [ref=e402]
+      - paragraph [ref=e403]: The most abundant locations tend to be those with rocky seabed and healthy currents. Always check tides and currents before visiting. Our book "Snorkelling Britain" features 100 favourite snorkelling sites in England, Scotland and Wales.
+      - heading "Is it \"snorkelling\" or \"snorkeling\"?" [level=2] [ref=e404]
+      - paragraph [ref=e405]: The Oxford English Dictionary gives "snorkelling" as the correct spelling in British English.
+      - heading "How did you find the name Snorkelology?" [level=2] [ref=e406]
+      - paragraph [ref=e407]: We wanted a made-up name so it would be easy to find a domain name. It is a compound of "snorkel" and the ending "-ology", like dendrochronology.
+    - generic [ref=e411]:
+      - heading "Our Friends and Partners" [level=1] [ref=e412]
+      - paragraph [ref=e413]: We have made some fabulous contacts on our book-writing journey, and as a way of saying thanks we have featured many of them below... Please support them by clicking on the links and exploring.
+      - generic [ref=e414]:
+        - link "St Martin's Watersports" [ref=e415] [cursor=pointer]:
+          - /url: https://www.stmartinswatersports.co.uk/
+          - img "St Martin's Watersports" [ref=e416]
+        - link "Snorkel Wild Logo" [ref=e417] [cursor=pointer]:
+          - /url: https://www.snorkelwild.com/
+          - img "Snorkel Wild Logo" [ref=e418]
+        - link "Marla Blue Logo" [ref=e419] [cursor=pointer]:
+          - /url: https://www.marla.blue/
+          - img "Marla Blue Logo" [ref=e420]
+        - link "Macduff Marine Aquarium Logo" [ref=e421] [cursor=pointer]:
+          - /url: https://www.macduff-aquarium.org.uk/
+          - img "Macduff Marine Aquarium Logo" [ref=e422]
+        - link "Saltwater Life Logo" [ref=e423] [cursor=pointer]:
+          - /url: https://saltwaterlife.co.uk/
+          - img "Saltwater Life Logo" [ref=e424]
+        - link "British Sub Aqua Club Logo" [ref=e425] [cursor=pointer]:
+          - /url: https://www.bsac.com/
+          - img "British Sub Aqua Club Logo" [ref=e426]
+        - link "Wild Running by Sim and Jen Benson" [ref=e427] [cursor=pointer]:
+          - /url: https://jenandsimbenson.co.uk/
+          - img "Wild Running by Sim and Jen Benson" [ref=e428]
+        - link "Jethro Haynes Photography" [ref=e429] [cursor=pointer]:
+          - /url: https://www.jethrophoto.com/
+          - img "Jethro Haynes Photography" [ref=e430]
+        - link "Rebecca Douglas 2025 Logo" [ref=e431] [cursor=pointer]:
+          - /url: https://rebeccadouglas.co.uk/
+          - img "Rebecca Douglas 2025 Logo" [ref=e432]
+        - link "Chris Taylor Photo Logo" [ref=e433] [cursor=pointer]:
+          - /url: https://www.christaylorphoto.co.uk
+          - img "Chris Taylor Photo Logo" [ref=e434]
+        - link "Scottish Wildlife Trust Logo" [ref=e435] [cursor=pointer]:
+          - /url: https://snorkel.scottishwildlifetrust.org.uk/
+          - img "Scottish Wildlife Trust Logo" [ref=e436]
+        - link "Scottish Seabird Centre Logo" [ref=e437] [cursor=pointer]:
+          - /url: https://www.seabird.org/
+          - img "Scottish Seabird Centre Logo" [ref=e438]
+        - link "Wild Things Publishing Logo" [ref=e439] [cursor=pointer]:
+          - /url: https://wildthingspublishing.com
+          - img "Wild Things Publishing Logo" [ref=e440]
+  - contentinfo [ref=e442]:
+    - generic [ref=e443]: © Snorkelology 2022-2026
+    - generic [ref=e444]: All Rights Reserved
+```

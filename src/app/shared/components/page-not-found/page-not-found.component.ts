@@ -1,4 +1,5 @@
-import { Component} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   standalone: true,
@@ -7,4 +8,10 @@ import { Component} from '@angular/core';
   templateUrl: './page-not-found.component.html',
   styleUrls: ['./page-not-found.component.css']
 })
-export class PageNotFoundComponent{}
+export class PageNotFoundComponent implements OnInit {
+  constructor(private _title: Title) {}
+
+  ngOnInit() {
+    this._title.setTitle('Page not found - Snorkelology');
+  }
+}

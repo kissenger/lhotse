@@ -66,11 +66,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
 
     this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
-      if (isect.ratio > 0.2) {
-        if (isect.id === 'blog') {
-          this.hideAboutBookOverlay = true;
-          this._cdr.detectChanges();
-        }
+      if (!this.hideAboutBookOverlay && isect.id !== 'home') {
+        this.hideAboutBookOverlay = true;
+        this._cdr.detectChanges();
       }
     }));
 

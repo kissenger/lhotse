@@ -19,6 +19,7 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+let mongooseConnectPromise: Promise<void> | null = null;
 
 /**
  * Start of API routes
@@ -32,6 +33,14 @@ app.get('/api/db-backup/', (req, res) => {
 })
 
 app.use(express.json()); // this is needed to interprete req.body
+app.use('/api', async (req, res, next) => {
+  try {
+    await ensureMongooseConnected();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 app.use(shop);
 app.use(auth);
 app.use(blog);
@@ -77,14 +86,7 @@ app.use((req, res, next) => {
 // Only run side effects (DB connection and listening on a port)
 // when this module is executed as the main entry, not when imported for SSR builds.
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
-  console.log(ENVIRONMENT);
-
-  connectToMongoose();
-
-  const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
-  app.listen(PORT, () => {
-    console.log(`Node Express server listening on port ${PORT}`);
-  });
+  void startServer();
 }
 
 export const reqHandler = createNodeRequestHandler(app);
@@ -94,25 +96,56 @@ export const reqHandler = createNodeRequestHandler(app);
  * note that once connected, mongoose handles reconnection attempts
  * @returns 
  */
-function connectToMongoose()  {
-  const MONGO_URI = process.env['MONGO_URI'];
-  if (!MONGO_URI) {
-    console.error('MONGO_URI is not set in environment; retrying...');
-    setTimeout(connectToMongoose, 5000);
-    return Promise.resolve();
+async function startServer() {
+  console.log(ENVIRONMENT);
+  console.log(`MONGO_URI status: ${process.env['MONGO_URI'] ? 'present' : 'missing'}`);
+
+  await ensureMongooseConnected();
+
+  const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
+  app.listen(PORT, () => {
+    console.log(`Node Express server listening on port ${PORT}`);
+  });
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function ensureMongooseConnected() {
+  if (mongoose.connection.readyState === 1) {
+    return;
   }
 
-  return mongoose.connect(MONGO_URI).then(
-    () => {
-      console.log('Mongoose connection successful')
-    },
-    (error) => {
-      console.error('Mongoose failed to connect, retrying...');
-      console.error('connection string:');
+  if (mongooseConnectPromise) {
+    return mongooseConnectPromise;
+  }
+
+  mongooseConnectPromise = connectToMongoose();
+  try {
+    await mongooseConnectPromise;
+  } finally {
+    mongooseConnectPromise = null;
+  }
+}
+
+async function connectToMongoose()  {
+  const MONGO_URI = process.env['MONGO_URI'];
+  if (!MONGO_URI) {
+    throw new Error('MONGO_URI is not set in environment');
+  }
+
+  for (;;) {
+    try {
+      await mongoose.connect(MONGO_URI);
+      console.log('Mongoose connection successful');
+      return;
+    } catch (error) {
+      console.error('Mongoose failed to connect, retrying in 5000ms...');
       console.error(error);
-      setTimeout(connectToMongoose, 5000);
+      await wait(5000);
     }
-  )
+  }
 }
 
 export class ShopError extends Error {

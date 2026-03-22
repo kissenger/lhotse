@@ -10,16 +10,21 @@ async function scrollSectionToHeader(page, sectionId) {
   await page.waitForSelector(`#${sectionId}`);
 
   await page.evaluate((id) => {
-    const rootStyles = getComputedStyle(document.documentElement);
-    const headerHeight = Number.parseFloat(rootStyles.getPropertyValue('--header-height')) || 75;
-    const target = document.getElementById(id);
+    return new Promise((resolve) => {
+      const rootStyles = getComputedStyle(document.documentElement);
+      const headerHeight = Number.parseFloat(rootStyles.getPropertyValue('--header-height')) || 75;
+      const target = document.getElementById(id);
 
-    if (!target) {
-      throw new Error(`Section not found: ${id}`);
-    }
+      if (!target) {
+        throw new Error(`Section not found: ${id}`);
+      }
 
-    const targetTop = window.scrollY + target.getBoundingClientRect().top - headerHeight - 4;
-    window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+      const targetTop = window.scrollY + target.getBoundingClientRect().top - headerHeight - 4;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+
+      // Wait two rAF cycles so the scrollspy's rAF-based refresh has processed the new position.
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
   }, sectionId);
 }
 
@@ -36,7 +41,7 @@ test('header underline follows the visible home section while scrolling', async 
 
   await page.goto('/home');
 
-  await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
+  await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; } body::after { content: ""; display: block; height: 100vh; }' });
 
   const closeOverlay = page.locator('.about-book .close-icon');
   if (await closeOverlay.isVisible().catch(() => false)) {

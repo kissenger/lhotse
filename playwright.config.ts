@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config as loadEnv } from 'dotenv';
+
+loadEnv();
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -16,6 +19,24 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] }
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] }
+    },
+    {
+      name: 'iphone-chromium-emulation',
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'chromium'
+      }
+    },
+    {
+      name: 'iphone-safari-webkit',
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'webkit'
+      }
     }
   ],
   webServer: {
@@ -24,7 +45,7 @@ export default defineConfig({
     env: {
       SKIP_SEO_DB_LOOKUPS: 'true'
     },
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 120_000
   }
 });

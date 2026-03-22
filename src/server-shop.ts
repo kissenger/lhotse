@@ -25,6 +25,44 @@ const EMAIL_CONFIG = {
   },
 }
 
+function extractErrorMessage(error: any, fallback: string): string {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (Array.isArray(error)) {
+    const first = error[0];
+    if (typeof first === 'string') {
+      return first;
+    }
+    if (first?.issue?.message) {
+      return first.issue.message;
+    }
+    if (first?.issue) {
+      return String(first.issue);
+    }
+    if (first?.message) {
+      return String(first.message);
+    }
+  }
+
+  if (error?.details?.[0]?.issue?.message) {
+    return error.details[0].issue.message;
+  }
+  if (error?.details?.[0]?.issue) {
+    return String(error.details[0].issue);
+  }
+  if (error?.message) {
+    return String(error.message);
+  }
+
+  return fallback;
+}
+
 /*****************************************************************
  * ROUTE: Create paypal order
  ****************************************************************/
@@ -41,8 +79,8 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
     });
 
     const json = await result.json();
-    if (Array.isArray(json.details)) {
-      throw new Error(json.details[0]);
+    if (!result.ok || Array.isArray(json.details)) {
+      throw json;
     } else {
       const resp = await logShopEvent( orderNumber, 
         { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
@@ -55,9 +93,10 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
     }
 
   } catch (err: any) {
-    logShopError(req.body.orderNumber, err);
+    await logShopError(req.body.orderNumber, err);
     console.log(err);
-    res.status(500).send({error: `ShopError: ${err[0]}`, message: `Error creating PayPal order: ${err[0].issue.message}`});
+    const message = extractErrorMessage(err, 'Unknown PayPal order creation error');
+    res.status(500).send({error: 'ShopError', message: `Error creating PayPal order: ${message}`});
   }
 
 });
@@ -123,8 +162,8 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
     })
       
     const json = await result.json();
-    if (Array.isArray(json.details)) {
-      throw new Error(json.details[0]);
+    if (!result.ok || Array.isArray(json.details)) {
+      throw json;
     } else {
       await logShopEvent(req.body.orderNumber, {
         "$set": {
@@ -136,12 +175,16 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
 
     let orderSummary = await setOrderSummary(req.body.orderNumber);
     let emailBody = getConfirmationEmailBody(orderSummary);
-    sendEmail(json.payer.email_address, emailBody, 'Thank you for ordering from Snorkelology');
+    const payerEmail = json.payer?.email_address;
+    if (payerEmail) {
+      sendEmail(payerEmail, emailBody, 'Thank you for ordering from Snorkelology');
+    }
     res.send(json);
 
   } catch (err: any) {
-    logShopError(req.body.orderNumber, err);
-    res.status(500).send({error: `ShopError: ${err.name}`, message: `Error finalising PayPal order: ${err.message}`});
+    await logShopError(req.body.orderNumber, err);
+    const message = extractErrorMessage(err, 'Unknown PayPal capture error');
+    res.status(500).send({error: 'ShopError', message: `Error finalising PayPal order: ${message}`});
   }
 
 });
@@ -427,12 +470,16 @@ export async function logShopEvent(orderNumber: string | null, orderDetails: any
 }
 
 export async function logShopError(orderNumber: string | null, error: Object) {
-  logShopEvent(orderNumber, { 
-    "$set": {
-      "paypal.error": error, 
-      "orderSummary.timeStamps.errorCreated": Date.now()
-    }
-  });
+  try {
+    await logShopEvent(orderNumber, {
+      "$set": {
+        "paypal.error": error,
+        "orderSummary.timeStamps.errorCreated": Date.now()
+      }
+    });
+  } catch (logError) {
+    console.error('Failed to persist shop error to database', logError);
+  }
 }
 
 async function getAccessToken() {

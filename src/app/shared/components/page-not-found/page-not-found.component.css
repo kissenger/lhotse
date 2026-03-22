@@ -6,3 +6,7 @@
 .full-page-centered-container {
   margin-top: 20vh;
 }
+
+.full-page-centered-container a {
+  color: #0077C2;
+}

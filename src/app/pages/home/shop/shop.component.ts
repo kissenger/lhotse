@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -28,6 +28,7 @@ export class ShopComponent implements AfterViewInit {
 
   constructor(
     private _http: HttpService,
+    private _cdr: ChangeDetectorRef,
     public shop: ShopService,
     public toaster: ToastService
   ) {
@@ -123,6 +124,25 @@ export class ShopComponent implements AfterViewInit {
           }
 
         }).render("#paypal-button-container");
+
+        // E2E test hook: lets sandbox nightly tests trigger capture without the PayPal browser popup.
+        // Only installed in non-production builds so it is never present in live deployments.
+            if (environment.STAGE !== 'prod' && typeof window !== 'undefined') {
+          (window as any).__e2ePaypalApprove = async (orderID: string, orderNum: string) => {
+            try {
+              if (orderNum) { that.shop.orderNumber = orderNum; }
+              const res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', orderID);
+              if (!res.error) {
+                that.shop.orderStatus = 'complete';
+                that.toaster.show('Payment successful, thank you for your order.', 'success');
+                that._cdr.detectChanges();
+              }
+              return res;
+            } catch (err: any) {
+              return { error: err?.message || String(err) };
+            }
+          };
+        }
 
       } catch (error:any) {
         this.toaster.show(error, "error");

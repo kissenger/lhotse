@@ -1,2 +1,6 @@
 {
+  "copilot.exclude": [
+  "**/.env",
+  "**/.env.*"
+]
 }

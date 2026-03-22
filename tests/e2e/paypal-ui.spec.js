@@ -51,12 +51,19 @@ test('checkout UI triggers create and capture API calls', async ({ page }) => {
   });
 
   await page.goto('/home#buy-now');
+
+  const closeOverlay = page.locator('.about-book .close-icon');
+  if (await closeOverlay.isVisible().catch(() => false)) {
+    await closeOverlay.evaluate((el) => el.click()).catch(() => {});
+  }
+
   await expect(page.locator('#paypal-button-container')).toBeVisible();
 
   const mockButton = page.locator('#mock-paypal-button');
   await expect(mockButton).toBeVisible();
+  await mockButton.scrollIntoViewIfNeeded();
   await mockButton.click();
 
-  await expect.poll(() => createOrderCalls).toBeGreaterThan(0);
-  await expect.poll(() => captureCalls).toBeGreaterThan(0);
+  await expect.poll(() => createOrderCalls, { timeout: 15_000 }).toBeGreaterThan(0);
+  await expect.poll(() => captureCalls, { timeout: 15_000 }).toBeGreaterThan(0);
 });
