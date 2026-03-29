@@ -30,6 +30,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public map?: MapService;
   private _selectionSub?: import('rxjs').Subscription;
 
+  filterOpen = false;
+  snorkellingSitesEnabled = true;
+  otherSitesEnabled = true;
+  snorkellingCategories: { name: string; enabled: boolean }[] = [];
+  otherCategories: { name: string; enabled: boolean }[] = [];
+
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
@@ -45,6 +51,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         import('@shared/services/map.service').then((m) => m.MapService)
       );
       await this.map.create(this.geoJson);
+      this._buildCategoryLists();
+
+      // Wire filter button injected by MapService IControl
+      this.map.filterContainer?.querySelector('.filter-btn')
+        ?.addEventListener('click', () => {
+          this.filterOpen = !this.filterOpen;
+          this._cdr.detectChanges();
+        });
+
       // React to selection changes coming from MapService (mapbox events)
       this._selectionSub = this.map.selectionChanged.subscribe(() => {
         this._cdr.detectChanges();
@@ -61,6 +76,74 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this._selectionSub?.unsubscribe();
+  }
+
+  private _buildCategoryLists() {
+    const snorkCats = new Set<string>();
+    const otherCats = new Set<string>();
+    for (const feature of this.geoJson.features) {
+      const props = feature.properties;
+      const cats: string[] = props.categories ?? [];
+      const isSnorkelling = props.featureType === 'Snorkelling Site';
+      for (const c of cats) {
+        (isSnorkelling ? snorkCats : otherCats).add(c);
+      }
+    }
+    this.snorkellingCategories = [...snorkCats].sort().map(name => ({ name, enabled: true }));
+    this.otherCategories = [...otherCats].sort().map(name => ({ name, enabled: true }));
+  }
+
+  toggleGroup(group: 'snorkelling' | 'other') {
+    if (group === 'snorkelling') {
+      this.snorkellingSitesEnabled = !this.snorkellingSitesEnabled;
+      this.snorkellingCategories.forEach(c => c.enabled = this.snorkellingSitesEnabled);
+    } else {
+      this.otherSitesEnabled = !this.otherSitesEnabled;
+      this.otherCategories.forEach(c => c.enabled = this.otherSitesEnabled);
+    }
+    this._applyFilter();
+  }
+
+  toggleCategory(cat: { name: string; enabled: boolean }, group: 'snorkelling' | 'other') {
+    cat.enabled = !cat.enabled;
+    const cats = group === 'snorkelling' ? this.snorkellingCategories : this.otherCategories;
+    const anyEnabled = cats.some(c => c.enabled);
+    if (group === 'snorkelling') this.snorkellingSitesEnabled = anyEnabled;
+    else this.otherSitesEnabled = anyEnabled;
+    this._applyFilter();
+  }
+
+  private _applyFilter() {
+    if (!this.map || !this.geoJson) return;
+
+    const allEnabled =
+      this.snorkellingCategories.every(c => c.enabled) &&
+      this.otherCategories.every(c => c.enabled);
+
+    if (this.map.selectedFeature) this.map.clearSelection();
+
+    if (allEnabled) {
+      this.map.updateSourceData(this.geoJson);
+      return;
+    }
+
+    const enabledSnorkCats = new Set(this.snorkellingCategories.filter(c => c.enabled).map(c => c.name));
+    const enabledOtherCats = new Set(this.otherCategories.filter(c => c.enabled).map(c => c.name));
+
+    const filtered = {
+      ...this.geoJson,
+      features: this.geoJson.features.filter((f: any) => {
+        const isSnorkelling = f.properties.featureType === 'Snorkelling Site';
+        const groupEnabled = isSnorkelling ? this.snorkellingSitesEnabled : this.otherSitesEnabled;
+        if (!groupEnabled) return false;
+        const cats: string[] = f.properties.categories ?? [];
+        if (cats.length === 0) return true;
+        const enabledCats = isSnorkelling ? enabledSnorkCats : enabledOtherCats;
+        return cats.some((c: string) => enabledCats.has(c));
+      }),
+    };
+
+    this.map.updateSourceData(filtered);
   }
 
   

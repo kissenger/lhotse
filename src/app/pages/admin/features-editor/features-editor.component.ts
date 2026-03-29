@@ -40,7 +40,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   ];
   readonly ratingOptions: Array<'good' | 'ok' | 'poor' | 'not for snorkelling' | ''> = ['', 'good', 'ok', 'poor', 'not for snorkelling'];
   readonly snorkellingCategories = ['Rocky Reef', 'Kelp/Wrack Forest', 'Snorkel Trail', 'Seagrass Meadow', 'Manmade Structure', 'Mearl Beds', 'Sand and Gravel', 'Tidal Pool', 'Chalk Reef', 'Wreck', 'Scottish Wildlife Trust', 'Snorkelling Britain'];
-  readonly providerCategories = ['Snorkel Instructing', 'Snorkel Guiding/Tours', 'Boat Snorkelling', 'Kit Rental', 'Kit Purchase'];
+  readonly providerCategories = ['Instructor', 'Snorkel Guiding/Tours', 'Boat Snorkelling', 'Kit Rental', 'Kit Purchase'];
 
   get availableCategories(): string[] {
     const all = this.selectedSite.properties.featureType === 'Snorkelling Site'

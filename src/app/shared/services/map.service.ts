@@ -15,8 +15,11 @@ export class MapService {
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeature: any = null;
   private _sites: any;
+  private _filterContainer: HTMLElement | null = null;
   // Emits whenever the selected feature changes (including clear)
   public readonly selectionChanged = new Subject<void>();
+
+  get filterContainer() { return this._filterContainer; }
 
   constructor(
     private injector: Injector
@@ -81,7 +84,56 @@ export class MapService {
       });
 
       const fullscreenContainer = this._map.getContainer().parentElement ?? undefined;
-      this._map.addControl(new mapboxgl.FullscreenControl({ container: fullscreenContainer }));
+
+      // Custom fullscreen control with text label
+      const fullscreenCtrl: mapboxgl.IControl = {
+        onAdd: () => {
+          const div = document.createElement('div');
+          div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group expand-ctrl';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'expand-btn';
+          const expandSvg = '<svg class="ctrl-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h5v2H5v3H3V3zm9 0h5v5h-2V5h-3V3zM3 12h2v3h3v2H3v-5zm14 0v5h-5v-2h3v-3h2z"/></svg>';
+          const shrinkSvg = '<svg class="ctrl-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 8h5V3H8v3H5v2zm10 0v-2h-3V3h-2v5h5zM5 12h3v3h2v-5H5v2zm7 0v5h2v-3h3v-2h-5z"/></svg>';
+          btn.innerHTML = expandSvg + '<strong>Expand</strong>';
+          btn.addEventListener('click', () => {
+            const target = fullscreenContainer ?? this._map!.getContainer();
+            if (!document.fullscreenElement) {
+              target.requestFullscreen();
+              btn.innerHTML = shrinkSvg + '<strong>Shrink</strong>';
+            } else {
+              document.exitFullscreen();
+              btn.innerHTML = expandSvg + '<strong>Expand</strong>';
+            }
+          });
+          document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+              btn.innerHTML = expandSvg + '<strong>Expand</strong>';
+            }
+          });
+          div.appendChild(btn);
+          return div;
+        },
+        onRemove: () => {},
+      };
+      this._map.addControl(fullscreenCtrl, 'top-right');
+
+      // Filter button — sits in the same control group as fullscreen
+      const filterCtrl: mapboxgl.IControl = {
+        onAdd: () => {
+          const div = document.createElement('div');
+          div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group filter-ctrl';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'filter-btn';
+          btn.innerHTML = '<span class="ctrl-icon filter-icon">☰</span><strong>Filter</strong>';
+          div.appendChild(btn);
+          this._filterContainer = div;
+          return div;
+        },
+        onRemove: () => { this._filterContainer = null; },
+      };
+      this._map.addControl(filterCtrl, 'top-right');
 
       this._map?.on('error', (error) => { reject(error); })
       this._map?.on('load', () => {       resolve(); })
@@ -198,6 +250,16 @@ export class MapService {
     });
 
 
+  }
+
+  updateSourceData(data: any) {
+    const source = this._map?.getSource('sitesSource');
+    if (source) (source as any).setData(data);
+  }
+
+  clearSelection() {
+    this.selectedFeature = null;
+    this.selectionChanged.next();
   }
 
 }

@@ -11,10 +11,40 @@
     <div class="map-container">
     <div id="map"></div>
 
+      @if (filterOpen) {
+        <div class="filter-dropdown">
+          <div class="filter-group">
+            <label class="filter-group-label">
+              <input type="checkbox" [checked]="snorkellingSitesEnabled" (change)="toggleGroup('snorkelling')">
+              <strong>Snorkelling Sites</strong>
+            </label>
+            @for (cat of snorkellingCategories; track cat.name) {
+              <label class="filter-category">
+                <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'snorkelling')">
+                {{cat.name}}
+              </label>
+            }
+          </div>
+          <div class="filter-group">
+            <label class="filter-group-label">
+              <input type="checkbox" [checked]="otherSitesEnabled" (change)="toggleGroup('other')">
+              <strong>Snorkelling Providers</strong>
+            </label>
+            @for (cat of otherCategories; track cat.name) {
+              <label class="filter-category">
+                <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'other')">
+                {{cat.name}}
+              </label>
+            }
+          </div>
+        </div>
+      }
+
       @if (loadingState !== 'success') {
         <app-loader [loadingState]="loadingState"></app-loader>    
       }
        @else {
+
         <div class="panel" [ngClass]="map?.popupPosition">
 
           @let feature = this.geoJson?.features[map?.selectedSymbolId]?.properties;
