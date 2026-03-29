@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, BlogPost, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, BlogPost, MapFeature, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -16,6 +16,21 @@ export class HttpService {
   */
   async getSites(siteVisibility: Array<string>) {
     const request =  this._http.get<Array<BlogPost>>(`/api/sites/get-sites/${siteVisibility.join("/")}`)
+    return await lastValueFrom(request);
+  }
+
+  async getAllSitesAdmin() {
+    const request = this._http.get<Array<MapFeature>>(`/api/sites/get-all-sites-admin/`);
+    return await lastValueFrom(request);
+  }
+
+  async upsertSite(site: MapFeature) {
+    const request = this._http.post<Array<MapFeature>>(`/api/sites/upsert-site/`, site);
+    return await lastValueFrom(request);
+  }
+
+  async deleteSite(siteId: string) {
+    const request = this._http.get<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`);
     return await lastValueFrom(request);
   }
 
@@ -124,7 +139,12 @@ export class HttpService {
   // Auth
 
   async login(user: AuthUser) {
-    const request = this._http.post<any>(`/api/auth/login/`, {user});
+    const request = this._http.post<{success: boolean}>(`/api/auth/login/`, {user}, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async logout() {
+    const request = this._http.post<{success: boolean}>(`/api/auth/logout/`, {}, { withCredentials: true });
     return await lastValueFrom(request);
   }
 

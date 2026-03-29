@@ -37,9 +37,8 @@ export class RegisterComponent {
   async onSubmit() {
     document.body.style.cursor = 'wait';
     try {
-      const res = await this._http.register(this.user);
-      this._auth.token = res.token;
-      this._router.navigate(['/admin']); 
+      await this._http.register(this.user);
+      this._router.navigate(['/dashboard']); 
     } catch (error: any) {
       this._toaster.show(<string>error?.error?.message || 'Registration failed', 'error');
     } finally {
@@ -48,7 +47,7 @@ export class RegisterComponent {
   }
 
   onCancel() {
-    this._router.navigate(['/admin/login']); 
+    this._router.navigate(['/login']); 
   }
 
   isValidEmail() {

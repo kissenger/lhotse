@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@shared/services/auth.service';
+import { HttpService } from '@shared/services/http.service';
 
 @Component({
   standalone: true,
@@ -13,12 +14,14 @@ import { AuthService } from '@shared/services/auth.service';
 export class AdminComponent  {
   constructor(
     private _auth: AuthService,
+    private _http: HttpService,
     private _router: Router,    
   ) {}
 
-  onLogout() {
+  async onLogout() {
+    try { await this._http.logout(); } catch {}
     this._auth.deleteCookies();
-    this._router.navigate(['/admin/login']);
+    this._router.navigate(['/login']);
   }
 
 }

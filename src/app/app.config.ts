@@ -6,12 +6,14 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi
 import { provideImgixLoader } from '@angular/common';
 import { environment } from '@environments/environment';
 import { AuthGuard } from './auth.guard';
+import { AdminSubdomainGuard } from './admin-subdomain.guard';
 import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interceptor.service';
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
     AuthGuard,
+    AdminSubdomainGuard,
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
       withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),

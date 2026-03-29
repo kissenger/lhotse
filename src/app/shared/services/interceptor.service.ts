@@ -5,29 +5,18 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 
 /**
- * puts the authorisation token in the header of all outgoing requests
- * https://medium.com/@ryanchenkie_40935/angular-authentication-using-the-http-client-and-http-interceptors-2f9d1540eb8
+ * Attaches withCredentials to all /api/ requests so the browser automatically
+ * sends the HttpOnly JWT cookie, without exposing the token to JavaScript.
  */
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
 
-  constructor(
-    private _auth: AuthService
-  ) { }
-
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    const token = this._auth.token;
-    if ( token ) {
-      const tokenizedReq = req.clone({
-        setHeaders: {
-          Authorization: token
-        }
-      });
-      return next.handle(tokenizedReq);
-    } else {
-      return next.handle(req);
+    if (req.url.startsWith('/api/')) {
+      return next.handle(req.clone({ withCredentials: true }));
     }
+    return next.handle(req);
   }
 }
 
@@ -44,7 +33,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         if (error.status===401) {
           this._auth.deleteCookies();
-          this._router.navigate(['/admin']); 
+          this._router.navigate(['/login']); 
         }
         return throwError(() => error);
       })

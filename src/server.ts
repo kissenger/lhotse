@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'node:url';
 import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -33,6 +34,7 @@ app.get('/api/db-backup/', (req, res) => {
 })
 
 app.use(express.json()); // this is needed to interprete req.body
+app.use(cookieParser());
 app.use('/api', async (req, res, next) => {
   try {
     await ensureMongooseConnected();

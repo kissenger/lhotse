@@ -79,7 +79,7 @@ export class ManualOrderComponent  {
     } catch (error) {
       console.error(error);
     }
-    this._router.navigateByUrl(`/admin/orders`); 
+    this._router.navigateByUrl(`/orders`); 
   }
 
   async onSelectionChange() {

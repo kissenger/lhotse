@@ -1,0 +1,319 @@
+<main>
+
+  <div class="static-div">
+    <div class="static-row">
+      <label for="siteSelect">Select a site:</label>
+      <select [ngModel]="selectedSite._id" (ngModelChange)="onFormSelect($event)" name="siteSelect" id="siteSelect">
+        @if (nonSnorkellingSites.length) {
+          <optgroup label="Snorkel Providers">
+            @for (site of nonSnorkellingSites; track site._id) {
+              <option [value]="site._id" [class.option-production]="site.showOnMap === 'Production'">
+                {{ site.properties.name || 'Unnamed' }}
+              </option>
+            }
+          </optgroup>
+        }
+        @if (snorkellingSites.length) {
+          <optgroup label="Snorkelling Sites">
+            @for (site of snorkellingSites; track site._id) {
+              <option [value]="site._id" [class.option-production]="site.showOnMap === 'Production'">
+                {{ site.properties.name || 'Unnamed' }}
+              </option>
+            }
+          </optgroup>
+        }
+      </select>
+    </div>
+    <div class="static-row">
+      <button type="button" class="formButton" (click)="onNewSite()">+ New Site</button>
+      <button type="submit" class="formButton" (click)="onSave()">Save</button>
+      <button type="button" class="formButton" (click)="onYesDelete(false)" [disabled]="!selectedSite._id">Delete</button>
+      <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
+        Are you sure?
+        <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+        <button type="button" class="formButton" (click)="onNoDelete()">No</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="scrolling-div">
+    <form>
+
+      <!-- ── Core Properties ── -->
+      <h3>Core Properties</h3>
+
+      <div>
+        <label for="featureType">Feature Type:</label>
+        <select id="featureType" name="featureType" [(ngModel)]="selectedSite.properties.featureType">
+          @for (ft of featureTypes; track ft) {
+            <option [value]="ft">{{ ft }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" [(ngModel)]="selectedSite.properties.name">
+      </div>
+
+      <div>
+        <label for="region">Region:</label>
+        <select id="region" name="region" [(ngModel)]="selectedSite.properties.region">
+          <option value="">— none —</option>
+          <option value="South West England">South West England</option>
+          <option value="South and East England">South and East England</option>
+          <option value="Wales">Wales</option>
+          <option value="Scotland">Scotland</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="symbolSortOrder">Sort Order:</label>
+        <input type="number" id="symbolSortOrder" name="symbolSortOrder" [ngModel]="selectedSite.properties.symbolSortOrder" readonly>
+      </div>
+
+      <div>
+        <label for="imageUrl">Image URL:</label>
+        <input type="text" id="imageUrl" name="imageUrl" [(ngModel)]="selectedSite.properties.imageUrl">
+      </div>
+
+      <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" [(ngModel)]="selectedSite.properties.description"></textarea>
+      </div>
+
+      <div class="categories-row">
+        <label>Categories:</label>
+        <div class="categories-editor">
+          <div class="category-chips">
+            @for (cat of selectedSite.properties.categories; track cat) {
+              <span class="category-chip">
+                {{ cat }}
+                <button type="button" (click)="removeCategory(cat)">&times;</button>
+              </span>
+            }
+          </div>
+          <select id="categoryAdd" name="categoryAdd" (change)="addCategory($any($event.target))">
+            <option value="">+ Add category&hellip;</option>
+            @for (cat of availableCategories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- ── Location ── -->
+      <h3>Coordinates</h3>
+
+      <div>
+        <label for="coordString">Lat, Lng:</label>
+        <input type="text" id="coordString" name="coordString" [ngModel]="coordString" (change)="setCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
+        <button type="button" class="qaButton" [disabled]="!coordString" (click)="openInGoogleMaps()">Google Maps</button>
+      </div>
+
+      <div class="map-toolbar">
+        <button type="button" class="qaButton" (click)="toggleMainMapSatellite()">{{ mainMapSatellite ? 'Map' : 'Satellite' }}</button>
+      </div>
+      <div id="features-edit-map"></div>
+
+      <!-- ── Visibility ── -->
+      <h3>Visibility</h3>
+
+      <div>
+        <label for="showOnMap">Show on Map:</label>
+        <select id="showOnMap" name="showOnMap" [(ngModel)]="selectedSite.showOnMap">
+          <option value="No">No</option>
+          <option value="Development">Development</option>
+          <option value="Production">Production</option>
+        </select>
+      </div>
+
+      @if (selectedSite._id) {
+        <div>
+          <label>Created:</label>
+          <span>{{ selectedSite.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+        </div>
+        <div>
+          <label>Updated:</label>
+          <span>{{ selectedSite.updatedAt | date:'dd MMM yyyy HH:mm' }}</span>
+        </div>
+      }
+
+      <!-- ── Address ── -->
+      <h3>Address</h3>
+
+      <div>
+        <label for="adminLevel3">Admin Level 3:</label>
+        <input type="text" id="adminLevel3" name="adminLevel3" [ngModel]="selectedSite.properties.location.adminLevel3" readonly>
+      </div>
+      <div>
+        <label for="county">County:</label>
+        <input type="text" id="county" name="county" [ngModel]="selectedSite.properties.location.county" readonly>
+      </div>
+      <div>
+        <label for="locality">Locality:</label>
+        <input type="text" id="locality" name="locality" [ngModel]="selectedSite.properties.location.locality" readonly>
+      </div>
+      <div [ngClass]="{'alert-required': selectedSite.showOnMap === 'Production' && !selectedSite.properties.location.locality && !selectedSite.properties.location.localityOverride}">
+        <label for="localityOverride">Locality Override:</label>
+        <input type="text" id="localityOverride" name="localityOverride" [(ngModel)]="selectedSite.properties.location.localityOverride">
+      </div>
+      <div>
+        <label for="postalTown">Postal Town:</label>
+        <input type="text" id="postalTown" name="postalTown" [ngModel]="selectedSite.properties.location.postalTown" readonly>
+      </div>
+
+      <!-- ── Contact ── -->
+      @if (selectedSite.properties.featureType !== 'Snorkelling Site') {
+        <h3>Contact</h3>
+
+        <div>
+          <label for="contactName">Contact Name:</label>
+          <input type="text" id="contactName" name="contactName" [(ngModel)]="selectedSite.properties.contact.name">
+        </div>
+        <div>
+          <label for="contactEmail">Contact Email:</label>
+          <input type="email" id="contactEmail" name="contactEmail" [(ngModel)]="selectedSite.properties.contact.email">
+        </div>
+      }
+
+      @if (selectedSite.properties.featureType !== 'Snorkelling Site') {
+
+        <!-- ── More Info links ── -->
+        <h3>More Info Links</h3>
+
+        @for (info of selectedSite.properties.moreInfo; track $index) {
+          <hr>
+          <div class="section-header">
+            <span>Link {{ $index + 1 }}</span>
+            <button type="button" class="qaButton" (click)="deleteMoreInfo($index)">Delete</button>
+          </div>
+          <div>
+            <label for="infoUrl{{ $index }}">{{ info.icon === 'phone' ? 'Text:' : 'URL:' }}</label>
+            @if (info.icon === 'phone') {
+              <input type="text" id="infoUrl{{ $index }}" name="infoUrl{{ $index }}" [(ngModel)]="info.text">
+            } @else {
+              <input type="text" id="infoUrl{{ $index }}" name="infoUrl{{ $index }}" [(ngModel)]="info.url">
+            }
+          </div>
+          <div>
+            <label for="infoIcon{{ $index }}">Icon:</label>
+            <select id="infoIcon{{ $index }}" name="infoIcon{{ $index }}" [(ngModel)]="info.icon">
+              <option value="">— none —</option>
+              <option value="facebook">facebook</option>
+              <option value="instagram">instagram</option>
+              <option value="email">email</option>
+              <option value="phone">phone</option>
+              <option value="youtube">youtube</option>
+              <option value="website">website</option>
+            </select>
+          </div>
+          <div>
+            <label for="infoPreferred{{ $index }}">Preferred:</label>
+            <input type="checkbox" id="infoPreferred{{ $index }}" name="infoPreferred{{ $index }}" [(ngModel)]="info.preferred">
+          </div>
+        }
+        <button type="button" class="qaButton" (click)="addMoreInfo()">+ Add Link</button>
+
+      }
+
+      @if (selectedSite.properties.featureType === 'Snorkelling Site') {
+
+        <!-- ── More Info links (Snorkelling Site) ── -->
+        <h3>More Info Links</h3>
+
+        @for (info of selectedSite.properties.moreInfo; track $index) {
+          <hr>
+          <div class="section-header">
+            <span>Link {{ $index + 1 }}</span>
+            <button type="button" class="qaButton" (click)="deleteMoreInfo($index)">Delete</button>
+          </div>
+          <div>
+            <label for="siteInfoTitle{{ $index }}">Title:</label>
+            <input type="text" id="siteInfoTitle{{ $index }}" name="siteInfoTitle{{ $index }}" [(ngModel)]="info.title">
+          </div>
+          <div>
+            <label for="siteInfoUrl{{ $index }}">URL:</label>
+            <input type="text" id="siteInfoUrl{{ $index }}" name="siteInfoUrl{{ $index }}" [(ngModel)]="info.url">
+          </div>
+        }
+        <button type="button" class="qaButton" (click)="addMoreInfo()">+ Add Link</button>
+
+        <!-- ── Parking ── -->
+        <h3>Parking</h3>
+
+        <div>
+          <label for="isCarAccess">Car Access:</label>
+          <input type="checkbox" id="isCarAccess" name="isCarAccess"
+            [(ngModel)]="selectedSite.properties.siteInfo.isCarAccess"
+            (change)="toggleParkingLocation($any($event.target).checked)">
+        </div>
+
+        @if (selectedSite.properties.siteInfo.isCarAccess) {
+          <div>
+            <label for="parkingName">Parking Name:</label>
+            <input type="text" id="parkingName" name="parkingName" [(ngModel)]="selectedSite.properties.siteInfo.parking.name">
+          </div>
+          <div>
+            <label for="parkingPay">Pay &amp; Display:</label>
+            <input type="checkbox" id="parkingPay" name="parkingPay" [(ngModel)]="selectedSite.properties.siteInfo.parking.isPayAndDisplay">
+          </div>
+          @if (selectedSite.properties.siteInfo.parking.location) {
+            <div>
+              <label for="parkingCoordString">Lat, Lng:</label>
+              <input type="text" id="parkingCoordString" name="parkingCoordString" [ngModel]="parkingCoordString" (change)="setParkingCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
+              <button type="button" class="qaButton" [disabled]="!parkingCoordString" (click)="openParkingInGoogleMaps()">Google Maps</button>
+            </div>
+            <div class="map-toolbar">
+              <button type="button" class="qaButton" (click)="toggleParkingMapSatellite()">{{ parkingMapSatellite ? 'Map' : 'Satellite' }}</button>
+            </div>
+            <div id="features-edit-parking-map"></div>
+          }
+        }
+
+        <!-- ── Research Notes ── -->
+        <h3>Research Notes</h3>
+
+        <div>
+          <label for="isVisited">Visited:</label>
+          <input type="checkbox" id="isVisited" name="isVisited" [(ngModel)]="selectedSite.properties.researchNotes.isVisited">
+        </div>
+        <div>
+          <label for="visitPriority">Visit Priority:</label>
+          <input type="checkbox" id="visitPriority" name="visitPriority" [(ngModel)]="selectedSite.properties.researchNotes.visitPriority">
+        </div>
+        <div>
+          <label for="rating">Rating:</label>
+          <select id="rating" name="rating" [(ngModel)]="selectedSite.properties.researchNotes.rating">
+            @for (r of ratingOptions; track r) {
+              <option [value]="r">{{ r || '— none —' }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="researchNotes">Notes:</label>
+          <textarea id="researchNotes" name="researchNotes" [(ngModel)]="selectedSite.properties.researchNotes.notes"></textarea>
+        </div>
+        <div class="research-links">
+          <label>Links:</label>
+          <div class="research-links-list">
+            @for (link of selectedSite.properties.researchNotes.links; track $index) {
+              <div class="research-link-row">
+                <a [href]="safeUrl(link)" target="_blank" rel="noopener noreferrer">{{ link }}</a>
+                <button type="button" (click)="deleteResearchLink($index)">Delete</button>
+              </div>
+            }
+            <button type="button" (click)="addResearchLink()">Add Link</button>
+          </div>
+        </div>
+        <div>
+          <label for="credits">Credits:</label>
+          <input type="text" id="credits" name="credits" [(ngModel)]="selectedSite.properties.researchNotes.credits">
+        </div>
+
+      }
+
+    </form>
+  </div>
+
+</main>

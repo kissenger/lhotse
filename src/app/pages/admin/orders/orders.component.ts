@@ -45,7 +45,7 @@ export class OrdersComponent {
   }
 
   newOrder() {
-    this._router.navigateByUrl('/admin/orders/manual/');
+    this._router.navigateByUrl('/orders/manual/');
   }
 
   async onDeactivate(orderNumber: string) {

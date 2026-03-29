@@ -80,6 +80,9 @@ export class MapService {
         fitBoundsOptions: { padding: 15 },
       });
 
+      const fullscreenContainer = this._map.getContainer().parentElement ?? undefined;
+      this._map.addControl(new mapboxgl.FullscreenControl({ container: fullscreenContainer }));
+
       this._map?.on('error', (error) => { reject(error); })
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {

@@ -8,6 +8,26 @@ import 'dotenv/config';
 const auth = express();
 const AUTH_KEY = process.env['AUTH_KEY'];
 
+const COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+
+/** Options for the HttpOnly JWT cookie */
+const tokenCookieOpts = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'strict' as const,
+  maxAge: COOKIE_MAX_AGE_MS,
+  path: '/',
+};
+
+/** Options for the non-HttpOnly presence cookie (JS-readable, used to check logged-in state) */
+const sessionCookieOpts = {
+  httpOnly: false,
+  secure: true,
+  sameSite: 'strict' as const,
+  maxAge: COOKIE_MAX_AGE_MS,
+  path: '/',
+};
+
 /*****************************************************************
  * ROUTE: Create paypal order
  ****************************************************************/
@@ -18,22 +38,27 @@ auth.post('/api/auth/login', async (req, res) => {
 
     const {username, password} = req.body.user;
 
+    // Use a consistent response for both "not found" and "wrong password" to
+    // prevent user enumeration attacks (timing is equalised by always calling bcrypt).
     const user = await UserModel.findOne({username});
-    if (!user) {
-      throw new AuthError('User name not found.');
-    };
-
-    const passwordOK = await bcrypt.compare(password, user.hash);
-    if (!passwordOK) {
-      throw new AuthError('Password did not match');
+    const dummyHash = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345';
+    const passwordOK = await bcrypt.compare(password, user?.hash ?? dummyHash);
+    if (!user || !passwordOK) {
+      throw new AuthError('Invalid credentials.');
     }
 
-    const token = jsonwebtoken.sign({user: user.username, role: user.role}, <string>AUTH_KEY);
-    res.status(200).send({token});
+    const token = jsonwebtoken.sign(
+      { user: user.username, role: user.role },
+      <string>AUTH_KEY,
+      { expiresIn: '24h' }
+    );
+    res.cookie('__sn_token', token, tokenCookieOpts);
+    res.cookie('__sn_session', '1', sessionCookieOpts);
+    res.status(200).send({ success: true });
 
   } catch (error: any) {
     console.log(error.message);
-    res.status(401).send(error);
+    res.status(401).send({ message: error.message ?? 'Login failed' });
   }
 
 });
@@ -56,14 +81,27 @@ auth.post('/api/auth/register', async (req, res) => {
     // create user in the database
     const hash = await bcrypt.hash(user.password, saltRounds);
     const newUser = await UserModel.create({...user, hash});
-    const token = jsonwebtoken.sign({...newUser}, <string>AUTH_KEY);
+    // Only embed non-sensitive fields in the JWT (never include the hash)
+    const token = jsonwebtoken.sign(
+      { user: newUser.username, role: newUser.role },
+      <string>AUTH_KEY,
+      { expiresIn: '24h' }
+    );
     res.status(200).send({token});    
 
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    res.status(401).send(error);
+    res.status(401).send({ message: error.message ?? 'Registration failed' });
   }
 
+});
+
+
+auth.post('/api/auth/logout', (req, res) => {
+  const clearOpts = { path: '/', secure: true, sameSite: 'strict' as const };
+  res.clearCookie('__sn_token', clearOpts);
+  res.clearCookie('__sn_session', clearOpts);
+  res.status(200).send({ success: true });
 });
 
 
@@ -74,13 +112,9 @@ function verifyToken(req: any, res: any, next: any) {
 
   try {
 
-    if (!req.headers.authorization) {
-      throw new AuthError('Unauthorised request: authorisation headers');
-    }
-
-    const token = req.headers.authorization;
-    if ( token === 'null' ) {
-      throw new AuthError('Unauthorised request: null token');
+    const token = req.cookies?.__sn_token;
+    if (!token) {
+      throw new AuthError('Unauthorised request: missing token');
     }
 
     const payload = jsonwebtoken.verify(token, <string>AUTH_KEY);

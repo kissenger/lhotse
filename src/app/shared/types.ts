@@ -249,6 +249,60 @@ export interface Feature {
     moreInfo: Array<{title?: string, icon?: string, url?: string, text?: string}>
   }
 
+export class MapFeature {
+  _id: string = '';
+  showOnMap: 'No' | 'Development' | 'Production' = 'No';
+  location: { type: string; coordinates: [number, number] } = { type: 'Point', coordinates: [0, 0] };
+  properties: {
+    featureType: string;
+    symbolSortOrder: number | null;
+    name: string;
+    region: string;
+    imageUrl: string;
+    location: {
+      adminLevel3: string;
+      county: string;
+      locality: string;
+      localityOverride: string;
+      postalTown: string;
+    };
+    description: string;
+    categories: string[];
+    contact: { name: string; email: string };
+    moreInfo: Array<{ title: string; icon: string; url: string; text: string; preferred: boolean }>;
+    siteInfo: {
+      isCarAccess: boolean;
+      parking: { name: string; location: { type: string; coordinates: [number, number] } | null; isPayAndDisplay: boolean };
+    };
+    researchNotes: {
+      isVisited: boolean;
+      visitPriority: boolean;
+      notes: string;
+      links: string[];
+      credits: string;
+      rating: 'good' | 'ok' | 'poor' | 'not for snorkelling' | '';
+    };
+  } = {
+    featureType: '',
+    symbolSortOrder: null,
+    name: 'New Site',
+    region: '',
+    imageUrl: '',
+    location: { adminLevel3: '', county: '', locality: '', localityOverride: '', postalTown: '' },
+    description: '',
+    categories: [],
+    contact: { name: '', email: '' },
+    moreInfo: [],
+    siteInfo: {
+      isCarAccess: false,
+      parking: { name: '', location: null, isPayAndDisplay: false },
+    },
+    researchNotes: { isVisited: false, visitPriority: false, notes: '', links: [], credits: '', rating: '' },
+  };
+  createdAt: string = '';
+  updatedAt: string = '';
+}
+
 // JSON-LD schema helpers used by SEOService.
 export type SchemaOrganization = Record<string, unknown>;
 export type SchemaBlogPosting = Record<string, unknown>;

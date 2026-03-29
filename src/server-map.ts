@@ -1,5 +1,6 @@
 import express from 'express';
 import FeatureModel from '../schema/feature';
+import { verifyToken } from './server-auth';
 import 'dotenv/config';
 
 const map = express();
@@ -74,3 +75,52 @@ async function getPlacesForSeo() {
 }
 
 export { map, getPlacesForSeo };
+
+/* Admin CRUD endpoints */
+
+map.get('/api/sites/get-all-sites-admin/', verifyToken, async (req, res) => {
+  try {
+    const sites = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
+    res.status(200).json(sites);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+map.post('/api/sites/upsert-site/', verifyToken, async (req, res) => {
+  try {
+    if (req.body._id && req.body._id !== '') {
+      await FeatureModel.findByIdAndUpdate(req.body._id, req.body);
+    } else {
+      delete req.body._id;
+      const isSnorkel = req.body.properties?.featureType === 'Snorkelling Site';
+      const bandQuery = isSnorkel
+        ? { 'properties.featureType': 'Snorkelling Site' }
+        : { 'properties.featureType': { $ne: 'Snorkelling Site' } };
+      const maxDoc = await FeatureModel.findOne(bandQuery, { 'properties.symbolSortOrder': 1 })
+        .sort({ 'properties.symbolSortOrder': -1 })
+        .lean();
+      const maxOrder = (maxDoc as any)?.properties?.symbolSortOrder ?? (isSnorkel ? 999 : 0);
+      req.body.properties = req.body.properties ?? {};
+      req.body.properties.symbolSortOrder = maxOrder + 1;
+      await FeatureModel.create(req.body);
+    }
+    const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
+map.get('/api/sites/delete-site/:_id', verifyToken, async (req, res) => {
+  try {
+    await FeatureModel.findByIdAndDelete(req.params._id);
+    const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});

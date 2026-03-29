@@ -16,6 +16,7 @@ const featureSchema = new mongoose.Schema({
       adminLevel3: { type: String },
       county: { type: String },
       locality: { type: String },
+      localityOverride: { type: String },
       postalTown: { type: String }
     },
     description: {type: String},
@@ -32,9 +33,6 @@ const featureSchema = new mongoose.Schema({
       preferred: {type: Boolean}
     }],
     siteInfo: {
-      hasTidalPool: {type: String},
-      isSnorkelTrail: {type: Boolean},
-      isBookSite: {type: Boolean},
       isCarAccess: {type: Boolean},
       parking: {
         name: {type: String},

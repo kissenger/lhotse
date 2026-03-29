@@ -16,13 +16,9 @@
 
     <div class="buttons">
       <button class="login-submit" [disabled]="!isValidForm()" (click)="onSubmit()">Submit</button>
-      <button class="login-cancel" (click)="onCancel()">Cancel</button>
+      <button type="button" class="login-cancel" (click)="onCancel()">Cancel</button>
     </div>
 
   </form>
-
-  <span class="link">
-    <a [routerLink]="'../register'">No Account? Register here.</a>
-  </span>
 
 </div>

@@ -1,28 +1,24 @@
 import { TokenInterceptor, HttpErrorInterceptor } from './interceptor.service';
-import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
-import { TestBed } from '@angular/core/testing';
 import { HttpRequest, HttpHandler } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 describe('TokenInterceptor', () => {
-  it('adds Authorization header when token present', () => {
-    const mockAuth = { token: 'TOK' } as AuthService;
-    const interceptor = new TokenInterceptor(mockAuth);
-    const req = new HttpRequest('GET', '/test');
+  const interceptor = new TokenInterceptor();
+
+  it('adds withCredentials to /api/ requests', () => {
+    const req = new HttpRequest('GET', '/api/sites/get-sites/Production');
     const handler: any = { handle: (r: HttpRequest<any>) => of(r) };
     interceptor.intercept(req, handler).subscribe((res: any) => {
-      expect(res.headers.get('Authorization')).toBe('TOK');
+      expect(res.withCredentials).toBeTrue();
     });
   });
 
-  it('passes through when no token', () => {
-    const mockAuth = { token: null } as AuthService;
-    const interceptor = new TokenInterceptor(mockAuth);
-    const req = new HttpRequest('GET', '/test');
+  it('does not add withCredentials to non-api requests', () => {
+    const req = new HttpRequest('GET', '/some-asset.json');
     const handler: any = { handle: (r: HttpRequest<any>) => of(r) };
     interceptor.intercept(req, handler).subscribe((res: any) => {
-      expect(res.headers.has('Authorization')).toBeFalse();
+      expect(res.withCredentials).toBeFalse();
     });
   });
 });
@@ -45,7 +41,7 @@ describe('HttpErrorInterceptor', () => {
       next: () => {},
       error: (err: any) => {
         expect(mockAuth.deleteCookies).toHaveBeenCalled();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin']);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
         done();
       }
     });

@@ -7,26 +7,22 @@ describe('AuthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(AuthService);
-    document.cookie = ''; // reset
+    document.cookie = '__sn_session=; max-age=0'; // reset
   });
 
-  it('should set and read token via cookie', () => {
-    service.token = { user: 'alice' } as any;
-    expect(document.cookie).toContain('__sn_token=');
-    const tok = service.token;
-    expect(tok).toBeTruthy();
-    expect((tok as any).user).toEqual('alice');
+  it('should report not logged in when session cookie absent', () => {
+    expect(service.isLoggedIn).toBeFalse();
   });
 
-  it('should return null for invalid token', () => {
-    document.cookie = '__sn_token=not-json';
-    expect(service.token).toBeNull();
+  it('should report logged in when session cookie present', () => {
+    document.cookie = '__sn_session=1';
+    expect(service.isLoggedIn).toBeTrue();
   });
 
-  it('should delete cookies', () => {
-    service.token = { user: 'bob' } as any;
-    expect(service.token).toBeTruthy();
+  it('should delete session cookie on deleteCookies()', () => {
+    document.cookie = '__sn_session=1';
+    expect(service.isLoggedIn).toBeTrue();
     service.deleteCookies();
-    expect(service.token).toBeNull();
+    expect(service.isLoggedIn).toBeFalse();
   });
 });
