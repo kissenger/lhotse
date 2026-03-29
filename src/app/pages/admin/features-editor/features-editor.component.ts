@@ -4,7 +4,9 @@ import { MapFeature } from '@shared/types';
 import { FormsModule } from '@angular/forms';
 import { NgClass, DatePipe, DOCUMENT } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import * as mapboxgl from 'mapbox-gl';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { EditorMapInstance } from '@shared/services/editor-map.instance';
 import { mapboxToken } from '@shared/globals';
 
 @Component({
@@ -17,16 +19,16 @@ import { mapboxToken } from '@shared/globals';
 export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _window;
-  private _map: mapboxgl.Map | null = null;
-  private _marker: mapboxgl.Marker | null = null;
-  private _parkingMap: mapboxgl.Map | null = null;
-  private _parkingMarker: mapboxgl.Marker | null = null;
+  private readonly _mainMapInst = new EditorMapInstance();
+  private readonly _parkingMapInst = new EditorMapInstance();
+  private readonly _destroy$ = new Subject<void>();
 
   public selectedSite: MapFeature = new MapFeature();
   public sites: Array<MapFeature> = [this.selectedSite];
   public askForConfirmation: boolean = false;
-  public mainMapSatellite: boolean = false;
-  public parkingMapSatellite: boolean = false;
+
+  get mainMapSatellite() { return this._mainMapInst.satellite; }
+  get parkingMapSatellite() { return this._parkingMapInst.satellite; }
 
   readonly featureTypes = [
     'Authors of Snorkelling Britain',
@@ -85,101 +87,77 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit() {
-    this._initMap();
+    this._setupMapSubscriptions();
+    this._initMainMap();
   }
 
   ngOnDestroy() {
-    this._map?.remove();
-    this._parkingMap?.remove();
+    this._destroy$.next();
+    this._destroy$.complete();
+    this._mainMapInst.destroy();
+    this._parkingMapInst.destroy();
   }
 
-  private _initMap() {
+  private _initMainMap() {
     const [lng, lat] = this.selectedSite.location.coordinates;
-    const hasCoords = !!(lng || lat);
-    this._map = new mapboxgl.Map({
-      accessToken: mapboxToken,
-      container: 'features-edit-map',
-      style: 'mapbox://styles/mapbox/outdoors-v12',
-      center: hasCoords ? [lng, lat] : [-3.5, 54.5],
-      zoom: hasCoords ? 12 : 5,
+    this._mainMapInst.init({
+      containerId: 'features-edit-map',
+      coords: (lng || lat) ? [lng, lat] : null,
+      markerColor: '#e05',
+      markerZoom: 12,
+      clickToPlace: true,
     });
-    this._map.once('load', () => this._map!.resize());
-    this._marker = new mapboxgl.Marker({ draggable: true, color: '#e05' })
-      .setLngLat(hasCoords ? [lng, lat] : [-3.5, 54.5])
-      .addTo(this._map);
-    if (!hasCoords) {
-      this._marker.getElement().style.display = 'none';
-    }
-    this._marker.on('dragend', () => {
-      const lngLat = this._marker!.getLngLat();
-      this.selectedSite.location.coordinates[0] = parseFloat(lngLat.lng.toFixed(6));
-      this.selectedSite.location.coordinates[1] = parseFloat(lngLat.lat.toFixed(6));
-      this._reverseGeocode(lngLat.lng, lngLat.lat);
+  }
+
+  private _setupMapSubscriptions() {
+    this._mainMapInst.dragEnd$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      this.selectedSite.location.coordinates[0] = lng;
+      this.selectedSite.location.coordinates[1] = lat;
+      this._reverseGeocode(lng, lat);
       this._cdr.detectChanges();
     });
-    this._map.on('click', (e) => {
+    this._mainMapInst.click$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
       const [cx, cy] = this.selectedSite.location.coordinates;
       if (cx || cy) return; // already placed — drag to move
-      this.selectedSite.location.coordinates[0] = parseFloat(e.lngLat.lng.toFixed(6));
-      this.selectedSite.location.coordinates[1] = parseFloat(e.lngLat.lat.toFixed(6));
-      this._marker!.setLngLat(e.lngLat);
-      this._marker!.getElement().style.display = '';
-      this._reverseGeocode(e.lngLat.lng, e.lngLat.lat);
+      this.selectedSite.location.coordinates[0] = lng;
+      this.selectedSite.location.coordinates[1] = lat;
+      this._mainMapInst.updateMarker(lng, lat);
+      this._reverseGeocode(lng, lat);
+      this._cdr.detectChanges();
+    });
+    this._parkingMapInst.dragEnd$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      const loc = this.selectedSite.properties.siteInfo.parking.location;
+      if (loc) {
+        loc.coordinates[0] = lng;
+        loc.coordinates[1] = lat;
+      }
       this._cdr.detectChanges();
     });
   }
 
   private _initParkingMap() {
-    this._destroyParkingMap();
+    this._parkingMapInst.destroy();
     const loc = this.selectedSite.properties.siteInfo.parking.location;
     if (!loc) return;
     const [lng, lat] = loc.coordinates;
-    const hasCoords = !!(lng || lat);
-    const siteLng = this.selectedSite.location.coordinates[0];
-    const siteLat = this.selectedSite.location.coordinates[1];
+    const [siteLng, siteLat] = this.selectedSite.location.coordinates;
     const hasSiteCoords = !!(siteLng || siteLat);
-    const fallbackCenter: [number, number] = hasSiteCoords ? [siteLng, siteLat] : [-3.5, 54.5];
-    const fallbackZoom = hasSiteCoords ? 15 : 5;
-    this._parkingMap = new mapboxgl.Map({
-      accessToken: mapboxToken,
-      container: 'features-edit-parking-map',
-      style: 'mapbox://styles/mapbox/outdoors-v12',
-      center: hasCoords ? [lng, lat] : fallbackCenter,
-      zoom: hasCoords ? 15 : fallbackZoom,
-    });
-    this._parkingMarker = new mapboxgl.Marker({ draggable: true, color: '#05e' })
-      .setLngLat(hasCoords ? [lng, lat] : fallbackCenter);
-    if (hasCoords) {
-      this._parkingMarker.addTo(this._parkingMap);
-    }
-    this._parkingMarker.on('dragend', () => {
-      const lngLat = this._parkingMarker!.getLngLat();
-      const loc2 = this.selectedSite.properties.siteInfo.parking.location!;
-      loc2.coordinates[0] = parseFloat(lngLat.lng.toFixed(6));
-      loc2.coordinates[1] = parseFloat(lngLat.lat.toFixed(6));
-      this._cdr.detectChanges();
+    this._parkingMapInst.init({
+      containerId: 'features-edit-parking-map',
+      coords: (lng || lat) ? [lng, lat] : null,
+      markerColor: '#05e',
+      markerZoom: 15,
+      fallbackCenter: hasSiteCoords ? [siteLng, siteLat] : [-3.5, 54.5],
+      fallbackZoom: hasSiteCoords ? 15 : 5,
     });
   }
 
   private _destroyParkingMap() {
-    this._parkingMap?.remove();
-    this._parkingMap = null;
-    this._parkingMarker = null;
+    this._parkingMapInst.destroy();
   }
 
-  toggleMainMapSatellite() {
-    this.mainMapSatellite = !this.mainMapSatellite;
-    this._map?.setStyle(this.mainMapSatellite
-      ? 'mapbox://styles/mapbox/satellite-streets-v12'
-      : 'mapbox://styles/mapbox/outdoors-v12');
-  }
-
-  toggleParkingMapSatellite() {
-    this.parkingMapSatellite = !this.parkingMapSatellite;
-    this._parkingMap?.setStyle(this.parkingMapSatellite
-      ? 'mapbox://styles/mapbox/satellite-streets-v12'
-      : 'mapbox://styles/mapbox/outdoors-v12');
-  }
+  toggleMainMapSatellite() { this._mainMapInst.toggleSatellite(); }
+  toggleParkingMapSatellite() { this._parkingMapInst.toggleSatellite(); }
 
   async getSites() {
     try {
@@ -243,23 +221,20 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onNewSite() {
-    const blank = new MapFeature();
-    this.selectedSite = blank;
-    if (this._marker) this._marker.getElement().style.display = 'none';
-    this._map?.jumpTo({ center: [-3.5, 54.5], zoom: 5 });
+    this.selectedSite = new MapFeature();
+    this._mainMapInst.hideMarker();
+    this._mainMapInst.jumpTo(-3.5, 54.5, 5);
     this._destroyParkingMap();
   }
 
   private _placeMarker() {
-    if (!this._map || !this._marker) return;
     const [lng, lat] = this.selectedSite.location.coordinates;
     if (lng || lat) {
-      this._marker.setLngLat([lng, lat]);
-      this._marker.getElement().style.display = '';
-      this._map.jumpTo({ center: [lng, lat], zoom: 12 });
+      this._mainMapInst.updateMarker(lng, lat);
+      this._mainMapInst.jumpTo(lng, lat, 12);
     } else {
-      this._marker.getElement().style.display = 'none';
-      this._map.jumpTo({ center: [-3.5, 54.5], zoom: 5 });
+      this._mainMapInst.hideMarker();
+      this._mainMapInst.jumpTo(-3.5, 54.5, 5);
     }
   }
 
@@ -301,10 +276,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
       loc.coordinates[1] = parseFloat(parts[0].toFixed(6));
       loc.coordinates[0] = parseFloat(parts[1].toFixed(6));
       const [lng, lat] = loc.coordinates;
-      if (this._parkingMarker && this._parkingMap) {
-        this._parkingMarker.setLngLat([lng, lat]).addTo(this._parkingMap);
-        this._parkingMap.flyTo({ center: [lng, lat], zoom: 15 });
-      }
+      this._parkingMapInst.updateMarker(lng, lat, { fly: true, zoom: 15 });
       this._cdr.detectChanges();
     }
   }
@@ -329,9 +301,8 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   private _updateMarkerFromCoords() {
     const [lng, lat] = this.selectedSite.location.coordinates;
-    if ((lng || lat) && this._marker && this._map) {
-      this._marker.setLngLat([lng, lat]);
-      this._map.panTo([lng, lat]);
+    if (lng || lat) {
+      this._mainMapInst.updateMarker(lng, lat);
     }
     if (lng && lat) {
       if (this._geocodeTimer) clearTimeout(this._geocodeTimer);
@@ -423,12 +394,10 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   private _updateParkingMarkerFromCoords() {
     const loc = this.selectedSite.properties.siteInfo.parking.location;
-    if (!loc || !this._parkingMarker || !this._parkingMap) return;
+    if (!loc) return;
     const [lng, lat] = loc.coordinates;
     if (lng || lat) {
-      this._parkingMarker.setLngLat([lng, lat]);
-      this._parkingMarker.addTo(this._parkingMap);
-      this._parkingMap.panTo([lng, lat]);
+      this._parkingMapInst.updateMarker(lng, lat);
     }
   }
 
