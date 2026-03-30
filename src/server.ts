@@ -23,11 +23,14 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 let mongooseConnectPromise: Promise<void> | null = null;
 
 /**
- * Block indexing of admin subdomain
+ * Block indexing of admin subdomain, and rewrite the Host header so Angular's
+ * SSR host-validation passes for admin.snorkelology.co.uk requests.
+ * Guards check document.location client-side, so routing still works correctly.
  */
 app.use((req, res, next) => {
   if (req.hostname === 'admin.snorkelology.co.uk') {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    req.headers['host'] = 'snorkelology.co.uk';
   }
   next();
 });
