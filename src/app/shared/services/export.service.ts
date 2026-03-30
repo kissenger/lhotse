@@ -15,10 +15,8 @@ export class ExportFileService {
   royalMailServiceCodes(description: string) {
     switch (description) {
       case 'Royal Mail First Class':
-        // return 'OLP1';
         return 'TOLP24';
       case 'Royal Mail Second Class':
-        // return 'OLP2';
         return 'TOLP48';
       case 'Royal Mail Tracked 24':
         return 'TOLP24';

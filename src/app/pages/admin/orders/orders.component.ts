@@ -10,7 +10,6 @@ import { OrderStatus, OrderSummary } from '@shared/types';
   selector: 'app-orders',
   standalone: true,
   imports: [NgClass, FormsModule, CurrencyPipe, RouterLink],
-  providers: [],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

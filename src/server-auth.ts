@@ -57,7 +57,6 @@ auth.post('/api/auth/login', async (req, res) => {
     res.status(200).send({ success: true });
 
   } catch (error: any) {
-    console.log(error.message);
     res.status(401).send({ message: error.message ?? 'Login failed' });
   }
 
@@ -90,14 +89,13 @@ auth.post('/api/auth/register', async (req, res) => {
     res.status(200).send({token});    
 
   } catch (error: any) {
-    console.log(error);
     res.status(401).send({ message: error.message ?? 'Registration failed' });
   }
 
 });
 
 
-auth.post('/api/auth/logout', (req, res) => {
+auth.post('/api/auth/logout', (_req, res) => {
   const clearOpts = { path: '/', secure: true, sameSite: 'strict' as const };
   res.clearCookie('__sn_token', clearOpts);
   res.clearCookie('__sn_session', clearOpts);
@@ -122,15 +120,9 @@ function verifyToken(req: any, res: any, next: any) {
       throw new AuthError('Unauthorised request: invalid token');
     }
     
-    // req.userId = payload.userId;
-    // req.userName = payload.userName;
-    // req.role = payload.role;
-
     next();
 
   } catch (error: any) {
-
-    console.log(error)
     res.status(401).send(new AuthError(error.message));
 
   }

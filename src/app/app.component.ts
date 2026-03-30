@@ -3,7 +3,6 @@ import { PagesComponent } from './pages/pages.component';
 
 @Component({
   standalone: true,
-  providers: [],
   imports: [PagesComponent],
   selector: 'app-root',
   templateUrl: './app.component.html',

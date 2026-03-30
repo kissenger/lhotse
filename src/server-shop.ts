@@ -12,9 +12,6 @@ const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT"
 const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
 const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
-// const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
-// const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
-// const PAYPAL_ENDPOINT = 'https://api-m.paypal.com';
 const EMAIL_CONFIG = {
   service: 'gmail', 
   host: "stmp.gmail.com",
@@ -66,7 +63,7 @@ function extractErrorMessage(error: any, fallback: string): string {
 /*****************************************************************
  * ROUTE: Create paypal order
  ****************************************************************/
-shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
+shop.post('/api/shop/create-paypal-order', async (req, res, _next) => {
 
   try {
     const token = await getAccessToken();
@@ -94,7 +91,6 @@ shop.post('/api/shop/create-paypal-order', async (req, res, next) => {
 
   } catch (err: any) {
     await logShopError(req.body.orderNumber, err);
-    console.log(err);
     const message = extractErrorMessage(err, 'Unknown PayPal order creation error');
     res.status(500).send({error: 'ShopError', message: `Error creating PayPal order: ${message}`});
   }
@@ -111,8 +107,6 @@ function newOrderNumber() {
  ****************************************************************/
 shop.post('/api/shop/patch-paypal-order', async (req, res) => {
   
-  const token = await getAccessToken();
-
   try {
     const token = await getAccessToken();
     const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
@@ -125,22 +119,16 @@ shop.post('/api/shop/patch-paypal-order', async (req, res) => {
       }])
     })
 
-    // const json = await result.json();
-    // if (Array.isArray(json.details)) {
-    //   throw new Error(json.details[0].issue);
-    // } else {
-      await logShopEvent(req.body.orderNumber, {
+    await logShopEvent(req.body.orderNumber, {
         "$set": {
           "paypal.intent.purchase_units": [req.body.patch], 
           "orderSummary.timeStamps.orderPatched": Date.now()
         }          
       })
-    // };
 
     res.send(result);
 
   } catch (err: any) {
-    console.log(err)
     logShopError(req.body.orderNumber, err);
     res.status(500).send({error: `ShopError: ${err.name}`, message: `Error patching PayPal order: ${err.message}`});
   }
@@ -297,7 +285,7 @@ shop.post('/api/shop/add-note', verifyToken, async (req, res) => {
 });
 
 function addNote(orderNumber: string, newNote: string) {
-  return new Promise( async (res,rej) => {
+  return new Promise( async (res,_rej) => {
     let orderSummary = await getOrderSummary(orderNumber);
     let response = await logShopEvent(orderNumber, {
       '$set': {
@@ -485,7 +473,6 @@ export async function logShopError(orderNumber: string | null, error: Object) {
 async function getAccessToken() {
 
   const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
-  // const auth = `${PAYPAL_CLIENT_ID}:1234567890`;
   const data = 'grant_type=client_credentials';
   let apiResponse;
   let json;
@@ -525,9 +512,9 @@ function sendEmail(to: string, html: string, subject: string) {
   };
   
   transporter.sendMail(message)
-    .then((info) => {
+    .then((_info) => {
     }).catch((err) => {
-      console.log(`error:${err}`);
+      console.error(`sendMail error: ${err}`);
     }
   );
 }

@@ -13,7 +13,6 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
     const sites = await FeatureModel.find({$or: [{showOnMap: visibility.split('/')}]});
     res.status(201).json(geoJson(sites));
   } catch (error: any) {
-    console.log(error);
     res.status(500).send(error);
   }
 });
@@ -78,7 +77,7 @@ export { map, getPlacesForSeo };
 
 /* Admin CRUD endpoints */
 
-map.get('/api/sites/get-all-sites-admin/', verifyToken, async (req, res) => {
+map.get('/api/sites/get-all-sites-admin/', verifyToken, async (_req, res) => {
   try {
     const sites = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(200).json(sites);

@@ -15,7 +15,6 @@ import { PartnersComponent } from    '@pages/home/partners/partners.component';
 
 @Component({
   standalone: true,
-  providers: [],
   imports: [
     SlideshowComponent, AboutUsComponent, ShopComponent, MapComponent,
     FAQComponent, BlogComponent, PartnersComponent, BookComponent,

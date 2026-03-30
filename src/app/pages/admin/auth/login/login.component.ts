@@ -1,5 +1,4 @@
 import { Component} from '@angular/core';
-import { AuthService } from '../../../../shared/services/auth.service';
 import { HttpService } from '../../../../shared/services/http.service';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
@@ -9,7 +8,6 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
   standalone: true,
   imports: [FormsModule],
-  providers: [],
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['../auth.css']
@@ -23,7 +21,6 @@ export class LoginComponent {
   }
 
   constructor(
-    private _auth: AuthService,
     private _http: HttpService,
     private _router: Router,
     private _route: ActivatedRoute,

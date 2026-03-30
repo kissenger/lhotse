@@ -1,6 +1,5 @@
 import { TokenInterceptor, HttpErrorInterceptor } from './interceptor.service';
-import { Router } from '@angular/router';
-import { HttpRequest, HttpHandler } from '@angular/common/http';
+import { HttpRequest } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 describe('TokenInterceptor', () => {
@@ -39,7 +38,7 @@ describe('HttpErrorInterceptor', () => {
     const handler: any = { handle: () => throwError(() => ({ status: 401 })) };
     interceptor.intercept(req, handler).subscribe({
       next: () => {},
-      error: (err: any) => {
+      error: (_err: any) => {
         expect(mockAuth.deleteCookies).toHaveBeenCalled();
         expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
         done();

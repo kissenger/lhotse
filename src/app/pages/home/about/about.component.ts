@@ -3,7 +3,6 @@ import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   standalone: true,
-  providers: [],
   imports: [NgOptimizedImage],
   selector: 'app-about',
   templateUrl: './about.component.html',

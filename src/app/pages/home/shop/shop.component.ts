@@ -110,7 +110,7 @@ export class ShopComponent implements AfterViewInit {
             }
           },
 
-          async onShippingOptionsChange(data, actions) {
+          async onShippingOptionsChange(data, _actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
               that.shop.basket.selectedShippingService = data.selectedShippingOption?.id;
               await that._http.patchPaypalOrder(

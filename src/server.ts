@@ -25,17 +25,17 @@ let mongooseConnectPromise: Promise<void> | null = null;
 /**
  * Start of API routes
  */
-app.get('/api/ping/', (req, res) => { 
+app.get('/api/ping/', (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
 
-app.get('/api/db-backup/', (req, res) => { 
+app.get('/api/db-backup/', (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
 
 app.use(express.json()); // this is needed to interprete req.body
 app.use(cookieParser());
-app.use('/api', async (req, res, next) => {
+app.use('/api', async (_req, _res, next) => {
   try {
     await ensureMongooseConnected();
     next();
@@ -99,9 +99,6 @@ export const reqHandler = createNodeRequestHandler(app);
  * @returns 
  */
 async function startServer() {
-  console.log(ENVIRONMENT);
-  console.log(`MONGO_URI status: ${process.env['MONGO_URI'] ? 'present' : 'missing'}`);
-
   await ensureMongooseConnected();
 
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
@@ -140,7 +137,6 @@ async function connectToMongoose()  {
   for (;;) {
     try {
       await mongoose.connect(MONGO_URI);
-      console.log('Mongoose connection successful');
       return;
     } catch (error) {
       console.error('Mongoose failed to connect, retrying in 5000ms...');
@@ -173,7 +169,6 @@ export class BlogError extends Error {
  
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
-const DEFAULT_OG_LOGO = `${SITE_URL}/assets/banner/snround.webp`;
 const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.png`;
 
 async function injectSeoIntoHtml(pathname: string, html: string) {
@@ -204,8 +199,8 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
 }
 
 async function getHomeSeoPayload(): Promise<SeoPayload> {
-  const description = 'A website from the authors of Snorkelling Britain. Explore our unique snorkelling map of Britain and buy Snorkelling Britain direct from the authors.';
-  const keywords = 'snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling, underwater photography, sealife, marinelife, snorkelling map, map';
+  const description = 'Snorkelology \u2014 your guide to the best snorkelling in Britain. Explore our interactive snorkelling map, browse articles on marine life, gear and safety, and buy Snorkelling Britain: 100 Marine Adventures.';
+  const keywords = 'snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling, snorkelling book, buy snorkelling britain, UK snorkelling sites, underwater photography, sealife, marinelife, snorkelling map, map';
   const orgSchema = {
     '@context': 'http://schema.org',
     '@type': 'Organization',
@@ -283,13 +278,12 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   const schemas = [orgSchema, ...productSchemas, faqSchema, ...blogSchemas, ...(mapSchema ? [mapSchema] : [])];
 
   return {
-    title: 'Snorkelology - From the Authors of Snorkelling Britain',
+    title: 'Snorkelology \u2014 British Snorkelling Map, Articles & Snorkelling Britain Book',
     description,
     keywords,
     canonicalPath: '/',
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
-    ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas,
     metaTags: [
@@ -379,7 +373,6 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     canonicalPath: `/blog/${slug}`,
     ogType: isFaqType ? 'website' : 'article',
     ogImage: image,
-    ogLogo: DEFAULT_OG_LOGO,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas: [breadcrumbSchema, schema],
     metaTags: [

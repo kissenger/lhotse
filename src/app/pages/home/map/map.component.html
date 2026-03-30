@@ -3,9 +3,15 @@
     <h1>British Snorkelling Map</h1> 
 
     <p>
-      We have big plans for this map!  Currently populated with sites from Snorkelling Britain, we plan to add new sites
-      as our database of great British snorkelling sites expands.  We'd also like to include instructors on the map, so 
-      if you're interested in being featured, please get in touch.  
+      We've mapped snorkelling sites and providers all over Britain — 
+      from rock pools and kelp forests to sheltered bays and offshore reefs. Use the
+      filter to narrow by category, and click on any pin to find out more. We are 
+      always updating the map, so check back regularly to get the latest!
+    </p>
+
+    <p>
+      If you are a snorkelling provider who would like to be included on the map, or if you know of a site
+      that should be included, please get in touch with us using the socials links in the header.
     </p>
 
     <div class="map-container">
@@ -16,6 +22,7 @@
           <div class="filter-group">
             <label class="filter-group-label">
               <input type="checkbox" [checked]="snorkellingSitesEnabled" (change)="toggleGroup('snorkelling')">
+              <img class="filter-legend-icon" src="assets/icons/site-icon-blue.webp" alt="">
               <strong>Snorkelling Sites</strong>
             </label>
             @for (cat of snorkellingCategories; track cat.name) {
@@ -28,6 +35,7 @@
           <div class="filter-group">
             <label class="filter-group-label">
               <input type="checkbox" [checked]="otherSitesEnabled" (change)="toggleGroup('other')">
+              <img class="filter-legend-icon" src="assets/icons/provider-icon-blue.webp" alt="">
               <strong>Snorkelling Providers</strong>
             </label>
             @for (cat of otherCategories; track cat.name) {

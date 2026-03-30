@@ -1,9 +1,15 @@
 <div class="dynamic-container">
 
-  <h1>Our Friends and Partners</h1>
+  <h1>Friends and Partners</h1>
   <p>
-    We have made some fabulous contacts on our book-writing journey, and as a way of saying thanks we have featured many of
-    them below...  Please support them by clicking on the links and exploring.
+    In the course of our book writing journey we have been blessed to connect 
+    with some amazing snorkelling clubs, marine conservation charities, 
+    underwater photographers and outdoor publishers who have 
+    supported us along the way.
+    Without exception these wonderful people care deeply about British 
+    snorkelling and 
+    marine conservation just as much as we do. Check them out below 
+    and show them some love.
   </p>
 
   <div #feedContainer class="logo-roller">
@@ -20,6 +26,7 @@
           [alt]="image.alt"
           [height]="image.size.height"
           [width]="image.size.width"
+          [title]="image.title"
         /> 
       </a>
     }

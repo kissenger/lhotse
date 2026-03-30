@@ -6,7 +6,6 @@ import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
   selector: 'app-toast',
   standalone: true,
   imports: [CommonModule, SanitizerPipe],
-  providers: [],
   templateUrl: './toast.component.html',
   styleUrls: ['./toast.component.css']
 })

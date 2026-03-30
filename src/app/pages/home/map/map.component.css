@@ -160,7 +160,8 @@ h3 {
 
 .caveat {
   font-style: italic;
-  font-size: smaller;
+  font-size: 0.7rem;
+  line-height: 1.2;
 }
 
 /* Filter control (injected into Mapbox ctrl bar) */
@@ -247,6 +248,11 @@ h3 {
 
 .filter-category {
   padding-left: 1.25rem;
+}
+
+.filter-legend-icon {
+  height: 20px;
+  width: auto;
 }
 
 

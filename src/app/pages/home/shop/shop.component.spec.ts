@@ -11,8 +11,8 @@ describe('ShopComponent', () => {
   beforeEach(async () => {
     const mockBasket = {
       items: [],
-      add: (item: any, qty: number) => {},
-      remove: (id: string) => {}
+      add: (_item: any, _qty: number) => {},
+      remove: (_id: string) => {}
     };
     const mockShop = {
       items: [],

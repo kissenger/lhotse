@@ -17,7 +17,6 @@ import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component
   standalone: true,
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
     FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass ],
-  // providers: [MapService],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
@@ -68,7 +67,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this._cdr.detectChanges();
 
     } catch (error) {
-      console.log(error);
       this.loadingState = 'failed';
       this._cdr.detectChanges();
     }

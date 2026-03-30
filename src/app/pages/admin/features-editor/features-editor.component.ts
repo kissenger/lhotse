@@ -77,7 +77,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
     private _sanitizer: DomSanitizer,
-    @Inject(DOCUMENT) private _document: Document
+    @Inject(DOCUMENT) _document: Document
   ) {
     this._window = _document.defaultView;
   }

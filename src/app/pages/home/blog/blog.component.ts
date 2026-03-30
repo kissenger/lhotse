@@ -28,8 +28,16 @@ export class BlogComponent implements OnInit {
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
 
   // Blog page text content (DRY - defined once in component)
-  public readonly pageHeading = 'Learn About British Snorkelling';
-  public readonly pageDescription = 'Find out more about snorkelling in Britain with Snorkelology ... we have written some information-packed articles to give hints and tips to new and experienced snorkellers alike. Have a dig around, and let us know if there are any British snorkelling topics you\'d like us to cover.';
+  public readonly pageHeading = 'British Snorkelling Articles';
+  public readonly pageDescription = 
+  `Here we share our experience of snorkelling and diving around the UK since the 
+  early 2000s. 
+  You'll find articles on the best places to snorkel,
+  marine life identification, underwater cameras and photography, 
+  gear reviews and practical tips to keep you safe in the water.
+  So whether you're new snorkelling or just looking for your next adventure, 
+  have a browse, and check back regularly as we are adding new articles 
+  all the time.`;
   public readonly filterLabel = 'Filter by keyword:';
 
   constructor(
@@ -51,9 +59,8 @@ export class BlogComponent implements OnInit {
           this.filteredPosts = this.allPosts;
           this.getUniqueKeywords();
         },
-        error: (error) => {
+        error: (_error) => {
           this.loadingState = 'failed';
-          console.log(error);
         }
       });
   }

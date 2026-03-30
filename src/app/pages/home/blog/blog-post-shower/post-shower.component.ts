@@ -31,7 +31,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   constructor(
     private _http: HttpService,
-    @Inject(PLATFORM_ID) private platformId: any,
+    @Inject(PLATFORM_ID) _platformId: any,
     private _route: ActivatedRoute,
     private _htmler: HtmlerPipe,
     private _router: Router,

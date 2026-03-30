@@ -4,7 +4,6 @@ import { stage } from '@shared/globals';
 
 @Component({
   standalone: true,
-  providers: [],
   imports: [NgOptimizedImage],
   selector: 'app-book',
   templateUrl: './book.component.html',

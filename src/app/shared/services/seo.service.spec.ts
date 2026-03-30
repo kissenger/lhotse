@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SEOService } from './seo.service';
 import { Meta, Title } from '@angular/platform-browser';
-import { Renderer2, RendererFactory2, PLATFORM_ID } from '@angular/core';
+import { RendererFactory2, PLATFORM_ID } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 
 describe('SEOService', () => {

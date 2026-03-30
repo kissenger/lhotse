@@ -5,7 +5,7 @@
   <main>
     <div class="article-image-container">
       <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority /> 
-      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{!!post.imgCredit||'Emma and Gordon Taylor'}}</div>       
+      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{post.imgCredit||'Emma and Gordon Taylor'}}</div>       
       <div class="arrow left">  <a href="blog/{{lastSlug}}" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
       <div class="arrow right"> <a href="blog/{{nextSlug}}" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
     </div>
@@ -32,7 +32,7 @@
 
       @if (post.sections.length > 0) {
         <section class="anchor" id="contents">
-          <h1>Contents</h1>
+          <h2>Contents</h2>
           <ul>
             @for(section of post.sections; track section) {
               <li>
@@ -45,7 +45,7 @@
 
         @for (section of post.sections; track section) {
           <a class="anchor" id="{{section.title | kebaber}}"></a>
-          <h1>{{section.title}}</h1>
+          <h2>{{section.title}}</h2>
           <div [innerHTML]="section.content | sanitizer"></div>
           @if (!!section.imgFname) {
 
@@ -78,7 +78,7 @@
         }
       }
 
-      <h1>Conclusion</h1>
+      <h2>Conclusion</h2>
       <div [innerHTML]="post.conclusion | sanitizer"></div>
 
     </div>

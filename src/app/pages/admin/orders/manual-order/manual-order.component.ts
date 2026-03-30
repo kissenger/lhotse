@@ -1,7 +1,7 @@
 import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { OrderSummary } from '@shared/types';
-import { ShopService, User } from '@shared/services/shop.service'
+import { ShopService } from '@shared/services/shop.service'
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -11,7 +11,6 @@ import { switchMap, of } from 'rxjs';
   selector: 'app-orders',
   standalone: true,
   imports: [ FormsModule],  
-  providers: [], 
   templateUrl: './manual-order.component.html',
   styleUrl: './manual-order.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

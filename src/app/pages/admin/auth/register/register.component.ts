@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../../shared/services/auth.service';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
 import { HttpService } from '../../../../shared/services/http.service';
@@ -10,7 +9,6 @@ import { Router } from '@angular/router';
 @Component({
   standalone: true,
   imports: [FormsModule, CommonModule],
-  providers: [],
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['../auth.css']
@@ -27,7 +25,6 @@ export class RegisterComponent {
   public confirmPassword: string = '';
 
   constructor(
-    private _auth: AuthService,
     private _http: HttpService,
     private _toaster: ToastService,
     private _router: Router

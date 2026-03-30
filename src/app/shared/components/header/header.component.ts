@@ -11,7 +11,6 @@ import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 
 @Component({
   standalone: true,
-  providers: [],
   imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, FacebookSvgComponent  ],
   selector: 'app-header',
   templateUrl: './header.component.html',

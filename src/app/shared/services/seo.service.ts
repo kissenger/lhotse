@@ -18,7 +18,7 @@ export class SEOService {
     @Inject(PLATFORM_ID) private platformId: Object,
     private _title: Title, 
     private _meta: Meta,
-    private _rendererFactory: RendererFactory2
+    _rendererFactory: RendererFactory2
 
   ) { 
       this._renderer = _rendererFactory.createRenderer(null, null);

@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, Inject, Input, PLATFORM_ID, Query
 import { CommonModule, isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import { SvgArrowComponent } from '../svg-arrow/svg-arrow.component';
 import { CarouselImages } from '@shared/types';
-import { BehaviorSubject, delay, interval, Observable, Subscription, switchMap, timer } from 'rxjs';
+import { BehaviorSubject, interval, Observable, Subscription, switchMap, timer } from 'rxjs';
 
 @Component({
   standalone: true,

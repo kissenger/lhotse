@@ -1,8 +1,6 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { mapboxToken } from '../globals';
 import * as mapboxgl from 'mapbox-gl';
-import { MapboxGeoJSONFeature } from 'mapbox-gl';
-import { Feature } from '@shared/types';
 import { Subject } from 'rxjs';
 
 @Injectable({
@@ -21,9 +19,7 @@ export class MapService {
 
   get filterContainer() { return this._filterContainer; }
 
-  constructor(
-    private injector: Injector
-  ) {}
+  constructor() {}
   
   get exists() {
     return !!this._map
@@ -139,15 +135,25 @@ export class MapService {
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
 
-        this._map?.loadImage('assets/icons/snorkel-waves-icon-2.png', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-blue.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/mask-and-snorkel-white-on-dark-2.png', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-white.webp', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('site-marker-active', image);
+        });
+
+        this._map?.loadImage('assets/icons/provider-icon-blue.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker', image);
-        });        
+        });
+
+        this._map?.loadImage('assets/icons/provider-icon-white.webp', (error, image: any) => {
+          if (error) throw error;
+          this._map?.addImage('organisation-marker-active', image);
+        });
 
         this._map?.addSource('sitesSource', {type: "geojson", data: sites});
 
@@ -162,24 +168,31 @@ export class MapService {
                 'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 0.7,
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.4, 14, 0.8],
             'symbol-sort-key': ['get', 'symbolSortOrder']
           },
+          paint: {
+            'icon-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              0,
+              1.0
+            ],
+          }
         })
 
-        // duplicate with larger symbol size, only shown in click
+        // highlight layer — uses active icon variants, only shown when selected
         this._map?.addLayer({
           id: 'symbolLayerHighlight', 
           source: 'sitesSource',
           type: 'symbol', 
           layout: { 
-            'icon-image': ['match', ['get','featureType'], 
-                'Snorkelling Site', 'site-marker',
-                'organisation-marker'],
+            'icon-image': ['match', ['get','featureType'],
+                'Snorkelling Site', 'site-marker-active',
+                'organisation-marker-active'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': 0.9,
-            'icon-offset': [0,2],
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.4, 14, 1.6],
             'symbol-sort-key': ['get','symbolSortOrder']
           },
           paint: {
@@ -190,7 +203,7 @@ export class MapService {
               0
             ],
           }
-        }) 
+        })
         
       })
 
@@ -234,7 +247,7 @@ export class MapService {
       this._map?.addInteraction('mouseenter', {
         type: 'mouseenter',
         target: { layerId: 'symbolLayer' },
-        handler: (e) => { 
+        handler: (_e) => { 
           this._map!.getCanvas().style.cursor = 'pointer';
         }
       });
@@ -242,7 +255,7 @@ export class MapService {
       this._map?.addInteraction('mouseleave', {
         type: 'mouseleave',
         target: { layerId: 'symbolLayer' },
-        handler: (e) => { 
+        handler: (_e) => { 
           this._map!.getCanvas().style.cursor = '';
         }
       });

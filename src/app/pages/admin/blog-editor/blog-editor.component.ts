@@ -1,7 +1,6 @@
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { BlogPost } from '@shared/types';
-import { Subscription } from 'rxjs';
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
@@ -29,7 +28,7 @@ export class BlogEditorComponent implements OnInit {
       private _http: HttpService,
       private _kebaber: KebaberPipe,
       private _cdr: ChangeDetectorRef,
-      @Inject(DOCUMENT) private _document: Document
+      @Inject(DOCUMENT) _document: Document
     ) {
       this._window = _document.defaultView;
     }

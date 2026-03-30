@@ -14,7 +14,7 @@ const blog = express();
   Get all data for all posts
   Returns: Array<BlogPost>
 */
-blog.get('/api/blog/get-all-posts/', async (req, res) => {
+blog.get('/api/blog/get-all-posts/', async (_req, res) => {
   try {
     const result = await BlogModel
       .find({})
@@ -26,21 +26,19 @@ blog.get('/api/blog/get-all-posts/', async (req, res) => {
   }
 });
 
-blog.get('/api/blog/get-all-slugs/', async (req, res) => {
-  console.log('test')
+blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
   try {
     const result =  await getSlugs(false);
     if (!result || result.length === 0) {
       throw new BlogError('Error fetching slugs');
     };
-    console.log(result);  
     res.status(201).json(result); 
   } catch (error: any) { 
     res.status(500).send(error);
   }
 });
 
-  blog.get('/api/blog/get-sitemap-entries/', async (req, res) => {
+  blog.get('/api/blog/get-sitemap-entries/', async (_req, res) => {
     try {
       const result = await BlogModel.find(
         { isPublished: true },
@@ -58,7 +56,7 @@ blog.get('/api/blog/get-all-slugs/', async (req, res) => {
   Get all data for all posts
   Returns: Array<BlogPost>
 */
-blog.get('/api/blog/get-published-posts/', async (req, res) => {
+blog.get('/api/blog/get-published-posts/', async (_req, res) => {
   try {
     const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
     res.status(201).json(result);
@@ -164,7 +162,6 @@ blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
     const result = await BlogModel.find({});
     res.status(201).json(result);
   } catch (error: any) {
-    console.log(error.message);
     res.status(500).send(error);
   }
 });

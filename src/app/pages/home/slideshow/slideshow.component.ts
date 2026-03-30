@@ -5,7 +5,6 @@ import { CarouselImages } from '@shared/types';
 @Component({
   standalone: true,
   imports: [ CarouselComponent],
-  providers: [],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
   styleUrls: ['./slideshow.component.css']
