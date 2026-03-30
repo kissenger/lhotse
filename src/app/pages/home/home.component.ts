@@ -7,10 +7,10 @@ import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { BlogComponent } from        '@pages/home/blog/blog.component';
-import { MapComponent } from         '@pages/home/map/map.component';
 import { BookComponent } from        '@pages/home/book/book.component';
 import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
+import { MapComponent } from         '@pages/home/map/map.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
 
 @Component({
