@@ -5,6 +5,7 @@
 !/src/environments/environment._shopItems.ts
 !/src/environments/environment._shippingOptions.ts
 /src/config/prod/sitemap.xml
+/test-results
 
 # Compiled output
 /dist
@@ -14,7 +15,7 @@
 /bazel-out
 
 # Node
-/node-modules
+/node_modules
 npm-debug.log
 yarn-error.log
 

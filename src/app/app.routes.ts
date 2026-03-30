@@ -1,12 +1,22 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router, Routes } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
 import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
 
+const adminSubdomainRedirect: CanActivateFn = () => {
+  const hostname = inject(DOCUMENT).defaultView?.location.hostname ?? '';
+  if (hostname.startsWith('admin.')) {
+    return inject(Router).createUrlTree(['/dashboard']);
+  }
+  return true;
+};
+
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', component: HomeComponent },
-  { path: 'home', component: HomeComponent },
+  { path: '', pathMatch: 'full', component: HomeComponent, canActivate: [adminSubdomainRedirect] },
+  { path: 'home', component: HomeComponent, canActivate: [adminSubdomainRedirect] },
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)
   },

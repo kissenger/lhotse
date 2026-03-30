@@ -17,7 +17,8 @@
               "allowedHosts": [
                 "localhost",
                 "snorkelology.co.uk",
-                "beta.snorkelology.co.uk"
+                "beta.snorkelology.co.uk",
+                "admin.snorkelology.co.uk"
               ]
             },
             "outputMode": "server", 

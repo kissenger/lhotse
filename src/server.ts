@@ -23,6 +23,16 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 let mongooseConnectPromise: Promise<void> | null = null;
 
 /**
+ * Block indexing of admin subdomain
+ */
+app.use((req, res, next) => {
+  if (req.hostname === 'admin.snorkelology.co.uk') {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  }
+  next();
+});
+
+/**
  * Start of API routes
  */
 app.get('/api/ping/', (_req, res) => { 

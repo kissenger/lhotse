@@ -41,8 +41,12 @@
             user-select: none;
 }
 
-input {
+input, textarea, select {
   outline-width: 0px;
+  /* Re-enable text selection for form inputs — global user-select:none on *
+     breaks iOS Safari keyboard / text selection in inputs */
+  -webkit-user-select: text;
+          user-select: text;
 }
 
 app-pages, app-root {
