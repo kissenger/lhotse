@@ -26,12 +26,20 @@
     </div>
     <div class="static-row">
       <button type="button" class="formButton" (click)="onNewSite()">+ New Site</button>
-      <button type="submit" class="formButton" (click)="onSave()">Save</button>
+      <button type="submit" class="formButton" (click)="onSave()" [disabled]="!hasUnsavedChanges()">Save</button>
       <button type="button" class="formButton" (click)="onYesDelete(false)" [disabled]="!selectedSite._id">Delete</button>
+      @if (!selectedSite._id) {
+        <button type="button" class="formButton" (click)="onAskResetForm()">Reset Form</button>
+      }
       <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
         Are you sure?
         <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
         <button type="button" class="formButton" (click)="onNoDelete()">No</button>
+      </span>
+      <span [ngClass]="askForResetForm ? 'showButton' : ''" class="sureButton">
+        Are you sure?
+        <button type="button" class="formButton" (click)="onConfirmResetForm()">Yes</button>
+        <button type="button" class="formButton" (click)="onCancelResetForm()">No</button>
       </span>
     </div>
   </div>

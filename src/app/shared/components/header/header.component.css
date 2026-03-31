@@ -14,7 +14,7 @@
 header {
   position: fixed;
   top: 0px;
-  z-index: 1000;
+  z-index: 1200;
   width: 100%;
   height: var(--header-height);
   color: var(--text-colour-header);
@@ -22,9 +22,42 @@ header {
   border-bottom: 2px white solid;
   padding-inline: calc( (100vw - var(--container-width) ) / 2 );
   box-sizing: border-box;
-  display: flex;   
+  display: flex;
   flex-direction: row;
-  z-index: 1200;
+}
+
+.header-main {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  height: 100%;
+}
+
+.admin-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.admin-breadcrumb a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.admin-breadcrumb .sep {
+  color: rgba(255,255,255,0.4);
+}
+
+.admin-breadcrumb .current {
+  color: #fff;
 }  
 
 .brand-box {
@@ -79,9 +112,15 @@ header {
 
 .menubar {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-grow: 1;
   height: 100%;
+}
+
+.menu-row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
 }
 
 .hamburger {
@@ -132,7 +171,7 @@ header {
 /*  Narrow screen adjustments  */
 @media (max-width: 767px) {
 
-  .menubar {
+  .menu-row {
     flex-direction: row-reverse;
   }
 

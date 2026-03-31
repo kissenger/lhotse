@@ -1,12 +1,14 @@
 <header>
 
-   
+  <div class="header-main">
 
     <a #brandbox class="brand-box block-animation" href="/" [ngClass]="expandDropdownMenu ? 'expand' : 'contract'" (click)="onMenuItemClick()" aria-label="Visit Snorkelology home page">
       <img src="./assets/banner/snround.webp" width="100" height="100" alt="Snorkelology logo">
     </a>
 
     <div class="menubar">
+
+      <div class="menu-row">
 
       <svg id="hamburger" class="hamburger" viewBox="-53 -53 106 106" height="40px" width="40px" fill=var(--sn-colour) (click)="onHamburgerClick()">
         <rect x="-50" y="-50" width="100" height="100" fill=var(--sn-colour) rx="10" stroke="#FFFFFF" stroke-width="6">
@@ -49,10 +51,24 @@
         </a>
       </div>
 
+      </div><!-- end menu-row -->
+
+      @if (isAdminRoute) {
+        <nav class="admin-breadcrumb">
+          @for (crumb of breadcrumbs; track crumb.path; let last = $last) {
+            @if (!last) {
+              <a [href]="crumb.path">{{ crumb.label }}</a>
+              <span class="sep">›</span>
+            } @else {
+              <span class="current">{{ crumb.label }}</span>
+            }
+          }
+        </nav>
+      }
+
     </div>
-    
-  
+
+  </div>
 
 </header>
-
 

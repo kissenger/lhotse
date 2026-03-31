@@ -1,7 +1,7 @@
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from '@shared/components/footer/footer.component';
 import { HeaderComponent } from '@shared/components/header/header.component';
-import { AfterViewInit, Component, Signal, viewChild, ViewContainerRef} from '@angular/core';
+import { AfterViewInit, Component, Signal, viewChild, ViewContainerRef } from '@angular/core';
 import { ToastService } from '@shared/services/toast.service';
 
 @Component({
@@ -12,14 +12,14 @@ import { ToastService } from '@shared/services/toast.service';
   styleUrl: './pages.component.css'
 })
 
-export class PagesComponent implements AfterViewInit{
+export class PagesComponent implements AfterViewInit {
 
-  container: Signal<ViewContainerRef | undefined> = viewChild("toaster", {
+  container: Signal<ViewContainerRef | undefined> = viewChild('toaster', {
     read: ViewContainerRef,
   });
 
   constructor(
-    private toaster: ToastService
+    private toaster: ToastService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -27,5 +27,4 @@ export class PagesComponent implements AfterViewInit{
       this.toaster.init(this.container()!);
     }
   }
-  
 }

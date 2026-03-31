@@ -37,8 +37,8 @@ const featureSchema = new mongoose.Schema({
       parking: {
         name: {type: String},
         location: {
-          type: {type: String, required: true},
-          coordinates: {type: [Number], required: true}
+          type: {type: String},
+          coordinates: {type: [Number]}
         },
         isPayAndDisplay: {type: Boolean}
       },
@@ -49,7 +49,7 @@ const featureSchema = new mongoose.Schema({
       notes: {type: String},
       links: {type: [String]},
       credits: {type: String},
-      rating: {type: String, enum: ['good','ok','poor','not for snorkelling']},
+      rating: {type: String, enum: ['good','ok','poor','not for snorkelling', '']},
     }
   }
 }, {timestamps: true})

@@ -32,10 +32,21 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     { name: 'Shop',    anchor: 'buy-now' },
     { name: 'Map',     anchor: 'snorkelling-map-of-britain' },
     { name: 'Friends', anchor: 'friends-and-partners' },
-
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';
+
+  public isAdminRoute = false;
+  public breadcrumbs: Array<{ label: string; path: string }> = [];
+
+  private static readonly _ROUTE_LABELS: Record<string, string> = {
+    dashboard:      'Dashboard',
+    blogeditor:     'Blog Editor',
+    featureseditor: 'Features Editor',
+    adminmap:       'Admin Map',
+    orders:         'Orders',
+    login:          'Login',
+  };
 
   constructor(
     @Inject(Router) private _router: Router,
@@ -54,9 +65,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.syncActiveMenuItemToRoute(event.urlAfterRedirects);
+        this._buildBreadcrumbs(event.urlAfterRedirects);
+        this._cdr.detectChanges();
     });
 
     this.syncActiveMenuItemToRoute(this._router.url);
+    this._buildBreadcrumbs(this._router.url);
   }
  
   ngAfterViewInit() {
@@ -99,6 +113,17 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this._scrSubs?.unsubscribe();
     this._routeSubs?.unsubscribe();
+  }
+
+  private _buildBreadcrumbs(url: string) {
+    const firstSegment = url.split('?')[0].split('#')[0].split('/').filter(Boolean)[0] ?? '';
+    const labels = HeaderComponent._ROUTE_LABELS;
+    this.isAdminRoute = firstSegment in labels;
+    const crumbs: Array<{ label: string; path: string }> = [{ label: 'Admin', path: '/dashboard' }];
+    if (firstSegment && firstSegment !== 'dashboard' && labels[firstSegment]) {
+      crumbs.push({ label: labels[firstSegment], path: '/' + firstSegment });
+    }
+    this.breadcrumbs = crumbs;
   }
 
   private syncActiveMenuItemToRoute(url: string | undefined) {

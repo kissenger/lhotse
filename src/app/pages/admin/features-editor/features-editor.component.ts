@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, HostListener } from '@angular/core';
+import { HasUnsavedChanges } from './unsaved-changes.guard';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +9,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { EditorMapInstance } from '@shared/services/editor-map.instance';
 import { mapboxToken } from '@shared/globals';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-features-editor',
@@ -16,7 +18,7 @@ import { mapboxToken } from '@shared/globals';
   templateUrl: './features-editor.component.html',
   styleUrl: './features-editor.component.css'
 })
-export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy {
+export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy, HasUnsavedChanges {
 
   private _window;
   private readonly _mainMapInst = new EditorMapInstance();
@@ -26,6 +28,9 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   public selectedSite: MapFeature = new MapFeature();
   public sites: Array<MapFeature> = [this.selectedSite];
   public askForConfirmation: boolean = false;
+  public askForResetForm: boolean = false;
+
+  private _savedSnapshot: string = '';
 
   get mainMapSatellite() { return this._mainMapInst.satellite; }
   get parkingMapSatellite() { return this._parkingMapInst.satellite; }
@@ -77,9 +82,25 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
     private _sanitizer: DomSanitizer,
+    private _route: ActivatedRoute,
     @Inject(DOCUMENT) _document: Document
   ) {
     this._window = _document.defaultView;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    return JSON.stringify(this.selectedSite) !== this._savedSnapshot;
+  }
+
+  private _takeSnapshot() {
+    this._savedSnapshot = JSON.stringify(this.selectedSite);
   }
 
   async ngOnInit() {
@@ -133,6 +154,21 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
       }
       this._cdr.detectChanges();
     });
+    this._parkingMapInst.click$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      const loc = this.selectedSite.properties.siteInfo.parking.location;
+      if (!loc) {
+        this.selectedSite.properties.siteInfo.parking.location = { type: 'Point', coordinates: [lng, lat] };
+        this._parkingMapInst.updateMarker(lng, lat);
+        this._cdr.detectChanges();
+        return;
+      }
+      const [cx, cy] = loc.coordinates;
+      if (cx || cy) return; // already placed — drag to move
+      loc.coordinates[0] = lng;
+      loc.coordinates[1] = lat;
+      this._parkingMapInst.updateMarker(lng, lat);
+      this._cdr.detectChanges();
+    });
   }
 
   private _initParkingMap() {
@@ -149,6 +185,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
       markerZoom: 15,
       fallbackCenter: hasSiteCoords ? [siteLng, siteLat] : [-3.5, 54.5],
       fallbackZoom: hasSiteCoords ? 15 : 5,
+      clickToPlace: true,
     });
   }
 
@@ -200,17 +237,25 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     } else {
       this.sites = result.map(r => this.normaliseSite(r));
     }
-    this.selectedSite = this.sites[0];
+    const preselectId = this._route.snapshot.queryParamMap.get('id');
+    const preselected = preselectId ? this.sites.find(s => s._id === preselectId) : null;
+    this.selectedSite = preselected ?? this.sites[0];
     this._placeMarker();
     if (this.selectedSite.properties.siteInfo.parking.location) {
       setTimeout(() => this._initParkingMap(), 0);
     } else {
       this._destroyParkingMap();
     }
+    this._takeSnapshot();
     this._cdr.detectChanges();
   }
 
   onFormSelect(id: string) {
+    if (this.hasUnsavedChanges() && !this._window!.confirm('You have unsaved changes. Discard them?')) {
+      // Revert the select element back to the current site
+      this._cdr.detectChanges();
+      return;
+    }
     this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
     this._placeMarker();
     if (this.selectedSite.properties.siteInfo.parking.location) {
@@ -218,13 +263,18 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     } else {
       this._destroyParkingMap();
     }
+    this._takeSnapshot();
   }
 
   onNewSite() {
+    if (this.hasUnsavedChanges() && !this._window!.confirm('You have unsaved changes. Discard them?')) {
+      return;
+    }
     this.selectedSite = new MapFeature();
     this._mainMapInst.hideMarker();
     this._mainMapInst.jumpTo(-3.5, 54.5, 5);
     this._destroyParkingMap();
+    this._takeSnapshot();
   }
 
   private _placeMarker() {
@@ -343,7 +393,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     if (!Array.isArray(raw)) return [];
     return raw
       .map((l: any) => String(l).replace(/^[\s["']+|[\s\]"']+$/g, '').trim())
-      .filter((l: string) => l !== '');
+      .filter((l: string) => /^https?:\/\//i.test(l));
   }
 
   safeUrl(url: string): SafeUrl {
@@ -414,10 +464,21 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   async onSave() {
     try {
       const id = this.selectedSite._id;
+      const name = this.selectedSite.properties.name;
       const result = await this._http.upsertSite(this.selectedSite);
       this.refreshSiteList(result);
-      if (id) {
-        this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+      const saved = id
+        ? this.sites.find(s => s._id === id)
+        : this.sites.find(s => s.properties.name === name);
+      if (saved) {
+        this.selectedSite = saved;
+        this._placeMarker();
+        if (saved.properties.siteInfo.parking.location) {
+          setTimeout(() => this._initParkingMap(), 0);
+        } else {
+          this._destroyParkingMap();
+        }
+        this._takeSnapshot();
       }
       this._window!.alert('Site saved successfully!');
     } catch (error: any) {
@@ -437,6 +498,19 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   onNoDelete() {
     this.askForConfirmation = false;
+  }
+
+  onAskResetForm() {
+    this.askForResetForm = true;
+  }
+
+  onConfirmResetForm() {
+    this.askForResetForm = false;
+    this.onNewSite();
+  }
+
+  onCancelResetForm() {
+    this.askForResetForm = false;
   }
 
   async doDelete() {

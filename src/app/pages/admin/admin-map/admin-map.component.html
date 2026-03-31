@@ -1,0 +1,117 @@
+<div class="admin-map-page">
+
+  <div class="map-wrap">
+    <div id="admin-map"></div>
+
+    @if (loadingState === 'loading') {
+      <div class="overlay-msg">Loading sites…</div>
+    }
+    @if (loadingState === 'failed') {
+      <div class="overlay-msg error">Failed to load sites.</div>
+    }
+
+    <!-- Legend / filter -->
+    <div class="legend">
+      <div class="legend-title">Filter &amp; Key</div>
+      @for (cat of categories; track cat.status) {
+        <label class="legend-item" [class.disabled]="!cat.enabled">
+          <input type="checkbox" [checked]="cat.enabled" (change)="toggleFilter(cat)">
+          <span class="swatch" [style.background]="cat.color"></span>
+          <span class="legend-label">{{ cat.label }}</span>
+          <span class="legend-count">({{ getCategoryCount(cat.status) }})</span>
+        </label>
+      }
+    </div>
+
+    @if (selectedSite) {
+      <div class="info-panel">
+        <div class="info-header">
+          <span class="info-type">{{ selectedSite.properties.featureType }}</span>
+          <button class="close-btn" (click)="clearSelection()">✕</button>
+        </div>
+        <div class="info-name">{{ selectedSite.properties.name }}</div>
+
+        <div class="info-section">
+          <div class="info-row"><span class="info-label">Visibility:</span> {{ selectedSite.showOnMap }}</div>
+          @if (selectedSite.properties.region) {
+            <div class="info-row"><span class="info-label">Region:</span> {{ selectedSite.properties.region }}</div>
+          }
+          @if (selectedSite.properties.location.county) {
+            <div class="info-row"><span class="info-label">County:</span> {{ selectedSite.properties.location.county }}</div>
+          }
+          @if (selectedSite.properties.location.locality || selectedSite.properties.location.localityOverride) {
+            <div class="info-row"><span class="info-label">Locality:</span> {{ selectedSite.properties.location.localityOverride || selectedSite.properties.location.locality }}</div>
+          }
+          @if (selectedSite.properties.location.postalTown) {
+            <div class="info-row"><span class="info-label">Postal Town:</span> {{ selectedSite.properties.location.postalTown }}</div>
+          }
+        </div>
+
+        @if (selectedSite.properties.description) {
+          <div class="info-section">
+            <div class="info-section-title">Description</div>
+            <div class="info-description">{{ selectedSite.properties.description }}</div>
+          </div>
+        }
+
+        @if (selectedSite.properties.categories.length) {
+          <div class="info-section">
+            <div class="info-section-title">Categories</div>
+            <div class="info-tags">
+              @for (cat of selectedSite.properties.categories; track cat) {
+                <span class="info-tag">{{ cat }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="info-section">
+          <div class="info-section-title">Research</div>
+          <div class="info-row"><span class="info-label">Visited:</span> {{ selectedSite.properties.researchNotes.isVisited ? 'Yes' : 'No' }}</div>
+          <div class="info-row"><span class="info-label">Priority:</span> {{ selectedSite.properties.researchNotes.visitPriority ? 'Yes' : 'No' }}</div>
+          <div class="info-row"><span class="info-label">Rating:</span> {{ selectedSite.properties.researchNotes.rating || '—' }}</div>
+          @if (selectedSite.properties.researchNotes.credits) {
+            <div class="info-row"><span class="info-label">Credits:</span> {{ selectedSite.properties.researchNotes.credits }}</div>
+          }
+          @if (selectedSite.properties.researchNotes.notes) {
+            <div class="info-row info-notes">{{ selectedSite.properties.researchNotes.notes }}</div>
+          }
+          @if (selectedSite.properties.researchNotes.links.length) {
+            <div class="info-row"><span class="info-label">Links:</span>
+              @for (link of selectedSite.properties.researchNotes.links; track link) {
+                <a class="info-link" [href]="link" target="_blank" rel="noopener">{{ link }}</a>
+              }
+            </div>
+          }
+        </div>
+
+        @if (selectedSite.properties.siteInfo.isCarAccess !== null) {
+          <div class="info-section">
+            <div class="info-section-title">Site Info</div>
+            <div class="info-row"><span class="info-label">Car Access:</span> {{ selectedSite.properties.siteInfo.isCarAccess ? 'Yes' : 'No' }}</div>
+          </div>
+        }
+
+        @if (selectedSite.properties.moreInfo.length) {
+          <div class="info-section">
+            <div class="info-section-title">More Info</div>
+            @for (item of selectedSite.properties.moreInfo; track item.url) {
+              <div class="info-row">
+                @if (item.title) { <span class="info-label">{{ item.title }}:</span> }
+                @if (item.url) { <a class="info-link" [href]="item.url" target="_blank" rel="noopener">{{ item.text || item.url }}</a> }
+                @else if (item.text) { {{ item.text }} }
+              </div>
+            }
+          </div>
+        }
+
+        @if (selectedSite.updatedAt) {
+          <div class="info-meta">Updated {{ selectedSite.updatedAt | date:'d MMM y' }}</div>
+        }
+
+        <a class="editor-link" [href]="'/featureseditor?id=' + selectedSite._id">Open in Features Editor →</a>
+      </div>
+    }
+  </div>
+
+</div>
