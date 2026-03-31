@@ -35,6 +35,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';
+  public logoLoaded = false;
 
   public isAdminRoute = false;
   public breadcrumbs: Array<{ label: string; path: string }> = [];
@@ -90,6 +91,10 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       this.expandDropdownMenu = false;
       this.animateHamburger();
     }
+  }
+
+  onLogoLoad() {
+    this.logoLoaded = true;
   }
 
   animateHamburger() {

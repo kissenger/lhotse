@@ -3,7 +3,7 @@
   <div class="header-main">
 
     <a #brandbox class="brand-box block-animation" href="/" [ngClass]="expandDropdownMenu ? 'expand' : 'contract'" (click)="onMenuItemClick()" aria-label="Visit Snorkelology home page">
-      <img src="./assets/banner/snround.webp" width="100" height="100" alt="Snorkelology logo">
+      <img src="./assets/banner/snround.webp" width="100" height="100" alt="Snorkelology logo" (load)="onLogoLoad()" [class.logo-hidden]="!logoLoaded">
     </a>
 
     <div class="menubar">

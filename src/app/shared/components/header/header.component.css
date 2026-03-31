@@ -72,6 +72,15 @@ header {
   width: 104px;
   height: 104px;
   z-index: 1200;
+  transition: opacity 0.2s ease;
+}
+
+.brand-box > img.logo-hidden {
+  opacity: 0;
+}
+
+.brand-box:has(img.logo-hidden) {
+  background-image: none;
 }
 
 .brand-box.block-animation {
