@@ -63,6 +63,7 @@ fi
 
 # Create a compressed archive and remove uncompressed dump data.
 tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
+rm -rf "${WORK_DIR}"
 
 # Delete old archives beyond retention period.
 find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
