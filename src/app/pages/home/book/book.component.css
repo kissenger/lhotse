@@ -1,0 +1,11 @@
+.book-cover-img {
+  width: auto;
+  height: auto;
+}
+
+.book-cover-img img {
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+}
