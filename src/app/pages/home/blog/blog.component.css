@@ -121,7 +121,7 @@ app-blog-card + app-blog-card {
   border: none;
   padding: 0;
   font-size: 0.8rem;
-  color: #888;
+  color: #666;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -140,5 +140,5 @@ app-blog-card + app-blog-card {
   width: 100%;
   padding: 3em 1em;
   text-align: center;
-  color: #888;
+  color: #666;
 }

@@ -9,7 +9,7 @@ class MockToastService {
 }
 
 const mockActivatedRoute = {};
-const mockRouter = { events: { pipe: () => ({ subscribe: () => {} }) } } as any;
+const mockRouter = { url: '/', events: { pipe: () => ({ subscribe: () => {} }), subscribe: () => ({ unsubscribe: () => {} }) }, parseUrl: () => ({ fragment: null }) } as any;
 const mockScrollspy = { intersectionEmitter: { subscribe: () => ({ unsubscribe() {} }) } };
 const mockScreen = { widthDescriptor: 'large' };
 

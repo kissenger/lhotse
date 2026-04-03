@@ -1,5 +1,5 @@
-import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject } from '@angular/core';
+import { NgClass, DOCUMENT } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { MapService } from '@shared/services/map.service';
 import { EmailSvgComponent } from '@shared/svg/email/email.component';
@@ -39,7 +39,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
+    @Inject(DOCUMENT) private _document: Document
   ) {}
 
   async ngAfterViewInit() {
@@ -54,6 +55,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.map = await this._lazyServiceInjector.get<MapService>(() =>
         import('@shared/services/map.service').then((m) => m.MapService)
       );
+      this._injectMapboxCss();
       await this.map.create(this.geoJson);
       this._buildCategoryLists();
 
@@ -72,6 +74,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this._selectionSub?.unsubscribe();
+  }
+
+  private _injectMapboxCss() {
+    const id = 'mapbox-gl-css';
+    if (this._document.getElementById(id)) return;
+    const link = this._document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css';
+    this._document.head.appendChild(link);
   }
 
   async onRetry() {

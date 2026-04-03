@@ -11,7 +11,7 @@ describe('HeaderComponent', () => {
       imports: [HeaderComponent],
       providers: [
         { provide: ActivatedRoute, useValue: {} },
-        { provide: Router, useValue: { events: { pipe: () => ({ subscribe: () => {} }) } } },
+        { provide: Router, useValue: { url: '/', events: { pipe: () => ({ subscribe: () => {} }) } } },
         { provide: DOCUMENT, useValue: document }
       ]
     }).compileComponents();

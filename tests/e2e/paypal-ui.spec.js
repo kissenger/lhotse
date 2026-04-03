@@ -57,7 +57,15 @@ test('checkout UI triggers create and capture API calls', async ({ page }) => {
     await closeOverlay.evaluate((el) => el.click()).catch(() => {});
   }
 
-  await expect(page.locator('#paypal-button-container')).toBeVisible();
+  // Wait for the shop product grid to render (it's in a @defer block).
+  await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 15_000 });
+
+  // Add an item to the basket so the order summary and PayPal button are rendered.
+  const addBtn = page.locator('.add-btn').first();
+  await addBtn.scrollIntoViewIfNeeded();
+  await addBtn.click();
+
+  await expect(page.locator('#paypal-button-container')).toBeVisible({ timeout: 10_000 });
 
   const mockButton = page.locator('#mock-paypal-button');
   await expect(mockButton).toBeVisible();

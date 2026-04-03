@@ -3,7 +3,7 @@ import { AppComponent } from './app.component';
 import { ActivatedRoute, Router } from '@angular/router';
 
 const mockActivatedRoute = {};
-const mockRouter = { events: { pipe: () => ({ subscribe: () => {} }) } } as any;
+const mockRouter = { url: '/', events: { pipe: () => ({ subscribe: () => {} }), subscribe: () => ({ unsubscribe: () => {} }) }, parseUrl: () => ({ fragment: null }) } as any;
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;

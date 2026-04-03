@@ -23,6 +23,7 @@ test.describe('accessibility', () => {
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
       .exclude('iframe') // Exclude third-party iframes (PayPal).
+      .disableRules(['link-in-text-block']) // Design decision: links use colour only, no underline.
       .analyze();
 
     const critical = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');

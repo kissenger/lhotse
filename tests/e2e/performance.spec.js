@@ -43,7 +43,10 @@ test.describe('performance budgets', () => {
     expect(metrics.transferSizeKB, `Document transfer ${metrics.transferSizeKB}KB exceeds budget`).toBeLessThan(200);
   });
 
-  test('initial JS bundle stays within size budget', async ({ page }) => {
+  test('initial JS bundle stays within size budget', async ({ page, baseURL }) => {
+    // ng serve (port 4200) sends unminified bundles; this check only applies to built output.
+    test.skip(baseURL.includes(':4200'), 'Skipped on dev server (ng serve sends unminified JS)');
+
     const resources = [];
 
     page.on('response', async (response) => {

@@ -106,7 +106,7 @@
 .rrp {
   text-decoration: line-through;
   text-decoration-thickness: 1px;
-  color: #999;
+  color: #767676;
   font-size: 0.9rem;
 }
 
@@ -320,7 +320,7 @@
 
 .empty-basket {
   text-align: center;
-  color: #888;
+  color: #666;
   padding: 1rem 0;
 }
 
