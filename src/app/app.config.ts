@@ -31,10 +31,9 @@ export const appConfig: ApplicationConfig = {
       useValue: (config: ImageLoaderConfig) => {
         const base = `https://${environment.IMGIX_DOMAIN}/${config.src}`;
         const w = config.width ? `&w=${config.width}` : '';
-        // bg=FFFFFF ensures imgix has a fallback for JPEG conversion (e.g. during
-        // SSR where no Accept header is sent and auto=format may pick JPEG, which
-        // cannot handle alpha channels and returns 422).
-        return `${base}?auto=format&fit=max&bg=FFFFFF${w}`;
+        // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused
+        // 422 when imgix had no Accept header during SSR and fell back to JPEG).
+        return `${base}?fm=webp&fit=max${w}`;
       }
     },
   ]
