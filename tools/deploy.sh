@@ -156,7 +156,9 @@ log "Running: npm install"
 npm install
 
 log "Running: npm run build:${TARGET_BRANCH}"
-npm run "build:${TARGET_BRANCH}"
+# Cap Node's heap size so esbuild (a separate OOM-killable process) has
+# enough headroom. Adjust NODE_BUILD_MEMORY_MB via .env if needed (default: 512).
+NODE_OPTIONS="--max-old-space-size=${NODE_BUILD_MEMORY_MB:-512}" npm run "build:${TARGET_BRANCH}"
 
 log "Running: pm2 restart snorkelology_${TARGET_BRANCH}"
 pm2 restart "snorkelology_${TARGET_BRANCH}"
