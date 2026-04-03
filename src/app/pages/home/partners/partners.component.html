@@ -11,13 +11,11 @@
 
   <div class="partner-list">
     @for(partner of partners; track partner.name) {
-      <a class="partner-row suppress-external-link" [href]="partner.href" target="_blank" rel="noopener">
+      <a class="partner-row suppress-external-link" [href]="partner.href" target="_blank" rel="noopener noreferrer">
         <div class="partner-logo">
           <img
             [src]="'assets/' + partner.url"
             [alt]="partner.alt"
-            [height]="partner.size.height"
-            [width]="partner.size.width"
           />
         </div>
         <div class="partner-info">

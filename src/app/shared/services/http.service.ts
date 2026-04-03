@@ -37,14 +37,20 @@ export class HttpService {
   /*
   BLOG 
   */
+  private _publishedPostsCache: Array<BlogPost> | null = null;
+
   async getAllPosts() {
     const request =  this._http.get<Array<BlogPost>>(`/api/blog/get-all-posts/`);
     return await lastValueFrom(request);
   }
 
-  async getPublishedPosts() {
+  async getPublishedPosts(bustCache = false) {
+    if (!bustCache && this._publishedPostsCache) {
+      return this._publishedPostsCache;
+    }
     const request =  this._http.get<Array<BlogPost>>(`/api/blog/get-published-posts/`);
-    return await lastValueFrom(request);
+    this._publishedPostsCache = await lastValueFrom(request);
+    return this._publishedPostsCache;
   }
 
   async getPostBySlug(slug: string) {
@@ -69,6 +75,16 @@ export class HttpService {
   
   async deletePost(postId: string) {
     const request =  this._http.get<Array<BlogPost>>(`/api/blog/delete-post/${postId}`);
+    return await lastValueFrom(request);
+  }
+
+  async likePost(slug: string): Promise<{ likes: number, alreadyLiked: boolean }> {
+    const request = this._http.post<{ likes: number, alreadyLiked: boolean }>(`/api/blog/like/${slug}`, {});
+    return await lastValueFrom(request);
+  }
+
+  async getLikes(slugs: string[]): Promise<Record<string, number>> {
+    const request = this._http.post<Record<string, number>>(`/api/blog/get-likes`, { slugs });
     return await lastValueFrom(request);
   }
 

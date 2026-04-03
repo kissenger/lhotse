@@ -169,8 +169,7 @@ h3 {
   position: relative;
 }
 
-:host ::ng-deep .mapboxgl-ctrl-group .expand-btn,
-:host ::ng-deep .mapboxgl-ctrl-group .filter-btn {
+:host ::ng-deep .mapboxgl-ctrl-group .expand-btn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -182,15 +181,14 @@ h3 {
   height: 33px;
   min-width: 90px;
   width: auto !important;
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
   line-height: 33px;
   white-space: nowrap;
   overflow: visible !important;
 }
 
-:host ::ng-deep .mapboxgl-ctrl-group .expand-btn:hover,
-:host ::ng-deep .mapboxgl-ctrl-group .filter-btn:hover {
+:host ::ng-deep .mapboxgl-ctrl-group .expand-btn:hover {
   background: #f5f5f5;
 }
 
@@ -200,22 +198,11 @@ h3 {
   flex-shrink: 0;
 }
 
-:host ::ng-deep .filter-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-}
-
-:host ::ng-deep .filter-ctrl {
-  position: relative;
-}
-
 /* .filter-btn and .expand-btn styles are combined above */
 
 .filter-dropdown {
   position: absolute;
-  top: 100px;
+  top: 50px;
   right: 10px;
   z-index: 2;
   background: white;
@@ -223,9 +210,9 @@ h3 {
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  max-height: 60vh;
+  max-height: calc(100% - 70px);
   overflow-y: auto;
-  min-width: 200px;
+  width: max-content;
 }
 
 .filter-group {
@@ -236,7 +223,28 @@ h3 {
   margin-bottom: 0;
 }
 
-.filter-group-label,
+.filter-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.filter-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.filter-group-label > input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
 .filter-category {
   display: flex;
   align-items: center;
@@ -244,14 +252,61 @@ h3 {
   cursor: pointer;
   line-height: 1.6;
   font-size: 0.85rem;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 3px;
+  color: #666;
+  transition: transform 0.2s;
+  transform: rotate(-90deg);
+}
+
+.chevron-btn.expanded {
+  transform: rotate(0deg);
+}
+
+.chevron-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .filter-category {
-  padding-left: 1.25rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.category-list {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.category-list.expanded {
+  grid-template-rows: 1fr;
+}
+
+.category-list-inner {
+  overflow: hidden;
+}
+
+.group-checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  margin: 0;
+  margin-left: auto;
 }
 
 .filter-legend-icon {
-  height: 20px;
+  height: 30px;
   width: auto;
 }
 

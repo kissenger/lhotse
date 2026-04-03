@@ -139,8 +139,13 @@ iframe {
   color: white;
 }
 
-.icon-grow:hover {
-  cursor: pointer;
+@media (hover: hover) {
+  .icon-grow:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+  }
+}
+.icon-grow:active {
   transform: scale(1.1);
 }
 
@@ -166,10 +171,17 @@ a[href^="http"]:not([class~="suppress-external-link"])::after
   display: inline-block;
 }
 
-a:hover, .html-link:hover {
+@media (hover: hover) {
+  a:hover, .html-link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    cursor: pointer;
+    color: var(--text-colour-link);
+  }
+}
+a:active, .html-link:active {
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  cursor: pointer;
   color: var(--text-colour-link);
 }
 
@@ -214,24 +226,22 @@ a:visited {
 }
 
 
+.window { height: 80vh; }
+
 @media (max-width: 575px) {
   html { font-size: 14px; }
   :root{ --container-width: calc(100% - 2em); }
-  .window{ height: 80vh; }
 }
 @media (min-width: 576px) and (max-width: 767px) {
   html { font-size: 14px; }
   :root{ --container-width: 540px; }
-  .window { height: 80vh; }
 }
 @media (min-width: 768px) and (max-width: 991px) {
   html { font-size: 16px; }
   :root{ --container-width: 720px; }
-  .window { height: 80vh; }
 }
 @media (min-width: 992px) {
   html { font-size: 16px; }
   :root{ --container-width: 960px; }
-  .window { height: 80vh; }
 }
 

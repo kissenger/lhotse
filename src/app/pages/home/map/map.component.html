@@ -17,33 +17,51 @@
     <div class="map-container">
     <div id="map"></div>
 
-      @if (filterOpen) {
+      @if (loadingState === 'success') {
         <div class="filter-dropdown">
           <div class="filter-group">
-            <label class="filter-group-label">
-              <input type="checkbox" [checked]="snorkellingSitesEnabled" (change)="toggleGroup('snorkelling')">
-              <img class="filter-legend-icon" src="assets/icons/site-icon-blue.webp" alt="Snorkelling site map marker">
-              <strong>Snorkelling Sites</strong>
-            </label>
-            @for (cat of snorkellingCategories; track cat.name) {
-              <label class="filter-category">
-                <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'snorkelling')">
-                {{cat.name}}
-              </label>
-            }
+            <div class="filter-group-header" (click)="snorkellingExpanded = !snorkellingExpanded">
+              <div class="filter-group-label">
+                <img class="filter-legend-icon" src="assets/icons/site-icon-blue-white.webp" alt="Snorkelling site map marker">
+                <strong>Sites</strong>
+              </div>
+              <button class="chevron-btn" [class.expanded]="snorkellingExpanded" aria-label="Expand site categories">
+                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <input type="checkbox" class="group-checkbox" [checked]="snorkellingSitesEnabled" (click)="$event.stopPropagation()" (change)="toggleGroup('snorkelling')">
+            </div>
+            <div class="category-list" [class.expanded]="snorkellingExpanded">
+              <div class="category-list-inner">
+                @for (cat of snorkellingCategories; track cat.name) {
+                  <label class="filter-category">
+                    <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'snorkelling')">
+                    {{cat.name}}
+                  </label>
+                }
+              </div>
+            </div>
           </div>
           <div class="filter-group">
-            <label class="filter-group-label">
-              <input type="checkbox" [checked]="otherSitesEnabled" (change)="toggleGroup('other')">
-              <img class="filter-legend-icon" src="assets/icons/provider-icon-blue.webp" alt="Snorkelling provider map marker">
-              <strong>Snorkelling Providers</strong>
-            </label>
-            @for (cat of otherCategories; track cat.name) {
-              <label class="filter-category">
-                <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'other')">
-                {{cat.name}}
-              </label>
-            }
+            <div class="filter-group-header" (click)="otherExpanded = !otherExpanded">
+              <div class="filter-group-label">
+                <img class="filter-legend-icon" src="assets/icons/provider-icon-orange-white.webp" alt="Snorkelling provider map marker">
+                <strong>Providers</strong>
+              </div>
+              <button class="chevron-btn" [class.expanded]="otherExpanded" aria-label="Expand provider categories">
+                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <input type="checkbox" class="group-checkbox" [checked]="otherSitesEnabled" (click)="$event.stopPropagation()" (change)="toggleGroup('other')">
+            </div>
+            <div class="category-list" [class.expanded]="otherExpanded">
+              <div class="category-list-inner">
+                @for (cat of otherCategories; track cat.name) {
+                  <label class="filter-category">
+                    <input type="checkbox" [checked]="cat.enabled" (change)="toggleCategory(cat, 'other')">
+                    {{cat.name}}
+                  </label>
+                }
+              </div>
+            </div>
           </div>
         </div>
       }
@@ -99,7 +117,7 @@
                 <div class="icons">
                   @for (item of feature.moreInfo; track item) {
                     <div class="icon icon-grow">
-                      <a class="suppress-external-link" [href]="item.url">
+                      <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
                         @switch (item.icon) {
                           @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
                           @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }

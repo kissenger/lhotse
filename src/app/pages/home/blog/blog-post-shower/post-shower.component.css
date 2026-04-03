@@ -30,6 +30,14 @@ h1 {
 
 .below-title-text > div {
   margin-top: 0.5em;
+}
+
+.article-like-count {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: #666;
 } 
 
 .arrow.left {
@@ -114,5 +122,53 @@ main.content-visible {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.like-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid #1D3D59;
+  border-radius: 6px;
+  background: white;
+  color: #1D3D59;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.like-button:hover:not(.liked) {
+  background-color: #1D3D59;
+  color: white;
+}
+
+.like-button:hover:not(.liked) svg path {
+  stroke: white;
+}
+
+.like-button.liked {
+  background-color: #1D3D59;
+  color: white;
+  cursor: default;
+}
+
+.like-button.liked svg path {
+  fill: white;
+  stroke: white;
+}
+
+.like-count {
+  font-size: 0.9rem;
+  color: #666;
 }
 

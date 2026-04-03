@@ -5,7 +5,7 @@ export const shopItems = {
     description: "Your essential guide to 100 of the best snorkelling sites around the British coastline, packed with maps, photos and honest site reviews.",
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 14.99 },
     images: [{
-      src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
+      src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png',
       alt: 'Snorkelling Britain book cover in 3D '
     }],
     dimensions: {
@@ -21,7 +21,7 @@ export const shopItems = {
     description: "A personally signed copy of Snorkelling Britain — makes a perfect gift for the ocean lover in your life.",
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 15.99 },
     images: [{
-      src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
+      src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png',
       alt: 'Snorkelling Britain book cover in 3D '
     }],
     dimensions: {
@@ -37,7 +37,7 @@ export const shopItems = {
     description: "Pack of 5 durable, waterproof Snorkelology logo stickers (50mm diameter). Stick them on your fins, dry bag or water bottle.",
     unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
-      src: 'banner/snround.webp',
+      src: 'banner/snorkelology-logo.png',
       alt: 'Image showing Snorkelology Logo sticker design'
     }],
     dimensions: {

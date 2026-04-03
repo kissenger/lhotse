@@ -31,6 +31,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   lastSlug: string = '';
   stage: any = stage;
   showUpdatedAt: boolean = false;
+  likeCount: number = 0;
+  hasLiked: boolean = false;
   private _routeSubs: Subscription | undefined;
 
   constructor(
@@ -95,6 +97,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.isReadyToLoad = true;
           this.contentVisible = false;
           this.loadingState = 'success';
+          this.likeCount = this.post.likes ?? 0;
+          this.hasLiked = this.likeCount > 0 && this._hasLikedInStorage(this.post.slug);
           const updatedMonth: Date = new Date(this.post.updatedAt);
           const createdMonth: Date = new Date(this.post.createdAt);
           if (updatedMonth > new Date(createdMonth.setMonth(createdMonth.getMonth()+1)) ) {
@@ -155,5 +159,35 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   ngOnDestroy() {
     this._routeSubs?.unsubscribe();
+  }
+
+  async onLike() {
+    if (this.hasLiked) return;
+    try {
+      const res = await this._http.likePost(this.post.slug);
+      this.likeCount = res.likes;
+      this.hasLiked = true;
+      this._saveLikeToStorage(this.post.slug);
+      this._cdr.detectChanges();
+    } catch {
+      // Silently fail — don't break the page for a like
+    }
+  }
+
+  private _hasLikedInStorage(slug: string): boolean {
+    try {
+      const liked: string[] = JSON.parse(localStorage.getItem('sn_liked_posts') || '[]');
+      return liked.includes(slug);
+    } catch { return false; }
+  }
+
+  private _saveLikeToStorage(slug: string) {
+    try {
+      const liked: string[] = JSON.parse(localStorage.getItem('sn_liked_posts') || '[]');
+      if (!liked.includes(slug)) {
+        liked.push(slug);
+        localStorage.setItem('sn_liked_posts', JSON.stringify(liked));
+      }
+    } catch { /* ignore */ }
   }
 }

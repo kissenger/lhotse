@@ -29,7 +29,9 @@ export class HtmlerPipe implements PipeTransform {
           return s;
         } else {
           const [text, link] = s.split(',');
-          return `<a href="${link}">${text}</a>`
+          const isExternal = /^https?:/.test(link);
+          const attrs = isExternal ? ` target="_blank" rel="noopener noreferrer"` : '';
+          return `<a href="${link}"${attrs}>${text}</a>`
         } 
       }).join('');
     }

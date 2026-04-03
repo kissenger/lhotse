@@ -199,6 +199,7 @@ export class BlogPost {
   createdAt: string = '';
   updatedAt: string = '';
   author?: string;
+  likes: number = 0;
   isDeleted?: boolean;
   deletedAt?: string | null;
 }

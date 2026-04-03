@@ -10,12 +10,18 @@ export class PartnersComponent {
 
   public partners = [
     {
+      name: 'The Ocean Studio',
+      url: "partners/ocean-studio-logo.avif",
+      href: 'https://www.theoceanstudio.co.uk/',
+      alt: 'The Ocean Studio Logo',
+      description: 'Award-winning underwater photographer and author of Snorkel Dorset, a guide to the best snorkelling sites along the Dorset coast.',
+    },    
+    {
       name: 'Marla Blue',
       url: "partners/marla_logo.webp",
       href: 'https://www.marla.blue/',
       alt: 'Marla Blue Logo',
-      description: 'Sustainable snorkelling gear and accessories designed for comfort and performance in British waters.',
-      size: { height: 60, width: 273}
+      description: 'Marla Blue is a new app which gives marine visibility forecasts around the UK, helping snorkellers and divers find the best conditions for exploring underwater.',
     },
     {
       name: 'BSAC',
@@ -23,39 +29,34 @@ export class PartnersComponent {
       href: 'https://www.bsac.com/',
       alt: 'British Sub Aqua Club Logo',
       description: 'The UK\'s national governing body for scuba diving and snorkelling, offering training, clubs and events nationwide.',
-      size: { height: 100, width: 147}
     },
     {
       name: 'Chris Taylor Photography',
       url: "partners/christaylorphoto-small.webp",
       href: 'https://www.christaylorphoto.co.uk',
       alt: 'Chris Taylor Photo Logo',
-      description: 'Award-winning underwater and wildlife photographer capturing the beauty of Britain\'s marine life.',
-      size: { height: 100, width: 100}
+      description: 'Norfolk based award-winning underwater and wildlife photographer featured in publications including National Geographic, BBC Wildlife and The Guardian.',
     },
     {
       name: 'Rebecca Douglas Photography',
       url: "partners/rebecca-douglas-small.webp",
       href: 'https://rebeccadouglas.co.uk/',
       alt: 'Rebecca Douglas Photography Logo',
-      description: 'Underwater photographer specialising in the diverse marine habitats found around the British coastline.',
-      size: { height: 100, width: 274}
+      description: 'Photographer, filmmaker and drone operator specializing in capturing the wild edges of earth, sea and sky.',
     },
     {
       name: 'Wild Running',
       url: "partners/wild-running-jacket-cover-small.webp",
       href: 'https://jenandsimbenson.co.uk/',
       alt: 'Wild Running by Sim and Jen Benson',
-      description: 'Outdoor adventure authors Jen and Sim Benson, creators of Wild Running and champions of exploring Britain\'s landscapes.',
-      size: { height: 100, width: 82}
+      description: 'Jen and Sim are authors of Wild Running and many other outdoor adventure guides, and were the inspiration for our book writing journey.',
     },
     {
       name: 'Wild Things Publishing',
       url: "partners/wild-things-publishing-small.webp",
       href: 'https://wildthingspublishing.com',
       alt: 'Wild Things Publishing Logo',
-      description: 'Independent publisher of outdoor adventure guides covering wild swimming, snorkelling and exploring the British countryside.',
-      size: { height: 100, width: 100}
+      description: 'Independent publisher of outdoor adventure guides including the popular Wild Guide series, and publisher of Snorkelling Britain.',
     },
     {
       name: 'Jethro Haynes Photography',
@@ -63,7 +64,6 @@ export class PartnersComponent {
       href: 'https://www.jethrophoto.com/',
       alt: 'Jethro Haynes Photography Logo',
       description: 'Professional underwater photographer documenting marine wildlife and coastal environments across the UK.',
-      size: { height: 100, width: 100}
     },
     {
       name: 'St Martin\'s Watersports',
@@ -71,15 +71,13 @@ export class PartnersComponent {
       href: 'https://www.stmartinswatersports.co.uk/',
       alt: 'St Martin\'s Watersports Logo',
       description: 'Guided snorkelling and watersports experiences in the Isles of Scilly, one of the UK\'s best snorkelling destinations.',
-      size: { height: 89, width: 196}
     },
     {
       name: 'Snorkel Wild',
       url: "partners/snorkelwild-small.webp",
       href: 'https://www.snorkelwild.com/',
       alt: 'Snorkel Wild Logo',
-      description: 'Guided snorkelling adventures exploring the rich marine life found in British coastal waters.',
-      size: { height: 100, width: 100}
+      description: 'Snorkel Wild offer guided snorkelling adventures based around in Eyemouth and Coldingham in the Scottish South East.',
     },
     {
       name: 'Macduff Marine Aquarium',
@@ -87,15 +85,13 @@ export class PartnersComponent {
       href: 'https://www.macduff-aquarium.org.uk/',
       alt: 'Macduff Marine Aquarium Logo',
       description: 'Award-winning aquarium in Aberdeenshire showcasing the marine life of the Moray Firth and north-east Scotland.',
-      size: { height: 100, width: 161}
     },
     {
       name: 'Scottish Seabird Centre',
       url: "partners/logo-seabird-centre-small.png",
       href: 'https://www.seabird.org/',
       alt: 'Scottish Seabird Centre Logo',
-      description: 'Marine conservation and education charity based in North Berwick, dedicated to protecting Scotland\'s marine wildlife.',
-      size: { height: 68, width: 111}
+      description: 'Marine conservation and education charity based in North Berwick, dedicated to protecting Scotland\'s marine wildlife and host to a wonderful snorkel trail.',
     },
     {
       name: 'Scottish Wildlife Trust',
@@ -103,15 +99,13 @@ export class PartnersComponent {
       href: 'https://snorkel.scottishwildlifetrust.org.uk/',
       alt: 'Scottish Wildlife Trust Logo',
       description: 'Scotland\'s leading nature conservation charity, running snorkel trail programmes to connect people with marine habitats.',
-      size: { height: 100, width: 256}
     },
     {
       name: 'Saltwater Life',
       url: "partners/saltwater-life-small.webp",
       href: 'https://saltwaterlife.co.uk/',
       alt: 'Saltwater Life Logo',
-      description: 'Coastal adventure and marine conservation community celebrating the UK\'s saltwater environments.',
-      size: { height: 100, width: 101}
+      description: 'Founded by the lovely Dr Lauren Smith, Saltwater Life is passionate about the study, conservation, and protection of sharks, skates, and rays.'
     },
   ]
 

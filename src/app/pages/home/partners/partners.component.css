@@ -18,8 +18,13 @@
   border-bottom: none;
 }
 
-.partner-row:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+@media (hover: hover) {
+  .partner-row:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+}
+.partner-row:active {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .partner-logo {

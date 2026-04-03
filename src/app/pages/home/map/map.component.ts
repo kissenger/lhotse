@@ -29,9 +29,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public map?: MapService;
   private _selectionSub?: import('rxjs').Subscription;
 
-  filterOpen = false;
   snorkellingSitesEnabled = true;
   otherSitesEnabled = true;
+  snorkellingExpanded = false;
+  otherExpanded = false;
   snorkellingCategories: { name: string; enabled: boolean }[] = [];
   otherCategories: { name: string; enabled: boolean }[] = [];
 
@@ -55,13 +56,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       );
       await this.map.create(this.geoJson);
       this._buildCategoryLists();
-
-      // Wire filter button injected by MapService IControl
-      this.map.filterContainer?.querySelector('.filter-btn')
-        ?.addEventListener('click', () => {
-          this.filterOpen = !this.filterOpen;
-          this._cdr.detectChanges();
-        });
 
       // React to selection changes coming from MapService (mapbox events)
       this._selectionSub = this.map.selectionChanged.subscribe(() => {
@@ -120,6 +114,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     else this.otherSitesEnabled = anyEnabled;
     this._applyFilter();
   }
+
 
   private _applyFilter() {
     if (!this.map || !this.geoJson) return;

@@ -42,11 +42,17 @@
 
 app-blog-card {
   padding-inline: 1em;
+  padding-bottom: 1em;
   transition: background-color 0.2s;
 }
 
-app-blog-card:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+@media (hover: hover) {
+  app-blog-card:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+}
+app-blog-card:active {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 app-blog-card + app-blog-card {
@@ -87,7 +93,13 @@ app-blog-card + app-blog-card {
   line-height: 1.4;
 }
 
-.chip:hover {
+@media (hover: hover) {
+  .chip:hover {
+    border-color: #888;
+    color: #333;
+  }
+}
+.chip:active {
   border-color: #888;
   color: #333;
 }
@@ -115,7 +127,12 @@ app-blog-card + app-blog-card {
   text-underline-offset: 2px;
 }
 
-.filter-action:hover {
+@media (hover: hover) {
+  .filter-action:hover {
+    color: #333;
+  }
+}
+.filter-action:active {
   color: #333;
 }
 

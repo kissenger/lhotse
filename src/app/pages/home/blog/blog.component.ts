@@ -1,14 +1,12 @@
 import { ChangeDetectorRef, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren, OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
-import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule } from '@angular/common';
-import { switchMap, timeout } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -43,7 +41,6 @@ export class BlogComponent implements OnInit {
 
   constructor(
     private _http: HttpService,
-    private _route: ActivatedRoute,
     private _screen: ScreenService,
     @Inject(PLATFORM_ID) private _platformId: any,
     private _cdr: ChangeDetectorRef
@@ -52,32 +49,17 @@ export class BlogComponent implements OnInit {
 
   ngOnInit() {
     if (!isPlatformBrowser(this._platformId)) return;
-    this._route.params
-      .pipe(
-        switchMap(() => this._http.getPublishedPosts()),
-        timeout(15000)
-      )
-      .subscribe({
-        next: (posts) => {
-          this.allPosts = posts;
-          this.loadingState = 'success';
-          this.filteredPosts = this.allPosts;
-          this.getUniqueKeywords();
-        },
-        error: (_error) => {
-          this.loadingState = 'failed';
-        }
-      });
+    this._loadPosts();
   }
 
-  async onRetry() {
+  private async _loadPosts(bustCache = false) {
     this.loadingState = 'loading';
     try {
       const posts = await Promise.race([
-        this._http.getPublishedPosts(),
+        this._http.getPublishedPosts(bustCache),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
       ]);
-      this.allPosts = posts as any;
+      this.allPosts = posts as BlogPost[];
       this.loadingState = 'success';
       this.filteredPosts = this.allPosts;
       this.getUniqueKeywords();
@@ -85,6 +67,10 @@ export class BlogComponent implements OnInit {
       this.loadingState = 'failed';
       this._cdr.detectChanges();
     }
+  }
+
+  async onRetry() {
+    await this._loadPosts(true);
   }
 
   ngAfterViewInit() {

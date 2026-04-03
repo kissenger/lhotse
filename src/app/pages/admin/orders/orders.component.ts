@@ -1,5 +1,5 @@
 import { CurrencyPipe, NgClass } from '@angular/common';
-import { Component, ElementRef, Inject, QueryList, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ExportFileService } from '@shared/services/export.service';
@@ -24,8 +24,6 @@ export class OrdersComponent {
   public orderValue = '';
   public orders: Array<OrderSummary> = [];
   public timeStamps: Array<object> = [];
-
-  @ViewChildren('label') labelElements!: QueryList<ElementRef>;
 
   constructor(
     private _http: HttpService,

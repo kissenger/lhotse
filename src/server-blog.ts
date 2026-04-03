@@ -1,8 +1,10 @@
 
 import express from 'express';
+import { createHash } from 'node:crypto';
 import { access, mkdir } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import BlogModel from '../schema/blog';
+import BlogLikeModel from '../schema/blog-like';
 import { BlogError } from 'src/server';
 import { verifyToken } from './server-auth'
 import sharp from 'sharp';
@@ -291,5 +293,70 @@ async function generateBlogOgImage(slug?: string, imgFname?: string) {
     .webp({ quality: 88 })
     .toFile(ogOutputPath);
 }
+
+/*****************************************************************
+ * ROUTE: Get like counts for multiple slugs
+ ****************************************************************/
+blog.post('/api/blog/get-likes', async (req, res) => {
+  try {
+    const slugs: string[] = req.body.slugs;
+    if (!Array.isArray(slugs)) {
+      res.status(400).json({ error: 'slugs must be an array' });
+      return;
+    }
+    const posts = await BlogModel.find(
+      { slug: { $in: slugs }, isPublished: true },
+      { slug: 1, likes: 1 }
+    );
+    const likesMap: Record<string, number> = {};
+    for (const p of posts) {
+      likesMap[p.slug] = p.likes ?? 0;
+    }
+    res.json(likesMap);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch likes' });
+  }
+});
+
+/*****************************************************************
+ * ROUTE: Like a blog post
+ ****************************************************************/
+blog.post('/api/blog/like/:slug', async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ua = req.headers['user-agent'] || '';
+    const hash = createHash('sha256').update(`${ip}|${ua}|${slug}`).digest('hex');
+
+    // Attempt to insert — unique index will reject duplicates
+    try {
+      await BlogLikeModel.create({ hash, slug });
+    } catch (dupErr: any) {
+      if (dupErr?.code === 11000) {
+        const post = await BlogModel.findOne({ slug, isPublished: true }, { likes: 1 });
+        res.json({ likes: post?.likes ?? 0, alreadyLiked: true });
+        return;
+      }
+      throw dupErr;
+    }
+
+    const post = await BlogModel.findOneAndUpdate(
+      { slug, isPublished: true },
+      { $inc: { likes: 1 } },
+      { new: true, projection: { likes: 1 } }
+    );
+
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    res.json({ likes: post.likes, alreadyLiked: false });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to like post' });
+  }
+});
 
 export { blog, getSlugs, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };

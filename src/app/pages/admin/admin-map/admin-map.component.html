@@ -79,7 +79,7 @@
           @if (selectedSite.properties.researchNotes.links.length) {
             <div class="info-row"><span class="info-label">Links:</span>
               @for (link of selectedSite.properties.researchNotes.links; track link) {
-                <a class="info-link" [href]="link" target="_blank" rel="noopener">{{ link }}</a>
+                <a class="info-link" [href]="link" target="_blank" rel="noopener noreferrer">{{ link }}</a>
               }
             </div>
           }
@@ -98,7 +98,7 @@
             @for (item of selectedSite.properties.moreInfo; track item.url) {
               <div class="info-row">
                 @if (item.title) { <span class="info-label">{{ item.title }}:</span> }
-                @if (item.url) { <a class="info-link" [href]="item.url" target="_blank" rel="noopener">{{ item.text || item.url }}</a> }
+                @if (item.url) { <a class="info-link" [href]="item.url" target="_blank" rel="noopener noreferrer">{{ item.text || item.url }}</a> }
                 @else if (item.text) { {{ item.text }} }
               </div>
             }

@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -20,11 +20,14 @@ import { stage } from '@shared/globals';
   styleUrls: ['./shop.component.css', '../home.component.css']
 })
 
-export class ShopComponent implements AfterViewInit {
+export class ShopComponent implements AfterViewInit, OnDestroy {
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
   public stage = stage;
+  public showBasketPopover = false;
+  private _summaryObserver?: IntersectionObserver;
+  private _paypalInitialized = false;
 
   constructor(
     private _http: HttpService,
@@ -33,7 +36,7 @@ export class ShopComponent implements AfterViewInit {
     public toaster: ToastService
   ) {
     this.shop.reset();
-    this.shop.basket.add(this.shop.item("0001"),1);
+    this.shop.basket.add(this.shop.item("0001"),0);
     this.shop.basket.add(this.shop.item("0002"),0);
     this.shop.basket.add(this.shop.item("0003"),0);
     this.shop.basket.add(this.shop.item("0004"),0);
@@ -44,8 +47,29 @@ export class ShopComponent implements AfterViewInit {
     if (typeof window === 'undefined') {
       return;
     }
-    // Initialize PayPal once the view (and button container) exists
-    this._initPayPal();
+    // PayPal is initialized lazily on first item added (see onPlusMinus)
+
+    // Show floating basket popover when order summary is scrolled out of view
+    const summaryEl = document.getElementById('order-summary');
+    if (summaryEl) {
+      this._summaryObserver = new IntersectionObserver(([entry]) => {
+        this.showBasketPopover = !entry.isIntersecting && this.shop.basket.itemQty > 0;
+        this._cdr.detectChanges();
+      }, { threshold: 0 });
+      this._summaryObserver.observe(summaryEl);
+    }
+  }
+
+  ngOnDestroy() {
+    this._summaryObserver?.disconnect();
+  }
+
+  scrollToSummary() {
+    const el = document.getElementById('order-summary');
+    if (!el) return;
+    const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 75;
+    const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+    window.scrollTo({ top, behavior: 'smooth' });
   }
   
   private async _initPayPal() {
@@ -167,8 +191,32 @@ export class ShopComponent implements AfterViewInit {
     }
   }
 
+  readonly bookIds = ['0001', '0002'];
+
+  get bookQty(): number {
+    return this.shop.basket.items
+      .filter(i => this.bookIds.includes(i.id))
+      .reduce((sum, i) => sum + i.quantity, 0);
+  }
+
   onPlusMinus(id: string, increment: number) {
+    if (increment > 0 && this.bookIds.includes(id) && this.bookQty >= 4) return;
     this.shop.basket.incrementQty(id, increment);
+    if (this.shop.basket.itemQty === 0) {
+      // Basket emptied — reset so PayPal re-inits next time an item is added
+      this._paypalInitialized = false;
+    } else if (!this._paypalInitialized) {
+      // Lazy-init PayPal the first time an item is added (container now in DOM)
+      this._paypalInitialized = true;
+      this._cdr.detectChanges();
+      this._initPayPal();
+    }
+    // Re-evaluate popover visibility after qty change
+    const summaryEl = document.getElementById('order-summary');
+    if (summaryEl) {
+      const rect = summaryEl.getBoundingClientRect();
+      this.showBasketPopover = (rect.bottom < 0 || rect.top > window.innerHeight) && this.shop.basket.itemQty > 0;
+    }
   }
 
   onCodeChange() {

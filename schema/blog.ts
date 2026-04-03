@@ -20,6 +20,7 @@ const blogSchema = new mongoose.Schema({
   }]},
   conclusion: {type: String, required: true},
   author: {type: String},
+  likes: {type: Number, default: 0},
   isDeleted: {type: Boolean, default: false, index: true},
   deletedAt: {type: Date, default: null}
 }, {timestamps: true})

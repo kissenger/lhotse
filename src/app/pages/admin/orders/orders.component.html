@@ -6,7 +6,7 @@
       <button (click)="copyEmails()">Copy email addresses</button><br>
       <button (click)="newOrder()">New manual order</button><br>
       <button (click)="exportCSV()">Click&Drop Export</button><br>
-      <a href="https://business.parcel.royalmail.com/">Click and Drop</a> <br>
+      <a href="https://business.parcel.royalmail.com/" target="_blank" rel="noopener noreferrer">Click and Drop</a> <br>
 
       <div class="panel-header">Filters</div>
 
@@ -92,7 +92,7 @@
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
                   </div>
-                    <!-- <div class="button"><button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button></div> -->
+
                 }
               </div>
             }

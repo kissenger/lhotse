@@ -16,8 +16,7 @@ export const appConfig: ApplicationConfig = {
     AdminSubdomainGuard,
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
-      withInMemoryScrolling({scrollPositionRestoration: 'enabled',anchorScrolling: 'enabled'}),
-      // withInMemoryScrolling({scrollPositionRestoration: 'enabled', anchorScrolling: 'disabled'}),
+      withInMemoryScrolling({scrollPositionRestoration: 'disabled', anchorScrolling: 'disabled'}),
       withPreloading(PreloadAllModules)
     ), 
     provideClientHydration(),

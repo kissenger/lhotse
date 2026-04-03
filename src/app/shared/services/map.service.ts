@@ -13,11 +13,8 @@ export class MapService {
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeature: any = null;
   private _sites: any;
-  private _filterContainer: HTMLElement | null = null;
   // Emits whenever the selected feature changes (including clear)
   public readonly selectionChanged = new Subject<void>();
-
-  get filterContainer() { return this._filterContainer; }
 
   constructor() {}
   
@@ -36,7 +33,6 @@ export class MapService {
   }
 
   get popupPosition() {
-    // let width = this._map?.getContainer().clientWidth;
     //cant use !!selectedSymbolId as this filters out id=0
     if (typeof this.selectedSymbolId === "number") {
       let lngLat = this._sites.features[this.selectedSymbolId].geometry.coordinates;
@@ -114,43 +110,26 @@ export class MapService {
       };
       this._map.addControl(fullscreenCtrl, 'top-right');
 
-      // Filter button — sits in the same control group as fullscreen
-      const filterCtrl: mapboxgl.IControl = {
-        onAdd: () => {
-          const div = document.createElement('div');
-          div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group filter-ctrl';
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'filter-btn';
-          btn.innerHTML = '<span class="ctrl-icon filter-icon">☰</span><strong>Filter</strong>';
-          div.appendChild(btn);
-          this._filterContainer = div;
-          return div;
-        },
-        onRemove: () => { this._filterContainer = null; },
-      };
-      this._map.addControl(filterCtrl, 'top-right');
-
       this._map?.on('error', (error) => { reject(error); })
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
 
-        this._map?.loadImage('assets/icons/site-icon-blue-bordered2.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-blue-white.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/site-icon-white.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-white-blue.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker-active', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-alt-blue.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-orange.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-alt-white.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-white-orange.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker-active', image);
         });
@@ -168,7 +147,7 @@ export class MapService {
                 'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.7, 14, 0.8],
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.5, 14, 1.6],
             'symbol-sort-key': ['get', 'symbolSortOrder']
           },
           paint: {
@@ -192,7 +171,7 @@ export class MapService {
                 'organisation-marker-active'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.7, 14, 1.6],
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.5, 14, 1.6],
             'symbol-sort-key': ['get','symbolSortOrder']
           },
           paint: {

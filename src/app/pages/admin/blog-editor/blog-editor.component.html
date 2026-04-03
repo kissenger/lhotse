@@ -1,5 +1,4 @@
 <main>
-    <!-- <div class="wrapper"> -->
 
         <div class="static-div">
             <form>
@@ -11,7 +10,7 @@
                         </option>
                     }
                 </select>
-                <a href="{{baseURL}}{{selectedPost.slug}}" target="_blank">preview</a> 
+                <a href="{{baseURL}}{{selectedPost.slug}}" target="_blank" rel="noopener noreferrer">preview</a> 
             </form>
 
             <button type="submit" class="formButton" (click)="onSave()">Save</button>
@@ -144,5 +143,4 @@
 
             </form>
         </div>
-    <!-- </div> -->
 </main>

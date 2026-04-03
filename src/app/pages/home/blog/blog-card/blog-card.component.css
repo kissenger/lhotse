@@ -59,9 +59,23 @@ h2 {
 }
 
 .keywords {
-  margin-top: auto;
   flex-wrap: wrap-reverse;
   align-content: flex-end;
+  margin-bottom: 0;
 }
 
+.card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
 
+.like-count {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #666;
+  white-space: nowrap;
+}
