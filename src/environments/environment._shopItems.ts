@@ -37,7 +37,7 @@ export const shopItems = {
     description: "Pack of 5 durable, waterproof Snorkelology logo stickers (50mm diameter). Stick them on your fins, dry bag or water bottle.",
     unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
-      src: 'banner/snorkelology-logo.png',
+      src: 'photos/shop/snorkelology-logo.png',
       alt: 'Image showing Snorkelology Logo sticker design'
     }],
     dimensions: {
