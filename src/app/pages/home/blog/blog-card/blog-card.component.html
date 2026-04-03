@@ -1,4 +1,4 @@
-<div class="blog-card" [routerLink]="'/blog/'+data.slug" aria-label="Read blog post: {{data.title}}">
+<article class="blog-card" [routerLink]="'/blog/'+data.slug" aria-label="Read blog post: {{data.title}}">
 
   <div class="photo">
       <img
@@ -9,11 +9,11 @@
 
   <h2 class="title">{{data.title}}</h2>
   <div class="author">By {{data.author || 'Snorkelology'}}</div>  
-  <div class="subtitle">{{data.subtitle}}</div>
+  <p class="subtitle">{{data.subtitle}}</p>
   <div class="keywords">     
     @for (kw of data.keywords; track kw) {
       <span>{{kw}}</span>
     }
   </div>
 
-</div>
+</article>

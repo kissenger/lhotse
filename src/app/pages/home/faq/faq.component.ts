@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { faqItems } from '../../../shared/faq-data';
+import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 
 @Component({
   standalone: true,
   selector: 'app-faq',
   templateUrl: './faq.component.html',
-  styleUrls: ['../home.component.css']
+  styleUrls: ['../home.component.css'],
+  imports: [HtmlerPipe]
 })
 export class FAQComponent {
   pageHeading = 'British Snorkelling FAQs';

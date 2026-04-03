@@ -14,7 +14,6 @@ import { OrderSummary } from '@shared/types';
 
 export class OrderOutcomeComponent implements OnInit {
   
-  public paymentOutcome: string = '';
   public orderDetails?: OrderSummary;
 
   constructor(

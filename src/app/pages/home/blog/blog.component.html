@@ -5,24 +5,34 @@
     <h1>{{ pageHeading }}</h1> 
 
     <p>{{ pageDescription }}</p>
-    <p>{{ filterLabel }}
-    <button (click)="selectAll()">Select All</button>
-    <button (click)="selectNone()">Deselect All</button>
-    </p>
-    @for (kw of uniqueKeywords; track kw) {
-      <div class="kw" [class.deselected]="!selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</div>
-    }
+    <div class="filter-bar">
+      <span class="filter-label">{{ filterLabel }}</span>
+      <div class="filter-chips">
+        @for (kw of uniqueKeywords; track kw) {
+          <button class="chip" [class.active]="selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</button>
+        }
+      </div>
+      <div class="filter-actions">
+        <button class="filter-action" (click)="selectAll()">Select all</button>
+        <button class="filter-action" (click)="selectNone()">Clear all</button>
+      </div>
+    </div>
   </div>
 
   <div class="browser-container">
 
     @if (loadingState !== 'success') {
-      <app-loader [loadingState]="loadingState"></app-loader>
+      <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
 
     } @else {
       <div #browser class="browser dynamic-container">
         @for (post of filteredPosts; track post) {
           <app-blog-card [data]="post"></app-blog-card>
+        } @empty {
+          <div class="no-results">
+            <p>No articles match the selected keywords.</p>
+            <button class="filter-action" (click)="selectAll()">Show all articles</button>
+          </div>
         }
       </div>
 

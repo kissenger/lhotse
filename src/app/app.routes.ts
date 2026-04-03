@@ -9,8 +9,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'blog/:slug', loadComponent: () =>
-    import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)
-  },
+    import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
   { path: 'map', pathMatch: 'full', redirectTo: "#snorkelling-map-of-britain"},
   { path: 'dashboard', loadComponent: () =>
     import('@pages/admin/admin.component').then((m) => m.AdminComponent), canActivate: [AuthGuard]},
@@ -26,6 +25,8 @@ export const routes: Routes = [
     import('@pages/admin/admin-map/admin-map.component').then((m) => m.AdminMapComponent), canActivate: [AuthGuard]},
   { path: 'login', loadComponent: () =>
     import('@pages/admin/auth/login/login.component').then((m) => m.LoginComponent), canActivate: [AdminSubdomainGuard]},
+  { path: 'privacy-policy', loadComponent: () =>
+    import('@pages/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent)},
   { path: '**', component: PageNotFoundComponent}
 
 ];

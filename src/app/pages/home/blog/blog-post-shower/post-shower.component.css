@@ -82,3 +82,37 @@ li {
   }
 }
 
+main {
+  opacity: 0;
+}
+
+main.content-visible {
+  opacity: 1;
+}
+
+.loader-wrapper {
+  position: relative;
+  min-height: 60vh;
+  overflow: hidden;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1D3D59;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+

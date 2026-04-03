@@ -1,19 +1,15 @@
 .blog-card {
-  align-self: start;
   display: flex;
   flex-direction: column;
   width: 300px;
   min-height: 500px;
+  height: 100%;
   overflow: hidden;
-  transition: all 0.25s;
-  margin-inline: 1em;
   scroll-behavior: smooth;
-  /* border: 1px red solid; */
 }
 
 .blog-card:hover {
   cursor: pointer;
-  transform: scale(1.02);
 }
 
 @media (max-width: 767px) {
@@ -33,6 +29,7 @@
   height: 200px;
   position: relative;
   display: block;
+  margin-top: 0.5em;
 }
 
 .photo > img {
@@ -45,6 +42,7 @@
 h2 {
   margin-block: 0.5em;
   font-size: 1em;
+  font-weight: normal;
   letter-spacing: -1px;
   line-height: 1.2;
 }
@@ -56,9 +54,14 @@ h2 {
 }
 .author {
   overflow: hidden;
-
   font-size: 0.9em;
   font-style: italic;
+}
+
+.keywords {
+  margin-top: auto;
+  flex-wrap: wrap-reverse;
+  align-content: flex-end;
 }
 
 

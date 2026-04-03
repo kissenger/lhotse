@@ -76,29 +76,42 @@ export class ShopComponent implements AfterViewInit {
               that.toaster.show("Nothing in basket", "warning");
               return;
             }
-            let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.order);
-            that.shop.orderNumber = res.orderNumber;
-            return res.paypalOrderId;              
+            try {
+              let res = await that._http.createPaypalOrder(that.shop.orderNumber ?? null, that.shop.order);
+              that.shop.orderNumber = res.orderNumber;
+              return res.paypalOrderId;
+            } catch (err: any) {
+              that.toaster.show(err?.message || 'Failed to create order', 'error');
+              throw err;
+            }
           },
 
           async onApprove(data, actions) {
+            try {
+              let res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', data.orderID);
 
-            let res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', data.orderID);
-
-            if (res.error) {
-              console.error(res);
-              that.shop.orderStatus = "error";
-              if (res.error === 'INSTRUMENT_DECLINED') {
-                that.toaster.show('PayPal payment was declined, please try again', 'warning');
-                return actions.restart();
+              if (res.error) {
+                console.error(res);
+                that.shop.orderStatus = "error";
+                that._cdr.detectChanges();
+                if (res.error === 'INSTRUMENT_DECLINED') {
+                  that.toaster.show('PayPal payment was declined, please try again', 'warning');
+                  return actions.restart();
+                } else {
+                  that.toaster.show(res.error, 'error');
+                  return;
+                }
               } else {
-                that.toaster.show(res.error, 'error');
+                that.shop.orderStatus = "complete";
+                that._cdr.detectChanges();
+                that.toaster.show('Payment successful, thank you for your order.', 'success');
                 return;
               }
-            } else {
-              that.shop.orderStatus = "complete";
-              that.toaster.show('Payment successful, thank you for your order.', 'success');
-              return;
+            } catch (err: any) {
+              console.error(err);
+              that.shop.orderStatus = "error";
+              that._cdr.detectChanges();
+              that.toaster.show(err?.message || 'Payment failed — please try again', 'error');
             }
           },
 
@@ -113,12 +126,16 @@ export class ShopComponent implements AfterViewInit {
           async onShippingOptionsChange(data, _actions) {
             if (data.selectedShippingOption?.id && data.orderID) {
               that.shop.basket.selectedShippingService = data.selectedShippingOption?.id;
-              await that._http.patchPaypalOrder(
-                that.shop.orderNumber ?? '',
-                data.orderID,
-                "/purchase_units/@reference_id=='default'",
-                that.shop.order.paypal.intent.purchase_units[0]
-              )
+              try {
+                await that._http.patchPaypalOrder(
+                  that.shop.orderNumber ?? '',
+                  data.orderID,
+                  "/purchase_units/@reference_id=='default'",
+                  that.shop.order.paypal.intent.purchase_units[0]
+                )
+              } catch (err: any) {
+                that.toaster.show(err?.message || 'Failed to update shipping option', 'error');
+              }
             }
             return
           }

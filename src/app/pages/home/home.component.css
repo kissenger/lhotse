@@ -25,6 +25,13 @@
   border-radius: 10px;
   background-color: white;
   overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay.overlay-ready {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .overlay > a {

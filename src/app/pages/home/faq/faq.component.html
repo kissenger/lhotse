@@ -7,7 +7,7 @@
 
   @for (faq of faqs; track faq.question) {
     <h2>{{ faq.question }}</h2>
-    <p>{{ faq.answer }}</p>
+    <p [innerHTML]="faq.answer | htmler"></p>
   }
   
 </div>

@@ -1,8 +1,52 @@
-function getConfirmationEmailBody(orderSummary: any) {
+/**
+ * One-off script to send a test confirmation email for visual verification.
+ * Usage: node tools/send-test-email.mjs
+ * Requires: GMAIL_APP_PASSWD in .env
+ */
+import nodemailer from 'nodemailer';
+import 'dotenv/config';
+
+const EMAIL_CONFIG = {
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  auth: {
+    user: 'hello@snorkelology.co.uk',
+    pass: process.env.GMAIL_APP_PASSWD
+  }
+};
+
+// Mock order summary with realistic data
+const orderSummary = {
+  orderNumber: '1712345678901',
+  endPoint: 'https://api.sandbox.paypal.com',
+  user: {
+    name: 'Gordon Taylor',
+    address: {
+      address_line_1: '123 High Street',
+      admin_area_2: 'Bristol',
+      postal_code: 'BS1 1AA',
+      country_code: 'GB'
+    }
+  },
+  items: [
+    { name: 'Snorkelling Britain', quantity: '1', unit_amount: { value: '14.99' } },
+    { name: 'High quality logo stickers', quantity: '2', unit_amount: { value: '2.99' } }
+  ],
+  shippingOption: 'Royal Mail Tracked 48',
+  costBreakdown: {
+    items: 20.97,
+    shipping: 4.49,
+    discount: 2.10,
+    total: 23.36
+  }
+};
+
+function getConfirmationEmailBody(orderSummary) {
 
   const isTest = orderSummary.endPoint?.indexOf('sandbox') > 0;
 
-  const itemRows = (orderSummary.items ?? []).map((item: any) => `
+  const itemRows = (orderSummary.items ?? []).map((item) => `
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #eee;color:#333;">${item.name}</td>
       <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:center;color:#333;">${item.quantity}</td>
@@ -142,4 +186,19 @@ function getConfirmationEmailBody(orderSummary: any) {
   `;
 }
 
-export {getConfirmationEmailBody}
+const html = getConfirmationEmailBody(orderSummary);
+const transporter = nodemailer.createTransport(EMAIL_CONFIG);
+
+const message = {
+  from: 'noreply@snorkelology.co.uk',
+  to: 'gordon.taylor@hotmail.co.uk',
+  subject: '[TEST] Thank you for ordering from Snorkelology',
+  html
+};
+
+try {
+  const info = await transporter.sendMail(message);
+  console.log('Test email sent successfully:', info.messageId);
+} catch (err) {
+  console.error('Failed to send test email:', err.message);
+}

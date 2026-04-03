@@ -44,8 +44,8 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     'Snorkelling Site',
   ];
   readonly ratingOptions: Array<'good' | 'ok' | 'poor' | 'not for snorkelling' | ''> = ['', 'good', 'ok', 'poor', 'not for snorkelling'];
-  readonly snorkellingCategories = ['Rocky Reef', 'Kelp/Wrack Forest', 'Snorkel Trail', 'Seagrass Meadow', 'Manmade Structure', 'Mearl Beds', 'Sand and Gravel', 'Tidal Pool', 'Chalk Reef', 'Wreck', 'Scottish Wildlife Trust', 'Snorkelling Britain'];
-  readonly providerCategories = ['Instructor', 'Snorkel Guiding/Tours', 'Boat Snorkelling', 'Kit Rental', 'Kit Purchase'];
+  snorkellingCategories: string[] = [];
+  providerCategories: string[] = [];
 
   get availableCategories(): string[] {
     const all = this.selectedSite.properties.featureType === 'Snorkelling Site'
@@ -231,12 +231,26 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     return site;
   }
 
+  private _buildCategoryLists() {
+    const snorkCats = new Set<string>();
+    const providerCats = new Set<string>();
+    for (const site of this.sites) {
+      const isSnorkelling = site.properties.featureType === 'Snorkelling Site';
+      for (const c of site.properties.categories ?? []) {
+        (isSnorkelling ? snorkCats : providerCats).add(c);
+      }
+    }
+    this.snorkellingCategories = [...snorkCats].sort();
+    this.providerCategories = [...providerCats].sort();
+  }
+
   refreshSiteList(result: Array<MapFeature>) {
     if (!result || result.length === 0) {
       this.sites = [new MapFeature()];
     } else {
       this.sites = result.map(r => this.normaliseSite(r));
     }
+    this._buildCategoryLists();
     const preselectId = this._route.snapshot.queryParamMap.get('id');
     const preselected = preselectId ? this.sites.find(s => s._id === preselectId) : null;
     this.selectedSite = preselected ?? this.sites[0];

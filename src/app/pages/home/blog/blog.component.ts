@@ -1,4 +1,5 @@
-import { Component, ElementRef, QueryList, ViewChildren, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, PLATFORM_ID, QueryList, ViewChildren, OnInit } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
@@ -7,7 +8,7 @@ import { BlogCardComponent } from './blog-card/blog-card.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { CommonModule } from '@angular/common';
-import { switchMap } from 'rxjs';
+import { switchMap, timeout } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -43,14 +44,18 @@ export class BlogComponent implements OnInit {
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
-    private _screen: ScreenService
+    private _screen: ScreenService,
+    @Inject(PLATFORM_ID) private _platformId: any,
+    private _cdr: ChangeDetectorRef
   ) {
   }
 
   ngOnInit() {
+    if (!isPlatformBrowser(this._platformId)) return;
     this._route.params
       .pipe(
-        switchMap(() => this._http.getPublishedPosts())
+        switchMap(() => this._http.getPublishedPosts()),
+        timeout(15000)
       )
       .subscribe({
         next: (posts) => {
@@ -64,6 +69,24 @@ export class BlogComponent implements OnInit {
         }
       });
   }
+
+  async onRetry() {
+    this.loadingState = 'loading';
+    try {
+      const posts = await Promise.race([
+        this._http.getPublishedPosts(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+      ]);
+      this.allPosts = posts as any;
+      this.loadingState = 'success';
+      this.filteredPosts = this.allPosts;
+      this.getUniqueKeywords();
+    } catch {
+      this.loadingState = 'failed';
+      this._cdr.detectChanges();
+    }
+  }
+
   ngAfterViewInit() {
     this.arrows.changes.subscribe( () => {
       this.checkArrows();

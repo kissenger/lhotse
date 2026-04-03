@@ -1,13 +1,24 @@
 
 <!-- this is needed to avoid error where intro is not rendered  -->
+@if (loadingState === 'failed') {
+  <div class="loader-wrapper">
+    <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
+  </div>
+} @else {
 @defer (when isReadyToLoad) {
 
-  <main>
+  @if (!contentVisible) {
+    <div class="spinner-container">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <main [class.content-visible]="contentVisible">
     <div class="article-image-container">
-      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority /> 
+      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority (load)="onHeroImageLoaded()"/> 
       <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{post.imgCredit||'Emma and Gordon Taylor'}}</div>       
-      <div class="arrow left">  <a href="blog/{{lastSlug}}" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
-      <div class="arrow right"> <a href="blog/{{nextSlug}}" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
+      <div class="arrow left">  <a [routerLink]="'/blog/' + lastSlug" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
+      <div class="arrow right"> <a [routerLink]="'/blog/' + nextSlug" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
     </div>
 
     <div class="dynamic-container">
@@ -83,4 +94,5 @@
 
     </div>
   </main>
+}
 }

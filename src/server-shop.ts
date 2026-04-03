@@ -162,12 +162,18 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
     }
 
     let orderSummary = await setOrderSummary(req.body.orderNumber);
-    let emailBody = getConfirmationEmailBody(orderSummary);
-    const payerEmail = json.payer?.email_address;
-    if (payerEmail) {
-      sendEmail(payerEmail, emailBody, 'Thank you for ordering from Snorkelology');
-    }
     res.send(json);
+
+    // Send confirmation email after responding — failure must not affect the payment result
+    try {
+      let emailBody = getConfirmationEmailBody(orderSummary);
+      const payerEmail = json.payer?.email_address;
+      if (payerEmail) {
+        await sendEmail(payerEmail, emailBody, 'Thank you for ordering from Snorkelology');
+      }
+    } catch (emailErr) {
+      console.error('Confirmation email failed (payment was captured successfully):', emailErr);
+    }
 
   } catch (err: any) {
     await logShopError(req.body.orderNumber, err);

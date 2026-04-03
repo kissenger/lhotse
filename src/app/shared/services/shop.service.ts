@@ -258,9 +258,10 @@ class Basket {
         
       if (this.selectedShippingService) {
         if (this.selectedShippingService==="Other") return this._otherShippingCost;
-        else return this._parcelType!.services.find( s => s.label===this.selectedShippingService)!.cost;
+        const service = this._parcelType?.services.find( s => s.label===this.selectedShippingService);
+        if (service) return service.cost;
       } 
-      return this._parcelType!.services[0].cost;
+      return this._parcelType?.services[0]?.cost ?? 0;
     }    
     
     get parcelType(): ParcelType {

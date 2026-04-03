@@ -2,7 +2,7 @@
 
   @defer {
     @if (!hideAboutBookOverlay) {
-    <div class="overlay about-book">
+    <div class="overlay about-book" [class.overlay-ready]="overlayReady">
       <a [routerLink]="'.'" [fragment]="'snorkelling-britain'" (click)="hideOverlay('about-book')">
         @if (widthDescriptor === "small") {
           <img  
@@ -11,6 +11,7 @@
             width = "280"
             height = "366"
             priority
+            (load)="overlayReady = true"
           >
         } @else if (widthDescriptor == "large") {
           <img  
@@ -19,6 +20,7 @@
             width = "464"
             height = "177"
             priority
+            (load)="overlayReady = true"
           >
         }
       </a>
@@ -35,18 +37,17 @@
     <div #window id="windowOne" class="window"></div>
   </div>
 
+  <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
+    <app-blog></app-blog>
+    <div #window id="windowTwo" class="window"></div>  
+  </div>
+
+  <div #anchor class="anchor" id="snorkelling-britain" data-scrollspy-anchor>
+    <app-book></app-book>  
+    <div #window id="windowThree" class="window"></div>
+  </div>
+
   @defer {
-    <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
-      <app-blog></app-blog>
-      <div #window id="windowTwo" class="window"></div>  
-    </div>
-
-    <div #anchor class="anchor" id="snorkelling-britain" data-scrollspy-anchor>
-      <app-book></app-book>  
-      <div #window id="windowThree" class="window"></div>
-    </div>
-
-
     <div #anchor class="anchor" id="buy-now" data-scrollspy-anchor>
       <app-shop></app-shop>
       <div #window #windowFour id="windowFour" class="window"></div>

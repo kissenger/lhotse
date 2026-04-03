@@ -2,7 +2,7 @@ export const shopItems = {
   SHOP_ITEMS: [{
     id: "0001",
     name: "Snorkelling Britain",
-    description: "Snorkelling Britain guidebook",
+    description: "Your essential guide to 100 of the best snorkelling sites around the British coastline, packed with maps, photos and honest site reviews.",
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 14.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
@@ -18,8 +18,7 @@ export const shopItems = {
   }, {
     id: "0002",
     name: "Snorkelling Britain Signed",
-    description: "Snorkelling Britain guidebook, signed by the authors",
-    purchase_note: "Please get in touch if there is a specific message you would like",
+    description: "A personally signed copy of Snorkelling Britain — makes a perfect gift for the ocean lover in your life.",
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 15.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover-3d-square.png',
@@ -34,8 +33,8 @@ export const shopItems = {
     weightInGrams: 685
   }, {
     id: "0003",
-    name: "Pack of 5 Snorkelology logo stickers",
-    description: "Pack of 5 x Snorkelology logo sticker (50mm diameter)",
+    name: "High quality logo stickers",
+    description: "Pack of 5 durable, waterproof Snorkelology logo stickers (50mm diameter). Stick them on your fins, dry bag or water bottle.",
     unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
       src: 'banner/snround.webp',
@@ -51,7 +50,7 @@ export const shopItems = {
   },{
     id: "0004",
     name: "Pack of 4 Snorkelling Britain postcards",
-    description: "Pack of 4 x Snorkelling Britain postcards",
+    description: "Four stunning underwater postcards featuring favourite sites from the book — share the adventure or frame them for your wall.",
     unit_amount: { currency_code: 'GBP', value: 2.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-postcard-site-37-chesil-cove.jpg',

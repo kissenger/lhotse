@@ -22,7 +22,7 @@
           <div class="filter-group">
             <label class="filter-group-label">
               <input type="checkbox" [checked]="snorkellingSitesEnabled" (change)="toggleGroup('snorkelling')">
-              <img class="filter-legend-icon" src="assets/icons/site-icon-blue.webp" alt="">
+              <img class="filter-legend-icon" src="assets/icons/site-icon-blue.webp" alt="Snorkelling site map marker">
               <strong>Snorkelling Sites</strong>
             </label>
             @for (cat of snorkellingCategories; track cat.name) {
@@ -35,7 +35,7 @@
           <div class="filter-group">
             <label class="filter-group-label">
               <input type="checkbox" [checked]="otherSitesEnabled" (change)="toggleGroup('other')">
-              <img class="filter-legend-icon" src="assets/icons/provider-icon-blue.webp" alt="">
+              <img class="filter-legend-icon" src="assets/icons/provider-icon-blue.webp" alt="Snorkelling provider map marker">
               <strong>Snorkelling Providers</strong>
             </label>
             @for (cat of otherCategories; track cat.name) {
@@ -49,7 +49,7 @@
       }
 
       @if (loadingState !== 'success') {
-        <app-loader [loadingState]="loadingState"></app-loader>    
+        <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>    
       }
        @else {
 

@@ -14,11 +14,11 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: 'Is snorkelling in Britain safe?',
-    answer: 'Snorkelling comes with risks but can be enjoyed safely by developing skills slowly, testing kit in a pool first, and progressing to shallow sheltered water sites. Professional instruction through organisations like BSAC is recommended.'
+    answer: 'Snorkelling comes with risks but can be enjoyed safely by developing skills slowly, testing kit in a pool first, and progressing to shallow sheltered water sites. Professional instruction through organisations like [link:BSAC,https://www.bsac.com] is recommended.'
   },
   {
     question: 'What are the best snorkelling sites in Britain?',
-    answer: 'The most abundant locations tend to be those with rocky seabed and healthy currents. Always check tides and currents before visiting. Our book "Snorkelling Britain" features 100 favourite snorkelling sites in England, Scotland and Wales.'
+    answer: 'The most abundant locations tend to be those with rocky seabed and healthy currents. Always check tides and currents before visiting. Our book [link:Snorkelling Britain,/british-snorkelling-book] features 100 favourite snorkelling sites in England, Scotland and Wales.'
   },
   {
     question: 'Is it "snorkelling" or "snorkeling"?',

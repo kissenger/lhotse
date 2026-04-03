@@ -45,7 +45,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   
     try {
       const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
-      this.geoJson = await this._http.getSites(visibility);
+      const result = await Promise.race([
+        this._http.getSites(visibility),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+      ]);
+      this.geoJson = result;
       this.map = await this._lazyServiceInjector.get<MapService>(() =>
         import('@shared/services/map.service').then((m) => m.MapService)
       );
@@ -74,6 +78,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this._selectionSub?.unsubscribe();
+  }
+
+  async onRetry() {
+    this.loadingState = 'loading';
+    this._cdr.detectChanges();
+    await this.ngAfterViewInit();
   }
 
   private _buildCategoryLists() {

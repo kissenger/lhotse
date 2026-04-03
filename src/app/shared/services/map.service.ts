@@ -135,7 +135,7 @@ export class MapService {
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
 
-        this._map?.loadImage('assets/icons/site-icon-blue.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-blue-bordered2.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker', image);
         });
@@ -145,12 +145,12 @@ export class MapService {
           this._map?.addImage('site-marker-active', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-blue.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-alt-blue.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-white.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-alt-white.webp', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker-active', image);
         });
@@ -168,7 +168,7 @@ export class MapService {
                 'organisation-marker'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.4, 14, 0.8],
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.7, 14, 0.8],
             'symbol-sort-key': ['get', 'symbolSortOrder']
           },
           paint: {
@@ -192,7 +192,7 @@ export class MapService {
                 'organisation-marker-active'],
             'icon-allow-overlap': true,
             'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.4, 14, 1.6],
+            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.7, 14, 1.6],
             'symbol-sort-key': ['get','symbolSortOrder']
           },
           paint: {

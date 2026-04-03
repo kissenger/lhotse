@@ -12,6 +12,7 @@ import { ShopComponent } from        '@pages/home/shop/shop.component';
 import { FAQComponent } from         '@pages/home/faq/faq.component';
 import { MapComponent } from         '@pages/home/map/map.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
+import { environment } from          '@environments/environment';
 
 @Component({
   standalone: true,
@@ -31,18 +32,22 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
   public hideAboutBookOverlay = false;
+  public overlayReady = false;
   public widthDescriptor?: string;
   private _subs: Subscription[] = [];
   private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
+  private static readonly _VISITED_COOKIE = 'sn_visited';
 
   staticBackgrounds: Record<string, string> = {
-    windowOne: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
-    windowTwo: "./assets/photos/parallax/cuddling-crabs-snorkelling-scotland-britain.webp",
-    windowThree: "./assets/photos/parallax/child-in-snorkelling-gear-scotland.webp",
-    windowFour: "./assets/photos/parallax/dahlia-anemone-snorkelling-dorset-britain.webp",
-    windowFive: "./assets/photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall.webp",
-    windowSix: "./assets/photos/parallax/cuddling-crabs-snorkelling-scotland-britain.webp"
+    windowOne: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall",
+    windowTwo: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain",
+    windowThree: "photos/parallax/child-in-snorkelling-gear-scotland",
+    windowFour: "photos/parallax/dahlia-anemone-snorkelling-dorset-britain",
+    windowFive: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall",
+    windowSix: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain"
   }
+
+  private _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
@@ -54,6 +59,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
+      // Hide book overlay for returning visitors (non-tracking, functional cookie)
+      if (document.cookie.split(';').some(c => c.trim().startsWith(HomeComponent._VISITED_COOKIE + '='))) {
+        this.hideAboutBookOverlay = true;
+      } else {
+        document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
+      }
+
       // Delay fragment scroll until deferred sections have had a chance to render.
       this._fragmentScrollTimer = setTimeout(() => {
         const fragment = this._route.snapshot.fragment;
@@ -96,13 +108,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.windows.forEach( (w) => {
       // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
       if (isPlatformBrowser(this.platformId)) {
-        // const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
         const elementId: string = w.nativeElement.id;
-        const baseUrl = this.staticBackgrounds[elementId];
-        if (!baseUrl) {
+        const basePath = this.staticBackgrounds[elementId];
+        if (!basePath) {
           return;
         }
-        const url = baseUrl.replace('.webp', `-${this._screen.deviceOrientation}.webp`);
+        const orientation = this._screen.deviceOrientation;
+        const width = this._screen.width;
+        const url = `${this._imgixBase}${basePath}-${orientation}.webp?w=${width}&auto=format,compress&fit=crop`;
         w.nativeElement.style.backgroundImage = `url('${url}')`;        
         w.nativeElement.style.backgroundSize = 'cover';
         w.nativeElement.style.backgroundPosition = 'center';
@@ -113,6 +126,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   hideOverlay(overlay: string) {
     if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
+      // Ensure overlay stays hidden on future visits
+      document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
     }
   }
 

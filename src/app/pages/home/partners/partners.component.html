@@ -1,33 +1,29 @@
 <div class="dynamic-container">
 
-  <h1>Friends and Partners</h1>
+  <h1>Our Snorkelling Partners &amp; Collaborators</h1>
   <p>
-    In the course of our book writing journey we have been blessed to connect 
-    with some amazing snorkelling clubs, marine conservation charities, 
-    underwater photographers and outdoor publishers who have 
-    supported us along the way.
-    Without exception these wonderful people care deeply about British 
-    snorkelling and 
-    marine conservation just as much as we do. Check them out below 
-    and show them some love.
+    Throughout our journey writing about British snorkelling, we have connected
+    with outstanding snorkelling clubs, marine conservation charities,
+    underwater photographers and outdoor publishers across the UK.
+    These organisations share our commitment to promoting snorkelling
+    in Britain and protecting our coastal marine environments.
   </p>
 
-  <div #feedContainer class="logo-roller">
-    @for(image of images; track image) {
-      <a class="logo-holder suppress-external-link" href={{image.href}}>
-        <!-- <img
-          [ngSrc]="image.url"
-          [alt]="image.alt"
-          [height]="image.size.height"
-          [width]="image.size.width"
-        /> -->
-        <img
-          [src]="'assets/' + image.url"
-          [alt]="image.alt"
-          [height]="image.size.height"
-          [width]="image.size.width"
-          [title]="image.title"
-        /> 
+  <div class="partner-list">
+    @for(partner of partners; track partner.name) {
+      <a class="partner-row suppress-external-link" [href]="partner.href" target="_blank" rel="noopener">
+        <div class="partner-logo">
+          <img
+            [src]="'assets/' + partner.url"
+            [alt]="partner.alt"
+            [height]="partner.size.height"
+            [width]="partner.size.width"
+          />
+        </div>
+        <div class="partner-info">
+          <h3>{{ partner.name }}</h3>
+          <p>{{ partner.description }}</p>
+        </div>
       </a>
     }
   </div>

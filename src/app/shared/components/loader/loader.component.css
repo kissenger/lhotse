@@ -6,23 +6,50 @@
   left: 0px;
   height: 100%;
   width: 100%;
-  background-color: #FAF9F6;
+  background-color: #FFFFFF;
   align-content: center;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .loader {
-  width: 15px;
-  aspect-ratio: 1;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1D3D59;
   border-radius: 50%;
-  animation: loading-animation 1.5s infinite linear;
-  margin: auto;
+  animation: spin 0.8s linear infinite;
 }
 
-@keyframes loading-animation {
-    0%    {box-shadow: 20px 0 #1d3d5971,   -20px 0 #1D3D5971; background: #1D3D5971}
-    25%   {box-shadow: 20px 0 #1D3D5971,   -20px 0 #1D3D59FF; background: #1D3D5971}
-    50%   {box-shadow: 20px 0 #1D3D5970,   -20px 0 #1D3D5971; background: #1D3D59FF}
-    75%   {box-shadow: 20px 0 #1D3D59FF,   -20px 0 #1D3D5971; background: #1D3D5971}
-    100%  {box-shadow: 20px 0 #1D3D5971,   -20px 0 #1D3D5971; background: #1D3D5971}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-state p {
+  margin: 0;
+  color: #555;
+  font-size: 15px;
+}
+
+.error-state button {
+  background-color: #1D3D59;
+  color: #ffffff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.error-state button:hover {
+  opacity: 0.85;
 }

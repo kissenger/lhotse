@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -10,8 +10,5 @@ import { CommonModule } from '@angular/common';
 })
 export class LoaderComponent{
   @Input() public loadingState: 'loading' | 'failed' = 'loading';   
-  
-  constructor(
-  ) {}
-
+  @Output() public retry = new EventEmitter<void>();
 }

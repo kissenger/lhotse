@@ -40,26 +40,88 @@
   scroll-behavior: smooth;
 }
 
-button {
-  display: inline-block;
-  padding-inline: 0.25em;
-  margin-right: 0.25em;  
+app-blog-card {
+  padding-inline: 1em;
+  transition: background-color 0.2s;
 }
 
-.kw {
-  display: inline-block;
-  background-color: whitesmoke;
-  border: 1px solid var(--border-colour);
-  padding-inline: 0.25em;
-  margin-right: 0.25em;
-  letter-spacing: -1px;
+app-blog-card:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+app-blog-card + app-blog-card {
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em;
+  margin-bottom: 0.75em;
+}
+
+.filter-label {
   font-size: 0.9rem;
-  border-radius: 5px;
+  color: #555;
+  margin-right: 0.25em;
+  white-space: nowrap;
 }
-.kw:hover {
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.25em 0.7em;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 2em;
+  background: white;
+  color: #888;
   cursor: pointer;
-  transform: scale(1.05);
+  transition: all 0.15s ease;
+  line-height: 1.4;
 }
-.kw.deselected {
-  color: lightgray;
+
+.chip:hover {
+  border-color: #888;
+  color: #333;
+}
+
+.chip.active {
+  background: var(--sn-colour);
+  color: white;
+  border-color: var(--sn-colour);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-left: 0.25em;
+}
+
+.filter-action {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: #888;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.filter-action:hover {
+  color: #333;
+}
+
+.no-results {
+  width: 100%;
+  padding: 3em 1em;
+  text-align: center;
+  color: #888;
 }
