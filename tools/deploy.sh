@@ -151,6 +151,9 @@ if [[ "${TARGET_BRANCH}" = "beta" ]]; then
   cp -rnv "${REPO_ROOT}/src/assets/." "${REPO_ROOT}/dist/prod/browser/assets/"
 fi
 
+COMMIT_MSG="$(git -C "${REPO_ROOT}" log -1 --pretty=format:'%s')"
+echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_MSG}\033[0m"
+
 # Always use npm install for faster deployment
 log "Running: npm install"
 npm install
