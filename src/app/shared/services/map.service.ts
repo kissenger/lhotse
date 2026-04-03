@@ -114,22 +114,22 @@ export class MapService {
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
 
-        this._map?.loadImage('assets/icons/site-icon-blue-white.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-blue-white.png', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/site-icon-white-blue.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/site-icon-white-blue.png', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('site-marker-active', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-orange.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-orange-white.png', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker', image);
         });
 
-        this._map?.loadImage('assets/icons/provider-icon-white-orange.webp', (error, image: any) => {
+        this._map?.loadImage('assets/icons/provider-icon-white-orange.png', (error, image: any) => {
           if (error) throw error;
           this._map?.addImage('organisation-marker-active', image);
         });
