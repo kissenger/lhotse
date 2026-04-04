@@ -14,6 +14,7 @@ export class ShopService {
     private _orderNumber?: string;
     private _orderStatus: "error" | "complete" | "draft" = "draft";
     private _orderNotes: string = '';
+    public payerEmail?: string;
     
     constructor() {
         this._basket = new Basket();
@@ -270,10 +271,12 @@ class Basket {
 
     // called only when paypal pay button is pressed
     get paypalShippingOptions(): Array<PayPalShippingOption> {
-        return this._parcelType!.services.map( (s,i) => ({
+        const services = this._parcelType!.services;
+        const hasMatch = services.some(s => s.label === this.selectedShippingService);
+        return services.map( (s,i) => ({
             id: s.label,
             label: s.label,
-            selected: this.selectedShippingService ? this.selectedShippingService===s.label : i===0,
+            selected: hasMatch ? this.selectedShippingService === s.label : i === 0,
             type: 'SHIPPING',
             amount: {
                 currency_code: 'GBP',

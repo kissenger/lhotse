@@ -29,7 +29,9 @@ export const appConfig: ApplicationConfig = {
     {
       provide: IMAGE_LOADER,
       useValue: (config: ImageLoaderConfig) => {
-        const base = `https://${environment.IMGIX_DOMAIN}/${config.src}`;
+        const domain = environment.IMGIX_DOMAIN.replace(/\/$/, '');
+        const src = config.src.replace(/^\//, '');
+        const base = `https://${domain}/${src}`;
         const w = config.width ? `&w=${config.width}` : '';
         // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused
         // 422 when imgix had no Accept header during SSR and fell back to JPEG).

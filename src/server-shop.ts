@@ -9,8 +9,6 @@ import 'dotenv/config';
 
 const shop = express();
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
-const PAYPAL_CLIENT_ID = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID': 'PAYPAL_SANDBOX_ID'];
-const PAYPAL_CLIENT_SECRET = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET': 'PAYPAL_SANDBOX_SECRET'];
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
 const EMAIL_CONFIG = {
   service: 'gmail', 
@@ -77,6 +75,7 @@ shop.post('/api/shop/create-paypal-order', async (req, res, _next) => {
 
     const json = await result.json();
     if (!result.ok || Array.isArray(json.details)) {
+      console.error('PayPal create order failed:', JSON.stringify(json));
       throw json;
     } else {
       const resp = await logShopEvent( orderNumber, 
@@ -153,6 +152,14 @@ shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
     if (!result.ok || Array.isArray(json.details)) {
       throw json;
     } else {
+      // Validate shipping country before treating the capture as successful
+      const shippingCountry = json.purchase_units?.[0]?.shipping?.address?.country_code;
+      if (shippingCountry && shippingCountry !== 'GB') {
+        // Log the attempt then reject — do not fulfil non-UK orders
+        await logShopError(req.body.orderNumber, { issue: `Non-UK shipping address rejected at capture: ${shippingCountry}` });
+        res.status(400).send({ error: 'COUNTRY_NOT_SUPPORTED', message: 'We only ship within the UK. Please place a new order with a UK delivery address.' });
+        return;
+      }
       await logShopEvent(req.body.orderNumber, {
         "$set": {
           "paypal.approved": json, 
@@ -478,7 +485,9 @@ export async function logShopError(orderNumber: string | null, error: Object) {
 
 async function getAccessToken() {
 
-  const auth = `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`;
+  const clientId = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_ID' : 'PAYPAL_SANDBOX_ID'];
+  const clientSecret = process.env[ENVIRONMENT === 'PRODUCTION' ? 'PAYPAL_CLIENT_SECRET' : 'PAYPAL_SANDBOX_SECRET'];
+  const auth = `${clientId}:${clientSecret}`;
   const data = 'grant_type=client_credentials';
   let apiResponse;
   let json;
@@ -498,7 +507,8 @@ async function getAccessToken() {
   }
 
   if (json.error) {
-    throw new ShopError('PayPal oauth API: Authorisation failed');
+    console.error(`PayPal oauth error: ${json.error} - ${json.error_description}`);
+    throw new ShopError(`PayPal oauth API: Authorisation failed (${json.error}: ${json.error_description})`);
   }
   
   return json;

@@ -128,5 +128,7 @@
     max-width: 100%;
     aspect-ratio: 1/1;
     height: auto;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 }

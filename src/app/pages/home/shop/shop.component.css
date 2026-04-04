@@ -71,14 +71,14 @@
 .product-body > h3 {
   margin: 0 0 0.4em 0;
   font-weight: 600;
-  font-size: 1.1rem;
-  letter-spacing: -0.3px;
+  font-size: 1em;
+  letter-spacing: -1px;
 }
 
 .product-body > .description {
   margin: 0;
   color: #555;
-  font-size: 1rem;
+  font-size: 0.9em;
   line-height: 1.5;
 }
 
@@ -93,6 +93,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -267,7 +268,6 @@
 
 .order-summary > h2 {
   margin: 0 0 1rem;
-  font-size: 1.1rem;
   font-weight: 600;
 }
 
@@ -275,7 +275,6 @@
   display: flex;
   justify-content: space-between;
   padding-block: 0.4rem;
-  font-size: 0.95rem;
   color: #444;
 }
 
@@ -284,13 +283,12 @@
   margin-top: 0.5rem;
   padding-top: 0.75rem;
   font-weight: 700;
-  font-size: 1.05rem;
   color: var(--sn-colour);
 }
 
 .shipping-note {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.85em;
   color: #999;
   font-style: italic;
 }
@@ -367,6 +365,7 @@
     row-gap: 1rem;
   }
 
+  .product-card,
   .product-card:nth-child(3n+1) {
     border-left: 1px solid rgba(0, 0, 0, 0.08);
   }
@@ -385,7 +384,15 @@
     grid-template-columns: 1fr;
   }
 
-  .product-card {
+  .product-card,
+  .product-card:nth-child(3n+1),
+  .product-card:nth-child(2n+1) {
     border-left: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 1rem;
+  }
+
+  .product-card:last-child {
+    border-bottom: none;
   }
 }

@@ -82,7 +82,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
           currency: 'GBP'
         });
     } catch (error:any) {
-      this.toaster.show(error, 'warning');
+      this.toaster.show('Could not load the PayPal payment form. Please refresh the page and try again.', 'error');
     }
 
     if (paypal?.Buttons !== undefined && paypal !== null) {
@@ -105,7 +105,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
               that.shop.orderNumber = res.orderNumber;
               return res.paypalOrderId;
             } catch (err: any) {
-              that.toaster.show(err?.message || 'Failed to create order', 'error');
+              that.toaster.show('We could not start your order. Please try again.', 'error');
               throw err;
             }
           },
@@ -113,35 +113,32 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
           async onApprove(data, actions) {
             try {
               let res = await that._http.capturePaypalPayment(that.shop.orderNumber ?? '', data.orderID);
-
-              if (res.error) {
-                console.error(res);
-                that.shop.orderStatus = "error";
-                that._cdr.detectChanges();
-                if (res.error === 'INSTRUMENT_DECLINED') {
-                  that.toaster.show('PayPal payment was declined, please try again', 'warning');
-                  return actions.restart();
-                } else {
-                  that.toaster.show(res.error, 'error');
-                  return;
-                }
-              } else {
-                that.shop.orderStatus = "complete";
-                that._cdr.detectChanges();
-                that.toaster.show('Payment successful, thank you for your order.', 'success');
-                return;
-              }
+              that.shop.payerEmail = res.payer?.email_address;
+              that.shop.orderStatus = "complete";
+              that._cdr.detectChanges();
+              that.toaster.show('Payment successful, thank you for your order.', 'success');
+              return;
             } catch (err: any) {
               console.error(err);
+              const issue = err?.error?.error || err?.error?.details?.[0]?.issue;
+              if (issue === 'INSTRUMENT_DECLINED') {
+                that.toaster.show('Your payment was declined by PayPal — please try a different card or payment method.', 'warning');
+                return actions.restart();
+              } else if (issue === 'COUNTRY_NOT_SUPPORTED') {
+                that.shop.orderStatus = "error";
+                that._cdr.detectChanges();
+                that.toaster.show('Sorry, we only ship within the UK. Please place a new order with a UK delivery address.', 'warning');
+                return;
+              }
               that.shop.orderStatus = "error";
               that._cdr.detectChanges();
-              that.toaster.show(err?.message || 'Payment failed — please try again', 'error');
+              that.toaster.show('Your payment could not be completed.', 'error');
             }
           },
 
           async onShippingAddressChange(data, actions) {
             if (data.shippingAddress.countryCode !== "GB") {
-              that.toaster.show("Sorry, we are not currently shipping outside the UK", "warning");
+              that.toaster.show('Sorry, we currently only ship within the UK. Please update your delivery address.', 'warning');
               // @ts-expect-error
               return actions.reject(data.errors.COUNTRY_ERROR);
             }
@@ -158,7 +155,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
                   that.shop.order.paypal.intent.purchase_units[0]
                 )
               } catch (err: any) {
-                that.toaster.show(err?.message || 'Failed to update shipping option', 'error');
+                that.toaster.show('Could not update the shipping option. Please try selecting it again.', 'error');
               }
             }
             return
@@ -186,7 +183,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
         }
 
       } catch (error:any) {
-        this.toaster.show(error, "error");
+        this.toaster.show('The payment form could not be loaded. Please refresh the page and try again.', 'error');
       }
     }
   }
