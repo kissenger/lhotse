@@ -164,6 +164,15 @@ header {
 .socials > a {
   display: flex;
   margin-inline: 0.25rem;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.socials > a:hover {
+  background-color: transparent;
+  border-bottom: none;
 }
 
 .socials > a:hover {

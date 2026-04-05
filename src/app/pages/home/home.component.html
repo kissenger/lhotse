@@ -37,17 +37,17 @@
     <div #window id="windowOne" class="window"></div>
   </div>
 
-  <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
-    <app-blog></app-blog>
-    <div #window id="windowTwo" class="window"></div>  
-  </div>
-
-  <div #anchor class="anchor" id="snorkelling-britain" data-scrollspy-anchor>
-    <app-book></app-book>  
-    <div #window id="windowThree" class="window"></div>
-  </div>
-
   @defer {
+    <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
+      <app-blog></app-blog>
+      <div #window id="windowTwo" class="window"></div>  
+    </div>
+
+    <div #anchor class="anchor" id="snorkelling-britain" data-scrollspy-anchor>
+      <app-book></app-book>  
+      <div #window id="windowThree" class="window"></div>
+    </div>
+
     <div #anchor class="anchor" id="buy-now" data-scrollspy-anchor>
       <app-shop></app-shop>
       <div #window #windowFour id="windowFour" class="window"></div>
