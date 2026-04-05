@@ -26,13 +26,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
 
-  public menuItems: Array<{name: string, anchor: string}> = [
-    { name: 'Home',    anchor: 'home' },
-    { name: 'Blog',    anchor: 'blog' },
-    { name: 'Book',    anchor: 'snorkelling-britain' },
-    { name: 'Shop',    anchor: 'buy-now' },
-    { name: 'Map',     anchor: 'snorkelling-map-of-britain' },
-    { name: 'Friends', anchor: 'friends-and-partners' },
+  public menuItems: Array<{name: string, anchor: string, route: string}> = [
+    { name: 'Home',    anchor: 'home',                       route: '/' },
+    { name: 'Blog',    anchor: 'blog',                       route: '/' },
+    { name: 'Book',    anchor: 'snorkelling-britain',        route: '/' },
+    { name: 'Shop',    anchor: 'buy-now',                    route: '/' },
+    { name: 'Map',     anchor: 'snorkelling-map-of-britain', route: '/' },
+    { name: 'Friends', anchor: 'friends-and-partners',       route: '/' },
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';
@@ -146,6 +146,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
     const [path, fragment] = url.split('#');
     const isHomeRoute = path === '/' || path === '/home' || path === '';
+    const isMapRoute = path === '/map';
+
+    if (isMapRoute) {
+      this.activeMenuItem = 'Map';
+      return;
+    }
 
     if (!isHomeRoute) {
       this.activeMenuItem = undefined;

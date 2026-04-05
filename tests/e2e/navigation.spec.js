@@ -78,6 +78,21 @@ test.describe('navigation', () => {
     expect(blogTop).toBeLessThan(300);
   });
 
+  test('/map route renders the standalone map page', async ({ page }) => {
+    await page.route('**/api/sites/get-sites/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) })
+    );
+
+    await page.goto('/map');
+
+    // Header should still be present on the standalone map page.
+    await expect(page.locator('header')).toBeVisible({ timeout: 10_000 });
+
+    // The map component heading should render.
+    await expect(page.locator('app-map h2.section-heading')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('app-map h2.section-heading')).toHaveText('Interactive Snorkelling Map of Britain');
+  });
+
   test('unknown route shows 404 page', async ({ page }) => {
     await page.goto('/this-page-does-not-exist');
 

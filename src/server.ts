@@ -205,6 +205,10 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
     return getHomeSeoPayload();
   }
 
+  if (normalizedPath === '/map') {
+    return getMapSeoPayload();
+  }
+
   if (normalizedPath === '/blog') {
     return getBlogIndexSeoPayload();
   }
@@ -215,6 +219,22 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
       return null;
     }
     return getBlogSeoPayload(slug);
+  }
+
+  if (normalizedPath === '/privacy-policy') {
+    return {
+      title: 'Privacy Policy | Snorkelology',
+      description: '',
+      keywords: '',
+      canonicalPath: '/privacy-policy',
+      ogType: 'website',
+      ogImage: '',
+      twitterImage: '',
+      schemas: [],
+      metaTags: [
+        { key: 'name', keyValue: 'robots', content: 'noindex,follow' }
+      ]
+    };
   }
 
   return null;
@@ -253,6 +273,34 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
       url: `${SITE_URL}/#buy-now`
     }
   }));
+
+  const bookSchemas = (shopItems.SHOP_ITEMS || [])
+    .filter((item: any) => item.isbn)
+    .map((item: any) => ({
+      '@context': 'https://schema.org',
+      '@type': 'Book',
+      name: item.name,
+      description: item.description,
+      image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+      isbn: item.isbn,
+      numberOfPages: item.numberOfPages,
+      author: {
+        '@type': 'Person',
+        name: item.author
+      },
+      publisher: item.publisher ? {
+        '@type': 'Organization',
+        name: item.publisher
+      } : undefined,
+      offers: {
+        '@type': 'Offer',
+        price: item.unit_amount?.value,
+        priceCurrency: item.unit_amount?.currency_code,
+        availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        url: `${SITE_URL}/#buy-now`
+      }
+    }));
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -297,7 +345,54 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     '@graph': mapPlaces
   } : null;
 
-  const schemas = [orgSchema, ...productSchemas, faqSchema, ...blogSchemas, ...(mapSchema ? [mapSchema] : [])];
+  const homepageVideoSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: 'Snorkelling Britain book flick-through video',
+    description: 'A flick-through of Snorkelling Britain: 100 Marine Adventures, the guide to the best snorkelling sites around the British coastline.',
+    thumbnailUrl: 'https://img.youtube.com/vi/nglkG5wdsmY/maxresdefault.jpg',
+    uploadDate: '2025-06-01',
+    embedUrl: 'https://www.youtube.com/embed/nglkG5wdsmY',
+    contentUrl: 'https://www.youtube.com/watch?v=nglkG5wdsmY',
+  };
+
+  const mapImageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ImageObject',
+    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    name: 'Snorkelology interactive snorkelling map of Britain',
+    description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
+    representativeOfPage: true,
+    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+  };
+
+  const mapCreativeWorkSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Map',
+    name: 'Snorkelling Map of Britain',
+    description: 'An interactive map of 100+ of the best snorkelling sites around the British coastline, with GPS coordinates, site descriptions and categories.',
+    url: `${SITE_URL}/map`,
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    creator: {
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      url: SITE_URL
+    },
+    about: {
+      '@type': 'Thing',
+      name: 'Snorkelling sites in Britain'
+    },
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'Britain',
+      containedInPlace: {
+        '@type': 'Country',
+        name: 'United Kingdom'
+      }
+    }
+  };
+
+  const schemas = [orgSchema, ...productSchemas, ...bookSchemas, faqSchema, ...blogSchemas, mapImageSchema, mapCreativeWorkSchema, homepageVideoSchema, ...(mapSchema ? [mapSchema] : [])];
 
   return {
     title: 'Snorkelology \u2014 British Snorkelling Map, Articles & Snorkelling Britain Book',
@@ -308,6 +403,104 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     ogImage: DEFAULT_SOCIAL_IMAGE,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas,
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
+  };
+}
+
+async function getMapSeoPayload(): Promise<SeoPayload> {
+  const description = 'Discover 100+ snorkelling sites across Britain on an interactive map. Explore coastal rock pools, kelp forests, sheltered bays, and offshore reefs in England, Scotland, and Wales. Find snorkelling providers, get GPS coordinates, and filter by habitat type to find your perfect spot.';
+  const keywords = [
+    // Core intent
+    'snorkelling map of britain', 'interactive snorkelling map UK', 'british snorkelling map',
+    'snorkelling sites map', 'snorkelling locations UK', 'best snorkelling spots UK',
+    // Long-tail "where to snorkel"
+    'where to snorkel in Britain', 'where to snorkel in the UK', 'where to snorkel in England',
+    'where to snorkel in Scotland', 'where to snorkel in Wales',
+    'best places to snorkel in Britain', 'best places to snorkel UK',
+    'snorkelling spots near me', 'snorkelling beaches UK',
+    // Habitat types
+    'rock pool snorkelling UK', 'kelp forest snorkelling', 'reef snorkelling Britain',
+    'snorkelling coves', 'coastal snorkelling UK',
+    // Activity context
+    'snorkelling guide Britain', 'UK snorkelling sites', 'snorkelling locations Britain',
+    'snorkelling providers UK', 'guided snorkelling UK',
+    // Brand
+    'snorkelology map', 'snorkelology snorkelling map'
+  ].join(', ');
+
+  const mapPlaces = SKIP_SEO_DB_LOOKUPS
+    ? []
+    : await getPlacesForSeo().catch((error) => {
+      console.error('SEO map schema generation failed:', error);
+      return [];
+    });
+  const mapSchema = mapPlaces.length ? {
+    '@context': 'https://schema.org',
+    '@graph': mapPlaces
+  } : null;
+
+  const mapCreativeWorkSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Map',
+    name: 'Interactive Snorkelling Map of Britain — 100+ Sites',
+    description,
+    url: `${SITE_URL}/map`,
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    creator: {
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      url: SITE_URL
+    },
+    about: [
+      { '@type': 'Thing', name: 'Snorkelling sites in Britain' },
+      { '@type': 'Thing', name: 'Coastal snorkelling UK' },
+      { '@type': 'Thing', name: 'Rock pool snorkelling' },
+      { '@type': 'Thing', name: 'Kelp forest snorkelling' },
+      { '@type': 'Thing', name: 'Snorkelling providers UK' }
+    ],
+    keywords: 'snorkelling map UK, best snorkelling spots Britain, where to snorkel UK, coastal snorkelling, rock pools, kelp forests',
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'Britain',
+      containedInPlace: {
+        '@type': 'Country',
+        name: 'United Kingdom'
+      }
+    }
+  };
+
+  const mapImageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ImageObject',
+    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    name: 'Snorkelology interactive snorkelling map of Britain',
+    description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
+    representativeOfPage: true,
+    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` }
+    ]
+  };
+
+  return {
+    title: 'Interactive Snorkelling Map of Britain — 100+ Sites | Snorkelology',
+    description,
+    keywords,
+    canonicalPath: '/map',
+    ogType: 'website',
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    schemas: [breadcrumbSchema, mapCreativeWorkSchema, mapImageSchema, ...(mapSchema ? [mapSchema] : [])],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
@@ -425,6 +618,19 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         }
       };
 
+  const videoSchemas = (post.sections || [])
+    .filter((section: any) => !!section.videoUrl)
+    .map((section: any) => ({
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      name: section.title || post.title,
+      description: (section.content || description).replace(/<[^>]*>/g, '').slice(0, 300).trim(),
+      thumbnailUrl: `https://img.youtube.com/vi/${section.videoUrl}/maxresdefault.jpg`,
+      uploadDate: publishedIso,
+      embedUrl: `https://www.youtube.com/embed/${section.videoUrl}`,
+      contentUrl: `https://www.youtube.com/watch?v=${section.videoUrl}`,
+    }));
+
   // Fix 6: emit keywords as article:tag meta properties
   const keywordTags = (post.keywords || []).map((kw: string) => ({
     key: 'property' as const,
@@ -440,7 +646,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     ogType: 'article',  // Fix 7: always 'article' for individual posts
     ogImage: imageUrl,
     twitterImage: imageUrl,  // Fix 2: use article image for Twitter
-    schemas: [breadcrumbSchema, schema],
+    schemas: [breadcrumbSchema, schema, ...videoSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },

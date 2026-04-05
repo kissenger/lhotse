@@ -44,7 +44,23 @@ test.describe('map section', () => {
     await page.locator('#snorkelling-map-of-britain').scrollIntoViewIfNeeded();
 
     // The map component should render its heading.
-    await expect(page.locator('app-map h1')).toHaveText('British Snorkelling Map', { timeout: 15_000 });
+    await expect(page.locator('app-map h2.section-heading')).toHaveText('Interactive Snorkelling Map of Britain', { timeout: 15_000 });
+
+    // The Mapbox GL canvas should appear once the map initialises.
+    await expect(page.locator('#map canvas.mapboxgl-canvas')).toBeVisible({ timeout: 30_000 });
+  });
+
+  test('standalone /map page renders the map component', async ({ page }) => {
+    await page.goto('/map');
+
+    // Header must be visible (it wraps all routes).
+    await expect(page.locator('header')).toBeVisible({ timeout: 10_000 });
+
+    // Map heading should render.
+    await expect(page.locator('app-map h2.section-heading')).toHaveText(
+      'Interactive Snorkelling Map of Britain',
+      { timeout: 15_000 }
+    );
 
     // The Mapbox GL canvas should appear once the map initialises.
     await expect(page.locator('#map canvas.mapboxgl-canvas')).toBeVisible({ timeout: 30_000 });

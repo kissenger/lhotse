@@ -5,7 +5,12 @@ const SITE_URL = 'https://snorkelology.co.uk';
 const API_BASE_URL = 'http://127.0.0.1:4001';
 const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/prod/browser/sitemap.xml';
 const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/prod/browser/index.csr.html';
-const STATIC_URL_PATHS = [];
+const STATIC_URL_PATHS = [
+  {
+    path: '/map',
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`
+  }
+];
 
 function xmlEscape(value) {
   return String(value)
@@ -139,9 +144,10 @@ async function main() {
       loc: SITE_URL,
       lastmod: rootLastMod
     },
-    ...STATIC_URL_PATHS.map((path) => ({
+    ...STATIC_URL_PATHS.map(({ path, image }) => ({
       loc: `${SITE_URL}${path}`,
-      lastmod: rootLastMod
+      lastmod: rootLastMod,
+      images: image ? [image] : []
     })),
     ...sitemapEntries
       .filter((item) => item && typeof item.slug === 'string' && item.slug.trim() !== '')

@@ -112,6 +112,12 @@ h2 {
   font-weight: 400;
 }
 
+.section-heading {
+  font-size: 1.8rem;
+  margin: 2rem 0 1rem 0;
+  font-weight: 400;
+}
+
 p {
   margin: 1rem 0 1rem 0;
 }
@@ -137,6 +143,11 @@ iframe {
 .stealth-html-link, .stealth-html-link:hover {
   text-decoration: none;
   color: white;
+}
+
+.stealth-link, .stealth-link:hover {
+  text-decoration: none;
+  color: inherit;
 }
 
 @media (hover: hover) {

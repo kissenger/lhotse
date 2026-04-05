@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { unsavedChangesGuard } from '@pages/admin/features-editor/unsaved-changes.guard';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
+import { MapPageComponent } from '@pages/home/map/map-page.component';
 import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
 
@@ -10,7 +11,7 @@ export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
-  { path: 'map', pathMatch: 'full', redirectTo: "#snorkelling-map-of-britain"},
+  { path: 'map', component: MapPageComponent },
   { path: 'dashboard', loadComponent: () =>
     import('@pages/admin/admin.component').then((m) => m.AdminComponent), canActivate: [AuthGuard]},
   { path: 'orders', loadComponent: () =>

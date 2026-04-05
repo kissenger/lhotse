@@ -28,8 +28,8 @@
       <ul class="menu" [ngClass]="expandDropdownMenu ? 'show' : ''" (click)="onMenuItemClick()">
         @for (menuItem of menuItems; track menuItem) {
           <li #menuItem
-              [routerLink]="isAdminRoute ? null : '.'"
-              [fragment]="isAdminRoute ? undefined : menuItem.anchor"
+              [routerLink]="isAdminRoute ? null : menuItem.route"
+              [fragment]="isAdminRoute ? undefined : (menuItem.route === '/' ? menuItem.anchor : undefined)"
               [ngClass]="{'active': activeMenuItem == menuItem.name}"
               (click)="isAdminRoute && onAdminNavClick(menuItem.anchor)">
             <span class="stealth-html-link">{{menuItem.name}}</span>

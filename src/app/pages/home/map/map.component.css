@@ -1,4 +1,16 @@
 
+.section-heading a,
+.section-heading a:hover,
+.section-heading a:visited,
+.section-heading a:active {
+  text-decoration: none;
+  color: inherit;
+  border-bottom: none;
+  background-color: transparent;
+  padding-bottom: 0;
+  cursor: default;
+}
+
 .map-container {
   position: relative;
   height: 80vh;

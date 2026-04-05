@@ -88,6 +88,130 @@ test.describe('SEO meta tags and structured data', () => {
       const robots = page.locator('meta[name="robots"]');
       await expect(robots).toHaveAttribute('content', /index/);
     });
+
+    test('has Map JSON-LD schema on home page', async ({ page }) => {
+      await page.goto('/home', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const map = schemas.find((s) => s['@type'] === 'Map');
+      expect(map, 'Map schema should be present on home page').toBeTruthy();
+      expect(map.url).toContain('/map');
+      expect(map.spatialCoverage).toBeTruthy();
+    });
+
+    test('has VideoObject JSON-LD schema on home page', async ({ page }) => {
+      await page.goto('/home', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const video = schemas.find((s) => s['@type'] === 'VideoObject');
+      expect(video, 'VideoObject schema should be present on home page').toBeTruthy();
+      expect(video.embedUrl).toContain('youtube.com');
+      expect(video.thumbnailUrl).toBeTruthy();
+    });
+
+    test('has ImageObject schema for map on home page', async ({ page }) => {
+      await page.goto('/home', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const img = schemas.find((s) => s['@type'] === 'ImageObject');
+      expect(img, 'ImageObject schema should be present on home page').toBeTruthy();
+      expect(img.representativeOfPage).toBe(true);
+      expect(img.url).toContain('snorkelology');
+    });
+  });
+
+  test.describe('/map page', () => {
+    test('has correct title', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      await expect(page).toHaveTitle(/100\+ Sites.*Snorkelology|Snorkelology.*100\+ Sites/);
+    });
+
+    test('has canonical pointing to /map', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      const canonical = page.locator('link[rel="canonical"]');
+      await expect(canonical).toHaveAttribute('href', /snorkelology\.co\.uk\/map$/);
+    });
+
+    test('has map-specific og:image', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+        'content',
+        /snorkelology-unique-snorkel-map-of-britain/
+      );
+    });
+
+    test('has robots meta tag allowing indexing', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      const robots = page.locator('meta[name="robots"]');
+      await expect(robots).toHaveAttribute('content', /index/);
+    });
+
+    test('has BreadcrumbList JSON-LD schema', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const breadcrumb = schemas.find((s) => s['@type'] === 'BreadcrumbList');
+      expect(breadcrumb, 'BreadcrumbList schema should be present on /map').toBeTruthy();
+      expect(breadcrumb.itemListElement).toHaveLength(2);
+      expect(breadcrumb.itemListElement[1].item).toContain('/map');
+    });
+
+    test('has Map JSON-LD schema', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const map = schemas.find((s) => s['@type'] === 'Map');
+      expect(map, 'Map schema should be present on /map').toBeTruthy();
+      expect(map.url).toContain('/map');
+      expect(map.about).toBeInstanceOf(Array);
+      expect(map.spatialCoverage['@type']).toBe('Place');
+    });
+
+    test('has ImageObject schema with representativeOfPage', async ({ page }) => {
+      await page.goto('/map', { waitUntil: 'domcontentloaded' });
+
+      const schemas = await page.$$eval(
+        'script[type="application/ld+json"]',
+        (els) => els.map((el) => JSON.parse(el.textContent || '{}'))
+      );
+
+      const img = schemas.find((s) => s['@type'] === 'ImageObject');
+      expect(img, 'ImageObject schema should be present on /map').toBeTruthy();
+      expect(img.representativeOfPage).toBe(true);
+    });
+  });
+
+  test.describe('privacy policy page', () => {
+    test('has robots noindex tag', async ({ page }) => {
+      await page.goto('/privacy-policy', { waitUntil: 'domcontentloaded' });
+
+      const robots = page.locator('meta[name="robots"]');
+      await expect(robots).toHaveAttribute('content', /noindex/);
+    });
   });
 
   test.describe('404 page', () => {

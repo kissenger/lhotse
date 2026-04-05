@@ -30,6 +30,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'map',
+    renderMode: RenderMode.Server
+  },
+  {
     path: 'adminmap',
     renderMode: RenderMode.Client
   },

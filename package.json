@@ -27,7 +27,8 @@
     "test:ui:mobile": "playwright test --project=chromium --project=webkit --project=iphone-chromium-emulation --project=iphone-safari-webkit",
     "test:ui:paypal": "playwright test tests/e2e/paypal-ui.spec.js",
     "test:ui:paypal:sandbox": "playwright test tests/e2e/paypal-sandbox-nightly.spec.js",
-    "test:all": "npm run test && npm run test:seo && npm run test:shop-backend && npm run test:ui",
+    "test:all": "npm run test && npm run test:seo && npm run test:shop-backend && npm run test:dead-code && npm run test:ui",
+    "test:dead-code": "node ./tests/test-dead-code.js",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
   },

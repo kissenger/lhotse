@@ -3,6 +3,10 @@ export const shopItems = {
     id: "0001",
     name: "Snorkelling Britain",
     description: "Your essential guide to 100 of the best snorkelling sites around the British coastline, packed with maps, photos and honest site reviews.",
+    isbn: "978-1910636473",
+    author: "Emma and Gordon Taylor",
+    publisher: "Wild Things Publishing",
+    numberOfPages: 280,
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 14.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png',
@@ -19,6 +23,10 @@ export const shopItems = {
     id: "0002",
     name: "Snorkelling Britain Signed",
     description: "A personally signed copy of Snorkelling Britain — makes a perfect gift for the ocean lover in your life.",
+    isbn: "978-1910636473",
+    author: "Emma and Gordon Taylor",
+    publisher: "Wild Things Publishing",
+    numberOfPages: 280,
     unit_amount: { currency_code: 'GBP', rrp: 18.99, value: 15.99 },
     images: [{
       src: 'photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png',
