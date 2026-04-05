@@ -5,7 +5,6 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { ToastService } from '@shared/services/toast.service';
-import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-editor',
@@ -79,7 +78,7 @@ export class BlogEditorComponent implements OnInit {
   }
 
   imgixThumb(fname: string): string {
-    return `https://${environment.IMGIX_DOMAIN}${fname}?w=60&h=60&fit=crop&auto=format`;
+    return `/assets/${fname}`;
   }
 
   onFormSelect(value: string) {
@@ -152,13 +151,14 @@ export class BlogEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
-  onTogglePublish() {
+  async onTogglePublish() {
     if (this.selectedPost.publishedAt) {
       this.selectedPost.publishedAt = '';  // sentinel: server will set publishedAt = null
     } else {
       this.selectedPost.publishedAt = 'publish';  // sentinel: server will set publishedAt = now
     }
     this.isDirty = true;
+    await this.onSave();
   }
 
   async onSave() {

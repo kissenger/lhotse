@@ -60,7 +60,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
 */
 blog.get('/api/blog/get-published-posts/', async (_req, res) => {
   try {
-    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"createdAt": "descending"});
+    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"});
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
@@ -105,8 +105,10 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
 
     const lastSlug = listOfSlugs[(index - 1 + listOfSlugs.length) % listOfSlugs.length].slug;
     const nextSlug = listOfSlugs[(index + 1) % listOfSlugs.length].slug;
+    const lastTitle = (listOfSlugs[(index - 1 + listOfSlugs.length) % listOfSlugs.length] as any).title ?? '';
+    const nextTitle = (listOfSlugs[(index + 1) % listOfSlugs.length] as any).title ?? '';
 
-    res.status(200).json({lastSlug, nextSlug });
+    res.status(200).json({lastSlug, nextSlug, lastTitle, nextTitle });
     
   } catch (error: any) {
     if (error?.name === 'BlogError') {
@@ -166,7 +168,7 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
 async function getSlugs(onlyPublishedPosts: boolean = true) {
   const result =  await BlogModel.find(
     onlyPublishedPosts ? { publishedAt: { $ne: null } } : {}, 
-    {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"}
+    {slug: 1, title: 1, updatedAt: 1}).sort({"createdAt": "descending"}
   );
   if (!result || result.length === 0) {
     throw new BlogError('Not Found');

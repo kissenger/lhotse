@@ -8,7 +8,6 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
-import { SvgArrowComponent } from '@shared/components/svg-arrow/svg-arrow.component';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { stage } from '@shared/globals';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -19,7 +18,7 @@ import { DomSanitizer } from '@angular/platform-browser';
   providers: [HtmlerPipe, SanitizerPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [SvgArrowComponent, KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage, LoaderComponent]
+  imports: [KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage, LoaderComponent]
 })
 
 export class PostShowerComponent implements OnDestroy, OnInit {
@@ -29,6 +28,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   loadingState: 'loading' | 'failed' | 'success' = 'loading';
   nextSlug: string;
   lastSlug: string = '';
+  nextTitle: string = '';
+  lastTitle: string = '';
   stage: any = stage;
   showUpdatedAt: boolean = false;
   likeCount: number = 0;
@@ -50,6 +51,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     this.contentVisible = false;
     this.nextSlug = '';
     this.lastSlug = '';
+    this.nextTitle = '';
+    this.lastTitle = '';
     this.stage = stage;
   }
 
@@ -103,6 +106,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           }));
           this.nextSlug = result.nextSlug ?? '';
           this.lastSlug = result.lastSlug ?? '';
+          this.nextTitle = result.nextTitle ?? '';
+          this.lastTitle = result.lastTitle ?? '';
           this.isReadyToLoad = true;
           this.contentVisible = (this.isPreview && !this.post.imgFname);
           this.loadingState = 'success';
@@ -151,6 +156,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       }));
       this.nextSlug = result.nextSlug ?? '';
       this.lastSlug = result.lastSlug ?? '';
+      this.nextTitle = result.nextTitle ?? '';
+      this.lastTitle = result.lastTitle ?? '';
       this.isReadyToLoad = true;
       this.contentVisible = false;
       this.loadingState = 'success';

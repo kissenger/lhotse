@@ -22,14 +22,17 @@
     }
     <div class="article-image-container">
       <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority (load)="onHeroImageLoaded()" (error)="onHeroImageLoaded()"/>
-      @if (!isPreview) {
-        <div class="arrow left">  <a [routerLink]="'/blog/' + lastSlug" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
-        <div class="arrow right"> <a [routerLink]="'/blog/' + nextSlug" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>
-      }
     </div>
     <p class="image-credit">{{post.imgAlt}} · © {{post.imgCredit||'Emma and Gordon Taylor'}}</p>
 
     <div class="dynamic-container article-body">
+
+      @if (!isPreview) {
+        <nav class="article-nav-compact" aria-label="Article navigation">
+          <a [routerLink]="'/blog/' + lastSlug" class="nav-compact-prev suppress-external-link"><span class="nav-compact-dir">← Previous</span><span class="nav-compact-title">{{lastTitle}}</span></a>
+          <a [routerLink]="'/blog/' + nextSlug" class="nav-compact-next suppress-external-link"><span class="nav-compact-dir">Next →</span><span class="nav-compact-title">{{nextTitle}}</span></a>
+        </nav>
+      }
 
       <h1>{{post.title}}</h1>
 
@@ -112,6 +115,13 @@
         </button>
         <span class="like-count">{{ likeCount }} {{ likeCount === 1 ? 'like' : 'likes' }}</span>
       </div>
+
+      @if (!isPreview) {
+        <nav class="article-nav-footer" aria-label="Article navigation">
+          <a [routerLink]="'/blog/' + lastSlug" class="nav-footer-prev suppress-external-link"><span class="nav-footer-dir">← Previous</span><span class="nav-footer-title">{{lastTitle}}</span></a>
+          <a [routerLink]="'/blog/' + nextSlug" class="nav-footer-next suppress-external-link"><span class="nav-footer-dir">Next →</span><span class="nav-footer-title">{{nextTitle}}</span></a>
+        </nav>
+      }
 
     </div>
   </main>

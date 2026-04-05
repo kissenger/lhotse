@@ -8,6 +8,7 @@ import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
 import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
 import { EmailSvgComponent } from '@shared/svg/email/email.component'
 import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
+import { HttpService } from '@shared/services/http.service';
 
 @Component({
   standalone: true,
@@ -54,6 +55,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
     private _cdr: ChangeDetectorRef,
+    private _http: HttpService,
   ) {
     this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe((isect) => {
       const activeMenuItem = this.menuItems.find((item) => item.anchor === isect.id)?.name;
@@ -91,6 +93,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       this.expandDropdownMenu = false;
       this.animateHamburger();
     }
+  }
+
+  async onAdminNavClick(anchor: string) {
+    try { await this._http.logout(); } catch {}
+    const mainHost = window.location.hostname.replace(/^admin\./, '');
+    window.location.href = `${window.location.protocol}//${mainHost}/#${anchor}`;
   }
 
   onLogoLoad() {
