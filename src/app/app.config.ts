@@ -29,8 +29,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: IMAGE_LOADER,
       useValue: (config: ImageLoaderConfig) => {
-        const domain = environment.IMGIX_DOMAIN.replace(/\/$/, '');
         const src = config.src.replace(/^\//, '');
+        if (environment.STAGE === 'dev') {
+          return `/assets/${src}`;
+        }
+        const domain = environment.IMGIX_DOMAIN.replace(/\/$/, '');
         const base = `https://${domain}/${src}`;
         const w = config.width ? `&w=${config.width}` : '';
         // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused

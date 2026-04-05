@@ -152,6 +152,9 @@ iframe {
 a, .html-link {
   text-decoration: none;
   color: var(--text-colour-link);
+  border-bottom: 1px dotted rgba(0, 102, 204, 0.5);
+  border-radius: 2px;
+  padding-bottom: 1px;
 }
 
 /* show external link after a tag with link */
@@ -173,16 +176,19 @@ a[href^="http"]:not([class~="suppress-external-link"])::after
 
 @media (hover: hover) {
   a:hover, .html-link:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
+    text-decoration: none;
     cursor: pointer;
     color: var(--text-colour-link);
+    background-color: rgba(0, 102, 204, 0.08);
+    border-bottom-color: var(--text-colour-link);
+    border-bottom-style: solid;
   }
 }
 a:active, .html-link:active {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
+  text-decoration: none;
   color: var(--text-colour-link);
+  background-color: rgba(0, 102, 204, 0.15);
+  border-bottom-color: var(--text-colour-link);
 }
 
 a:visited {
@@ -197,10 +203,49 @@ a:visited {
 }
 
 .blockquote {
-  border-left: 2px #566F70 solid;
-  margin: 0 2rem 0 2rem;
-  padding: 0em 1rem 0em 1rem;
+  border-left: 4px solid var(--sn-colour, #1D3D59);
+  margin: 1.5rem 1.5rem 1.5rem 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background-color: #f4f7fa;
+  border-radius: 0 4px 4px 0;
+  color: #3a4a56;
+  line-height: 1.7;
+}
+
+.dynamic-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.95rem;
+}
+
+.dynamic-container table th,
+.dynamic-container table td {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.dynamic-container table thead th {
+  background-color: rgba(0, 0, 0, 0.07);
   font-weight: 400;
+}
+
+.dynamic-container table tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Override global user-select:none so article body text is selectable */
+.dynamic-container p,
+.dynamic-container h1,
+.dynamic-container h2,
+.dynamic-container h3,
+.dynamic-container h4,
+.dynamic-container li,
+.dynamic-container td,
+.dynamic-container th {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* ===================================================

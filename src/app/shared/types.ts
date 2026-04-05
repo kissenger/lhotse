@@ -198,6 +198,7 @@ export class BlogPost {
   conclusion: string = '';
   createdAt: string = '';
   updatedAt: string = '';
+  publishedAt: string = '';
   author?: string;
   likes: number = 0;
   isDeleted?: boolean;

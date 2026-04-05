@@ -4,6 +4,8 @@ import { BlogPost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
+import { ToastService } from '@shared/services/toast.service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-blog-editor',
@@ -18,16 +20,19 @@ export class BlogEditorComponent implements OnInit {
 
   private _window;
   public baseURL: string = `/blog/`;
+  public isDirty: boolean = false;
 
   public uniqueKeywords: Array<string> = [];
   public selectedPost: BlogPost = new BlogPost;
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
+  public showMarkdownHelp: boolean = false;
   
   constructor(
       private _http: HttpService,
       private _kebaber: KebaberPipe,
       private _cdr: ChangeDetectorRef,
+      private _toaster: ToastService,
       @Inject(DOCUMENT) _document: Document
     ) {
       this._window = _document.defaultView;
@@ -55,12 +60,17 @@ export class BlogEditorComponent implements OnInit {
       this.refreshPostList(result);
     } catch (error: any) {
       console.error(error);
-      this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);          
+      this._toaster.show(error?.error?.message || 'Could not load posts', 'error');
     }
   }
 
-  wordCount(v: string, n: number) {
-    return v.split(" ").length > n;
+  wordCountOver(v: string, max: number): boolean {
+    return v ? v.split(' ').filter(w => w).length > max : false;
+  }
+
+  wordCountText(v: string, max: number): string {
+    const count = v ? v.split(' ').filter(w => w).length : 0;
+    return `${count} / ${max}`;
   }
 
   makeSlug() {
@@ -68,18 +78,69 @@ export class BlogEditorComponent implements OnInit {
     return this.selectedPost.slug;
   }
 
-  onFormSelect(value: string) {
-    this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
+  imgixThumb(fname: string): string {
+    return `https://${environment.IMGIX_DOMAIN}${fname}?w=60&h=60&fit=crop&auto=format`;
   }
 
-  onMoveSection(fromIndex: number, toIndex: string) {
-    const elementToMove = this.selectedPost.sections[fromIndex];
-    this.selectedPost.sections.splice(fromIndex,1);
-    this.selectedPost.sections.splice(parseInt(toIndex),0,elementToMove);
+  onFormSelect(value: string) {
+    if (this.isDirty) {
+      const confirmed = this._window?.confirm?.('You have unsaved changes. Switch post and lose them?');
+      if (!confirmed) return;
+    }
+    this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
+    this.isDirty = false;
+  }
+
+  onNewPost() {
+    if (this.isDirty) {
+      const confirmed = this._window?.confirm?.('You have unsaved changes. Start a new post and lose them?');
+      if (!confirmed) return;
+    }
+    this.selectedPost = new BlogPost();
+    this.isDirty = false;
+  }
+
+  moveUp(index: number) {
+    if (index === 0) return;
+    const s = this.selectedPost.sections;
+    [s[index - 1], s[index]] = [s[index], s[index - 1]];
+    this.isDirty = true;
+  }
+
+  moveDown(index: number) {
+    const s = this.selectedPost.sections;
+    if (index === s.length - 1) return;
+    [s[index], s[index + 1]] = [s[index + 1], s[index]];
+    this.isDirty = true;
+  }
+
+  addKeyword(event: KeyboardEvent, input: HTMLInputElement) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const kw = input.value.trim();
+    if (kw && !this.selectedPost.keywords.includes(kw)) {
+      this.selectedPost.keywords = [...this.selectedPost.keywords, kw];
+      this.isDirty = true;
+    }
+    input.value = '';
+  }
+
+  addKeywordFromList(value: string, select: HTMLSelectElement) {
+    if (value && !this.selectedPost.keywords.includes(value)) {
+      this.selectedPost.keywords = [...this.selectedPost.keywords, value];
+      this.isDirty = true;
+    }
+    select.value = '';
+  }
+
+  removeKeyword(index: number) {
+    this.selectedPost.keywords = this.selectedPost.keywords.filter((_, i) => i !== index);
+    this.isDirty = true;
   }
 
   addQA() {
-    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: "", imgCredit: ""})
+    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: "", imgCredit: ""});
+    this.isDirty = true;
   }
 
   deleteQA(index: number) {
@@ -87,19 +148,8 @@ export class BlogEditorComponent implements OnInit {
     if (!confirmed) {
       return;
     }
-
-    this.selectedPost.sections.splice(index,1); 
-  }
-
-  onAddKW(value: string) {
-    this.selectedPost.keywords = [...this.selectedPost.keywords, value];
-  }
-
-  onKeywordsChange(event: any) {
-    this.selectedPost.keywords = event.target.value
-      .split(",")
-      .map( (kw: string) => kw.trim())
-      .filter( (kw: string) => kw !== '');
+    this.selectedPost.sections.splice(index, 1);
+    this.isDirty = true;
   }
 
   async onSave() {
@@ -108,10 +158,11 @@ export class BlogEditorComponent implements OnInit {
       const result = await this._http.upsertPost(this.selectedPost);
       this.refreshPostList(result);
       this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
-      this._window!.alert("Post successfully updated!");
+      this.isDirty = false;
+      this._toaster.show('Post saved successfully.', 'success');
     } catch (error: any) {
       console.error(error);
-      this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
+      this._toaster.show(error?.error?.message || 'Could not save post', 'error');
     }
   }
 
@@ -124,10 +175,11 @@ export class BlogEditorComponent implements OnInit {
       try {
         const result = await this._http.deletePost(this.selectedPost._id);
         this.refreshPostList(result);
-        this._window!.alert("Post successfully deleted!");
+        this.isDirty = false;
+        this._toaster.show('Post deleted.', 'success');
       } catch (error: any) {
         console.error(error);
-        this._window!.alert(`Something didn't work, with error message: \n${error.error.message}`);
+        this._toaster.show(error?.error?.message || 'Could not delete post', 'error');
       }
    }
   }
@@ -137,9 +189,13 @@ export class BlogEditorComponent implements OnInit {
   }
 
   refreshPostList(newData: Array<BlogPost>) {
+    newData.sort((a, b) => {
+      if (a.isPublished !== b.isPublished) return a.isPublished ? 1 : -1;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
     this.selectedPost = new BlogPost;
     this.posts = [this.selectedPost];
-    this.posts.push(...newData);  
+    this.posts.push(...newData);
     this.getUniqueKeywords();
     this._cdr.detectChanges();
   }

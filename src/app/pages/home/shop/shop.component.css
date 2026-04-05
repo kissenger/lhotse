@@ -266,9 +266,10 @@
   margin-inline: auto;
 }
 
-.order-summary > h2 {
-  margin: 0 0 1rem;
+.order-summary h2 {
+  margin: 0 0 0.4rem;
   font-weight: 600;
+  text-align: left;
 }
 
 .summary-line {
@@ -317,9 +318,10 @@
 }
 
 .empty-basket {
-  text-align: center;
+  text-align: left;
   color: #666;
-  padding: 1rem 0;
+  margin: -0.25rem 0 0;
+  padding: 1rem 0 0;
 }
 
 /* ---- Checkout ---- */

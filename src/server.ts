@@ -205,6 +205,10 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
     return getHomeSeoPayload();
   }
 
+  if (normalizedPath === '/blog') {
+    return getBlogIndexSeoPayload();
+  }
+
   if (normalizedPath.startsWith('/blog/')) {
     const slug = normalizedPath.split('/').filter(Boolean)[1];
     if (!slug) {
@@ -312,6 +316,40 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   };
 }
 
+async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
+  const description = 'Browse our collection of British snorkelling articles. Tips on the best places to snorkel in the UK, marine life identification, underwater cameras, gear reviews, and practical safety advice.';
+  const keywords = 'snorkelling articles, UK snorkelling, British marine life, snorkelling tips, underwater photography, snorkelling gear';
+
+  const blogListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'British Snorkelling Articles',
+    description,
+    url: `${SITE_URL}/blog`,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/assets/banner/snround.webp` }
+    }
+  };
+
+  return {
+    title: 'British Snorkelling Articles — Snorkelology',
+    description,
+    keywords,
+    canonicalPath: '/blog',
+    ogType: 'website',
+    ogImage: DEFAULT_SOCIAL_IMAGE,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
+    schemas: [blogListSchema],
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
+  };
+}
+
 async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   if (SKIP_SEO_DB_LOOKUPS) {
     return null;
@@ -322,41 +360,40 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     return null;
   }
 
-  const description = `${post.subtitle || ''}`;
+  // Fix 1: fall back to stripped intro if subtitle is blank
+  const rawDescription = post.subtitle || post.intro || '';
+  const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
+
   const hasGeneratedOgImage = await generatedOgImageExists(slug);
-  const image = hasGeneratedOgImage
+  const imageUrl = hasGeneratedOgImage
     ? `${SITE_URL}/assets/photos/articles/og/${slug}-og.webp`
     : (post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE);
+
+  // Fix 5: use ImageObject instead of plain string
+  const imageObject = {
+    '@type': 'ImageObject',
+    url: imageUrl,
+    width: 1200,
+    height: 630
+  };
+
   const isFaqType = post.type === 'faq';
   const publishedIso = new Date(post.createdAt || new Date()).toISOString();
   const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
   const authorName = post.author || 'Snorkelology';
+  const articleUrl = `${SITE_URL}/blog/${slug}`;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: SITE_URL
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Blog',
-        item: `${SITE_URL}/blog`
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: post.title || 'Article',
-        item: `${SITE_URL}/blog/${slug}`
-      }
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.title || 'Article', item: articleUrl }
     ]
   };
 
+  // Fix 4: add url, publisher, mainEntityOfPage; Fix 7: FAQ uses 'article' ogType
   const schema = isFaqType
     ? {
         '@context': 'https://schema.org',
@@ -374,24 +411,35 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
         headline: post.title,
-        description: post.subtitle || post.intro || post.title,
-        image,
+        description,
+        image: imageObject,
+        url: articleUrl,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
         datePublished: publishedIso,
         dateModified: modifiedIso,
-        author: {
-          '@type': 'Person',
-          name: authorName
+        author: { '@type': 'Person', name: authorName },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Snorkelology',
+          logo: { '@type': 'ImageObject', url: `${SITE_URL}/assets/banner/snround.webp` }
         }
       };
+
+  // Fix 6: emit keywords as article:tag meta properties
+  const keywordTags = (post.keywords || []).map((kw: string) => ({
+    key: 'property' as const,
+    keyValue: 'article:tag',
+    content: kw
+  }));
 
   return {
     title: post.title || 'Snorkelology Blog',
     description,
     keywords: (post.keywords || []).join(', '),
     canonicalPath: `/blog/${slug}`,
-    ogType: isFaqType ? 'website' : 'article',
-    ogImage: image,
-    twitterImage: DEFAULT_TWITTER_IMAGE,
+    ogType: 'article',  // Fix 7: always 'article' for individual posts
+    ogImage: imageUrl,
+    twitterImage: imageUrl,  // Fix 2: use article image for Twitter
     schemas: [breadcrumbSchema, schema],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -399,7 +447,8 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
       { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' },
       { key: 'property', keyValue: 'article:published_time', content: publishedIso },
       { key: 'property', keyValue: 'article:modified_time', content: modifiedIso },
-      { key: 'property', keyValue: 'article:author', content: authorName }
+      { key: 'property', keyValue: 'article:author', content: authorName },
+      ...keywordTags
     ]
   };
 }

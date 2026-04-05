@@ -33,6 +33,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   showUpdatedAt: boolean = false;
   likeCount: number = 0;
   hasLiked: boolean = false;
+  isPreview: boolean = false;
   private _routeSubs: Subscription | undefined;
 
   constructor(
@@ -52,24 +53,32 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     this.stage = stage;
   }
 
+  private async _fetchPost(slug: string): Promise<any> {
+    if (this.isPreview) {
+      const postResult = await Promise.race([
+        this._http.getPostBySlug(slug),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+      ]);
+      return { ...postResult, nextSlug: '', lastSlug: '' };
+    }
+    const [postResult, slugResult] = await Promise.race([
+      Promise.all([
+        this._http.getPostBySlug(slug),
+        this._http.getLastAndNextSlugs(slug)
+      ]),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+    ]);
+    return { ...postResult, ...slugResult };
+  }
+
   ngOnInit() {
     if (!isPlatformBrowser(this._platformId)) return;
+    this.isPreview = this._route.snapshot.queryParamMap.has('preview');
     this._routeSubs = this._route.params
       .pipe(
         switchMap(async (params: { [key: string]: string }) => {
           const slug = params['slug'];
-          const [postResult, slugResult] = await Promise.race([
-            Promise.all([
-              this._http.getPostBySlug(slug),
-              this._http.getLastAndNextSlugs(slug)
-            ]),
-            new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
-          ]);
-
-          return {
-            ...postResult,
-            ...slugResult
-          };
+          return this._fetchPost(slug);
         })
       )
       .subscribe({
@@ -95,15 +104,16 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.nextSlug = result.nextSlug ?? '';
           this.lastSlug = result.lastSlug ?? '';
           this.isReadyToLoad = true;
-          this.contentVisible = false;
+          this.contentVisible = (this.isPreview && !this.post.imgFname);
           this.loadingState = 'success';
           this.likeCount = this.post.likes ?? 0;
           this.hasLiked = this.likeCount > 0 && this._hasLikedInStorage(this.post.slug);
-          const updatedMonth: Date = new Date(this.post.updatedAt);
-          const createdMonth: Date = new Date(this.post.createdAt);
-          if (updatedMonth > new Date(createdMonth.setMonth(createdMonth.getMonth()+1)) ) {
-            this.showUpdatedAt = true;
-          }
+          const publishedDate = this.post.publishedAt ? new Date(this.post.publishedAt) : null;
+          const updatedDate = new Date(this.post.updatedAt);
+          this.showUpdatedAt = publishedDate !== null && (
+            updatedDate.getFullYear() !== publishedDate.getFullYear() ||
+            updatedDate.getMonth() !== publishedDate.getMonth()
+          );
           this._cdr.detectChanges();
         },
         error: () => {
@@ -115,6 +125,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   onHeroImageLoaded() {
     this.contentVisible = true;
+    this._cdr.detectChanges();
   }
 
   onRetry() {
@@ -122,14 +133,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     this.isReadyToLoad = false;
     this.contentVisible = false;
     const slug = this._route.snapshot.params['slug'];
-    Promise.race([
-      Promise.all([
-        this._http.getPostBySlug(slug),
-        this._http.getLastAndNextSlugs(slug)
-      ]),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
-    ]).then(([postResult, slugResult]) => {
-      const result = { ...postResult, ...slugResult } as any;
+    this._fetchPost(slug).then((result: any) => {
       if (!result || !result.article) {
         this._router.navigateByUrl(`${this._router.url}/404`);
         return;

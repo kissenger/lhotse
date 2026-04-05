@@ -63,6 +63,7 @@ export class BlogComponent implements OnInit {
       this.loadingState = 'success';
       this.filteredPosts = this.allPosts;
       this.getUniqueKeywords();
+      this._cdr.detectChanges();
     } catch {
       this.loadingState = 'failed';
       this._cdr.detectChanges();

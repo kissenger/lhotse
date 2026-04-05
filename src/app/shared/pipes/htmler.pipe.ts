@@ -11,15 +11,16 @@ import { Pipe, PipeTransform } from '@angular/core';
         - Splits by end of line char and wraps each in <p> tags
         - Search for link string in each paragraph, and insert relevant <a> tags
         - Link string in the form [link:text,link], eg [link:BSAC,https:www.bsac.com]
-        - List in the form [list:item1,item2,item3]
+        - List in the form [list:item1, including commas;item2;item3]
 */
 
 export class HtmlerPipe implements PipeTransform {
     transform(rawString: string): string {
         let outputString = this.insertLinks(rawString);
         outputString = this.insertBlockQuotes(outputString);
-        outputString = this.insertParagraphs(outputString);
         outputString = this.insertUnorderedList(outputString);
+        outputString = this.insertTable(outputString);
+        outputString = this.insertParagraphs(outputString);
         return outputString;
     }
 
@@ -36,12 +37,25 @@ export class HtmlerPipe implements PipeTransform {
       }).join('');
     }
 
+    insertTable(input: string): string {
+      return input.split(/\[table:([^\][]*)]/).map((s, i) => {
+        if (i % 2 === 0) return s;
+        const rows = s.split(';').map(r => r.trim().split('|').map(c => c.trim()));
+        const [headerRow, ...bodyRows] = rows;
+        const thead = `<thead><tr>${headerRow.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+        const tbody = bodyRows.length
+          ? `<tbody>${bodyRows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`
+          : '';
+        return `\n<table>${thead}${tbody}</table>\n`;
+      }).join('');
+    }
+
     insertUnorderedList(input: string): string {
       return input.split(/\[list:(.*)\]/).map( (s, i) => {
         if (i % 2 == 0) {
           return s;
         } else {
-          return `<ul>${s.split(',').map(li=>`<li>${li}</li>`).join('')}</ul>`
+          return `\n<ul>${s.split(';').map(li=>`<li>${li.trim()}</li>`).join('')}</ul>\n`
         } 
       }).join('');
     }
@@ -58,6 +72,7 @@ export class HtmlerPipe implements PipeTransform {
 
     insertParagraphs(input: string): string {
       return input.split(/\r\n|\r|\n/).map( s => {
+        if (s === '' || s.startsWith('<ul>') || s.startsWith('<div') || s.startsWith('<table>')) return s;
         return `<p>${s}</p>`;
       }).join('')
     }

@@ -73,6 +73,8 @@ header {
   height: 104px;
   z-index: 1200;
   transition: opacity 0.2s ease;
+  outline: none;
+  text-decoration: none;
 }
 
 .brand-box > img.logo-hidden {

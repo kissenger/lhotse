@@ -22,7 +22,8 @@ const blogSchema = new mongoose.Schema({
   author: {type: String},
   likes: {type: Number, default: 0},
   isDeleted: {type: Boolean, default: false, index: true},
-  deletedAt: {type: Date, default: null}
+  deletedAt: {type: Date, default: null},
+  publishedAt: {type: Date, default: null}
 }, {timestamps: true})
 
 // Exclude soft-deleted posts from standard queries by default.

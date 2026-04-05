@@ -14,43 +14,50 @@
   }
 
   <main [class.content-visible]="contentVisible">
+    @if (isPreview) {
+      <div class="draft-preview-banner">
+        Draft preview — this post is not publicly visible
+        <a href="/blogeditor">Back to editor</a>
+      </div>
+    }
     <div class="article-image-container">
-      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority (load)="onHeroImageLoaded()"/> 
-      <div class="image-caption">{{post.imgAlt}} <br />Photo credit: {{post.imgCredit||'Emma and Gordon Taylor'}}</div>       
-      <div class="arrow left">  <a [routerLink]="'/blog/' + lastSlug" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
-      <div class="arrow right"> <a [routerLink]="'/blog/' + nextSlug" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>  
+      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill priority (load)="onHeroImageLoaded()" (error)="onHeroImageLoaded()"/>
+      @if (!isPreview) {
+        <div class="arrow left">  <a [routerLink]="'/blog/' + lastSlug" aria-label="Go to previous blog post"><app-svg-arrow direction="left"></app-svg-arrow></a> </div>
+        <div class="arrow right"> <a [routerLink]="'/blog/' + nextSlug" aria-label="Go to next blog post"><app-svg-arrow direction="right"></app-svg-arrow></a> </div>
+      }
     </div>
+    <p class="image-credit">{{post.imgAlt}} · © {{post.imgCredit||'Emma and Gordon Taylor'}}</p>
 
-    <div class="dynamic-container">
+    <div class="dynamic-container article-body">
 
       <h1>{{post.title}}</h1>
 
       <div class="below-title-text">
-        <span>Published {{post.createdAt | date : 'MMM YYYY'}}</span>
-        @if (showUpdatedAt) {
-          <span>, Last Updated {{post.updatedAt | date : 'MMM YYYY'}}</span>
-        }
-        <br />
-        Written by {{post.author || 'Snorkelology'}} <br />
+        <div class="article-meta-row">
+          @if (post.publishedAt) {
+            <span>Published {{post.publishedAt | date : 'MMM YYYY'}}</span>
+          }
+          @if (showUpdatedAt) {
+            <span class="meta-sep">·</span>
+            <span>Updated {{post.updatedAt | date : 'MMM YYYY'}}</span>
+          }
+          <span class="meta-sep">·</span>
+          <span>{{post.author || 'Snorkelology'}}</span>
+        </div>
         <div class="keywords">
           @for (kw of post.keywords; track kw) {
             <span>{{kw}}</span>
           }
-        </div>
-        <div class="article-like-count">
-          <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#1D3D59"/>
-          </svg>
-          <span>{{ likeCount }} {{ likeCount === 1 ? 'like' : 'likes' }}</span>
         </div>
       </div>
 
       <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
 
       @if (post.sections.length > 0) {
-        <section class="anchor" id="contents">
+        <section class="anchor contents-section" id="contents">
           <h2>Contents</h2>
-          <ul>
+          <ul class="contents-list">
             @for(section of post.sections; track section) {
               <li>
                 <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
@@ -66,19 +73,14 @@
           <div [innerHTML]="section.content | sanitizer"></div>
           @if (!!section.imgFname) {
 
-            <div class="article-image-container">
+            <div class="article-image-container section-image-container">
               <img
                 [ngSrc]="section.imgFname"
                 [alt]="section.imgAlt"
                 fill 
-              /> 
-              
-              <div class="image-caption">
-                {{section.imgAlt}} <br />
-                Photo credit: {{section.imgCredit||'Emma and Gordon Taylor'}}
-              </div>
-
+              />
             </div>
+            <p class="image-credit">{{section.imgAlt}} · © {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
           } @else if (!!section.videoUrl) {
             <div class="youtube-container">
               <iframe
@@ -91,7 +93,7 @@
               </iframe>
             </div>
           }
-          <a [routerLink]="'.'" [fragment]="'contents'">Back to contents</a>
+          <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
         }
       }
 
