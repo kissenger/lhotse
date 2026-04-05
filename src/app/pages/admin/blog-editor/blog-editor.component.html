@@ -7,7 +7,7 @@
                     <select [ngModel]="selectedPost.slug" (ngModelChange)="onFormSelect($event)" name="select" id="select">
                         @for(post of posts; track post) {
                             <option value="{{post.slug}}">
-                                {{post.title}}@if(post.slug) { — {{post.isPublished ? '✓ Published' : 'Draft'}}}
+                                {{post.title}}@if(post.slug) { — {{post.publishedAt ? '✓ Published' : 'Draft'}}}
                             </option>
                         }
                     </select>
@@ -39,8 +39,10 @@
                 </div>
 
                 <div class="field-row">
-                    <label for="publish">Published:</label>
-                    <input type="checkbox" id="publish" name="publish" class="publish-checkbox" [(ngModel)]="selectedPost.isPublished">
+                    <label>Visibility:</label>
+                    <button type="button" class="publish-btn" [class.published]="selectedPost.publishedAt" (click)="onTogglePublish()">
+                        {{selectedPost.publishedAt ? 'Unpublish' : 'Publish'}}
+                    </button>
                 </div>
 
                 <div class="field-row">

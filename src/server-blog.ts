@@ -43,7 +43,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
   blog.get('/api/blog/get-sitemap-entries/', async (_req, res) => {
     try {
       const result = await BlogModel.find(
-        { isPublished: true },
+        { publishedAt: { $ne: null } },
         { slug: 1, updatedAt: 1, imgFname: 1 }
       ).sort({ "createdAt": "descending" });
 
@@ -60,7 +60,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
 */
 blog.get('/api/blog/get-published-posts/', async (_req, res) => {
   try {
-    const result = await BlogModel.find({isPublished: true}).sort({"createdAt": "descending"});
+    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"createdAt": "descending"});
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
@@ -120,21 +120,34 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
 blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
   try {
     if (req.body._id !=='') {
-      // Set publishedAt only when first publishing (not already set)
-      if (req.body.isPublished) {
+      // Never let the client overwrite publishedAt — manage it server-side only
+      const clientPublishedAt = req.body.publishedAt;
+      delete req.body.publishedAt;
+      delete req.body.isPublished;
+      const update: any = { ...req.body };
+      if (clientPublishedAt === undefined) {
+        // no publish change — leave publishedAt untouched
+      } else if (clientPublishedAt === '') {
+        // Explicit unpublish — clear publishedAt
+        update.publishedAt = null;
+      } else if (clientPublishedAt === 'publish') {
+        // Set publishedAt only when first publishing (not already set)
         const existing = await BlogModel.findById(req.body._id, { publishedAt: 1 });
         if (existing && !existing.publishedAt) {
-          req.body.publishedAt = new Date();
+          update.publishedAt = new Date();
         }
       }
-      await BlogModel.findByIdAndUpdate(req.body._id, req.body);
+      await BlogModel.findByIdAndUpdate(req.body._id, update);
     } else {
       delete req.body._id;
       delete req.body.createdAt;
       req.body.isDeleted = false;
       req.body.deletedAt = null;
-      if (req.body.isPublished) {
+      delete req.body.isPublished;
+      if (req.body.publishedAt === 'publish') {
         req.body.publishedAt = new Date();
+      } else {
+        delete req.body.publishedAt;
       }
       await BlogModel.create(req.body);
     }
@@ -152,7 +165,7 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
 
 async function getSlugs(onlyPublishedPosts: boolean = true) {
   const result =  await BlogModel.find(
-    onlyPublishedPosts ? { isPublished: true } : {}, 
+    onlyPublishedPosts ? { publishedAt: { $ne: null } } : {}, 
     {slug: 1, updatedAt: 1}).sort({"createdAt": "descending"}
   );
   if (!result || result.length === 0) {
@@ -169,7 +182,7 @@ blog.post('/api/blog/backfill-published-at/', verifyToken, async (_req, res) => 
   try {
     // Set publishedAt = createdAt for all published posts that don't yet have publishedAt
     const result = await BlogModel.updateMany(
-      { isPublished: true, publishedAt: null },
+      { publishedAt: null },
       [{ $set: { publishedAt: '$createdAt' } }]
     );
     res.status(200).json({ updated: result.modifiedCount });
@@ -183,7 +196,7 @@ blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
   try {
     await BlogModel.findOneAndUpdate(
       { _id: req.params._id },
-      { isDeleted: true, deletedAt: new Date(), isPublished: false }
+      { isDeleted: true, deletedAt: new Date(), publishedAt: null }
     );
     const result = await BlogModel.find({});
     res.status(201).json(result);
@@ -194,7 +207,7 @@ blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
 
 async function getPublishedPostsForSeo() {
   const posts = await BlogModel.find(
-    { isPublished: true },
+    { publishedAt: { $ne: null } },
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1 }
   ).sort({ "createdAt": "descending" });
   return posts;
@@ -202,7 +215,7 @@ async function getPublishedPostsForSeo() {
 
 async function getPublishedPostBySlugForSeo(slug: string) {
   const post = await BlogModel.findOne(
-    { isPublished: true, slug },
+    { publishedAt: { $ne: null }, slug },
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1 }
   );
   return post;
@@ -329,7 +342,7 @@ blog.post('/api/blog/get-likes', async (req, res) => {
       return;
     }
     const posts = await BlogModel.find(
-      { slug: { $in: slugs }, isPublished: true },
+      { slug: { $in: slugs }, publishedAt: { $ne: null } },
       { slug: 1, likes: 1 }
     );
     const likesMap: Record<string, number> = {};
@@ -358,7 +371,7 @@ blog.post('/api/blog/like/:slug', async (req, res) => {
       await BlogLikeModel.create({ hash, slug });
     } catch (dupErr: any) {
       if (dupErr?.code === 11000) {
-        const post = await BlogModel.findOne({ slug, isPublished: true }, { likes: 1 });
+        const post = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }, { likes: 1 });
         res.json({ likes: post?.likes ?? 0, alreadyLiked: true });
         return;
       }
@@ -366,7 +379,7 @@ blog.post('/api/blog/like/:slug', async (req, res) => {
     }
 
     const post = await BlogModel.findOneAndUpdate(
-      { slug, isPublished: true },
+      { slug, publishedAt: { $ne: null } },
       { $inc: { likes: 1 } },
       { new: true, projection: { likes: 1 } }
     );

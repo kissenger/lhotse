@@ -152,6 +152,15 @@ export class BlogEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
+  onTogglePublish() {
+    if (this.selectedPost.publishedAt) {
+      this.selectedPost.publishedAt = '';  // sentinel: server will set publishedAt = null
+    } else {
+      this.selectedPost.publishedAt = 'publish';  // sentinel: server will set publishedAt = now
+    }
+    this.isDirty = true;
+  }
+
   async onSave() {
     try {
       const slug = this.selectedPost.slug;
@@ -190,7 +199,9 @@ export class BlogEditorComponent implements OnInit {
 
   refreshPostList(newData: Array<BlogPost>) {
     newData.sort((a, b) => {
-      if (a.isPublished !== b.isPublished) return a.isPublished ? 1 : -1;
+      const aPublished = !!a.publishedAt;
+      const bPublished = !!b.publishedAt;
+      if (aPublished !== bPublished) return aPublished ? 1 : -1;
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
     this.selectedPost = new BlogPost;

@@ -180,7 +180,6 @@ export class BlogPost {
   slug: string = '';
   title: string = 'New Post';
   type: 'faq' | 'article' = 'faq';
-  isPublished: boolean = false;
   keywords: Array<string> = [];
   subtitle: string = '';
   imgFname: string = '';

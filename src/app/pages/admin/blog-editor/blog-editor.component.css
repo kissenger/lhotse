@@ -142,11 +142,26 @@ label, .label {
     color: #555;
 }
 
-.publish-checkbox {
-    width: 1.2em;
-    height: 1.2em;
+.publish-btn {
+    padding: 0.35em 1em;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    background: #f5f5f5;
     cursor: pointer;
-    flex-grow: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.publish-btn.published {
+    border-color: #c0392b;
+    color: #c0392b;
+    background: #fff5f5;
+}
+
+.publish-btn:not(.published) {
+    border-color: #27ae60;
+    color: #27ae60;
+    background: #f5fff8;
 }
 
 select {
