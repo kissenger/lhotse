@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { BlogPost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
-import { CommonModule, DOCUMENT, NgClass  } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { ToastService } from '@shared/services/toast.service';
 
@@ -10,14 +10,13 @@ import { ToastService } from '@shared/services/toast.service';
   selector: 'app-blog-editor',
   standalone: true,
   imports: [NgClass, FormsModule],  
-  providers: [CommonModule, KebaberPipe], 
+  providers: [KebaberPipe], 
   templateUrl: './blog-editor.component.html',
   styleUrl: './blog-editor.component.css'
 })
 
 export class BlogEditorComponent implements OnInit {
 
-  private _window;
   public baseURL: string = `/blog/`;
   public isDirty: boolean = false;
 
@@ -34,9 +33,7 @@ export class BlogEditorComponent implements OnInit {
       private _kebaber: KebaberPipe,
       private _cdr: ChangeDetectorRef,
       private _toaster: ToastService,
-      @Inject(DOCUMENT) _document: Document
     ) {
-      this._window = _document.defaultView;
     }
     
   async ngOnInit() {

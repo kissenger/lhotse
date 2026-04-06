@@ -512,16 +512,32 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
   const place = await getPlaceForSeo(siteName).catch(() => null);
   if (!place) return null;
 
+  const isProvider = (place as any)['@type'] === 'SportsActivityLocation';
   const canonicalSite = encodeURIComponent(siteName);
   const siteUrl = `${SITE_URL}/map?site=${canonicalSite}`;
 
   const locationHint = place.district ? ` in ${place.district}` : '';
   const description = place.description
-    || `Snorkelling site${locationHint}: ${siteName}. Explore this location on the Snorkelology interactive map of Britain.`;
+    || (isProvider
+      ? `Snorkelling provider${locationHint}: ${siteName}. Find guided snorkelling, courses, and snorkel hire on the Snorkelology map of Britain.`
+      : `Snorkelling site${locationHint}: ${siteName}. Explore this location on the Snorkelology interactive map of Britain.`);
+
+  const locationKw = place.district ? ` ${place.district}` : '';
+  const providerKeywords = isProvider ? [
+    `snorkelling courses${locationKw}`,
+    `snorkel training${locationKw}`,
+    `guided snorkelling${locationKw}`,
+    `snorkel hire${locationKw}`,
+    `snorkelling lessons${locationKw}`,
+    `snorkelling school${locationKw}`,
+    `snorkel shop${locationKw}`,
+  ] : [];
+
   const keywords = [
     place.keywords,
     `snorkelling ${siteName}`,
-    `${siteName} snorkelling site`
+    isProvider ? `${siteName} snorkelling provider` : `${siteName} snorkelling site`,
+    ...providerKeywords
   ].filter(Boolean).join(', ');
 
   const breadcrumbSchema = {
@@ -542,7 +558,9 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
   };
 
   return {
-    title: `${siteName} | Snorkelling Site | Snorkelology`,
+    title: isProvider
+      ? `${siteName} | Snorkelling Provider | Snorkelology`
+      : `${siteName} | Snorkelling Site | Snorkelology`,
     description,
     keywords,
     canonicalPath: `/map?site=${canonicalSite}`,
@@ -623,6 +641,10 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     // Activity context
     'snorkelling guide Britain', 'UK snorkelling sites', 'snorkelling locations Britain',
     'snorkelling providers UK', 'guided snorkelling UK',
+    // Provider / training intent
+    'snorkel training UK', 'snorkelling courses UK', 'snorkelling lessons UK',
+    'snorkel hire UK', 'snorkelling instruction UK', 'snorkel school UK',
+    'snorkelling club UK', 'snorkelling near me',
     // Brand
     'snorkelology map', 'snorkelology snorkelling map'
   ].join(', ');

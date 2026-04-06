@@ -149,9 +149,24 @@ async function fetchDistricts() {
   return Array.isArray(payload) ? payload : [];
 }
 
+async function fetchProviderNames() {
+  const url = `${API_BASE_URL}/api/sites/get-provider-names/`;
+  const response = await fetchJson(url);
+
+  if (!response.ok) {
+    console.warn(`[sitemap] get-provider-names failed (${response.status}), skipping provider URLs`);
+    return [];
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload) ? payload : [];
+}
+
 async function main() {
   console.log(`[sitemap] Fetching sitemap entries from ${API_BASE_URL}`);
-  const [sitemapEntries, districts] = await Promise.all([fetchSitemapEntries(), fetchDistricts()]);
+  const [sitemapEntries, districts, providerNames] = await Promise.all([
+    fetchSitemapEntries(), fetchDistricts(), fetchProviderNames()
+  ]);
   const rootLastMod = await resolveRootLastMod();
 
   const entries = [
@@ -183,7 +198,14 @@ async function main() {
       loc: `${SITE_URL}/map?nation=${encodeURIComponent(nation)}`,
       lastmod: rootLastMod,
       images: []
-    }))
+    })),
+    ...providerNames
+      .filter((item) => item && typeof item.name === 'string' && item.name.trim() !== '')
+      .map((item) => ({
+        loc: `${SITE_URL}/map?site=${encodeURIComponent(item.name)}`,
+        lastmod: normalizeLastMod(item.updatedAt),
+        images: []
+      }))
   ];
 
   const xml = toSitemapXml(entries);

@@ -141,6 +141,21 @@ async function getPlaceForSeo(siteName: string) {
 
 export { map, getPlacesForSeo, getPlaceForSeo };
 
+map.get('/api/sites/get-provider-names/', async (_req, res) => {
+  try {
+    const providers = await FeatureModel.find(
+      { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': { $ne: 'Snorkelling Site' } },
+      { 'properties.name': 1, updatedAt: 1 }
+    ).lean();
+    const result = (providers as any[])
+      .filter((p: any) => typeof p.properties?.name === 'string' && p.properties.name.trim() !== '')
+      .map((p: any) => ({ name: p.properties.name as string, updatedAt: p.updatedAt }));
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
 map.get('/api/sites/get-districts/', async (_req, res) => {
   try {
     const sites = await FeatureModel.find(
