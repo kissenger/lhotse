@@ -36,14 +36,17 @@
           @if (selectedSite.properties.region) {
             <div class="info-row"><span class="info-label">Region:</span> {{ selectedSite.properties.region }}</div>
           }
-          @if (selectedSite.properties.location.county) {
-            <div class="info-row"><span class="info-label">County:</span> {{ selectedSite.properties.location.county }}</div>
+          @if (selectedSite.properties.location.region) {
+            <div class="info-row"><span class="info-label">Nation:</span> {{ selectedSite.properties.location.region }}</div>
+          }
+          @if (selectedSite.properties.location.district) {
+            <div class="info-row"><span class="info-label">District (County):</span> {{ selectedSite.properties.location.district }}</div>
           }
           @if (selectedSite.properties.location.locality || selectedSite.properties.location.localityOverride) {
             <div class="info-row"><span class="info-label">Locality:</span> {{ selectedSite.properties.location.localityOverride || selectedSite.properties.location.locality }}</div>
           }
-          @if (selectedSite.properties.location.postalTown) {
-            <div class="info-row"><span class="info-label">Postal Town:</span> {{ selectedSite.properties.location.postalTown }}</div>
+          @if (selectedSite.properties.location.place) {
+            <div class="info-row"><span class="info-label">Place:</span> {{ selectedSite.properties.location.place }}</div>
           }
         </div>
 

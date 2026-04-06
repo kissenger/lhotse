@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import { shop } from './server-shop';
 import { auth } from './server-auth';
 import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
-import { getPlacesForSeo, map } from './server-map';
+import { getPlacesForSeo, getPlaceForSeo, map } from './server-map';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
@@ -84,7 +84,7 @@ app.use((req, res, next) => {
 
       if (req.method === 'GET' && contentType.includes('text/html')) {
         const html = await response.text();
-        const withSeo = await injectSeoIntoHtml(req.path, html);
+        const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
         const headers = new Headers(response.headers);
         headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
 
@@ -189,8 +189,8 @@ const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
 const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.png`;
 
-async function injectSeoIntoHtml(pathname: string, html: string) {
-  const payload = await getSeoPayload(pathname);
+async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string) {
+  const payload = await getSeoPayload(pathname, query);
   if (!payload) {
     return html;
   }
@@ -198,7 +198,7 @@ async function injectSeoIntoHtml(pathname: string, html: string) {
   return injectSeoPayloadIntoHtml(html, payload, SITE_URL);
 }
 
-async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
+async function getSeoPayload(pathname: string, query: Record<string, string> = {}): Promise<SeoPayload | null> {
   const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 
   if (normalizedPath === '/' || normalizedPath === '/home') {
@@ -206,6 +206,18 @@ async function getSeoPayload(pathname: string): Promise<SeoPayload | null> {
   }
 
   if (normalizedPath === '/map') {
+    const site = typeof query['site'] === 'string' ? query['site'].trim() : null;
+    if (site) {
+      return getSiteSeoPayload(site);
+    }
+    const county = typeof query['county'] === 'string' ? query['county'].toLowerCase().trim() : null;
+    if (county) {
+      return getCountyMapSeoPayload(county);
+    }
+    const nation = typeof query['nation'] === 'string' ? query['nation'].toLowerCase().trim() : null;
+    if (nation && NATION_SEO_CONFIG[nation]) {
+      return getNationMapSeoPayload(nation);
+    }
     return getMapSeoPayload();
   }
 
@@ -403,6 +415,176 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     ogImage: DEFAULT_SOCIAL_IMAGE,
     twitterImage: DEFAULT_TWITTER_IMAGE,
     schemas,
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
+  };
+}
+
+// Counties that are UI aliases of a parent county — the parent is listed first in the display name
+const COUNTY_DISPLAY_ALIASES: Record<string, string> = {
+  // special combined display names
+  'cornwall': 'Cornwall & the Isles of Scilly',
+  'highlands': 'The Highlands',
+  // user-friendly slug aliases
+  'orkney': 'Orkney Islands',
+  'anglesey': 'Isle of Anglesey',
+  'outer hebrides': 'Outer Hebrides',
+  'western isles': 'Outer Hebrides',
+  'east yorkshire': 'East Riding of Yorkshire',
+  'east riding': 'East Riding of Yorkshire',
+  // fix title-case for multi-word DB names used directly as URL params
+  'argyll and bute': 'Argyll and Bute',
+  'brighton and hove': 'Brighton and Hove',
+  'east riding of yorkshire': 'East Riding of Yorkshire',
+  'isle of anglesey': 'Isle of Anglesey',
+  'isle of wight': 'Isle of Wight',
+  'na h-eileanan siar': 'Na h-Eileanan Siar',
+  'redcar and cleveland': 'Redcar and Cleveland',
+};
+
+const NATION_SEO_CONFIG: Record<string, { displayName: string; description: string }> = {
+  'england': {
+    displayName: 'England',
+    description: 'Find the best snorkelling sites in England on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+  },
+  'scotland': {
+    displayName: 'Scotland',
+    description: 'Find the best snorkelling sites in Scotland on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+  },
+  'wales': {
+    displayName: 'Wales',
+    description: 'Find the best snorkelling sites in Wales on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+  },
+  'britain': {
+    displayName: 'Britain',
+    description: 'Discover 100+ snorkelling sites across Britain on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+  },
+  'uk': {
+    displayName: 'the UK',
+    description: 'Discover 100+ snorkelling sites across the UK on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+  },
+};
+
+async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
+  const { displayName, description } = NATION_SEO_CONFIG[nation];
+  const canonicalNation = encodeURIComponent(nation);
+
+  const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
+  const keywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, best snorkelling ${displayName}, snorkelling map ${displayName}`;
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
+      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}/map?nation=${canonicalNation}` }
+    ]
+  };
+
+  return {
+    title,
+    description,
+    keywords,
+    canonicalPath: `/map?nation=${canonicalNation}`,
+    ogType: 'website',
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    schemas: [breadcrumbSchema],
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
+  };
+}
+
+
+
+function toTitleCase(str: string): string {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
+  const place = await getPlaceForSeo(siteName).catch(() => null);
+  if (!place) return null;
+
+  const canonicalSite = encodeURIComponent(siteName);
+  const siteUrl = `${SITE_URL}/map?site=${canonicalSite}`;
+
+  const locationHint = place.district ? ` in ${place.district}` : '';
+  const description = place.description
+    || `Snorkelling site${locationHint}: ${siteName}. Explore this location on the Snorkelology interactive map of Britain.`;
+  const keywords = [
+    place.keywords,
+    `snorkelling ${siteName}`,
+    `${siteName} snorkelling site`
+  ].filter(Boolean).join(', ');
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
+      { '@type': 'ListItem', position: 3, name: siteName, item: siteUrl }
+    ]
+  };
+
+  const { district: _district, ...placeSchemaFields } = place;
+  const placeSchema = {
+    '@context': 'https://schema.org',
+    ...placeSchemaFields,
+    url: siteUrl
+  };
+
+  return {
+    title: `${siteName} | Snorkelling Site | Snorkelology`,
+    description,
+    keywords,
+    canonicalPath: `/map?site=${canonicalSite}`,
+    ogType: 'website',
+    ogImage: place.image || DEFAULT_SOCIAL_IMAGE,
+    twitterImage: place.image || DEFAULT_TWITTER_IMAGE,
+    schemas: [breadcrumbSchema, placeSchema],
+    metaTags: [
+      { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+      { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
+      { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
+    ]
+  };
+}
+
+async function getCountyMapSeoPayload(county: string): Promise<SeoPayload> {
+  const displayName = COUNTY_DISPLAY_ALIASES[county] ?? toTitleCase(county);
+  const canonicalCounty = encodeURIComponent(county);
+
+  const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
+  const description = `Find the best snorkelling sites in ${displayName} on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.`;
+  const keywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, snorkelling map ${displayName}, best snorkelling ${displayName}`;
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
+      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}/map?county=${canonicalCounty}` }
+    ]
+  };
+
+  return {
+    title,
+    description,
+    keywords,
+    canonicalPath: `/map?county=${canonicalCounty}`,
+    ogType: 'website',
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    schemas: [breadcrumbSchema],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },

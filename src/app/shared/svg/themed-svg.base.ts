@@ -6,6 +6,7 @@ export type SvgTheme = 'lightOnDark' | 'darkOnLight';
 export abstract class ThemedSvgBase {
   @Input() public theme?: SvgTheme;
   @Input() public height?: string;
+  @Input() public alt?: string;
 
   protected setDefaultHeight(value: string) {
     this.height = this.height ?? value;

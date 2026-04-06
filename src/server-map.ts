@@ -36,9 +36,9 @@ function toPostalAddress(location: any) {
 
   const address = {
     '@type': 'PostalAddress',
-    addressLocality: location.locality || location.postalTown,
-    addressRegion: location.county,
-    streetAddress: location.adminLevel3,
+    addressLocality: location.locality || location.place,
+    addressRegion: location.district,
+    streetAddress: location.region,
     postalCode: location.postcode || location.postalCode,
     addressCountry: location.country || location.countryCode
   } as any;
@@ -49,6 +49,21 @@ function toPostalAddress(location: any) {
   return hasAddressValue ? address : undefined;
 }
 
+function extractProviderLinks(moreInfo: any[]): { url: string | undefined; sameAs: string[] | undefined } {
+  const entries: any[] = Array.isArray(moreInfo) ? moreInfo : [];
+  const urls = entries
+    .map((m: any) => m?.url)
+    .filter((u: any): u is string => typeof u === 'string' && u.trim() !== '');
+
+  if (!urls.length) return { url: undefined, sameAs: undefined };
+
+  const preferred = entries.find((m: any) => m?.preferred && m?.url);
+  const primaryUrl: string = preferred?.url ?? urls[0];
+  const rest = urls.filter(u => u !== primaryUrl);
+
+  return { url: primaryUrl, sameAs: rest.length ? rest : undefined };
+}
+
 async function getPlacesForSeo() {
   const sites = await FeatureModel.find(
     { showOnMap: { $in: ['Production', 'Development'] } },
@@ -57,23 +72,91 @@ async function getPlacesForSeo() {
 
   return sites.map((site: any) => {
     const coords = site.location?.coordinates || [];
-    const categories = site.properties?.categories || [];
+    const p = site.properties || {};
+    const categories: string[] = p.categories || [];
+    const isProvider = p.featureType !== 'Snorkelling Site';
+    const links = isProvider ? extractProviderLinks(p.moreInfo) : { url: undefined, sameAs: undefined };
     return {
       '@type': 'Place',
-      name: site.properties?.name,
-      description: site.properties?.featureType + ': ' + site.properties?.description,
+      name: p.name,
+      description: p.featureType + ': ' + p.description,
       keywords: categories.length ? categories.join(', ') : undefined,
-      address: toPostalAddress(site.properties?.location),
+      address: toPostalAddress(p.location),
       geo: {
         '@type': 'GeoCoordinates',
         latitude: coords[1],
         longitude: coords[0]
-      }
+      },
+      ...(links.url ? { url: links.url } : {}),
+      ...(links.sameAs ? { sameAs: links.sameAs } : {})
     };
   });
 }
 
-export { map, getPlacesForSeo };
+async function getPlaceForSeo(siteName: string) {
+  const site = await FeatureModel.findOne(
+    { 'properties.name': siteName, showOnMap: { $in: ['Production', 'Development'] } },
+    { location: 1, properties: 1 }
+  ).lean();
+
+  if (!site) return null;
+
+  const s = site as any;
+  const coords = s.location?.coordinates || [];
+  const p = s.properties || {};
+  const categories: string[] = p.categories || [];
+  const loc = p.location || {};
+  const localityParts = [loc.localityOverride || loc.locality || loc.place, loc.district].filter(Boolean);
+  const localityStr = localityParts.join(', ');
+
+  const descriptionParts: string[] = [];
+  if (p.featureType) descriptionParts.push(p.featureType);
+  if (localityStr) descriptionParts.push(`in ${localityStr}`);
+  const baseDesc = descriptionParts.join(' ');
+  const description = p.description
+    ? `${baseDesc ? baseDesc + '. ' : ''}${p.description}`
+    : baseDesc;
+
+  const isSnorkellingSite = p.featureType === 'Snorkelling Site';
+  const schemaType = isSnorkellingSite ? 'TouristAttraction' : 'SportsActivityLocation';
+  const links = isSnorkellingSite ? { url: undefined, sameAs: undefined } : extractProviderLinks(p.moreInfo);
+
+  return {
+    '@type': schemaType,
+    name: p.name as string,
+    description,
+    keywords: categories.length ? categories.join(', ') : undefined,
+    address: toPostalAddress(p.location),
+    geo: coords[0] != null && coords[1] != null ? {
+      '@type': 'GeoCoordinates',
+      latitude: coords[1],
+      longitude: coords[0]
+    } : undefined,
+    image: p.imageUrl || undefined,
+    ...(links.url ? { url: links.url } : {}),
+    ...(links.sameAs ? { sameAs: links.sameAs } : {}),
+    district: loc.district as string | undefined,
+  };
+}
+
+export { map, getPlacesForSeo, getPlaceForSeo };
+
+map.get('/api/sites/get-districts/', async (_req, res) => {
+  try {
+    const sites = await FeatureModel.find(
+      { showOnMap: { $in: ['Production', 'Development'] } },
+      { 'properties.location.district': 1 }
+    ).lean();
+    const districts: string[] = [...new Set<string>(
+      (sites as any[])
+        .map((s: any) => s.properties?.location?.district)
+        .filter((d: any): d is string => typeof d === 'string' && d.trim() !== '')
+    )].sort();
+    res.status(200).json(districts);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
 
 /* Admin CRUD endpoints */
 

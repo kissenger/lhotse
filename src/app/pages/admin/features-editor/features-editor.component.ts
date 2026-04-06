@@ -28,6 +28,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
 
   public selectedSite: MapFeature = new MapFeature();
   public sites: Array<MapFeature> = [this.selectedSite];
+  public siteSearch: string = '';
   public askForConfirmation: boolean = false;
   public askForResetForm: boolean = false;
   public askForDiscardChanges: boolean = false;
@@ -70,14 +71,18 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   get nonSnorkellingSites() {
+    const q = this.siteSearch.toLowerCase();
     return this.sites
       .filter(s => s.properties.featureType !== 'Snorkelling Site')
+      .filter(s => !q || (s.properties.name || '').toLowerCase().includes(q))
       .sort((a, b) => (a.properties.name || '').localeCompare(b.properties.name || ''));
   }
 
   get snorkellingSites() {
+    const q = this.siteSearch.toLowerCase();
     return this.sites
       .filter(s => s.properties.featureType === 'Snorkelling Site')
+      .filter(s => !q || (s.properties.name || '').toLowerCase().includes(q))
       .sort((a, b) => (a.properties.name || '').localeCompare(b.properties.name || ''));
   }
 
@@ -429,7 +434,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   private async _reverseGeocode(lng: number, lat: number) {
     try {
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json` +
-        `?types=neighborhood,locality,place,district,region&country=gb&access_token=${mapboxToken}`;
+        `?types=neighborhood,locality,place,district,region,country&country=gb&access_token=${mapboxToken}`;
       const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();
@@ -438,14 +443,15 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
         ...(data.features?.[0] ? [{ id: data.features[0].place_type?.[0] ?? '', text: data.features[0].text }] : []),
       ];
       const get = (prefix: string) => ctx.find(c => c.id.startsWith(prefix))?.text ?? '';
-      const postalTown  = get('place');
       const nameLC = (this.selectedSite.properties.name ?? '').toLowerCase();
-      const locality = [get('neighborhood'), get('locality'), postalTown]
+      const locality = [get('neighborhood'), get('locality'), get('place')]
         .find(v => v && v.toLowerCase() !== nameLC) ?? '';
-      this.selectedSite.properties.location.locality    = locality;
-      this.selectedSite.properties.location.postalTown  = postalTown;
-      this.selectedSite.properties.location.county      = get('region');
-      this.selectedSite.properties.location.adminLevel3 = get('district');
+      this.selectedSite.properties.location.country      = get('country');
+      this.selectedSite.properties.location.region       = get('region');
+      this.selectedSite.properties.location.district     = get('district');
+      this.selectedSite.properties.location.place        = get('place');
+      this.selectedSite.properties.location.locality     = locality;
+      this.selectedSite.properties.location.neighborhood = get('neighborhood');
       this._cdr.detectChanges();
     } catch { /* silently ignore geocoding failures */ }
   }

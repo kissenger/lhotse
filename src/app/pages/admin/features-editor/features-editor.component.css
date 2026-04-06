@@ -12,8 +12,9 @@ label, .label {
   margin-right: 1em;
 }
 
-/* === Toolbar row — select grows to fill === */
-.toolbar-row select {
+/* === Toolbar row — select and search input grow to fill === */
+.toolbar-row select,
+.toolbar-row input[type="search"] {
   flex-grow: 1;
 }
 

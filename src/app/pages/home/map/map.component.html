@@ -1,31 +1,46 @@
   <div class="dynamic-container">
 
-    <h2 class="section-heading"><a class="stealth-link" href="/map">Interactive Snorkelling Map of Britain</a></h2>
+    @if (filterContext) {
+      <h2 class="section-heading">Snorkelling Sites in {{filterContext.displayName}}</h2>
+      <p>
+        Showing snorkelling sites and providers in {{filterContext.displayName}}.
+        Click any pin for GPS coordinates, a description, and links to find out more.
+      </p>
+      <p class="filter-clear-row">
+        <a href="/map" class="filter-clear-link">← View all sites in Britain</a>
+      </p>
+      @if (filterEmpty) {
+        <p class="filter-empty-notice">No snorkelling sites found for this area. They may not have been added yet.</p>
+      }
+    } @else {
+      <h2 class="section-heading"><a class="stealth-link" href="/map">Interactive Snorkelling Map of Britain</a></h2>
 
-    <p>
-      We've mapped 100+ snorkelling sites and providers all over Britain —
-      from coastal rock pools and kelp forests to sheltered bays and offshore reefs in
-      England, Scotland, and Wales. Use the filter to narrow by habitat type or provider category,
-      and click any pin for GPS coordinates, a description, and links to find out more.
-      We're always adding new sites, so check back regularly for the latest spots.
-    </p>
+      <p>
+        We've mapped 100+ snorkelling sites and providers all over Britain —
+        from coastal rock pools and kelp forests to sheltered bays and offshore reefs in
+        England, Scotland, and Wales. Use the filter to narrow by habitat type or provider category,
+        and click any pin for GPS coordinates, a description, and links to find out more.
+        We're always adding new sites, so check back regularly for the latest spots.
+      </p>
 
-    <p>
-      Whether you're looking for the best places to snorkel in the UK, searching for
-      snorkelling sites near you, or seeking guided snorkelling experiences,
-      our map is the most comprehensive guide to British snorkelling locations online.
-    </p>
+      <p>
+        Whether you're looking for the best places to snorkel in the UK, searching for
+        snorkelling sites near you, or seeking guided snorkelling experiences,
+        our map is the most comprehensive guide to British snorkelling locations online.
+      </p>
 
-    <p>
-      If you are a snorkelling provider who would like to be included on the map, or if you know of a site
-      that should be included, please get in touch with us using the socials links in the header.
-    </p>
+      <p>
+        If you are a snorkelling provider who would like to be included on the map, or if you know of a site
+        that should be included, please get in touch with us using the socials links in the header.
+      </p>
+    }
 
     <div class="map-container">
     <div id="map"></div>
 
       @if (loadingState === 'success') {
         <div class="filter-dropdown">
+          @if (snorkellingCategories.length > 0) {
           <div class="filter-group">
             <div class="filter-group-header" (click)="snorkellingExpanded = !snorkellingExpanded">
               <div class="filter-group-label">
@@ -48,6 +63,8 @@
               </div>
             </div>
           </div>
+          }
+          @if (otherCategories.length > 0) {
           <div class="filter-group">
             <div class="filter-group-header" (click)="otherExpanded = !otherExpanded">
               <div class="filter-group-label">
@@ -70,6 +87,7 @@
               </div>
             </div>
           </div>
+          }
         </div>
       }
 
@@ -85,68 +103,69 @@
           <!-- This is needed so that null feature doesnt trigger this block  -->
           @if (!!feature) {          
 
-            <div class="panel-topbar">
-              <div class="title">
-                {{feature.featureType}}
-              </div>
-              <div class="close-icon" (click)="map?.deselectSymbol()">
-                <app-svg-close-icon theme="lightOnDark"></app-svg-close-icon>
-              </div>
-            </div>
-            
             <div class="panel-content">
 
-              {{feature.location.locality ?? feature.location.postalTown}}, {{feature.location.county}}
+              <button class="panel-close" (click)="map?.deselectSymbol()" aria-label="Close">
+                <app-svg-close-icon theme="darkOnLight"></app-svg-close-icon>
+              </button>
+
+              <div class="panel-type">{{feature.featureType}}</div>
+              <div class="panel-location">{{feature.location.locality ?? feature.location.place}}@if (feature.location.district){, {{feature.location.district}}}</div>
               <h3>{{feature.name}}</h3>
 
-              <div class="keywords">
-                @for (item of feature.categories; track item) {
-                  <span>{{item}}</span>
-                }
-              </div> 
-              
+              @if (feature.categories?.length) {
+                <div class="keywords">
+                  @for (item of feature.categories; track item) {
+                    <span class="keyword-chip">{{item}}</span>
+                  }
+                </div>
+              }
+
               <div class="description">
                 {{feature.description}}
               </div>
 
               @if (feature.featureType == 'Snorkelling Site') {
                 <div class="caveat">
-                  Information provided is for guidance only.  You are responsible for your snorkelling safety.
+                  Information provided is for guidance only. You are responsible for your snorkelling safety.
                 </div>
-                Find Out More <br>
-                @for (item of feature.moreInfo; track item) {
-                  <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0" 
-                    href={{item.url}}>{{item.title}}</a>
-                  <br>                
+                @if (feature.moreInfo?.length) {
+                  <div class="more-info-label">Find Out More</div>
+                  <div class="more-info-links">
+                    @for (item of feature.moreInfo; track item) {
+                      <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
+                        href={{item.url}}>{{item.title}}</a>
+                    }
+                  </div>
                 }
               } @else {
-                Find Out More <br>  
-                <div class="icons">
-                  @for (item of feature.moreInfo; track item) {
-                    <div class="icon icon-grow">
-                      <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
-                        @switch (item.icon) {
-                          @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
-                          @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
-                          @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
-                          @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
-                          @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
-                        }
-                      </a>
-                    </div>
-
-                  }
-                  
-                  @for (item of feature.moreInfo; track item) {
-                    @if ( item.icon === 'phone' )  {
-                      <div class="icon icon-phone">
-                        <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
-                      </div> 
-                      <div class="phone-number">{{item.text}}</div>
+                @if (feature.moreInfo?.length) {
+                  <div class="more-info-label">Find Out More</div>
+                  <div class="icons">
+                    @for (item of feature.moreInfo; track item) {
+                      <div class="icon icon-grow">
+                        <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                          @switch (item.icon) {
+                            @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
+                            @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
+                            @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
+                            @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
+                            @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
+                          }
+                        </a>
+                      </div>
                     }
-                  }
-                </div>
-              } 
+                    @for (item of feature.moreInfo; track item) {
+                      @if (item.icon === 'phone') {
+                        <div class="icon icon-phone">
+                          <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
+                        </div>
+                        <div class="phone-number">{{item.text}}</div>
+                      }
+                    }
+                  </div>
+                }
+              }
             </div>
           }
 

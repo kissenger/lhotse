@@ -2,6 +2,10 @@
 
   <div class="static-div">
     <div class="toolbar-row">
+      <label for="siteSearch">Search:</label>
+      <input type="search" id="siteSearch" name="siteSearch" [(ngModel)]="siteSearch" placeholder="Filter sites…" autocomplete="off">
+    </div>
+    <div class="toolbar-row">
       <label for="siteSelect">Site:</label>
       <select [ngModel]="selectedSite._id" (ngModelChange)="onFormSelect($event)" name="siteSelect" id="siteSelect">
         @if (nonSnorkellingSites.length) {
@@ -159,24 +163,32 @@
       <h3>Address</h3>
 
       <div>
-        <label for="adminLevel3">Admin Level 3:</label>
-        <input type="text" id="adminLevel3" name="adminLevel3" [ngModel]="selectedSite.properties.location.adminLevel3" readonly>
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country" [ngModel]="selectedSite.properties.location.country" readonly>
       </div>
       <div>
-        <label for="county">County:</label>
-        <input type="text" id="county" name="county" [ngModel]="selectedSite.properties.location.county" readonly>
+        <label for="region">Nation/Region:</label>
+        <input type="text" id="region" name="region" [ngModel]="selectedSite.properties.location.region" readonly>
       </div>
       <div>
-        <label for="locality">Locality:</label>
+        <label for="district">District (County):</label>
+        <input type="text" id="district" name="district" [ngModel]="selectedSite.properties.location.district" readonly>
+      </div>
+      <div>
+        <label for="place">Place (Postal Town):</label>
+        <input type="text" id="place" name="place" [ngModel]="selectedSite.properties.location.place" readonly>
+      </div>
+      <div>
+        <label for="neighborhood">Neighborhood:</label>
+        <input type="text" id="neighborhood" name="neighborhood" [ngModel]="selectedSite.properties.location.neighborhood" readonly>
+      </div>
+      <div>
+        <label for="locality">Locality (derived):</label>
         <input type="text" id="locality" name="locality" [ngModel]="selectedSite.properties.location.locality" readonly>
       </div>
       <div [ngClass]="{'alert-required': selectedSite.showOnMap === 'Production' && !selectedSite.properties.location.locality && !selectedSite.properties.location.localityOverride}">
         <label for="localityOverride">Locality Override:</label>
         <input type="text" id="localityOverride" name="localityOverride" [(ngModel)]="selectedSite.properties.location.localityOverride">
-      </div>
-      <div>
-        <label for="postalTown">Postal Town:</label>
-        <input type="text" id="postalTown" name="postalTown" [ngModel]="selectedSite.properties.location.postalTown" readonly>
       </div>
 
       <!-- ── Contact ── -->

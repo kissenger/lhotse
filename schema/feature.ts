@@ -13,11 +13,13 @@ const featureSchema = new mongoose.Schema({
     region: {type: String},    
     imageUrl: { type: String },
     location: {
-      adminLevel3: { type: String },
-      county: { type: String },
-      locality: { type: String },
-      localityOverride: { type: String },
-      postalTown: { type: String }
+      country:         { type: String },  // Mapbox: country  (e.g. "United Kingdom")
+      region:          { type: String },  // Mapbox: region   (e.g. "Wales", "England")
+      district:        { type: String },  // Mapbox: district (e.g. "Pembrokeshire", "Devon")
+      place:           { type: String },  // Mapbox: place    (e.g. postal town)
+      locality:        { type: String },  // Mapbox: locality
+      neighborhood:    { type: String },  // Mapbox: neighborhood
+      localityOverride: { type: String }, // manual override shown in UI
     },
     description: {type: String},
     categories: {type: [String]},

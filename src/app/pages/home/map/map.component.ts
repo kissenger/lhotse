@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject } from '@angular/core';
 import { NgClass, DOCUMENT } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
@@ -23,11 +23,13 @@ import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component
   styleUrls: ['./map.component.css'],
 })
 
-export class MapComponent implements AfterViewInit, OnDestroy {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public geoJson: any = null;
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
   public map?: MapService;
+  public filterContext: { displayName: string } | null = null;
+  public filterEmpty: boolean = false;
   private _selectionSub?: import('rxjs').Subscription;
 
   snorkellingSitesEnabled = true;
@@ -44,6 +46,17 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     private _route: ActivatedRoute,
     @Inject(DOCUMENT) private _document: Document
   ) {}
+
+  ngOnInit() {
+    const { county, nation } = this._resolveParams();
+    if (county) {
+      const displayName = this._countyDisplayAliases[county.toLowerCase()] ?? county.replace(/\b\w/g, c => c.toUpperCase());
+      this.filterContext = { displayName };
+    } else if (nation) {
+      const displayName = this._nationDisplayNames[nation.toLowerCase()] ?? nation.replace(/\b\w/g, c => c.toUpperCase());
+      this.filterContext = { displayName };
+    }
+  }
 
   async ngAfterViewInit() {
   
@@ -66,8 +79,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this._cdr.detectChanges();
       });
       this.loadingState = 'success';
-      this._cdr.detectChanges();
       this._applyQueryParams();
+      this._cdr.detectChanges();
 
     } catch (error) {
       this.loadingState = 'failed';
@@ -95,10 +108,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     await this.ngAfterViewInit();
   }
 
-  private _buildCategoryLists() {
+  private _buildCategoryLists(features?: any[]) {
     const snorkCats = new Set<string>();
     const otherCats = new Set<string>();
-    for (const feature of this.geoJson.features) {
+    for (const feature of (features ?? this.geoJson.features)) {
       const props = feature.properties;
       const cats: string[] = props.categories ?? [];
       const isSnorkelling = props.featureType === 'Snorkelling Site';
@@ -168,17 +181,38 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (!this.map || !this.geoJson) return;
     const params = this._route.snapshot.queryParamMap;
     const siteName = params.get('site');
-    const county = params.get('county');
+    const { county, nation } = this._resolveParams();
     const sitesWithin = params.get('sitesWithin');
 
-    if (!siteName && !county) return;
+    if (!siteName && !county && !nation) return;
 
     const includeProviders = params.get('includeProviders')?.toLowerCase() !== 'false';
 
-    this._document.getElementById('map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (siteName) {
+      const mapEl = this._document.getElementById('map');
+      if (mapEl) {
+        const win = this._document.defaultView;
+        const headerHeight = parseInt(win?.getComputedStyle(this._document.documentElement).getPropertyValue('--header-height') ?? '75', 10) || 75;
+        const top = mapEl.getBoundingClientRect().top + (win?.scrollY ?? 0) - headerHeight;
+        win?.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
 
     if (county) {
+      const displayName = this._countyDisplayAliases[county.toLowerCase()] ?? county.replace(/\b\w/g, c => c.toUpperCase());
+      this.filterContext = { displayName };
       const features = this._filterByCounty(county, includeProviders);
+      this._buildCategoryLists(features);
+      this.filterEmpty = features.length === 0;
+      this.map.fitBoundsToFeatures(features);
+    }
+
+    if (nation) {
+      const displayName = this._nationDisplayNames[nation.toLowerCase()] ?? nation.replace(/\b\w/g, c => c.toUpperCase());
+      this.filterContext = { displayName };
+      const features = this._filterByNation(nation, includeProviders);
+      this._buildCategoryLists(features);
+      this.filterEmpty = features.length === 0;
       this.map.fitBoundsToFeatures(features);
     }
 
@@ -205,13 +239,86 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  // Resolves county/nation from the canonical params *and* common near-miss alternatives.
+  // e.g. ?country=england is treated as ?nation=england
+  private _resolveParams(): { county: string | null; nation: string | null } {
+    const p = this._route.snapshot.queryParamMap;
+    const county = p.get('county') ?? p.get('district');
+    const nation = p.get('nation') ?? p.get('country') ?? p.get('region');
+    return { county, nation };
+  }
+
+  private readonly _countyDisplayAliases: Record<string, string> = {
+    // special combined display names
+    'cornwall': 'Cornwall & the Isles of Scilly',
+    'highlands': 'The Highlands',
+    // user-friendly slug aliases
+    'orkney': 'Orkney Islands',
+    'anglesey': 'Isle of Anglesey',
+    'outer hebrides': 'Outer Hebrides',
+    'western isles': 'Outer Hebrides',
+    'east yorkshire': 'East Riding of Yorkshire',
+    'east riding': 'East Riding of Yorkshire',
+    // fix title-case for multi-word DB names used directly as URL params
+    'argyll and bute': 'Argyll and Bute',
+    'brighton and hove': 'Brighton and Hove',
+    'east riding of yorkshire': 'East Riding of Yorkshire',
+    'isle of anglesey': 'Isle of Anglesey',
+    'isle of wight': 'Isle of Wight',
+    'na h-eileanan siar': 'Na h-Eileanan Siar',
+    'redcar and cleveland': 'Redcar and Cleveland',
+  };
+
+  private readonly _nationDisplayNames: Record<string, string> = {
+    'england': 'England',
+    'scotland': 'Scotland',
+    'wales': 'Wales',
+    'britain': 'Britain',
+    'uk': 'the UK',
+  };
+
+  // Maps URL ?nation= values to the Mapbox `region` field values stored in the DB.
+  // 'britain' and 'uk' show all sites (no filter).
+  private readonly _nationRegionMap: Record<string, string | null> = {
+    'england': 'england',
+    'scotland': 'scotland',
+    'wales': 'wales',
+    'britain': null,
+    'uk': null,
+  };
+
+  private _filterByNation(nation: string, includeProviders: boolean): any[] {
+    const region = this._nationRegionMap[nation.toLowerCase()];
+    const features = this.geoJson.features.filter((f: any) => {
+      if (!includeProviders && f.properties.featureType !== 'Snorkelling Site') return false;
+      if (region === null) return true; // britain / uk = all sites
+      return (f.properties.location?.region as string)?.toLowerCase() === region;
+    });
+    this.map!.updateSourceData({ ...this.geoJson, features });
+    return features;
+  }
+
+  private readonly _countyAliases: Record<string, string[]> = {
+    'cornwall': ['isles of scilly'],
+    'highlands': ['highland'],
+    'orkney': ['orkney islands'],
+    'anglesey': ['isle of anglesey'],
+    'outer hebrides': ['na h-eileanan siar'],
+    'western isles': ['na h-eileanan siar'],
+    'east yorkshire': ['east riding of yorkshire'],
+    'east riding': ['east riding of yorkshire'],
+  };
+
   private _filterByCounty(county: string, includeProviders: boolean): any[] {
     const normalised = county.toLowerCase();
+    const matches = new Set([normalised, ...(this._countyAliases[normalised] ?? [])]);
     const features = this.geoJson.features.filter(
       (f: any) => {
         const loc = f.properties.location;
-        const match = (loc?.county as string)?.toLowerCase() === normalised ||
-          (!loc?.county && (loc?.adminLevel3 as string)?.toLowerCase() === normalised);
+        const district = (loc?.district as string)?.toLowerCase();
+        const legacy = (loc?.adminLevel3 as string)?.toLowerCase();
+        const match = (district && matches.has(district)) ||
+          (!loc?.district && legacy && matches.has(legacy));
         return match && (includeProviders || f.properties.featureType === 'Snorkelling Site');
       }
     );

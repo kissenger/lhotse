@@ -272,11 +272,13 @@ export class MapFeature {
     region: string;
     imageUrl: string;
     location: {
-      adminLevel3: string;
-      county: string;
+      country: string;
+      region: string;
+      district: string;
+      place: string;
       locality: string;
+      neighborhood: string;
       localityOverride: string;
-      postalTown: string;
     };
     description: string;
     categories: string[];
@@ -300,7 +302,7 @@ export class MapFeature {
     name: 'New Site',
     region: '',
     imageUrl: '',
-    location: { adminLevel3: '', county: '', locality: '', localityOverride: '', postalTown: '' },
+    location: { country: '', region: '', district: '', place: '', locality: '', neighborhood: '', localityOverride: '' },
     description: '',
     categories: [],
     contact: { name: '', email: '' },

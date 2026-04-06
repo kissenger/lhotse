@@ -12,6 +12,8 @@ const STATIC_URL_PATHS = [
   }
 ];
 
+const NATION_URL_PATHS = ['england', 'scotland', 'wales', 'britain', 'uk'];
+
 function xmlEscape(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -134,9 +136,22 @@ async function writeSitemapAtomically(xml) {
   return absolutePath;
 }
 
+async function fetchDistricts() {
+  const url = `${API_BASE_URL}/api/sites/get-districts/`;
+  const response = await fetchJson(url);
+
+  if (!response.ok) {
+    console.warn(`[sitemap] get-districts failed (${response.status}), skipping county URLs`);
+    return [];
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload) ? payload : [];
+}
+
 async function main() {
   console.log(`[sitemap] Fetching sitemap entries from ${API_BASE_URL}`);
-  const sitemapEntries = await fetchSitemapEntries();
+  const [sitemapEntries, districts] = await Promise.all([fetchSitemapEntries(), fetchDistricts()]);
   const rootLastMod = await resolveRootLastMod();
 
   const entries = [
@@ -158,7 +173,17 @@ async function main() {
           const imageUrl = asAbsoluteAssetUrl(item.imgFname);
           return imageUrl ? [imageUrl] : [];
         })()
-      }))
+      })),
+    ...districts.map((district) => ({
+      loc: `${SITE_URL}/map?county=${encodeURIComponent(district.toLowerCase())}`,
+      lastmod: rootLastMod,
+      images: []
+    })),
+    ...NATION_URL_PATHS.map((nation) => ({
+      loc: `${SITE_URL}/map?nation=${encodeURIComponent(nation)}`,
+      lastmod: rootLastMod,
+      images: []
+    }))
   ];
 
   const xml = toSitemapXml(entries);
