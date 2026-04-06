@@ -1,5 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, switchMap } from 'rxjs';
@@ -39,7 +38,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   constructor(
     private _http: HttpService,
-    @Inject(PLATFORM_ID) private _platformId: any,
     private _route: ActivatedRoute,
     private _htmler: HtmlerPipe,
     private _router: Router,
@@ -75,7 +73,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    if (!isPlatformBrowser(this._platformId)) return;
     this.isPreview = this._route.snapshot.queryParamMap.has('preview');
     this._routeSubs = this._route.params
       .pipe(
