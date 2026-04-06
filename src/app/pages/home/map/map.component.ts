@@ -28,7 +28,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public geoJson: any = null;
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
   public map?: MapService;
-  public filterContext: { displayName: string } | null = null;
+  public filterContext: { displayName: string; alsoKnownAs?: string[] } | null = null;
   public filterEmpty: boolean = false;
   private _selectionSub?: import('rxjs').Subscription;
 
@@ -51,7 +51,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const { county, nation } = this._resolveParams();
     if (county) {
       const displayName = this._countyDisplayAliases[county.toLowerCase()] ?? county.replace(/\b\w/g, c => c.toUpperCase());
-      this.filterContext = { displayName };
+      const alsoKnownAs = this._countyAltNames[county.toLowerCase()];
+      this.filterContext = { displayName, alsoKnownAs };
     } else if (nation) {
       const displayName = this._nationDisplayNames[nation.toLowerCase()] ?? nation.replace(/\b\w/g, c => c.toUpperCase());
       this.filterContext = { displayName };
@@ -200,7 +201,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (county) {
       const displayName = this._countyDisplayAliases[county.toLowerCase()] ?? county.replace(/\b\w/g, c => c.toUpperCase());
-      this.filterContext = { displayName };
+      const alsoKnownAs = this._countyAltNames[county.toLowerCase()];
+      this.filterContext = { displayName, alsoKnownAs };
       const features = this._filterByCounty(county, includeProviders);
       this._buildCategoryLists(features);
       this.filterEmpty = features.length === 0;
@@ -247,6 +249,22 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const nation = p.get('nation') ?? p.get('country') ?? p.get('region');
     return { county, nation };
   }
+
+  private readonly _countyAltNames: Record<string, string[]> = {
+    'isles of scilly': ['Scillies', 'Scilly Isles'],
+    'cornwall': ['Scillies', 'Scilly Isles'],
+    'highland': ['Scottish Highlands'],
+    'highlands': ['Scottish Highlands'],
+    'na h-eileanan siar': ['Outer Hebrides', 'Western Isles'],
+    'outer hebrides': ['Outer Hebrides', 'Western Isles'],
+    'western isles': ['Outer Hebrides', 'Western Isles'],
+    'east riding of yorkshire': ['East Yorkshire'],
+    'east yorkshire': ['East Yorkshire'],
+    'isle of anglesey': ['Anglesey'],
+    'anglesey': ['Anglesey'],
+    'orkney islands': ['Orkney'],
+    'orkney': ['Orkney'],
+  };
 
   private readonly _countyDisplayAliases: Record<string, string> = {
     // special combined display names

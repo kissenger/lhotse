@@ -558,13 +558,26 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
   };
 }
 
+const COUNTY_EXTRA_KEYWORDS: Record<string, string[]> = {
+  'isles of scilly': ['Scillies', 'Scilly Isles'],
+  'highland': ['Highlands', 'Scottish Highlands'],
+  'na h-eileanan siar': ['Outer Hebrides', 'Western Isles'],
+  'east riding of yorkshire': ['East Yorkshire'],
+  'isle of anglesey': ['Anglesey'],
+  'orkney islands': ['Orkney'],
+};
+
 async function getCountyMapSeoPayload(county: string): Promise<SeoPayload> {
   const displayName = COUNTY_DISPLAY_ALIASES[county] ?? toTitleCase(county);
   const canonicalCounty = encodeURIComponent(county);
+  const extraKeywords = COUNTY_EXTRA_KEYWORDS[county] ?? [];
 
   const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
   const description = `Find the best snorkelling sites in ${displayName} on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.`;
-  const keywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, snorkelling map ${displayName}, best snorkelling ${displayName}`;
+  const baseKeywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, snorkelling map ${displayName}, best snorkelling ${displayName}`;
+  const keywords = extraKeywords.length
+    ? `${baseKeywords}, ${extraKeywords.map(k => `snorkelling ${k}`).join(', ')}`
+    : baseKeywords;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',

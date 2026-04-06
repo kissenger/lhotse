@@ -6,6 +6,9 @@
         Showing snorkelling sites and providers in {{filterContext.displayName}}.
         Click any pin for GPS coordinates, a description, and links to find out more.
       </p>
+      @if (filterContext.alsoKnownAs?.length) {
+        <p class="also-known-as">Also known as: {{filterContext.alsoKnownAs!.join(', ')}}</p>
+      }
       <p class="filter-clear-row">
         <a href="/map" class="filter-clear-link">← View all sites in Britain</a>
       </p>
