@@ -102,7 +102,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             imgFname: s.imgFname ?? '',
             imgAlt: s.imgAlt ?? '',
             imgCredit: s.imgCredit ?? '',
-            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : ''
+            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : '',
+            sectionType: s.sectionType,
+            ctaLinks: s.ctaLinks
           }));
           this.nextSlug = result.nextSlug ?? '';
           this.lastSlug = result.lastSlug ?? '';
@@ -166,6 +168,16 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       this.loadingState = 'failed';
       this._cdr.detectChanges();
     });
+  }
+
+  ctaLinkPath(url: string): string {
+    return url.split('?')[0];
+  }
+
+  ctaLinkParams(url: string): Record<string, string> | null {
+    const qs = url.split('?')[1];
+    if (!qs) return null;
+    return Object.fromEntries(new URLSearchParams(qs).entries());
   }
 
   ngOnDestroy() {

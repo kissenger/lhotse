@@ -1,8 +1,8 @@
 <main>
 
   <div class="static-div">
-    <div class="static-row">
-      <label for="siteSelect">Select a site:</label>
+    <div class="toolbar-row">
+      <label for="siteSelect">Site:</label>
       <select [ngModel]="selectedSite._id" (ngModelChange)="onFormSelect($event)" name="siteSelect" id="siteSelect">
         @if (nonSnorkellingSites.length) {
           <optgroup label="Snorkel Providers">
@@ -24,23 +24,31 @@
         }
       </select>
     </div>
-    <div class="static-row">
-      <button type="button" class="formButton" (click)="onNewSite()">+ New Site</button>
-      <button type="submit" class="formButton" (click)="onSave()" [disabled]="!hasUnsavedChanges()">Save</button>
-      <button type="button" class="formButton" (click)="onYesDelete(false)" [disabled]="!selectedSite._id">Delete</button>
-      @if (!selectedSite._id) {
-        <button type="button" class="formButton" (click)="onAskResetForm()">Reset Form</button>
-      }
-      <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
-        Are you sure?
-        <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
-        <button type="button" class="formButton" (click)="onNoDelete()">No</button>
-      </span>
-      <span [ngClass]="askForResetForm ? 'showButton' : ''" class="sureButton">
-        Are you sure?
-        <button type="button" class="formButton" (click)="onConfirmResetForm()">Yes</button>
-        <button type="button" class="formButton" (click)="onCancelResetForm()">No</button>
-      </span>
+    <div class="toolbar-row">
+      <div class="toolbar-actions">
+        @if (hasUnsavedChanges()) { <span class="unsaved-badge">Unsaved changes</span> }
+        <button type="button" class="formButton btn-new" (click)="onNewSite()">+ New</button>
+        <button type="submit" class="formButton btn-save" (click)="onSave()" [disabled]="!hasUnsavedChanges()">Save</button>
+        <button type="button" class="formButton btn-delete" (click)="onYesDelete(false)" [disabled]="!selectedSite._id">Delete</button>
+        @if (!selectedSite._id) {
+          <button type="button" class="formButton" (click)="onAskResetForm()">Reset Form</button>
+        }
+        <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
+          Are you sure?
+          <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+          <button type="button" class="formButton" (click)="onNoDelete()">No</button>
+        </span>
+        <span [ngClass]="askForResetForm ? 'showButton' : ''" class="sureButton">
+          Are you sure?
+          <button type="button" class="formButton" (click)="onConfirmResetForm()">Yes</button>
+          <button type="button" class="formButton" (click)="onCancelResetForm()">No</button>
+        </span>
+        <span [ngClass]="askForDiscardChanges ? 'showButton' : ''" class="sureButton">
+          Discard unsaved changes?
+          <button type="button" class="formButton" (click)="onConfirmDiscard()">Yes</button>
+          <button type="button" class="formButton" (click)="onCancelDiscard()">No</button>
+        </span>
+      </div>
     </div>
   </div>
 

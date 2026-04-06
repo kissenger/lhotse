@@ -25,6 +25,11 @@
                         <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
                         <button type="button" class="formButton" (click)="onNoDelete()">No</button>
                     </span>
+                    <span [ngClass]="askForDiscardChanges ? 'showButton' : ''" class="sureButton">
+                        Discard unsaved changes?
+                        <button type="button" class="formButton" (click)="onConfirmDiscard()">Yes</button>
+                        <button type="button" class="formButton" (click)="onCancelDiscard()">No</button>
+                    </span>
                 </div>
             </div>
         </div>
@@ -118,61 +123,107 @@
 
                 <h3 class="sections-heading">Sections</h3>
 
-                @for(section of selectedPost.sections; track $index) {
-                    <div class="section-card">
+                @for(section of selectedPost.sections; track $index; let si = $index) {
+                    <div class="section-card" [class.section-card--cta]="section.sectionType === 'cta'">
                         <div class="section-header">
-                            <span class="section-title-label">Section {{$index + 1}}@if(section.title) { — {{section.title}}}</span>
-                            <div class="section-controls">
-                                <button class="icon-btn" type="button" (click)="moveUp($index)" [disabled]="$index === 0" title="Move up">↑</button>
-                                <button class="icon-btn" type="button" (click)="moveDown($index)" [disabled]="$index === selectedPost.sections.length - 1" title="Move down">↓</button>
-                                <button class="btn-delete-section" type="button" (click)="deleteQA($index)">Delete</button>
-                            </div>
-                        </div>
-
-                        <div class="field-row">
-                            <label for="question{{$index}}">Title:</label>
-                            <input type="text" id="question{{$index}}" name="question{{$index}}" spellcheck="true" [(ngModel)]="section.title">
-                        </div>
-
-                        <div class="field-row align-start">
-                            <label for="answer{{$index}}">Content:</label>
-                            <textarea id="answer{{$index}}" name="answer{{$index}}" spellcheck="true" [(ngModel)]="section.content"></textarea>
-                        </div>
-
-                        <div class="field-row">
-                            <label for="fname{{$index}}">Image:</label>
-                            <div class="image-field">
-                                <input type="text" id="fname{{$index}}" name="fname{{$index}}" [(ngModel)]="section.imgFname" placeholder="photos/…">
-                                @if (section.imgFname) {
-                                    <img class="img-thumb" [src]="imgixThumb(section.imgFname)" [alt]="section.imgAlt"
-                                        (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
+                            <span class="section-title-label">
+                                @if (section.sectionType === 'cta') {
+                                    ✦ Highlight box {{si + 1}}@if(section.title) { — {{section.title}}}
+                                } @else {
+                                    Section {{si + 1}}@if(section.title) { — {{section.title}}}
                                 }
+                            </span>
+                            <div class="section-controls">
+                                <button class="icon-btn" type="button" (click)="moveUp(si)" [disabled]="si === 0" title="Move up">↑</button>
+                                <button class="icon-btn" type="button" (click)="moveDown(si)" [disabled]="si === selectedPost.sections.length - 1" title="Move down">↓</button>
+                                <button class="btn-delete-section" type="button" (click)="deleteQA(si)">Delete</button>
                             </div>
                         </div>
 
-                        <div class="field-row">
-                            <label for="alt{{$index}}">Image alt:</label>
-                            <input type="text" id="alt{{$index}}" name="alt{{$index}}" [(ngModel)]="section.imgAlt">
-                        </div>
+                        @if (section.sectionType !== 'cta') {
+                            <div class="field-row">
+                                <label for="question{{si}}">Title:</label>
+                                <input type="text" id="question{{si}}" name="question{{si}}" spellcheck="true" [(ngModel)]="section.title">
+                            </div>
 
-                        <div class="field-row">
-                            <label for="credit{{$index}}">Image credit:</label>
-                            <input type="text" id="credit{{$index}}" name="credit{{$index}}" [(ngModel)]="section.imgCredit">
-                        </div>
+                            <div class="field-row align-start">
+                                <label for="answer{{si}}">Content:</label>
+                                <textarea id="answer{{si}}" name="answer{{si}}" spellcheck="true" [(ngModel)]="section.content"></textarea>
+                            </div>
 
-                        <div class="field-row">
-                            <label for="videoUrl{{$index}}">Video URL:</label>
-                            <input type="text" id="videoUrl{{$index}}" name="videoUrl{{$index}}" [(ngModel)]="section.videoUrl">
-                        </div>
+                            <div class="field-row">
+                                <label for="fname{{si}}">Image:</label>
+                                <div class="image-field">
+                                    <input type="text" id="fname{{si}}" name="fname{{si}}" [(ngModel)]="section.imgFname" placeholder="photos/…">
+                                    @if (section.imgFname) {
+                                        <img class="img-thumb" [src]="imgixThumb(section.imgFname)" [alt]="section.imgAlt"
+                                            (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="field-row">
+                                <label for="alt{{si}}">Image alt:</label>
+                                <input type="text" id="alt{{si}}" name="alt{{si}}" [(ngModel)]="section.imgAlt">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="credit{{si}}">Image credit:</label>
+                                <input type="text" id="credit{{si}}" name="credit{{si}}" [(ngModel)]="section.imgCredit">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="videoUrl{{si}}">Video URL:</label>
+                                <input type="text" id="videoUrl{{si}}" name="videoUrl{{si}}" [(ngModel)]="section.videoUrl">
+                            </div>
+                        } @else {
+                            <div class="cta-editor-hint">Renders as a branded callout box with link buttons — use for internal cross-links.</div>
+
+                            <div class="field-row">
+                                <label for="ctaTitle{{si}}">Heading:</label>
+                                <input type="text" id="ctaTitle{{si}}" [name]="'ctaTitle'+si"
+                                    placeholder="e.g. Want more sites like this?" spellcheck="true"
+                                    [(ngModel)]="section.title">
+                            </div>
+
+                            <div class="field-row align-start">
+                                <label for="ctaBody{{si}}">Body text:</label>
+                                <textarea id="ctaBody{{si}}" [name]="'ctaBody'+si" spellcheck="true"
+                                    placeholder="Optional supporting sentence…"
+                                    [(ngModel)]="section.content"></textarea>
+                            </div>
+
+                            <div class="field-row align-start">
+                                <label>Links:</label>
+                                <div class="cta-links-editor">
+                                    @for (link of section.ctaLinks || []; track $index; let li = $index) {
+                                        <div class="cta-link-row">
+                                            <input type="text" placeholder="Label e.g. Visit the map"
+                                                [name]="'ctaLabel_'+si+'_'+li" [(ngModel)]="link.label">
+                                            <input type="text" placeholder="URL e.g. /map or /blog/slug"
+                                                [name]="'ctaUrl_'+si+'_'+li" [(ngModel)]="link.url">
+                                            <button type="button" class="icon-btn" (click)="removeCtaLink(si, li)" title="Remove link">✕</button>
+                                        </div>
+                                    }
+                                    <button type="button" class="btn-add-cta-link" (click)="addCtaLink(si)">+ Add link</button>
+                                </div>
+                            </div>
+                        }
                     </div>
 
                     @if ($last) {
-                        <button type="button" class="btn-add-section" (click)="addQA()">+ New section</button>
+                        <div class="add-section-row">
+                            <button type="button" class="btn-add-section" (click)="addQA()">+ Content section</button>
+                            <button type="button" class="btn-add-section btn-add-cta" (click)="addCtaSection()">✦ Highlight box</button>
+                        </div>
                     }
                 }
 
                 @if (selectedPost.sections.length === 0) {
-                    <button type="button" class="btn-add-section" (click)="addQA()">+ New section</button>
+                    <div class="add-section-row">
+                        <button type="button" class="btn-add-section" (click)="addQA()">+ Content section</button>
+                        <button type="button" class="btn-add-section btn-add-cta" (click)="addCtaSection()">✦ Highlight box</button>
+                    </div>
                 }
 
             </form>

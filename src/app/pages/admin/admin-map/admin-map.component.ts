@@ -4,6 +4,7 @@ import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
 import { mapboxToken } from '@shared/globals';
 import * as mapboxgl from 'mapbox-gl';
+import { ToastService } from '@shared/services/toast.service';
 
 type SiteStatus = 'visited-production' | 'visited-hidden' | 'unvisited-priority' | 'unvisited';
 
@@ -51,6 +52,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
   constructor(
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
+    private _toaster: ToastService,
     @Inject(DOCUMENT) _document: Document,
   ) {
     this._window = _document.defaultView!;
@@ -67,6 +69,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
       this._initMap();
     } catch {
       this.loadingState = 'failed';
+      this._toaster.show('Failed to load sites', 'error');
       this._cdr.detectChanges();
     }
   }

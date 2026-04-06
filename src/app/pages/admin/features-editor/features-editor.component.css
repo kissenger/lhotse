@@ -1,31 +1,26 @@
-.static-div {
-  padding: 1em;
-  position: fixed;
-  top: var(--header-height);
-  width: 100vw;
-  background-color: white;
-  z-index: 999;
-  border-bottom: 1px var(--border-colour) solid;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
+@import '../admin-common.css';
+
+/* === Scrolling area override === */
+.scrolling-div {
+  margin-top: calc(var(--header-height) + 100px);
 }
 
-.static-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5em;
+/* === Label width override === */
+label, .label {
+  width: 160px;
+  min-width: 160px;
+  margin-right: 1em;
 }
 
-.static-row select {
+/* === Toolbar row — select grows to fill === */
+.toolbar-row select {
   flex-grow: 1;
 }
 
-.scrolling-div {
-  margin-top: calc(var(--header-height) + 100px);
-  padding: 1em;
-  padding-bottom: 2em;
+.static-div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
 }
 
 h3 {
@@ -37,12 +32,6 @@ h3 {
 h4 {
   margin-top: 1em;
   margin-bottom: 0.25em;
-}
-
-label, .label {
-  width: 160px;
-  min-width: 160px;
-  margin-right: 1em;
 }
 
 .inline-label {
@@ -61,29 +50,9 @@ form > div {
   margin: 0.4em 0;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="email"],
-select,
-textarea {
-  font-size: 1rem;
-  font-weight: 400;
-  flex-grow: 1;
-  padding: 2px 4px;
-}
-
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-}
-
-textarea {
-  height: 80px;
-}
-
-select {
-  font-size: 1rem;
-  margin-right: 1em;
 }
 
 .categories-row {
@@ -131,24 +100,12 @@ select {
 
 .formButton {
   width: 100px;
-  height: 30px;
   margin: 6px;
-  cursor: pointer;
 }
 
 .qaButton {
   width: 120px;
   cursor: pointer;
-}
-
-.sureButton {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.showButton {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .section-header {
@@ -157,10 +114,6 @@ select {
   gap: 1em;
   font-weight: 600;
   margin-bottom: 0.25em;
-}
-
-input:focus, textarea:focus, select:focus {
-  outline-width: 0;
 }
 
 input[readonly] {

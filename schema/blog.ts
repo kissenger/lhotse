@@ -15,7 +15,12 @@ const blogSchema = new mongoose.Schema({
     imgFname: {type: String},
     imgAlt: {type: String},
     videoUrl: {type: String},
-    imgCredit: {type: String}
+    imgCredit: {type: String},
+    sectionType: {type: String},
+    ctaLinks: {type: [{
+      label: {type: String},
+      url: {type: String}
+    }], default: undefined}
   }]},
   conclusion: {type: String, required: true},
   author: {type: String},

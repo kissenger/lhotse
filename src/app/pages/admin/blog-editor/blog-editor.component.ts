@@ -26,7 +26,9 @@ export class BlogEditorComponent implements OnInit {
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
   public showMarkdownHelp: boolean = false;
-  
+  public askForDiscardChanges: boolean = false;
+  private _pendingNavAction: (() => void) | null = null;
+
   constructor(
       private _http: HttpService,
       private _kebaber: KebaberPipe,
@@ -83,8 +85,12 @@ export class BlogEditorComponent implements OnInit {
 
   onFormSelect(value: string) {
     if (this.isDirty) {
-      const confirmed = this._window?.confirm?.('You have unsaved changes. Switch post and lose them?');
-      if (!confirmed) return;
+      this._pendingNavAction = () => {
+        this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
+        this.isDirty = false;
+      };
+      this.askForDiscardChanges = true;
+      return;
     }
     this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
     this.isDirty = false;
@@ -92,11 +98,27 @@ export class BlogEditorComponent implements OnInit {
 
   onNewPost() {
     if (this.isDirty) {
-      const confirmed = this._window?.confirm?.('You have unsaved changes. Start a new post and lose them?');
-      if (!confirmed) return;
+      this._pendingNavAction = () => {
+        this.selectedPost = new BlogPost();
+        this.isDirty = false;
+      };
+      this.askForDiscardChanges = true;
+      return;
     }
     this.selectedPost = new BlogPost();
     this.isDirty = false;
+  }
+
+  onConfirmDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction?.();
+    this._pendingNavAction = null;
+  }
+
+  onCancelDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction = null;
+    this._cdr.detectChanges();
   }
 
   moveUp(index: number) {
@@ -142,11 +164,28 @@ export class BlogEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
+  addCtaSection() {
+    this.selectedPost.sections.push({
+      title: '', content: '', imgFname: '', imgAlt: '', videoUrl: '', imgCredit: '',
+      sectionType: 'cta',
+      ctaLinks: [{ label: '', url: '' }],
+    });
+    this.isDirty = true;
+  }
+
+  addCtaLink(sectionIndex: number) {
+    const section = this.selectedPost.sections[sectionIndex];
+    if (!section.ctaLinks) section.ctaLinks = [];
+    section.ctaLinks.push({ label: '', url: '' });
+    this.isDirty = true;
+  }
+
+  removeCtaLink(sectionIndex: number, linkIndex: number) {
+    this.selectedPost.sections[sectionIndex].ctaLinks?.splice(linkIndex, 1);
+    this.isDirty = true;
+  }
+
   deleteQA(index: number) {
-    const confirmed = this._window?.confirm?.('Delete this section? This cannot be undone.');
-    if (!confirmed) {
-      return;
-    }
     this.selectedPost.sections.splice(index, 1);
     this.isDirty = true;
   }

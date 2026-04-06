@@ -62,44 +62,70 @@
           <h2>Contents</h2>
           <ul class="contents-list">
             @for(section of post.sections; track section) {
-              <li>
-                <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
-              </li>
+              @if (section.sectionType !== 'cta') {
+                <li>
+                  <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
+                </li>
+              }
             } 
           </ul>
         </section>
 
 
         @for (section of post.sections; track section) {
-          <a class="anchor" id="{{section.title | kebaber}}"></a>
-          <h2>{{section.title}}</h2>
-          <div [innerHTML]="section.content | sanitizer"></div>
-          @if (!!section.imgFname) {
+          @if (section.sectionType === 'cta') {
+            <aside class="cta-box">
+              @if (section.title) {
+                <h2 class="cta-box-title">{{section.title}}</h2>
+              }
+              @if (section.content) {
+                <div class="cta-box-body" [innerHTML]="section.content"></div>
+              }
+              @if (section.ctaLinks && section.ctaLinks.length > 0) {
+                <div class="cta-link-group">
+                  @for (link of section.ctaLinks; track link) {
+                    @if (link.url && link.label) {
+                      @if (link.url.startsWith('/')) {
+                        <a class="cta-link-btn" [routerLink]="ctaLinkPath(link.url)" [queryParams]="ctaLinkParams(link.url)">{{link.label}}</a>
+                      } @else {
+                        <a class="cta-link-btn" [href]="link.url" target="_blank" rel="noopener noreferrer">{{link.label}}</a>
+                      }
+                    }
+                  }
+                </div>
+              }
+            </aside>
+          } @else {
+            <a class="anchor" id="{{section.title | kebaber}}"></a>
+            <h2>{{section.title}}</h2>
+            <div [innerHTML]="section.content | sanitizer"></div>
+            @if (!!section.imgFname) {
 
-            <div class="article-image-container section-image-container">
-              <img
-                [ngSrc]="section.imgFname"
-                [alt]="section.imgAlt"
-                fill 
-              />
-            </div>
-            <p class="image-credit">{{section.imgAlt}} · © {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
-          } @else if (!!section.videoUrl) {
-            <div class="youtube-container">
-              <iframe
-                [src]="section.videoUrl"
-                title="YouTube video player" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerpolicy="strict-origin-when-cross-origin" 
-                allowfullscreen>
-              </iframe>
-            </div>
-            @if (section.imgAlt || section.imgCredit) {
-              <p class="image-credit">{{section.imgAlt}}{{section.imgAlt && section.imgCredit ? ' · ' : ''}}{{section.imgCredit ? '© ' + section.imgCredit : ''}}</p>
+              <div class="article-image-container section-image-container">
+                <img
+                  [ngSrc]="section.imgFname"
+                  [alt]="section.imgAlt"
+                  fill 
+                />
+              </div>
+              <p class="image-credit">{{section.imgAlt}} · © {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
+            } @else if (!!section.videoUrl) {
+              <div class="youtube-container">
+                <iframe
+                  [src]="section.videoUrl"
+                  title="YouTube video player" 
+                  frameborder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  referrerpolicy="strict-origin-when-cross-origin" 
+                  allowfullscreen>
+                </iframe>
+              </div>
+              @if (section.imgAlt || section.imgCredit) {
+                <p class="image-credit">{{section.imgAlt}}{{section.imgAlt && section.imgCredit ? ' · ' : ''}}{{section.imgCredit ? '© ' + section.imgCredit : ''}}</p>
+              }
             }
+            <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
           }
-          <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
         }
       }
 

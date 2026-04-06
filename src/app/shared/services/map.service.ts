@@ -254,4 +254,43 @@ export class MapService {
     this.selectionChanged.next();
   }
 
+  fitBoundsToFeatures(features: any[], selectId?: number) {
+    if (!features.length) return;
+    let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    for (const f of features) {
+      const [lng, lat] = f.geometry.coordinates;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    }
+    if (this.selectedFeature) {
+      this._map!.setFeatureState(this.selectedFeature, { selected: false });
+      this.selectedFeature = null;
+    }
+    this._map!.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, maxZoom: 14 });
+    if (selectId !== undefined) {
+      this._map!.once('moveend', () => {
+        const ref = { source: 'sitesSource', id: selectId };
+        this._map!.setFeatureState(ref, { selected: true });
+        this.selectedFeature = ref;
+        this.selectionChanged.next();
+      });
+    }
+  }
+
+  flyToAndSelect(id: number, coordinates: [number, number], zoom = 12) {
+    if (this.selectedFeature) {
+      this._map!.setFeatureState(this.selectedFeature, { selected: false });
+      this.selectedFeature = null;
+    }
+    this._map!.flyTo({ center: coordinates, zoom });
+    this._map!.once('moveend', () => {
+      const ref = { source: 'sitesSource', id };
+      this._map!.setFeatureState(ref, { selected: true });
+      this.selectedFeature = ref;
+      this.selectionChanged.next();
+    });
+  }
+
 }

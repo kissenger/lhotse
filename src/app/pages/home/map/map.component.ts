@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject } from '@angular/core';
 import { NgClass, DOCUMENT } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { MapService } from '@shared/services/map.service';
 import { EmailSvgComponent } from '@shared/svg/email/email.component';
@@ -40,6 +41,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
+    private _route: ActivatedRoute,
     @Inject(DOCUMENT) private _document: Document
   ) {}
 
@@ -65,6 +67,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       });
       this.loadingState = 'success';
       this._cdr.detectChanges();
+      this._applyQueryParams();
 
     } catch (error) {
       this.loadingState = 'failed';
@@ -159,6 +162,84 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     };
 
     this.map.updateSourceData(filtered);
+  }
+
+  private _applyQueryParams() {
+    if (!this.map || !this.geoJson) return;
+    const params = this._route.snapshot.queryParamMap;
+    const siteName = params.get('site');
+    const county = params.get('county');
+    const sitesWithin = params.get('sitesWithin');
+
+    if (!siteName && !county) return;
+
+    const includeProviders = params.get('includeProviders')?.toLowerCase() !== 'false';
+
+    this._document.getElementById('map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (county) {
+      const features = this._filterByCounty(county, includeProviders);
+      this.map.fitBoundsToFeatures(features);
+    }
+
+    if (siteName) {
+      const idx = this._findFeatureIndex(siteName);
+      if (idx < 0) return;
+      const coords = this.geoJson.features[idx].geometry.coordinates as [number, number];
+      if (sitesWithin) {
+        const km = parseFloat(sitesWithin.replace(/[^0-9.]/g, ''));
+        if (km > 0) {
+          const features = this._filterByRadius(idx, coords, km, includeProviders);
+          this.map.fitBoundsToFeatures(features);
+          return;
+        }
+      }
+      this.map.flyToAndSelect(idx, coords);
+    }
+  }
+
+  private _findFeatureIndex(name: string): number {
+    const normalised = name.toLowerCase();
+    return this.geoJson.features.findIndex(
+      (f: any) => (f.properties.name as string)?.toLowerCase() === normalised
+    );
+  }
+
+  private _filterByCounty(county: string, includeProviders: boolean): any[] {
+    const normalised = county.toLowerCase();
+    const features = this.geoJson.features.filter(
+      (f: any) => {
+        const loc = f.properties.location;
+        const match = (loc?.county as string)?.toLowerCase() === normalised ||
+          (!loc?.county && (loc?.adminLevel3 as string)?.toLowerCase() === normalised);
+        return match && (includeProviders || f.properties.featureType === 'Snorkelling Site');
+      }
+    );
+    this.map!.updateSourceData({ ...this.geoJson, features });
+    return features;
+  }
+
+  private _filterByRadius(originIdx: number, originCoords: [number, number], radiusKm: number, includeProviders: boolean): any[] {
+    const [originLng, originLat] = originCoords;
+    const features = this.geoJson.features.filter((f: any, i: number) => {
+      if (i === originIdx) return true;
+      if (!includeProviders && f.properties.featureType !== 'Snorkelling Site') return false;
+      const [lng, lat] = f.geometry.coordinates;
+      return this._haversineKm(originLat, originLng, lat, lng) <= radiusKm;
+    });
+    this.map!.updateSourceData({ ...this.geoJson, features });
+    return features;
+  }
+
+  private _haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   

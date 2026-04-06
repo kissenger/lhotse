@@ -1,21 +1,24 @@
+@import '../admin-common.css';
 
 .orders-container {
     width: 100vw;    
     font-size: smaller;
     margin-top: 100px;
     min-height: 100vh;
-
     flex-direction: row;
 }
+
 .side-panel {
     position: fixed;
     width: 25%;
     padding-inline: 1rem;    
 }
 
-button {
+.side-panel button {
     font-size: small;
+    margin-right: 0.5rem;
 }
+
 .content {
     width: 75%;
     margin-left: 30%;
@@ -81,11 +84,7 @@ table {
     border-width: 0 1px 1px 1px;
     line-height: 100%;
         
-    -webkit-user-select: text;
-     -khtml-user-select: text;
-       -moz-user-select: text;
-        -ms-user-select: text;
-            user-select: text;
+    user-select: text;
 }
 
 .first-line {
@@ -116,7 +115,7 @@ table {
     margin-inline: 0.5rem;
 }
 
-button {
+.action button {
     margin-right: 0.5rem;
 }
 .grey {

@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ExportFileService } from '@shared/services/export.service';
 import { HttpService } from '@shared/services/http.service';
 import { OrderStatus, OrderSummary } from '@shared/types';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   selector: 'app-orders',
@@ -28,6 +29,7 @@ export class OrdersComponent {
   constructor(
     private _http: HttpService,
     private _exportCSV: ExportFileService,
+    private _toaster: ToastService,
     @Inject(Router) private _router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -53,6 +55,7 @@ export class OrdersComponent {
     } catch (error) {
       this.orders = originalOrders;
       console.error(error);
+      this._toaster.show('Failed to delete order', 'error');
     }
   }
 
@@ -78,6 +81,7 @@ export class OrdersComponent {
       this.cdr.markForCheck();
     } catch (error) {
       console.error(error);
+      this._toaster.show('Failed to load orders', 'error');
     } finally {
       document.body.style.cursor = 'auto';
     }
@@ -116,6 +120,7 @@ export class OrdersComponent {
         order.timeStamps = originalTimestamps;
       }
       console.error(error);
+      this._toaster.show('Failed to update order status', 'error');
     }
   }
 
@@ -133,6 +138,7 @@ export class OrdersComponent {
         order.timeStamps = originalTimestamps;
       }
       console.error(error);
+      this._toaster.show('Failed to update order status', 'error');
     }
   }
 
@@ -161,6 +167,7 @@ export class OrdersComponent {
         order.notes = originalNotes;
       }
       console.error(error);
+      this._toaster.show('Failed to add note', 'error');
     }
   }
 
@@ -177,6 +184,7 @@ export class OrdersComponent {
         order.timeStamps = originalTimestamps;
       }
       console.error(error);
+      this._toaster.show('Failed to send posted email', 'error');
     }
   }
 }

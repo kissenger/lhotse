@@ -10,6 +10,7 @@ import { takeUntil } from 'rxjs/operators';
 import { EditorMapInstance } from '@shared/services/editor-map.instance';
 import { mapboxToken } from '@shared/globals';
 import { ActivatedRoute } from '@angular/router';
+import { ToastService } from '@shared/services/toast.service';
 
 @Component({
   selector: 'app-features-editor',
@@ -29,6 +30,8 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   public sites: Array<MapFeature> = [this.selectedSite];
   public askForConfirmation: boolean = false;
   public askForResetForm: boolean = false;
+  public askForDiscardChanges: boolean = false;
+  private _pendingNavAction: (() => void) | null = null;
 
   private _savedSnapshot: string = '';
 
@@ -83,6 +86,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     private _cdr: ChangeDetectorRef,
     private _sanitizer: DomSanitizer,
     private _route: ActivatedRoute,
+    private _toaster: ToastService,
     @Inject(DOCUMENT) _document: Document
   ) {
     this._window = _document.defaultView;
@@ -108,6 +112,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit() {
+    this._injectMapboxCss();
     this._setupMapSubscriptions();
     this._initMainMap();
   }
@@ -117,6 +122,23 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this._destroy$.complete();
     this._mainMapInst.destroy();
     this._parkingMapInst.destroy();
+  }
+
+  private _injectMapboxCss() {
+    const id = 'mapbox-gl-editor-css';
+    const doc = this._window!.document;
+    if (doc.getElementById(id)) return;
+    const style = doc.createElement('style');
+    style.id = id;
+    // These four rules are the only ones needed for DOM markers to track with the map.
+    // Injected programmatically so Angular's CSS scoping (which would break them) is bypassed.
+    // The public map uses canvas-rendered symbol layers and doesn't need any of this.
+    style.textContent =
+      '.mapboxgl-map{overflow:hidden;position:relative}' +
+      '.mapboxgl-canvas-container{height:100%}' +
+      '.mapboxgl-canvas{position:absolute;left:0;top:0}' +
+      '.mapboxgl-marker{position:absolute;top:0;left:0;will-change:transform}';
+    doc.head.appendChild(style);
   }
 
   private _initMainMap() {
@@ -202,7 +224,7 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
       this.refreshSiteList(result);
     } catch (error: any) {
       console.error(error);
-      this._window!.alert(`Failed to load sites:\n${error?.error?.message || error}`);
+      this._toaster.show(error?.error?.message || 'Failed to load sites', 'error');
     }
   }
 
@@ -265,8 +287,18 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onFormSelect(id: string) {
-    if (this.hasUnsavedChanges() && !this._window!.confirm('You have unsaved changes. Discard them?')) {
-      // Revert the select element back to the current site
+    if (this.hasUnsavedChanges()) {
+      this._pendingNavAction = () => {
+        this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+        this._placeMarker();
+        if (this.selectedSite.properties.siteInfo.parking.location) {
+          setTimeout(() => this._initParkingMap(), 0);
+        } else {
+          this._destroyParkingMap();
+        }
+        this._takeSnapshot();
+      };
+      this.askForDiscardChanges = true;
       this._cdr.detectChanges();
       return;
     }
@@ -281,7 +313,15 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onNewSite() {
-    if (this.hasUnsavedChanges() && !this._window!.confirm('You have unsaved changes. Discard them?')) {
+    if (this.hasUnsavedChanges()) {
+      this._pendingNavAction = () => {
+        this.selectedSite = new MapFeature();
+        this._mainMapInst.hideMarker();
+        this._mainMapInst.jumpTo(-3.5, 54.5, 5);
+        this._destroyParkingMap();
+        this._takeSnapshot();
+      };
+      this.askForDiscardChanges = true;
       return;
     }
     this.selectedSite = new MapFeature();
@@ -289,6 +329,18 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     this._mainMapInst.jumpTo(-3.5, 54.5, 5);
     this._destroyParkingMap();
     this._takeSnapshot();
+  }
+
+  onConfirmDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction?.();
+    this._pendingNavAction = null;
+  }
+
+  onCancelDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction = null;
+    this._cdr.detectChanges();
   }
 
   private _placeMarker() {
@@ -423,7 +475,6 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   deleteResearchLink(index: number) {
-    if (!this._window?.confirm('Delete this link?')) return;
     this.selectedSite.properties.researchNotes.links.splice(index, 1);
   }
 
@@ -433,7 +484,6 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   deleteMoreInfo(index: number) {
-    if (!this._window?.confirm('Delete this info link?')) return;
     this.selectedSite.properties.moreInfo.splice(index, 1);
   }
 
@@ -494,10 +544,10 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
         }
         this._takeSnapshot();
       }
-      this._window!.alert('Site saved successfully!');
+      this._toaster.show('Site saved successfully.', 'success');
     } catch (error: any) {
       console.error(error);
-      this._window!.alert(`Save failed:\n${error?.error?.message || error}`);
+      this._toaster.show(error?.error?.message || 'Save failed', 'error');
     }
   }
 
@@ -531,10 +581,10 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
     try {
       const result = await this._http.deleteSite(this.selectedSite._id);
       this.refreshSiteList(result);
-      this._window!.alert('Site deleted.');
+      this._toaster.show('Site deleted.', 'success');
     } catch (error: any) {
       console.error(error);
-      this._window!.alert(`Delete failed:\n${error?.error?.message || error}`);
+      this._toaster.show(error?.error?.message || 'Delete failed', 'error');
     }
   }
 }

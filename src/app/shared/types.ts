@@ -175,6 +175,17 @@ export interface OrderSummary {
   notes?: string
 }
 
+export interface BlogSection {
+  title: string;
+  content: string;
+  imgFname: string;
+  imgAlt: string;
+  videoUrl: string;
+  imgCredit: string;
+  sectionType?: 'cta';
+  ctaLinks?: Array<{ label: string; url: string }>;
+}
+
 export class BlogPost {
   _id: string = '';
   slug: string = '';
@@ -186,7 +197,7 @@ export class BlogPost {
   imgAlt: string = '';
   imgCredit: string = '';
   intro: string = '';
-  sections = [{
+  sections: Array<BlogSection> = [{
     title: '', 
     content: '', 
     imgFname: '', 
