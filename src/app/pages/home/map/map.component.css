@@ -33,6 +33,12 @@
   cursor: default;
 }
 
+.also-known-as {
+  font-size: 0.85em;
+  color: #777;
+  margin-top: -0.5em;
+}
+
 .map-container {
   position: relative;
   height: 80vh;
