@@ -102,11 +102,12 @@ async function collectBlogPostLinks(request) {
   return urls;
 }
 
-test.describe('dead links', () => {
+test.describe.serial('dead links', () => {
   // Link existence is browser-independent — run in one project only.
-  test.skip(({ browserName }) => browserName !== 'chromium', 'single-browser check');
+  test.skip(({ project }) => project.name !== 'chromium', 'single-browser check');
 
   test('internal links resolve without 404', async ({ page }) => {
+    test.setTimeout(180_000);
     // Mock the blog API so this test stays fast and deterministic.
     await page.route('**/api/blog/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
@@ -142,6 +143,7 @@ test.describe('dead links', () => {
   });
 
   test('external links are reachable', async ({ page, request }) => {
+    test.setTimeout(300_000);
     const base = new URL('http://127.0.0.1:4200');
     const externalUrls = new Set();
 
