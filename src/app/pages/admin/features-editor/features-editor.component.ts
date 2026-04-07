@@ -42,9 +42,9 @@ export class FeaturesEditorComponent implements OnInit, AfterViewInit, OnDestroy
   readonly featureTypes = [
     'Authors of Snorkelling Britain',
     'Snorkelling Retailer',
-    'Wildlife Trust Marine Centre',
+    'Marine Interest Group',
     'Outdoor Activities Provider',
-    'Snorkel Club or School',
+    'Snorkelling Club or School',
     'Snorkelling Site',
   ];
   readonly ratingOptions: Array<'good' | 'ok' | 'poor' | 'not for snorkelling' | ''> = ['', 'good', 'ok', 'poor', 'not for snorkelling'];

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# If invoked with sh/dash, re-run with bash so pipefail and bash syntax work.
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
+set -euo pipefail
+
+# import .env file
+set -a
+# shellcheck disable=SC1090
+source "/home/gort1975/snorkelology/.env"
+set +a
+
+# read .env variables
+LOG_FILE="${LOG_FILE}"
+
+# move to working directory
+cd "/home/gort1975/snorkelology/"
+
+. "/home/gort1975/.nvm/nvm.sh"
+nvm use
+
+# print working status
+echo "$(date -Iseconds) Starting dead-links URL check" | tee -a "${LOG_FILE}" >&2
+
+if ! output="$(npm run test:ui:dead-links -- --config ./playwright.config.ts 2>&1)"; then
+  if [[ -n "${output}" ]]; then
+    echo "$(date -Iseconds) FAILURE playwright output:" | tee -a "${LOG_FILE}" >&2
+    echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+  fi
+  exit 1
+fi
+
+if [[ -n "${output}" ]]; then
+  echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+fi
+
+echo "$(date -Iseconds) Dead-links URL check completed OK" | tee -a "${LOG_FILE}" >&2

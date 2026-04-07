@@ -184,6 +184,12 @@ test.describe('PayPal sandbox nightly flow', () => {
       }
     }
 
+    // ── 1b. Add an item to the basket — PayPal is lazy-init'd on first add ──
+    await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 15_000 });
+    const addBtn = page.locator('.add-btn').first();
+    await addBtn.scrollIntoViewIfNeeded();
+    await addBtn.click();
+
     // ── 2. Confirm the PayPal button has rendered ──────────────────────────
     let paypalFrame;
     try {
