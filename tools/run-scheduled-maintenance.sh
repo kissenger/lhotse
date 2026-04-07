@@ -25,20 +25,21 @@ REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}"
 # move to working directory
 cd "/home/gort1975/snorkelology/"
 
-# print working status
-echo "$(date -Iseconds) ** Starting scheduled maintenance" | tee -a "${LOG_FILE}" >&2
-
 . "/home/gort1975/.nvm/nvm.sh"
 nvm use
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
 printError() {
-  errorMessage="$(date -Iseconds) FAILURE  ${1}"
-  echo "${errorMessage}" | tee -a "${LOG_FILE}" >&2
-  ERROR_LINES+="${errorMessage}\n"
+  local msg="$(date -Iseconds) FAILURE  ${1}"
+  echo -e "${RED}${msg}${NC}" | tee -a "${LOG_FILE}" >&2
+  ERROR_LINES+="${msg}\n"
 }
 
 printSuccess() {
-  echo "$(date -Iseconds) ${1}" | tee -a "${LOG_FILE}" >&2
+  echo -e "$(date -Iseconds) ${1}" | tee -a "${LOG_FILE}"
 }
 
 sendEmail() {
@@ -48,51 +49,45 @@ sendEmail() {
 }
 
 run_check() {
-  local script="${SCRIPT_DIR}/${1}"
+  local name="${1}"
+  local script="${SCRIPT_DIR}/${name}"
   local output=""
 
   if [[ ! -f "${script}" ]]; then
-    printError "missing script ${script}"
+    echo -e "${RED}$(date -Iseconds) [FAIL] ${name} (script not found)${NC}" | tee -a "${LOG_FILE}" >&2
+    ERROR_LINES+="$(date -Iseconds) [FAIL] ${name} (script not found)\n"
     return 1
   fi
 
-  if ! output="$(bash "${script}" 2>&1)"; then
-    printError "${script} failed"
+  if output="$(bash "${script}" 2>&1)"; then
+    echo -e "${GREEN}$(date -Iseconds) [PASS] ${name}${NC}" | tee -a "${LOG_FILE}"
+  else
+    echo -e "${RED}$(date -Iseconds) [FAIL] ${name}${NC}" | tee -a "${LOG_FILE}" >&2
+    if [[ -n "${output}" ]]; then
+      echo -e "${RED}${output}${NC}" | tee -a "${LOG_FILE}" >&2
+    fi
+    ERROR_LINES+="$(date -Iseconds) [FAIL] ${name}\n${output}\n"
     return 1
   fi
-
-  return 0
 }
 
-run_check "run-paypal-test.sh" || HAS_FAILURE=1
-run_check "run-url-check.sh" || HAS_FAILURE=1
-run_check "run-seo-check.sh" || HAS_FAILURE=1
-run_check "run-generate-sitemap.sh" || HAS_FAILURE=1
-run_check "run-mongo-backup.sh" || HAS_FAILURE=1
-
-# Let's Encrypt certificate status and dry-run renewal
-ERROR_MSG=$(sudo certbot renew --cert-name snorkelology.co.uk --dry-run 2>&1)
-if [ $? -ne 0 ]; then
-    printError "Certbot dry-run failed with error: ${ERROR_MSG}"
-    HAS_FAILURE=1
-else
-    printSuccess "Certbot dry-run successful"
-fi
+run_check "run-mongo-connectivity.sh"  || HAS_FAILURE=1
+run_check "run-paypal-test.sh"         || HAS_FAILURE=1
+run_check "run-url-check.sh"           || HAS_FAILURE=1
+run_check "run-seo-check.sh"           || HAS_FAILURE=1
+run_check "run-performance.sh"         || HAS_FAILURE=1
+run_check "run-generate-sitemap.sh"    || HAS_FAILURE=1
+run_check "run-mongo-backup.sh"        || HAS_FAILURE=1
+run_check "run-certbot-renew.sh"       || HAS_FAILURE=1
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
-  printError "Scheduled maintenance completed with failures"
+  echo -e "${RED}$(date -Iseconds) [FAIL] scheduled maintenance ran with failures${NC}" | tee -a "${LOG_FILE}" >&2
   sendEmail
-else
-  printSuccess "Scheduled maintenance completed successfully"
 fi
 
 # Create the flag file so startup-reboot-check.sh knows this reboot is intentional.
 touch "${REBOOT_FLAG_FILE}"
 printSuccess "Created reboot flag ${REBOOT_FLAG_FILE}"
-
-# Final sync to disk (highly recommended for Raspberry Pi SD cards)
-sync
-printSuccess "Filesystem sync completed"
 
 # Reboot host  
 printSuccess "Initiating reboot now ..."

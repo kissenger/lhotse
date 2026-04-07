@@ -28,6 +28,8 @@
     "test:ui:paypal": "playwright test tests/e2e/paypal-ui.spec.js",
     "test:ui:paypal:sandbox": "playwright test tests/e2e/paypal-sandbox-nightly.spec.js",
     "test:ui:dead-links": "playwright test tests/e2e/dead-links.spec.js",
+    "test:ui:mongo-connectivity": "playwright test tests/e2e/mongo-connectivity.spec.js",
+    "test:ui:performance": "playwright test tests/e2e/performance.spec.js",
     "test:all": "npm run test && npm run test:seo && npm run test:shop-backend && npm run test:dead-code && npm run test:ui",
     "test:dead-code": "node ./tests/test-dead-code.js",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
