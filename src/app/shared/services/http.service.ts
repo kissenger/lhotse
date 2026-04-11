@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, BlogPost, MapFeature, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, BlogPost, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -168,4 +168,28 @@ export class HttpService {
     const request = this._http.post<any>(`/api/auth/register/`, {user});
     return await lastValueFrom(request);
   }
+
+  // Organisations
+
+  async listOrgDocs(collection: OrgCollectionKey, search = '', skip = 0, limit = 100): Promise<OrgListResponse> {
+    const params = new URLSearchParams({ search, skip: String(skip), limit: String(limit) });
+    const request = this._http.get<OrgListResponse>(`/api/organisations/${collection}?${params}`, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async getOrgDoc(collection: OrgCollectionKey, id: string): Promise<OrgDocument> {
+    const request = this._http.get<OrgDocument>(`/api/organisations/${collection}/${id}`, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async saveOrgDoc(collection: OrgCollectionKey, id: string, data: OrgDocument): Promise<OrgDocument> {
+    const request = this._http.post<OrgDocument>(`/api/organisations/${collection}/${id}`, data, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async deleteOrgDoc(collection: OrgCollectionKey, id: string): Promise<void> {
+    const request = this._http.delete<void>(`/api/organisations/${collection}/${id}`, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
 }
+

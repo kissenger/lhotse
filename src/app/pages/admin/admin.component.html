@@ -2,10 +2,6 @@
 
   <div class="dashboard-header">
     <h1>Admin Dashboard</h1>
-    <button class="logout-btn" (click)="onLogout()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Logout
-    </button>
   </div>
 
   <div class="card-grid">
@@ -21,12 +17,12 @@
       <div class="card-arrow">›</div>
     </a>
 
-    <a class="card" routerLink="/featureseditor">
+    <a class="card" routerLink="/siteseditor">
       <div class="card-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
       </div>
       <div class="card-body">
-        <h2>Features Editor</h2>
+        <h2>Sites Editor</h2>
         <p>Add and edit snorkel sites</p>
       </div>
       <div class="card-arrow">›</div>
@@ -39,6 +35,17 @@
       <div class="card-body">
         <h2>Admin Map</h2>
         <p>View all sites by visit status</p>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="card" routerLink="/organisations">
+      <div class="card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="card-body">
+        <h2>Organisations</h2>
+        <p>Review and edit the directory pipeline</p>
       </div>
       <div class="card-arrow">›</div>
     </a>

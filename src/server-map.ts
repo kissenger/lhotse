@@ -1,33 +1,82 @@
 import express from 'express';
 import FeatureModel from '../schema/feature';
+import { OrganisationModel } from '../schema/organisations';
 import { verifyToken } from './server-auth';
 import 'dotenv/config';
 
+const AI_SCORE_THRESHOLD = 70;
+
 const map = express();
+
+function orgToGeoJsonFeature(org: any, id: number) {
+  const d = org.discover ?? {};
+  const c = org.generate?.contacts ?? {};
+  const vd = org.verify?.verifiedData ?? {};
+  const rgCtx = org.reverse_geo?.properties?.context ?? {};
+  const coords: number[] | undefined = d.location?.coordinates;
+  if (!coords || coords.length < 2) return null;
+  const [lng, lat] = coords;
+  const website  = c.website  || d.website;
+  const phone    = d.phone    || c.phones?.[0];
+  const facebook = c.facebook;
+  const instagram= c.instagram;
+  const youtube  = c.youtube;
+  return {
+    type: 'Feature',
+    id,
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+    properties: {
+      featureType:  vd.category ?? 'Snorkelling Organisation',
+      name:         vd.name     || d.title || '',
+      description:  vd.description ?? '',
+      categories:   vd.tags ?? [],
+      location: {
+        locality:    vd.localityOverride || rgCtx.place?.name || d.city,
+        place:       rgCtx.place?.name,
+        district:    rgCtx.district?.name,
+        region:      rgCtx.region?.name,
+        country:     rgCtx.country?.name,
+        postcode:    rgCtx.postcode?.name,
+        address:     d.address,
+      },
+      moreInfo: [
+        website   ? { icon: 'website',   url: website,        text: 'Website'   } : null,
+        facebook  ? { icon: 'facebook',  url: facebook,       text: 'Facebook'  } : null,
+        instagram ? { icon: 'instagram', url: instagram,      text: 'Instagram' } : null,
+        youtube   ? { icon: 'youtube',   url: youtube,        text: 'YouTube'   } : null,
+        phone     ? { icon: 'phone',     url: `tel:${phone}`, text: phone       } : null,
+      ].filter(Boolean),
+      symbolSortOrder: id,
+    }
+  };
+}
 
 map.get('/api/sites/get-sites/*', async (req, res) => {
 
   let visibility = <string>Object.values(req.params)[0];
-  
-  try {
-    const sites = await FeatureModel.find({$or: [{showOnMap: visibility.split('/')}]});
-    res.status(201).json(geoJson(sites));
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
-});
 
-function geoJson(sites:any) {
-  return {
-    type: "FeatureCollection",
-    features: sites.map((s:any,i:number)=>({
-      type: "Feature",
+  try {
+    const visibilityArr = visibility.split('/');
+    const [sites, orgs] = await Promise.all([
+      FeatureModel.find({ $or: [{ showOnMap: visibilityArr }], 'properties.featureType': 'Snorkelling Site' }),
+      OrganisationModel.find({ 'verify.publish': true }).lean(),
+    ]);
+    const siteFeatures = sites.map((s: any, i: number) => ({
+      type: 'Feature',
       id: i,
       geometry: s.location,
-      properties: s.properties
-    }))
+      properties: s.properties,
+    }));
+    const orgFeatures = orgs
+      .map((org: any, i: number) => orgToGeoJsonFeature(org, siteFeatures.length + i))
+      .filter(Boolean);
+    console.log(`get-sites: ${siteFeatures.length} sites, ${orgs.length} published orgs (${orgFeatures.length} with valid coords)`);
+    res.status(201).json({ type: 'FeatureCollection', features: [...siteFeatures, ...orgFeatures] });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
 
 function toPostalAddress(location: any) {
   if (!location || typeof location !== 'object') {
@@ -65,17 +114,21 @@ function extractProviderLinks(moreInfo: any[]): { url: string | undefined; sameA
 }
 
 async function getPlacesForSeo() {
-  const sites = await FeatureModel.find(
-    { showOnMap: { $in: ['Production', 'Development'] } },
-    { location: 1, properties: 1 }
-  ).lean();
+  const [sites, orgs] = await Promise.all([
+    FeatureModel.find(
+      { showOnMap: { $in: ['Production', 'Development'] } },
+      { location: 1, properties: 1 }
+    ).lean(),
+    OrganisationModel.find(
+      { 'verify.publish': true },
+      { discover: 1, verify: 1 }
+    ).lean(),
+  ]);
 
-  return sites.map((site: any) => {
+  const siteSchemas = sites.map((site: any) => {
     const coords = site.location?.coordinates || [];
     const p = site.properties || {};
     const categories: string[] = p.categories || [];
-    const isProvider = p.featureType !== 'Snorkelling Site';
-    const links = isProvider ? extractProviderLinks(p.moreInfo) : { url: undefined, sameAs: undefined };
     return {
       '@type': 'Place',
       name: p.name,
@@ -87,10 +140,30 @@ async function getPlacesForSeo() {
         latitude: coords[1],
         longitude: coords[0]
       },
-      ...(links.url ? { url: links.url } : {}),
-      ...(links.sameAs ? { sameAs: links.sameAs } : {})
     };
   });
+
+  const orgSchemas = orgs.map((org: any) => {
+    const d = org.discover ?? {};
+    const vd = org.verify?.verifiedData ?? {};
+    const coords: number[] = d.location?.coordinates ?? [0, 0];
+    const tags: string[] = vd.tags ?? [];
+    return {
+      '@type': 'SportsActivityLocation',
+      name: d.title,
+      description: vd.category ? vd.category + ': ' + (vd.description ?? '') : (vd.description ?? ''),
+      keywords: tags.length ? tags.join(', ') : undefined,
+      address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: coords[1],
+        longitude: coords[0]
+      },
+      ...(d.website ? { url: d.website } : {}),
+    };
+  });
+
+  return [...siteSchemas, ...orgSchemas];
 }
 
 async function getPlaceForSeo(siteName: string) {
@@ -99,7 +172,38 @@ async function getPlaceForSeo(siteName: string) {
     { location: 1, properties: 1 }
   ).lean();
 
-  if (!site) return null;
+  if (!site) {
+    // Fall back to organisations collection
+    const org = await OrganisationModel.findOne(
+      { 'discover.title': siteName, 'verify.publish': true },
+      { discover: 1, verify: 1 }
+    ).lean();
+
+    if (!org) return null;
+
+    const d = (org as any).discover ?? {};
+    const vd = (org as any).verify?.verifiedData ?? {};
+    const coords: number[] = d.location?.coordinates ?? [0, 0];
+    const tags: string[] = vd.tags ?? [];
+    const description = vd.category
+      ? `${vd.category}${d.city ? ' in ' + d.city : ''}${vd.description ? '. ' + vd.description : ''}`
+      : (vd.description ?? '');
+    return {
+      '@type': 'SportsActivityLocation' as const,
+      name: d.title as string,
+      description,
+      keywords: tags.length ? tags.join(', ') : undefined,
+      address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
+      geo: coords[0] != null && coords[1] != null ? {
+        '@type': 'GeoCoordinates',
+        latitude: coords[1],
+        longitude: coords[0],
+      } : undefined,
+      image: d.imageUrl || undefined,
+      ...(d.website ? { url: d.website } : {}),
+      district: undefined as string | undefined,
+    };
+  }
 
   const s = site as any;
   const coords = s.location?.coordinates || [];
@@ -143,16 +247,17 @@ export { map, getPlacesForSeo, getPlaceForSeo };
 
 map.get('/api/sites/get-provider-names/', async (_req, res) => {
   try {
-    const providers = await FeatureModel.find(
-      { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': { $ne: 'Snorkelling Site' } },
-      { 'properties.name': 1, updatedAt: 1 }
+    const orgs = await OrganisationModel.find(
+      { 'verify.publish': true },
+      { 'discover.title': 1, updatedAt: 1 }
     ).lean();
-    const result = (providers as any[])
-      .filter((p: any) => typeof p.properties?.name === 'string' && p.properties.name.trim() !== '')
-      .map((p: any) => ({ name: p.properties.name as string, updatedAt: p.updatedAt }));
+    const result = (orgs as any[])
+      .filter((o: any) => typeof o.discover?.title === 'string' && o.discover.title.trim() !== '')
+      .map((o: any) => ({ name: o.discover.title as string, updatedAt: o.updatedAt }));
     res.status(200).json(result);
   } catch (error: any) {
-    res.status(500).send(error);
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -169,7 +274,8 @@ map.get('/api/sites/get-districts/', async (_req, res) => {
     )].sort();
     res.status(200).json(districts);
   } catch (error: any) {
-    res.status(500).send(error);
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

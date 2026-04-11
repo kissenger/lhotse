@@ -1,5 +1,6 @@
 import { TokenInterceptor, HttpErrorInterceptor } from './interceptor.service';
 import { HttpRequest } from '@angular/common/http';
+import { PLATFORM_ID } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
 describe('TokenInterceptor', () => {
@@ -30,7 +31,7 @@ describe('HttpErrorInterceptor', () => {
   beforeEach(() => {
     mockAuth = { deleteCookies: jasmine.createSpy('deleteCookies') };
     mockRouter = { navigate: jasmine.createSpy('navigate') } as any;
-    interceptor = new HttpErrorInterceptor(mockAuth, mockRouter);
+    interceptor = new HttpErrorInterceptor(mockAuth, mockRouter, 'browser' as unknown as object);
   });
 
   it('on 401 should call deleteCookies and navigate', (done) => {

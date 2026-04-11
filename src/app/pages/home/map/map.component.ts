@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject } from '@angular/core';
 import { NgClass, DOCUMENT } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { MapService } from '@shared/services/map.service';
 import { EmailSvgComponent } from '@shared/svg/email/email.component';
@@ -17,7 +17,7 @@ import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component
 @Component({
   standalone: true,
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
-    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass ],
+    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass, RouterLink ],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],

@@ -1,8 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ShopService } from '@shared/services/shop.service';
-import { HttpService } from '@shared/services/http.service';
-import { OrderSummary } from '@shared/types';
 
 @Component({
   standalone: true,
@@ -12,21 +10,10 @@ import { OrderSummary } from '@shared/types';
   styleUrls: ['./order-outcome.component.css']
 })
 
-export class OrderOutcomeComponent implements OnInit {
+export class OrderOutcomeComponent {
   
-  public orderDetails?: OrderSummary;
-
   constructor(
-    private _http: HttpService,
     public shop: ShopService,
   ) {}
-
-  async ngOnInit() {
-    try {
-      this.orderDetails = await this._http.getOrderByOrderNumber(this.shop.orderNumber);
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
 }

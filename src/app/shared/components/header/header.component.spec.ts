@@ -146,24 +146,11 @@ describe('HeaderComponent', () => {
     expect(component.isAdminRoute).toBe(true);
   });
 
-  it('breadcrumbs on dashboard only has Admin entry', () => {
-    const { component } = buildHeader('/dashboard');
-    expect(component.breadcrumbs.length).toBe(1);
-    expect(component.breadcrumbs[0].label).toBe('Admin');
-  });
-
-  it('breadcrumbs on nested admin route has Admin + page entry', () => {
-    const { component } = buildHeader('/blogeditor');
-    expect(component.breadcrumbs.length).toBe(2);
-    expect(component.breadcrumbs[1].label).toBe('Blog Editor');
-  });
-
-  it('breadcrumbs are updated on NavigationEnd', () => {
+  it('isAdminRoute is updated on NavigationEnd', () => {
     const { component, routerEvents$ } = buildHeader('/');
     expect(component.isAdminRoute).toBe(false);
     routerEvents$.next(new NavigationEnd(4, '/orders', '/orders'));
     expect(component.isAdminRoute).toBe(true);
-    expect(component.breadcrumbs[1].label).toBe('Orders');
   });
 
   // --- ngOnDestroy ---

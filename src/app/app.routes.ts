@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { unsavedChangesGuard } from '@pages/admin/features-editor/unsaved-changes.guard';
+import { unsavedChangesGuard } from '@pages/admin/sites-editor/unsaved-changes.guard';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
 import { MapPageComponent } from '@pages/home/map/map-page.component';
@@ -20,14 +20,18 @@ export const routes: Routes = [
     import('@pages/admin/orders/manual-order/manual-order.component').then((m) => m.ManualOrderComponent), canActivate: [AuthGuard]},
   { path: 'blogeditor', loadComponent: () =>
     import('@pages/admin/blog-editor/blog-editor.component').then((m) => m.BlogEditorComponent), canActivate: [AuthGuard]},
-  { path: 'featureseditor', loadComponent: () =>
-    import('@pages/admin/features-editor/features-editor.component').then((m) => m.FeaturesEditorComponent), canActivate: [AuthGuard], canDeactivate: [unsavedChangesGuard]},
+  { path: 'siteseditor', loadComponent: () =>
+    import('@pages/admin/sites-editor/sites-editor.component').then((m) => m.SitesEditorComponent), canActivate: [AuthGuard], canDeactivate: [unsavedChangesGuard]},
   { path: 'adminmap', loadComponent: () =>
     import('@pages/admin/admin-map/admin-map.component').then((m) => m.AdminMapComponent), canActivate: [AuthGuard]},
+  { path: 'organisations', loadComponent: () =>
+    import('@pages/admin/organisations-editor/organisations-editor.component').then((m) => m.OrganisationsEditorComponent), canActivate: [AuthGuard]},
   { path: 'login', loadComponent: () =>
     import('@pages/admin/auth/login/login.component').then((m) => m.LoginComponent), canActivate: [AdminSubdomainGuard]},
   { path: 'privacy-policy', loadComponent: () =>
     import('@pages/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent)},
+  { path: 'ai-transparency', loadComponent: () =>
+    import('@pages/ai-transparency/ai-transparency.component').then((m) => m.AiTransparencyComponent)},
   { path: '**', component: PageNotFoundComponent}
 
 ];

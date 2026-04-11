@@ -1,0 +1,498 @@
+@import '../admin-common.css';
+
+/* === Scrolling area override === */
+.scrolling-div {
+  margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 130px);
+}
+
+/* === Record count === */
+.record-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* === Section headings === */
+.section-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1a3a5c;
+  border-bottom: 1px solid #d0dce8;
+  padding-bottom: 0.25rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.section-heading.read-only-section {
+  color: #999;
+  border-color: #eee;
+}
+
+/* === Read-only value === */
+.read-only-value {
+  font-size: 0.9rem;
+  color: #555;
+  flex-grow: 1;
+  word-break: break-all;
+}
+
+/* === Two-column review grid (flat — each section is a row pair) === */
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  row-gap: 0;
+  padding: 1rem 1rem 2rem;
+  align-items: start;
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+/* === Column header row === */
+.col-header-gen {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0.5rem;
+}
+
+.col-header-ver {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #d0dce8;
+  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1a3a5c;
+}
+
+/* === Read-only text block (description, category) === */
+.ro-block {
+  font-size: 0.9rem;
+  color: #444;
+  background: #f7f9fb;
+  border: 1px solid #e3e9ef;
+  border-radius: 4px;
+  padding: 0.5em 0.75em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 2em;
+}
+
+/* === Location inputs === */
+.location-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.location-warning {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 3px;
+  padding: 0.1em 0.5em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.location-inputs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.location-inputs label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #444;
+  gap: 0.2rem;
+}
+
+.location-inputs input[type=number] {
+  width: 11ch;
+  padding: 0.3em 0.4em;
+  border: 1px solid #ccd6e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.location-hint {
+  font-size: 0.78rem;
+  color: #777;
+  align-self: flex-end;
+  padding-bottom: 0.25rem;
+}
+
+/* === Name override input === */
+.name-input {
+  width: 100%;
+  padding: 0.4em 0.6em;
+  border: 1px solid #ccd6e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+/* === Geocoded address grid === */
+.geo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem 1.25rem;
+  padding: 0.25rem 0 0.75rem;
+}
+
+.geo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.geo-field--override {
+  grid-column: 1 / -1;
+}
+
+.geo-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.geo-hint {
+  font-weight: 400;
+  color: #999;
+}
+
+.geo-input {
+  padding: 0.3em 0.5em;
+  border: 1px solid #e0e8f0;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  background: #f7f9fb;
+  color: #555;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.geo-input--editable {
+  background: #fff;
+  border-color: #ccd6e0;
+  color: #222;
+}
+
+/* === No-location badge === */
+.badge-no-location {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+/* === Chip / tag list === */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #e8f4fd;
+  border: 1px solid #3498db;
+  color: #1a5276;
+  border-radius: 12px;
+  padding: 0.15em 0.6em;
+  font-size: 0.82rem;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: #1a5276;
+}
+
+.chip-ro {
+  background-color: #f0f4f8;
+  border-color: #a8c0d8;
+  color: #4a6a84;
+}
+
+/* === Populate row === */
+.populate-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+/* === Status badges === */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 0;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 0.2em 0.6em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.badge-pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+
+.badge-verified {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #75b798;
+}
+
+.badge-published {
+  background-color: #cfe2ff;
+  color: #084298;
+  border: 1px solid #9ec5fe;
+}
+
+/* === Button overrides === */
+.flag-regen-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: #5a3e00;
+  background-color: #fff8e1;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 0.2em 0.6em;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.flag-regen-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.new-content-badge {
+  background-color: #e0f2fe;
+  color: #0c4a6e;
+  border-color: #38bdf8;
+}
+
+.btn-publish {
+  background-color: #156d38;
+  color: white;
+  border-color: #156d38;
+}
+
+.btn-publish:hover:not(:disabled) {
+  background-color: #0f5128;
+}
+
+.btn-verify {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.btn-verify:hover:not(:disabled) {
+  background-color: #0b5ed7;
+}
+
+.btn-unpublish {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.btn-unpublish:hover:not(:disabled) {
+  background-color: #565e64;
+}
+
+.btn-populate {
+  background-color: #5a6e80;
+  color: white;
+  border-color: #5a6e80;
+  font-size: 0.82rem;
+}
+
+.btn-populate:hover:not(:disabled) {
+  background-color: #47586a;
+}
+
+.desc-verified-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.populate-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* === Inputs fill grid cell === */
+.review-grid textarea,
+.review-grid select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* === Description textarea — auto-size to content === */
+.desc-textarea {
+  field-sizing: content;
+  min-height: 6em;
+  resize: vertical;
+}
+
+/* === Category select (matches ro-block height) === */
+.cat-select {
+  min-height: 2em;
+}
+
+/* === Title read-only block === */
+.ro-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a3a5c;
+  margin-bottom: 0.5rem;
+}
+
+/* === Add-tag editor === */
+.chip-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.chip-input-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chip-input-row input {
+  flex-grow: 1;
+}
+
+/* === Scores section === */
+.scores-section {
+  overflow-x: auto;
+  margin-bottom: 0.5rem;
+}
+
+.scores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.scores-table th,
+.scores-table td {
+  text-align: left;
+  padding: 0.3em 0.6em;
+  border-bottom: 1px solid #e3e9ef;
+}
+
+.scores-table th {
+  background: #f7f9fb;
+  font-weight: 600;
+}
+
+.score-cell {
+  text-align: center;
+  font-weight: 600;
+  color: #1a3a5c;
+}
+
+.rank-score-row {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.reviewer-notes {
+  color: #666;
+  font-style: italic;
+}
+
+/* === Sources section === */
+.sources-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.source-link {
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.source-link a {
+  color: #1a5276;
+}
+
+.source-label {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+/* === Option highlight colours === */
+.option-published {
+  background-color: #d1e7dd;
+  color: #0a3622;
+}
+
+.option-verified {
+  background-color: #ffffff;
+  color: #333;
+}
+
+.option-unverified {
+  background-color: #fffde7;
+  color: #444;
+}
+
+.option-pending {
+  font-style: italic;
+}
+
+/* === Empty state === */
+.empty-state {
+  margin: 2rem 1rem;
+  color: #888;
+  font-style: italic;
+}

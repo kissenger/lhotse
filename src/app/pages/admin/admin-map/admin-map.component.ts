@@ -191,7 +191,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
 
   openInFeaturesEditor() {
     if (this.selectedSite?._id) {
-      this._window.open(`/featureseditor`, '_blank', 'noopener,noreferrer');
+      this._window.open(`/siteseditor`, '_blank', 'noopener,noreferrer');
     }
   }
 }

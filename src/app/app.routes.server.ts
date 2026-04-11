@@ -18,7 +18,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
-    path: 'featureseditor',
+    path: 'siteseditor',
     renderMode: RenderMode.Client
   },
   {
@@ -35,6 +35,10 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'adminmap',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'organisations',
     renderMode: RenderMode.Client
   },
   {

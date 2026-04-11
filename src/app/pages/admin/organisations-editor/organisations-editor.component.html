@@ -1,0 +1,293 @@
+﻿<main>
+
+  <!-- ===== Fixed toolbar ===== -->
+  <div class="static-div">
+
+    <!-- Search + record selector -->
+    <div class="toolbar-row">
+      <label for="orgSearch">Search:</label>
+      <input type="search" id="orgSearch" name="orgSearch"
+        [(ngModel)]="listSearch"
+        (ngModelChange)="onSearch()"
+        placeholder="Filter by title…"
+        autocomplete="off">
+      <span class="record-count">{{ listTotal }} record{{ listTotal === 1 ? '' : 's' }}</span>
+    </div>
+
+    <div class="toolbar-row">
+      <label for="orgSelect">Record:</label>
+      <select id="orgSelect" name="orgSelect"
+        [ngModel]="selectedId"
+        (ngModelChange)="onFormSelect($event)">
+        <option value="">— select —</option>
+        @for (item of sortedListItems; track item._id) {
+          <option [value]="item._id"
+            [class.option-published]="item.isPublished"
+            [class.option-verified]="item.isVerified && !item.isPublished"
+            [class.option-unverified]="!item.isVerified && !item.isPublished"
+            [class.option-pending]="item.newContentPendingVerification">
+            {{ (item.newContentAvailable ? '◆ ' : '') + (item.flaggedForUpdate ? '⚑ ' : '') + (item.rank_score !== undefined ? '[' + item.rank_score + '] ' : '') + item.title + (item.city ? ' · ' + item.city : '') }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="toolbar-row">
+      <div class="toolbar-actions">
+        <button type="button" class="formButton btn-save"
+          [disabled]="!selectedDoc || !isDirty || isSaving || verifiedDataEmpty"
+          (click)="onSave()">
+          Save &amp; Verify
+        </button>
+        @if (asVerify?.publish) {
+          <button type="button" class="formButton btn-unpublish"
+            [disabled]="isSaving"
+            (click)="onUnpublish()">
+            Unpublish
+          </button>
+        } @else {
+          <button type="button" class="formButton btn-publish"
+            [disabled]="!selectedDoc || isDirty || isSaving || !asVerify?.verified"
+            (click)="onPublish()">
+            Publish
+          </button>
+        }
+        <button type="button" class="formButton btn-delete"
+          [disabled]="!selectedId"
+          (click)="onYesDelete(false)">
+          Delete
+        </button>
+        <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
+          Are you sure?
+          <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+          <button type="button" class="formButton" (click)="onNoDelete()">No</button>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== Scrolling form area ===== -->
+  <div class="scrolling-div">
+
+    @if (!selectedDoc) {
+      <p class="empty-state">Select a record from the list above to review and verify it.</p>
+    }
+
+    @if (selectedDoc) {
+
+      <!-- Status row -->
+      <div class="status-row">
+        @if (asVerify?.verified) {
+          <span class="badge badge-verified">Verified</span>
+        }
+        @if (asVerify?.publish) {
+          <span class="badge badge-published">Published</span>
+        }
+        @if (!hasLocation) {
+          <span class="badge badge-no-location">&#9888; No location — won't appear on map</span>
+        }
+        @if (isDirty) {
+          <span class="unsaved-badge">Unsaved changes</span>
+        }
+        @if (asVerify?.newContentPendingVerification) {
+          <span class="unsaved-badge new-content-badge">&#9670; New generated content available</span>
+        }
+        <label class="flag-regen-label">
+          <input type="checkbox" [(ngModel)]="flaggedForUpdate" name="flaggedForUpdate">
+          Flag for regenerate
+        </label>
+      </div>
+
+      <form (input)="isDirty = true" (change)="isDirty = true">
+        <div class="review-grid">
+
+          <!-- === Column headers === -->
+          <div class="col-header-gen">Generated (read-only)</div>
+          <div class="col-header-ver">
+            <span>Verified Data</span>
+          </div>
+
+          <!-- === Name === -->
+          <div class="section-heading read-only-section">Name</div>
+          <div class="section-heading">Name override</div>
+          <div class="ro-block ro-title">{{ asDiscover.title || '—' }}</div>
+          <input type="text" name="vd_name" class="name-input"
+            [ngModel]="verifiedData.name ?? ''"
+            (ngModelChange)="verifiedData.name = $event || undefined"
+            placeholder="Leave blank to use original title">
+
+          <!-- === Location (full width) === -->
+          <div class="section-heading full-row location-heading">
+            Location
+            @if (!hasLocation) {
+              <span class="location-warning">&#9888; No coordinates — this record won't appear on the map</span>
+            }
+          </div>
+          <div class="location-inputs full-row">
+            <label>Latitude
+              <input type="number" step="any" name="loc_lat"
+                [ngModel]="locationLat"
+                (ngModelChange)="locationLat = $event; isDirty = true"
+                placeholder="e.g. 51.5074">
+            </label>
+            <label>Longitude
+              <input type="number" step="any" name="loc_lng"
+                [ngModel]="locationLng"
+                (ngModelChange)="locationLng = $event; isDirty = true"
+                placeholder="e.g. -0.1278">
+            </label>
+            <span class="location-hint">Decimal degrees. Use <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps</a> — right-click a location to copy coords.</span>
+          </div>
+
+          <!-- === Geocoded Address (full width) === -->
+          @if (hasReverseGeo) {
+            <div class="section-heading full-row">Geocoded Address</div>
+            <div class="geo-grid full-row">
+              <div class="geo-field">
+                <label class="geo-label">Place (Town)</label>
+                <input type="text" class="geo-input" [ngModel]="rgPlace" readonly name="geo_place">
+              </div>
+              <div class="geo-field">
+                <label class="geo-label">District (County)</label>
+                <input type="text" class="geo-input" [ngModel]="rgDistrict" readonly name="geo_district">
+              </div>
+              <div class="geo-field">
+                <label class="geo-label">Region / Nation</label>
+                <input type="text" class="geo-input" [ngModel]="rgRegion" readonly name="geo_region">
+              </div>
+              <div class="geo-field">
+                <label class="geo-label">Country</label>
+                <input type="text" class="geo-input" [ngModel]="rgCountry" readonly name="geo_country">
+              </div>
+              <div class="geo-field">
+                <label class="geo-label">Postcode</label>
+                <input type="text" class="geo-input" [ngModel]="rgPostcode" readonly name="geo_postcode">
+              </div>
+              <div class="geo-field geo-field--override">
+                <label class="geo-label">Locality Override <span class="geo-hint">(replaces Place on map)</span></label>
+                <input type="text" class="geo-input geo-input--editable" name="vd_localityOverride"
+                  [(ngModel)]="verifiedData.localityOverride"
+                  placeholder="Leave blank to use Place (Town)">
+              </div>
+            </div>
+          }
+
+          <!-- === Description === -->
+          <div class="section-heading read-only-section">Description</div>
+          <div class="section-heading">Description</div>
+          <div class="ro-block ro-desc">{{ asGenerate?.description || '—' }}</div>
+          <div class="desc-verified-col">
+            <div class="populate-row">
+              <button type="button" class="formButton btn-populate" (click)="populateFromGenerate()">
+                {{ verifiedDataEmpty ? 'Populate from Generate' : 'Reset from Generate' }}
+              </button>
+              <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
+                Overwrite existing data?
+                <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
+                <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>
+              </span>
+            </div>
+            <textarea name="vd_description" class="desc-textarea" spellcheck="true"
+              [(ngModel)]="verifiedData.description"></textarea>
+          </div>
+
+          <!-- === Tags === -->
+          <div class="section-heading read-only-section">Tags</div>
+          <div class="section-heading">Tags</div>
+          <div class="chip-list ro-chips">
+            @for (tag of (asGenerate?.tags ?? []); track tag) {
+              <span class="chip chip-ro">{{ tag }}</span>
+            }
+            @if (!asGenerate?.tags?.length) {
+              <span class="read-only-value">—</span>
+            }
+          </div>
+          <div class="chip-editor">
+            <div class="chip-list">
+              @for (tag of (verifiedData.tags ?? []); track tag) {
+                <span class="chip">{{ tag }}<button type="button" (click)="removeVerifiedTag(tag)">×</button></span>
+              }
+              @if (!verifiedData.tags?.length) {
+                <span class="read-only-value">— no tags</span>
+              }
+            </div>
+            <div class="chip-input-row">
+              <select name="tagInput" [(ngModel)]="tagInput">
+                <option value="">— select tag —</option>
+                @for (tag of availableTags; track tag) {
+                  <option [value]="tag">{{ tag }}</option>
+                }
+              </select>
+              <button type="button" class="formButton" (click)="addVerifiedTag()">Add</button>
+            </div>
+          </div>
+
+          <!-- === Category === -->
+          <div class="section-heading read-only-section">Category</div>
+          <div class="section-heading">Category</div>
+          <div class="ro-block">{{ asGenerate?.category || '—' }}</div>
+          <select name="vd_category" [(ngModel)]="verifiedData.category" class="cat-select">
+            <option value="">— select —</option>
+            @for (cat of CATEGORIES; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+
+          <!-- === Ranking & Criterion Scores (full width) === -->
+          @if (asGenerate?.rank_score !== undefined || criterionScoreEntries.length) {
+            <div class="section-heading full-row">Ranking &amp; Criterion Scores</div>
+            <div class="scores-section full-row">
+              @if (asGenerate?.rank_score !== undefined) {
+                <div class="rank-score-row">
+                  Overall rank score: <strong>{{ asGenerate!.rank_score }}</strong>
+                  @if (asGenerate?.reviewer_notes) {
+                    <span class="reviewer-notes"> — {{ asGenerate!.reviewer_notes }}</span>
+                  }
+                </div>
+              }
+              @if (criterionScoreEntries.length) {
+                <table class="scores-table">
+                  <thead>
+                    <tr><th>Criterion</th><th>Score</th><th>Rationale</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (entry of criterionScoreEntries; track entry.key) {
+                      <tr>
+                        <td>{{ entry.key }}</td>
+                        <td class="score-cell">{{ entry.score }}</td>
+                        <td>{{ entry.rationale ?? '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+
+          <!-- === Sources (full width) === -->
+          @if (asDiscover.website || uniqueGroundingSources.length) {
+            <div class="section-heading full-row">Sources</div>
+            <div class="sources-section full-row">
+              @if (asDiscover.website) {
+                <div class="source-link">
+                  <span class="source-label">Website:</span>
+                  <a [href]="asDiscover.website" target="_blank" rel="noopener noreferrer">{{ asDiscover.website }}</a>
+                </div>
+              }
+              @for (src of uniqueGroundingSources; track src) {
+                <div class="source-link">
+                  <a [href]="src" target="_blank" rel="noopener noreferrer">{{ src }}</a>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      </form>
+    }
+
+  </div>
+
+</main>

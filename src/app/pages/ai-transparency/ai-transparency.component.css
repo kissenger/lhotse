@@ -1,0 +1,14 @@
+.ai-transparency-page {
+  max-width: 680px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.7;
+}
+
+.ai-transparency-page h1 {
+  margin-bottom: 1.25rem;
+}
+
+.ai-transparency-page p {
+  margin-bottom: 1rem;
+}

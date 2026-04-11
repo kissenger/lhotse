@@ -5,6 +5,6 @@ Disallow: /login
 Disallow: /dashboard
 Disallow: /orders
 Disallow: /blogeditor
-Disallow: /featureseditor
+Disallow: /siteseditor
 Allow: /
 Sitemap: https://snorkelology.co.uk/sitemap.xml

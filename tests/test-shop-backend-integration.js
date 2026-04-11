@@ -100,15 +100,7 @@ async function main() {
   const { orderNumber, paypalOrderId } = createJson;
   console.log('[shop-backend] create-paypal-order passed:', { orderNumber, paypalOrderId });
 
-  // 2) Verify persisted order summary baseline
-  const get1Resp = await fetch(`${baseUrl}/api/shop/get-order-by-order-number/${orderNumber}`);
-  const get1Json = await readJson(get1Resp, 'get-order-by-order-number (baseline)');
-  assert(get1Resp.ok, `get-order-by-order-number failed (${get1Resp.status})`);
-  assert(get1Json?.user?.email_address === payload.order.orderSummary.user.email_address, 'order summary user email mismatch');
-  assert(get1Json?.timeStamps?.orderCreated, 'order summary missing timeStamps.orderCreated');
-  console.log('[shop-backend] get-order-by-order-number baseline passed');
-
-  // 3) Patch order
+  // 2) Patch order
   const patchResp = await fetch(`${baseUrl}/api/shop/patch-paypal-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -123,14 +115,7 @@ async function main() {
   assert(patchResp.ok, `patch-paypal-order failed (${patchResp.status})`);
   console.log('[shop-backend] patch-paypal-order passed');
 
-  // 4) Verify patched timestamp
-  const get2Resp = await fetch(`${baseUrl}/api/shop/get-order-by-order-number/${orderNumber}`);
-  const get2Json = await readJson(get2Resp, 'get-order-by-order-number (post-patch)');
-  assert(get2Resp.ok, `get-order-by-order-number post-patch failed (${get2Resp.status})`);
-  assert(get2Json?.timeStamps?.orderPatched, 'order summary missing timeStamps.orderPatched after patch');
-  console.log('[shop-backend] post-patch verification passed');
-
-  // 5) Optional capture step (requires approved PayPal order state).
+  // 3) Optional capture step (requires approved PayPal order state).
   if (RUN_CAPTURE) {
     const capResp = await fetch(`${baseUrl}/api/shop/capture-paypal-payment`, {
       method: 'POST',
@@ -140,11 +125,6 @@ async function main() {
 
     const capJson = await readJson(capResp, 'capture-paypal-payment');
     assert(capResp.ok, `capture-paypal-payment failed (${capResp.status}): ${JSON.stringify(capJson)}`);
-
-    const get3Resp = await fetch(`${baseUrl}/api/shop/get-order-by-order-number/${orderNumber}`);
-    const get3Json = await readJson(get3Resp, 'get-order-by-order-number (post-capture)');
-    assert(get3Resp.ok, `get-order-by-order-number post-capture failed (${get3Resp.status})`);
-    assert(get3Json?.timeStamps?.orderCompleted, 'order summary missing timeStamps.orderCompleted after capture');
     console.log('[shop-backend] capture verification passed');
   } else {
     console.log('[shop-backend] Skipping capture step (set PAYPAL_BACKEND_RUN_CAPTURE=true to enable).');

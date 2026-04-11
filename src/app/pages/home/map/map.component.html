@@ -3,7 +3,7 @@
     @if (filterContext) {
       <h2 class="section-heading">Snorkelling Sites in {{filterContext.displayName}}</h2>
       <p>
-        Showing snorkelling sites and providers in {{filterContext.displayName}}.
+        Showing snorkelling sites and organisations in {{filterContext.displayName}}.
         Click any pin for GPS coordinates, a description, and links to find out more.
       </p>
       @if (filterContext.alsoKnownAs?.length) {
@@ -19,9 +19,9 @@
       <h2 class="section-heading"><a class="stealth-link" href="/map">Interactive Snorkelling Map of Britain</a></h2>
 
       <p>
-        We've mapped 100+ snorkelling sites and providers all over Britain —
+        We've mapped 100+ snorkelling sites and organisations all over Britain —
         from coastal rock pools and kelp forests to sheltered bays and offshore reefs in
-        England, Scotland, and Wales. Use the filter to narrow by habitat type or provider category,
+        England, Scotland, and Wales. Use the filter to narrow by habitat type or organisation category,
         and click any pin for GPS coordinates, a description, and links to find out more.
         We're always adding new sites, so check back regularly for the latest spots.
       </p>
@@ -33,7 +33,7 @@
       </p>
 
       <p>
-        If you are a snorkelling provider who would like to be included on the map, or if you know of a site
+        If you are a snorkelling organisation who would like to be included on the map, or if you know of a site
         that should be included, please get in touch with us using the socials links in the header.
       </p>
     }
@@ -71,10 +71,10 @@
           <div class="filter-group">
             <div class="filter-group-header" (click)="otherExpanded = !otherExpanded">
               <div class="filter-group-label">
-                <img class="filter-legend-icon" src="assets/icons/provider-icon-orange-white.png" alt="Snorkelling provider map marker">
-                <strong>Providers</strong>
+                <img class="filter-legend-icon" src="assets/icons/provider-icon-orange-white.png" alt="Snorkelling organisation map marker">
+                <strong>Organisations</strong>
               </div>
-              <button class="chevron-btn" [class.expanded]="otherExpanded" aria-label="Expand provider categories">
+              <button class="chevron-btn" [class.expanded]="otherExpanded" aria-label="Expand organisation categories">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
               <input type="checkbox" class="group-checkbox" [checked]="otherSitesEnabled" (click)="$event.stopPropagation()" (change)="toggleGroup('other')">
@@ -128,6 +128,10 @@
                 {{feature.description}}
               </div>
 
+              @if (feature.aiGenerated) {
+                <a class="ai-content-notice" routerLink="/ai-transparency">About this content</a>
+              }
+
               @if (feature.featureType == 'Snorkelling Site') {
                 <div class="caveat">
                   Information provided is for guidance only. You are responsible for your snorkelling safety.
@@ -146,17 +150,19 @@
                   <div class="more-info-label">Find Out More</div>
                   <div class="icons">
                     @for (item of feature.moreInfo; track item) {
-                      <div class="icon icon-grow">
-                        <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
-                          @switch (item.icon) {
-                            @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
-                            @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
-                            @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
-                            @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
-                            @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
-                          }
-                        </a>
-                      </div>
+                      @if (item.icon !== 'phone') {
+                        <div class="icon icon-grow">
+                          <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                            @switch (item.icon) {
+                              @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
+                              @case ('instagram') { <app-svg-instagram theme="darkOnLight" height="20px"></app-svg-instagram> }
+                              @case ('email')     { <app-svg-email     theme="darkOnLight" height="20px"></app-svg-email> }
+                              @case ('facebook')  { <app-svg-facebook  theme="darkOnLight" height="20px"></app-svg-facebook> }
+                              @case ('website')   { <app-svg-website   theme="darkOnLight" height="20px"></app-svg-website> }
+                            }
+                          </a>
+                        </div>
+                      }
                     }
                     @for (item of feature.moreInfo; track item) {
                       @if (item.icon === 'phone') {

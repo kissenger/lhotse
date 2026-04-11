@@ -27,41 +27,17 @@ header {
 }
 
 .header-main {
+  position: relative;
   display: flex;
   flex-direction: row;
   flex: 1;
   height: 100%;
 }
 
-.admin-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0 0 0.35rem 0.75rem;
-  font-size: 0.8rem;
-  border-top: 1px solid rgba(255,255,255,0.2);
-}
-
-.admin-breadcrumb a {
-  color: rgba(255,255,255,0.75);
-  text-decoration: none;
-}
-
-.admin-breadcrumb a:hover {
-  color: #fff;
-  text-decoration: underline;
-}
-
-.admin-breadcrumb .sep {
-  color: rgba(255,255,255,0.4);
-}
-
-.admin-breadcrumb .current {
-  color: #fff;
-}  
 
 .brand-box {
-  position: relative;
+  position: absolute;
+  left: 0;
   border-radius: 50%;
   background-image: conic-gradient(
     transparent var(--angle1), 
@@ -154,35 +130,8 @@ header {
   height: 100%;
 }
 
-.socials {
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-  height: 100%;
-}
-
-.socials > a {
-  display: flex;
-  margin-inline: 0.25rem;
-  text-decoration: none;
-  color: inherit;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.socials > a:hover {
-  background-color: transparent;
-  border-bottom: none;
-}
-
-.socials > a:hover {
-  cursor: pointer;
-  transform: scale(1.1);
-}
-
 .menu {
-  flex-grow: 1;
-  margin: 0px;
+  margin: 0 auto;
   padding: 0px;
   display: flex;
   justify-content: center;
@@ -210,12 +159,6 @@ header {
 
   .hamburger {
     display: flex;    
-  }
-
-  .socials {
-    justify-content: end;
-    align-items: center;
-    margin-right: 0.2rem;
   }
 
   .menu {

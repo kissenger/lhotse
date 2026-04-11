@@ -3,6 +3,22 @@
   margin-top: 0;
 }
 
+.ai-content-notice {
+  display: block;
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 0.4rem;
+  margin-bottom: 0.25rem;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ai-content-notice:hover {
+  color: #555;
+  border-bottom-color: #aaa;
+}
+
 .filter-clear-link {
   font-size: 0.9rem;
   color: var(--sn-colour);
@@ -189,6 +205,11 @@
   display: inline-block;
   margin-right: 0.5rem;
   margin-top: 0.25rem;
+}
+
+.icon a {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 /* 

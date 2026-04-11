@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
 import { ShopError } from 'src/server';
@@ -6,6 +7,14 @@ import { getConfirmationEmailBody } from 'src/server-shop-conf-email';
 import { getPostedEmailBody } from 'src/server-shop-posted-email';
 import { verifyToken } from './server-auth'
 import 'dotenv/config';
+
+const checkoutRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'ShopError', message: 'Too many requests. Please try again later.' },
+});
 
 const shop = express();
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -61,7 +70,7 @@ function extractErrorMessage(error: any, fallback: string): string {
 /*****************************************************************
  * ROUTE: Create paypal order
  ****************************************************************/
-shop.post('/api/shop/create-paypal-order', async (req, res, _next) => {
+shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _next) => {
 
   try {
     const token = await getAccessToken();
@@ -104,9 +113,15 @@ function newOrderNumber() {
 /*****************************************************************
  * ROUTE: Update paypal order
  ****************************************************************/
-shop.post('/api/shop/patch-paypal-order', async (req, res) => {
+shop.post('/api/shop/patch-paypal-order', checkoutRateLimit, async (req, res) => {
   
   try {
+    // Only allow patching purchase_units (the only valid use during checkout)
+    if (typeof req.body.path !== 'string' || !req.body.path.startsWith('/purchase_units/')) {
+      res.status(400).json({ error: 'ShopError', message: 'Invalid patch path' });
+      return;
+    }
+
     const token = await getAccessToken();
     const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
       method: 'PATCH',
@@ -138,7 +153,7 @@ shop.post('/api/shop/patch-paypal-order', async (req, res) => {
  * ROUTE: Capture paypal payment
  ****************************************************************/
 
-shop.post('/api/shop/capture-paypal-payment', async (req, res) => {
+shop.post('/api/shop/capture-paypal-payment', checkoutRateLimit, async (req, res) => {
 
   try {
     const token = await getAccessToken();
@@ -287,7 +302,7 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
-shop.get('/api/shop/get-order-by-order-number/:orderNumber', async (req, res) => {
+shop.get('/api/shop/get-order-by-order-number/:orderNumber', verifyToken, async (req, res) => {
   let orderSummary = await getOrderSummary(req.params.orderNumber);
   res.status(201).json(orderSummary);
 });

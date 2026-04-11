@@ -4,15 +4,11 @@ import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd} from '@angular/router';
-import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component'
-import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component'
-import { EmailSvgComponent } from '@shared/svg/email/email.component'
-import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 import { HttpService } from '@shared/services/http.service';
 
 @Component({
   standalone: true,
-  imports: [ RouterLink, CommonModule, YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, FacebookSvgComponent  ],
+  imports: [ RouterLink, CommonModule ],
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -39,16 +35,10 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   public logoLoaded = false;
 
   public isAdminRoute = false;
-  public breadcrumbs: Array<{ label: string; path: string }> = [];
 
-  private static readonly _ROUTE_LABELS: Record<string, string> = {
-    dashboard:      'Dashboard',
-    blogeditor:     'Blog Editor',
-    featureseditor: 'Features Editor',
-    adminmap:       'Admin Map',
-    orders:         'Orders',
-    login:          'Login',
-  };
+  private static readonly _ADMIN_PATHS = new Set([
+    'dashboard', 'blogeditor', 'siteseditor', 'adminmap', 'orders', 'login', 'organisations',
+  ]);
 
   constructor(
     @Inject(Router) private _router: Router,
@@ -68,12 +58,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.syncActiveMenuItemToRoute(event.urlAfterRedirects);
-        this._buildBreadcrumbs(event.urlAfterRedirects);
+        this._updateAdminRoute(event.urlAfterRedirects);
         this._cdr.detectChanges();
     });
 
     this.syncActiveMenuItemToRoute(this._router.url);
-    this._buildBreadcrumbs(this._router.url);
+    this._updateAdminRoute(this._router.url);
   }
  
   ngAfterViewInit() {
@@ -98,7 +88,8 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   async onAdminNavClick(anchor: string) {
     try { await this._http.logout(); } catch {}
     const mainHost = window.location.hostname.replace(/^admin\./, '');
-    window.location.href = `${window.location.protocol}//${mainHost}/#${anchor}`;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    window.location.href = `${window.location.protocol}//${mainHost}${port}/#${anchor}`;
   }
 
   onLogoLoad() {
@@ -128,15 +119,9 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     this._routeSubs?.unsubscribe();
   }
 
-  private _buildBreadcrumbs(url: string) {
+  private _updateAdminRoute(url: string) {
     const firstSegment = url.split('?')[0].split('#')[0].split('/').filter(Boolean)[0] ?? '';
-    const labels = HeaderComponent._ROUTE_LABELS;
-    this.isAdminRoute = firstSegment in labels;
-    const crumbs: Array<{ label: string; path: string }> = [{ label: 'Admin', path: '/dashboard' }];
-    if (firstSegment && firstSegment !== 'dashboard' && labels[firstSegment]) {
-      crumbs.push({ label: labels[firstSegment], path: '/' + firstSegment });
-    }
-    this.breadcrumbs = crumbs;
+    this.isAdminRoute = HeaderComponent._ADMIN_PATHS.has(firstSegment);
   }
 
   private syncActiveMenuItemToRoute(url: string | undefined) {

@@ -3,7 +3,7 @@
 .static-div {
   padding: 0.75em 1em;
   position: fixed;
-  top: var(--header-height);
+  top: calc(var(--header-height) + var(--admin-navbar-height));
   width: 100vw;
   background-color: white;
   z-index: 999;
@@ -47,6 +47,11 @@
   cursor: pointer;
   font-size: 0.9rem;
   background-color: white;
+}
+
+.formButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .btn-new {

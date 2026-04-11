@@ -6,9 +6,10 @@ import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
 import { shop } from './server-shop';
-import { auth } from './server-auth';
+import { auth, verifyToken } from './server-auth';
 import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
 import { getPlacesForSeo, getPlaceForSeo, map } from './server-map';
+import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
@@ -41,13 +42,27 @@ app.use((req, res, next) => {
 });
 
 /**
+ * Security headers
+ */
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  if (ENVIRONMENT === 'PRODUCTION') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
+/**
  * Start of API routes
  */
 app.get('/api/ping/', (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
 
-app.get('/api/db-backup/', (_req, res) => { 
+app.get('/api/db-backup/', verifyToken, (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
 
@@ -65,6 +80,7 @@ app.use(shop);
 app.use(auth);
 app.use(blog);
 app.use(map);
+app.use(organisations);
 
 /**
  * End of API routes
@@ -219,6 +235,22 @@ async function getSeoPayload(pathname: string, query: Record<string, string> = {
       return getNationMapSeoPayload(nation);
     }
     return getMapSeoPayload();
+  }
+
+  if (normalizedPath === '/ai-transparency') {
+    return {
+      title: 'AI Transparency | Snorkelology',
+      description: 'How Snorkelology uses AI to help describe snorkelling organisations on our interactive map of Britain.',
+      keywords: '',
+      canonicalPath: '/ai-transparency',
+      ogType: 'website' as const,
+      ogImage: '',
+      twitterImage: '',
+      schemas: [],
+      metaTags: [
+        { key: 'name' as const, keyValue: 'robots', content: 'index,follow' }
+      ]
+    };
   }
 
   if (normalizedPath === '/blog') {
@@ -519,7 +551,7 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
   const locationHint = place.district ? ` in ${place.district}` : '';
   const description = place.description
     || (isProvider
-      ? `Snorkelling provider${locationHint}: ${siteName}. Find guided snorkelling, courses, and snorkel hire on the Snorkelology map of Britain.`
+      ? `Snorkelling organisation${locationHint}: ${siteName}. Find guided snorkelling, courses, and snorkel hire on the Snorkelology map of Britain.`
       : `Snorkelling site${locationHint}: ${siteName}. Explore this location on the Snorkelology interactive map of Britain.`);
 
   const locationKw = place.district ? ` ${place.district}` : '';
@@ -536,7 +568,7 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
   const keywords = [
     place.keywords,
     `snorkelling ${siteName}`,
-    isProvider ? `${siteName} snorkelling provider` : `${siteName} snorkelling site`,
+    isProvider ? `${siteName} snorkelling organisation` : `${siteName} snorkelling site`,
     ...providerKeywords
   ].filter(Boolean).join(', ');
 
@@ -559,7 +591,7 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
 
   return {
     title: isProvider
-      ? `${siteName} | Snorkelling Provider | Snorkelology`
+      ? `${siteName} | Snorkelling Organisation | Snorkelology`
       : `${siteName} | Snorkelling Site | Snorkelology`,
     description,
     keywords,
@@ -625,7 +657,7 @@ async function getCountyMapSeoPayload(county: string): Promise<SeoPayload> {
 }
 
 async function getMapSeoPayload(): Promise<SeoPayload> {
-  const description = 'Discover 100+ snorkelling sites across Britain on an interactive map. Explore coastal rock pools, kelp forests, sheltered bays, and offshore reefs in England, Scotland, and Wales. Find snorkelling providers, get GPS coordinates, and filter by habitat type to find your perfect spot.';
+  const description = 'Discover 100+ snorkelling sites across Britain on an interactive map. Explore coastal rock pools, kelp forests, sheltered bays, and offshore reefs in England, Scotland, and Wales. Find snorkelling organisations, get GPS coordinates, and filter by habitat type to find your perfect spot.';
   const keywords = [
     // Core intent
     'snorkelling map of britain', 'interactive snorkelling map UK', 'british snorkelling map',
@@ -640,7 +672,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     'snorkelling coves', 'coastal snorkelling UK',
     // Activity context
     'snorkelling guide Britain', 'UK snorkelling sites', 'snorkelling locations Britain',
-    'snorkelling providers UK', 'guided snorkelling UK',
+    'snorkelling organisations UK', 'guided snorkelling UK',
     // Provider / training intent
     'snorkel training UK', 'snorkelling courses UK', 'snorkelling lessons UK',
     'snorkel hire UK', 'snorkelling instruction UK', 'snorkel school UK',
@@ -677,7 +709,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
       { '@type': 'Thing', name: 'Coastal snorkelling UK' },
       { '@type': 'Thing', name: 'Rock pool snorkelling' },
       { '@type': 'Thing', name: 'Kelp forest snorkelling' },
-      { '@type': 'Thing', name: 'Snorkelling providers UK' }
+      { '@type': 'Thing', name: 'Snorkelling organisations UK' }
     ],
     keywords: 'snorkelling map UK, best snorkelling spots Britain, where to snorkel UK, coastal snorkelling, rock pools, kelp forests',
     spatialCoverage: {

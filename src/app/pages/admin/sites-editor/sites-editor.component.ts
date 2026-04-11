@@ -1,0 +1,596 @@
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, HostListener } from '@angular/core';
+import { HasUnsavedChanges } from './unsaved-changes.guard';
+import { HttpService } from '@shared/services/http.service';
+import { MapFeature } from '@shared/types';
+import { FormsModule } from '@angular/forms';
+import { NgClass, DatePipe, DOCUMENT } from '@angular/common';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { EditorMapInstance } from '@shared/services/editor-map.instance';
+import { mapboxToken } from '@shared/globals';
+import { ActivatedRoute } from '@angular/router';
+import { ToastService } from '@shared/services/toast.service';
+
+@Component({
+  selector: 'app-sites-editor',
+  standalone: true,
+  imports: [NgClass, FormsModule, DatePipe],
+  templateUrl: './sites-editor.component.html',
+  styleUrl: './sites-editor.component.css'
+})
+export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, HasUnsavedChanges {
+
+  private _window;
+  private readonly _mainMapInst = new EditorMapInstance();
+  private readonly _parkingMapInst = new EditorMapInstance();
+  private readonly _destroy$ = new Subject<void>();
+
+  public selectedSite: MapFeature = new MapFeature();
+  public sites: Array<MapFeature> = [this.selectedSite];
+  public siteSearch: string = '';
+  public askForConfirmation: boolean = false;
+  public askForResetForm: boolean = false;
+  public askForDiscardChanges: boolean = false;
+  private _pendingNavAction: (() => void) | null = null;
+
+  private _savedSnapshot: string = '';
+
+  get mainMapSatellite() { return this._mainMapInst.satellite; }
+  get parkingMapSatellite() { return this._parkingMapInst.satellite; }
+
+  readonly featureTypes = [
+    'Authors of Snorkelling Britain',
+    'Snorkelling Retailer',
+    'Marine Interest Group',
+    'Outdoor Activities Provider',
+    'Snorkelling Club or School',
+    'Snorkelling Site',
+  ];
+  readonly ratingOptions: Array<'good' | 'ok' | 'poor' | 'not for snorkelling' | ''> = ['', 'good', 'ok', 'poor', 'not for snorkelling'];
+  snorkellingCategories: string[] = [];
+  providerCategories: string[] = [];
+
+  get availableCategories(): string[] {
+    const all = this.selectedSite.properties.featureType === 'Snorkelling Site'
+      ? this.snorkellingCategories
+      : this.providerCategories;
+    return all.filter(c => !this.selectedSite.properties.categories.includes(c));
+  }
+
+  addCategory(select: HTMLSelectElement) {
+    const val = select.value;
+    if (val && !this.selectedSite.properties.categories.includes(val)) {
+      this.selectedSite.properties.categories.push(val);
+    }
+    select.value = '';
+  }
+
+  removeCategory(cat: string) {
+    this.selectedSite.properties.categories = this.selectedSite.properties.categories.filter(c => c !== cat);
+  }
+
+  get nonSnorkellingSites() {
+    const q = this.siteSearch.toLowerCase();
+    return this.sites
+      .filter(s => s.properties.featureType !== 'Snorkelling Site')
+      .filter(s => !q || (s.properties.name || '').toLowerCase().includes(q))
+      .sort((a, b) => (a.properties.name || '').localeCompare(b.properties.name || ''));
+  }
+
+  get snorkellingSites() {
+    const q = this.siteSearch.toLowerCase();
+    return this.sites
+      .filter(s => s.properties.featureType === 'Snorkelling Site')
+      .filter(s => !q || (s.properties.name || '').toLowerCase().includes(q))
+      .sort((a, b) => (a.properties.name || '').localeCompare(b.properties.name || ''));
+  }
+
+  constructor(
+    private _http: HttpService,
+    private _cdr: ChangeDetectorRef,
+    private _sanitizer: DomSanitizer,
+    private _route: ActivatedRoute,
+    private _toaster: ToastService,
+    @Inject(DOCUMENT) _document: Document
+  ) {
+    this._window = _document.defaultView;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    return JSON.stringify(this.selectedSite) !== this._savedSnapshot;
+  }
+
+  private _takeSnapshot() {
+    this._savedSnapshot = JSON.stringify(this.selectedSite);
+  }
+
+  async ngOnInit() {
+    await this.getSites();
+  }
+
+  ngAfterViewInit() {
+    this._injectMapboxCss();
+    this._setupMapSubscriptions();
+    this._initMainMap();
+  }
+
+  ngOnDestroy() {
+    this._destroy$.next();
+    this._destroy$.complete();
+    this._mainMapInst.destroy();
+    this._parkingMapInst.destroy();
+  }
+
+  private _injectMapboxCss() {
+    const id = 'mapbox-gl-editor-css';
+    const doc = this._window!.document;
+    if (doc.getElementById(id)) return;
+    const style = doc.createElement('style');
+    style.id = id;
+    // These four rules are the only ones needed for DOM markers to track with the map.
+    // Injected programmatically so Angular's CSS scoping (which would break them) is bypassed.
+    // The public map uses canvas-rendered symbol layers and doesn't need any of this.
+    style.textContent =
+      '.mapboxgl-map{overflow:hidden;position:relative}' +
+      '.mapboxgl-canvas-container{height:100%}' +
+      '.mapboxgl-canvas{position:absolute;left:0;top:0}' +
+      '.mapboxgl-marker{position:absolute;top:0;left:0;will-change:transform}';
+    doc.head.appendChild(style);
+  }
+
+  private _initMainMap() {
+    const [lng, lat] = this.selectedSite.location.coordinates;
+    this._mainMapInst.init({
+      containerId: 'features-edit-map',
+      coords: (lng || lat) ? [lng, lat] : null,
+      markerColor: '#e05',
+      markerZoom: 12,
+      clickToPlace: true,
+    });
+  }
+
+  private _setupMapSubscriptions() {
+    this._mainMapInst.dragEnd$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      this.selectedSite.location.coordinates[0] = lng;
+      this.selectedSite.location.coordinates[1] = lat;
+      this._reverseGeocode(lng, lat);
+      this._cdr.detectChanges();
+    });
+    this._mainMapInst.click$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      const [cx, cy] = this.selectedSite.location.coordinates;
+      if (cx || cy) return; // already placed — drag to move
+      this.selectedSite.location.coordinates[0] = lng;
+      this.selectedSite.location.coordinates[1] = lat;
+      this._mainMapInst.updateMarker(lng, lat);
+      this._reverseGeocode(lng, lat);
+      this._cdr.detectChanges();
+    });
+    this._parkingMapInst.dragEnd$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      const loc = this.selectedSite.properties.siteInfo.parking.location;
+      if (loc) {
+        loc.coordinates[0] = lng;
+        loc.coordinates[1] = lat;
+      }
+      this._cdr.detectChanges();
+    });
+    this._parkingMapInst.click$.pipe(takeUntil(this._destroy$)).subscribe(([lng, lat]) => {
+      const loc = this.selectedSite.properties.siteInfo.parking.location;
+      if (!loc) {
+        this.selectedSite.properties.siteInfo.parking.location = { type: 'Point', coordinates: [lng, lat] };
+        this._parkingMapInst.updateMarker(lng, lat);
+        this._cdr.detectChanges();
+        return;
+      }
+      const [cx, cy] = loc.coordinates;
+      if (cx || cy) return; // already placed — drag to move
+      loc.coordinates[0] = lng;
+      loc.coordinates[1] = lat;
+      this._parkingMapInst.updateMarker(lng, lat);
+      this._cdr.detectChanges();
+    });
+  }
+
+  private _initParkingMap() {
+    this._parkingMapInst.destroy();
+    const loc = this.selectedSite.properties.siteInfo.parking.location;
+    if (!loc) return;
+    const [lng, lat] = loc.coordinates;
+    const [siteLng, siteLat] = this.selectedSite.location.coordinates;
+    const hasSiteCoords = !!(siteLng || siteLat);
+    this._parkingMapInst.init({
+      containerId: 'features-edit-parking-map',
+      coords: (lng || lat) ? [lng, lat] : null,
+      markerColor: '#05e',
+      markerZoom: 15,
+      fallbackCenter: hasSiteCoords ? [siteLng, siteLat] : [-3.5, 54.5],
+      fallbackZoom: hasSiteCoords ? 15 : 5,
+      clickToPlace: true,
+    });
+  }
+
+  private _destroyParkingMap() {
+    this._parkingMapInst.destroy();
+  }
+
+  toggleMainMapSatellite() { this._mainMapInst.toggleSatellite(); }
+  toggleParkingMapSatellite() { this._parkingMapInst.toggleSatellite(); }
+
+  async getSites() {
+    try {
+      const result = await this._http.getAllSitesAdmin();
+      this.refreshSiteList(result);
+    } catch (error: any) {
+      console.error(error);
+      this._toaster.show(error?.error?.message || 'Failed to load sites', 'error');
+    }
+  }
+
+  normaliseSite(raw: any): MapFeature {
+    const defaults = new MapFeature();
+    const site: MapFeature = { ...defaults, ...raw };
+    site.location = { ...defaults.location, ...(raw.location ?? {}) };
+    site.properties = {
+      ...defaults.properties,
+      ...(raw.properties ?? {}),
+      location: { ...defaults.properties.location, ...(raw.properties?.location ?? {}) },
+      contact: { ...defaults.properties.contact, ...(raw.properties?.contact ?? {}) },
+      moreInfo: raw.properties?.moreInfo ?? [],
+      siteInfo: {
+        ...defaults.properties.siteInfo,
+        ...(raw.properties?.siteInfo ?? {}),
+        parking: {
+          ...defaults.properties.siteInfo.parking,
+          ...(raw.properties?.siteInfo?.parking ?? {}),
+          location: raw.properties?.siteInfo?.parking?.location ?? null,
+        },
+      },
+      researchNotes: { ...defaults.properties.researchNotes, ...(raw.properties?.researchNotes ?? {}),
+        links: this._normaliseLinks(raw.properties?.researchNotes?.links) },
+    };
+    return site;
+  }
+
+  private _buildCategoryLists() {
+    const snorkCats = new Set<string>();
+    const providerCats = new Set<string>();
+    for (const site of this.sites) {
+      const isSnorkelling = site.properties.featureType === 'Snorkelling Site';
+      for (const c of site.properties.categories ?? []) {
+        (isSnorkelling ? snorkCats : providerCats).add(c);
+      }
+    }
+    this.snorkellingCategories = [...snorkCats].sort();
+    this.providerCategories = [...providerCats].sort();
+  }
+
+  refreshSiteList(result: Array<MapFeature>) {
+    if (!result || result.length === 0) {
+      this.sites = [new MapFeature()];
+    } else {
+      this.sites = result.map(r => this.normaliseSite(r));
+    }
+    this._buildCategoryLists();
+    const preselectId = this._route.snapshot.queryParamMap.get('id');
+    const preselected = preselectId ? this.sites.find(s => s._id === preselectId) : null;
+    this.selectedSite = preselected ?? this.sites[0];
+    this._placeMarker();
+    if (this.selectedSite.properties.siteInfo.parking.location) {
+      setTimeout(() => this._initParkingMap(), 0);
+    } else {
+      this._destroyParkingMap();
+    }
+    this._takeSnapshot();
+    this._cdr.detectChanges();
+  }
+
+  onFormSelect(id: string) {
+    if (this.hasUnsavedChanges()) {
+      this._pendingNavAction = () => {
+        this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+        this._placeMarker();
+        if (this.selectedSite.properties.siteInfo.parking.location) {
+          setTimeout(() => this._initParkingMap(), 0);
+        } else {
+          this._destroyParkingMap();
+        }
+        this._takeSnapshot();
+      };
+      this.askForDiscardChanges = true;
+      this._cdr.detectChanges();
+      return;
+    }
+    this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+    this._placeMarker();
+    if (this.selectedSite.properties.siteInfo.parking.location) {
+      setTimeout(() => this._initParkingMap(), 0);
+    } else {
+      this._destroyParkingMap();
+    }
+    this._takeSnapshot();
+  }
+
+  onNewSite() {
+    if (this.hasUnsavedChanges()) {
+      this._pendingNavAction = () => {
+        this.selectedSite = new MapFeature();
+        this._mainMapInst.hideMarker();
+        this._mainMapInst.jumpTo(-3.5, 54.5, 5);
+        this._destroyParkingMap();
+        this._takeSnapshot();
+      };
+      this.askForDiscardChanges = true;
+      return;
+    }
+    this.selectedSite = new MapFeature();
+    this._mainMapInst.hideMarker();
+    this._mainMapInst.jumpTo(-3.5, 54.5, 5);
+    this._destroyParkingMap();
+    this._takeSnapshot();
+  }
+
+  onConfirmDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction?.();
+    this._pendingNavAction = null;
+  }
+
+  onCancelDiscard() {
+    this.askForDiscardChanges = false;
+    this._pendingNavAction = null;
+    this._cdr.detectChanges();
+  }
+
+  private _placeMarker() {
+    const [lng, lat] = this.selectedSite.location.coordinates;
+    if (lng || lat) {
+      this._mainMapInst.updateMarker(lng, lat);
+      this._mainMapInst.jumpTo(lng, lat, 12);
+    } else {
+      this._mainMapInst.hideMarker();
+      this._mainMapInst.jumpTo(-3.5, 54.5, 5);
+    }
+  }
+
+  // Coordinates helpers
+  getLng(): number { return this.selectedSite.location.coordinates[0]; }
+  getLat(): number { return this.selectedSite.location.coordinates[1]; }
+
+  get coordString(): string {
+    const [lng, lat] = this.selectedSite.location.coordinates;
+    return (lng || lat) ? `${lat}, ${lng}` : '';
+  }
+
+  setCoordString(v: string) {
+    const parts = v.split(',').map(s => parseFloat(s.trim()));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      this.selectedSite.location.coordinates[1] = parseFloat(parts[0].toFixed(6));
+      this.selectedSite.location.coordinates[0] = parseFloat(parts[1].toFixed(6));
+      this._updateMarkerFromCoords();
+      this._cdr.detectChanges();
+    }
+  }
+
+  openInGoogleMaps() {
+    const [lng, lat] = this.selectedSite.location.coordinates;
+    this._window!.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank', 'noopener,noreferrer');
+  }
+
+  get parkingCoordString(): string {
+    const loc = this.selectedSite.properties.siteInfo.parking.location;
+    if (!loc) return '';
+    const [lng, lat] = loc.coordinates;
+    return (lng || lat) ? `${lat}, ${lng}` : '';
+  }
+
+  setParkingCoordString(v: string) {
+    const parts = v.split(',').map(s => parseFloat(s.trim()));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const loc = this.selectedSite.properties.siteInfo.parking.location!;
+      loc.coordinates[1] = parseFloat(parts[0].toFixed(6));
+      loc.coordinates[0] = parseFloat(parts[1].toFixed(6));
+      const [lng, lat] = loc.coordinates;
+      this._parkingMapInst.updateMarker(lng, lat, { fly: true, zoom: 15 });
+      this._cdr.detectChanges();
+    }
+  }
+
+  openParkingInGoogleMaps() {
+    const loc = this.selectedSite.properties.siteInfo.parking.location!;
+    const [lng, lat] = loc.coordinates;
+    this._window!.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank', 'noopener,noreferrer');
+  }
+
+  setLng(v: string) {
+    this.selectedSite.location.coordinates[0] = parseFloat(v) || 0;
+    this._updateMarkerFromCoords();
+  }
+
+  setLat(v: string) {
+    this.selectedSite.location.coordinates[1] = parseFloat(v) || 0;
+    this._updateMarkerFromCoords();
+  }
+
+  private _geocodeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private _updateMarkerFromCoords() {
+    const [lng, lat] = this.selectedSite.location.coordinates;
+    if (lng || lat) {
+      this._mainMapInst.updateMarker(lng, lat);
+    }
+    if (lng && lat) {
+      if (this._geocodeTimer) clearTimeout(this._geocodeTimer);
+      this._geocodeTimer = setTimeout(() => this._reverseGeocode(lng, lat), 800);
+    }
+  }
+
+  private async _reverseGeocode(lng: number, lat: number) {
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json` +
+        `?types=neighborhood,locality,place,district,region,country&country=gb&access_token=${mapboxToken}`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      const ctx: Array<{ id: string; text: string }> = [
+        ...(data.features?.[0]?.context ?? []),
+        ...(data.features?.[0] ? [{ id: data.features[0].place_type?.[0] ?? '', text: data.features[0].text }] : []),
+      ];
+      const get = (prefix: string) => ctx.find(c => c.id.startsWith(prefix))?.text ?? '';
+      const nameLC = (this.selectedSite.properties.name ?? '').toLowerCase();
+      const locality = [get('neighborhood'), get('locality'), get('place')]
+        .find(v => v && v.toLowerCase() !== nameLC) ?? '';
+      this.selectedSite.properties.location.country      = get('country');
+      this.selectedSite.properties.location.region       = get('region');
+      this.selectedSite.properties.location.district     = get('district');
+      this.selectedSite.properties.location.place        = get('place');
+      this.selectedSite.properties.location.locality     = locality;
+      this.selectedSite.properties.location.neighborhood = get('neighborhood');
+      this._cdr.detectChanges();
+    } catch { /* silently ignore geocoding failures */ }
+  }
+
+  private _normaliseLinks(raw: any): string[] {
+    if (!raw) return [];
+    // If stored as a single stringified array e.g. '["https://...","https://..."]'
+    if (typeof raw === 'string') {
+      try { raw = JSON.parse(raw); } catch { raw = [raw]; }
+    }
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((l: any) => String(l).replace(/^[\s["']+|[\s\]"']+$/g, '').trim())
+      .filter((l: string) => /^https?:\/\//i.test(l));
+  }
+
+  safeUrl(url: string): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl(url);
+  }
+
+  // ResearchNotes links
+  addResearchLink() {
+    let url = this._window?.prompt('Enter URL:')?.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    this.selectedSite.properties.researchNotes.links.push(url);
+  }
+
+  deleteResearchLink(index: number) {
+    this.selectedSite.properties.researchNotes.links.splice(index, 1);
+  }
+
+  // moreInfo
+  addMoreInfo() {
+    this.selectedSite.properties.moreInfo.push({ title: '', icon: '', url: '', text: '', preferred: false });
+  }
+
+  deleteMoreInfo(index: number) {
+    this.selectedSite.properties.moreInfo.splice(index, 1);
+  }
+
+  // Parking location helpers
+  getParkingLng(): number { return this.selectedSite.properties.siteInfo.parking.location?.coordinates[0] ?? 0; }
+  getParkingLat(): number { return this.selectedSite.properties.siteInfo.parking.location?.coordinates[1] ?? 0; }
+
+  setParkingCoords(type: 'lat' | 'lng', v: string) {
+    const val = parseFloat(v) || 0;
+    const loc = this.selectedSite.properties.siteInfo.parking.location;
+    if (loc) {
+      if (type === 'lng') loc.coordinates[0] = val;
+      else loc.coordinates[1] = val;
+    } else {
+      this.selectedSite.properties.siteInfo.parking.location = {
+        type: 'Point',
+        coordinates: type === 'lng' ? [val, 0] : [0, val]
+      };
+    }
+    this._updateParkingMarkerFromCoords();
+  }
+
+  private _updateParkingMarkerFromCoords() {
+    const loc = this.selectedSite.properties.siteInfo.parking.location;
+    if (!loc) return;
+    const [lng, lat] = loc.coordinates;
+    if (lng || lat) {
+      this._parkingMapInst.updateMarker(lng, lat);
+    }
+  }
+
+  toggleParkingLocation(hasParkingCoords: boolean) {
+    if (hasParkingCoords) {
+      this.selectedSite.properties.siteInfo.parking.location = { type: 'Point', coordinates: [0, 0] };
+      setTimeout(() => this._initParkingMap(), 0);
+    } else {
+      this._destroyParkingMap();
+      this.selectedSite.properties.siteInfo.parking.location = null;
+    }
+  }
+
+  async onSave() {
+    try {
+      const id = this.selectedSite._id;
+      const name = this.selectedSite.properties.name;
+      const result = await this._http.upsertSite(this.selectedSite);
+      this.refreshSiteList(result);
+      const saved = id
+        ? this.sites.find(s => s._id === id)
+        : this.sites.find(s => s.properties.name === name);
+      if (saved) {
+        this.selectedSite = saved;
+        this._placeMarker();
+        if (saved.properties.siteInfo.parking.location) {
+          setTimeout(() => this._initParkingMap(), 0);
+        } else {
+          this._destroyParkingMap();
+        }
+        this._takeSnapshot();
+      }
+      this._toaster.show('Site saved successfully.', 'success');
+    } catch (error: any) {
+      console.error(error);
+      this._toaster.show(error?.error?.message || 'Save failed', 'error');
+    }
+  }
+
+  onYesDelete(areYouSure: boolean = false) {
+    if (!areYouSure) {
+      this.askForConfirmation = true;
+    } else {
+      this.askForConfirmation = false;
+      this.doDelete();
+    }
+  }
+
+  onNoDelete() {
+    this.askForConfirmation = false;
+  }
+
+  onAskResetForm() {
+    this.askForResetForm = true;
+  }
+
+  onConfirmResetForm() {
+    this.askForResetForm = false;
+    this.onNewSite();
+  }
+
+  onCancelResetForm() {
+    this.askForResetForm = false;
+  }
+
+  async doDelete() {
+    try {
+      const result = await this._http.deleteSite(this.selectedSite._id);
+      this.refreshSiteList(result);
+      this._toaster.show('Site deleted.', 'success');
+    } catch (error: any) {
+      console.error(error);
+      this._toaster.show(error?.error?.message || 'Delete failed', 'error');
+    }
+  }
+}

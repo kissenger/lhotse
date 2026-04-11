@@ -1,5 +1,6 @@
 
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { createHash } from 'node:crypto';
 import { access, mkdir } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
@@ -12,11 +13,18 @@ import 'dotenv/config';
 
 const blog = express();
 
+const likeRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+});
+
 /* 
   Get all data for all posts
   Returns: Array<BlogPost>
 */
-blog.get('/api/blog/get-all-posts/', async (_req, res) => {
+blog.get('/api/blog/get-all-posts/', verifyToken, async (_req, res) => {
   try {
     const result = await BlogModel
       .find({})
@@ -36,7 +44,8 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
     };
     res.status(201).json(result); 
   } catch (error: any) { 
-    res.status(500).send(error);
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -50,7 +59,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
       res.status(200).json(result);
     } catch (error: any) {
       console.error(error);
-      res.status(500).send(error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 
@@ -64,7 +73,7 @@ blog.get('/api/blog/get-published-posts/', async (_req, res) => {
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
-    res.status(500).send(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -88,7 +97,7 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
       res.status(404).json({ message: 'Not Found' });
       return;
     }
-    res.status(500).send(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -115,7 +124,7 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
       res.status(404).json({ message: 'Not Found' });
       return;
     }
-    res.status(500).send(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -339,8 +348,8 @@ async function generateBlogOgImage(slug?: string, imgFname?: string) {
 blog.post('/api/blog/get-likes', async (req, res) => {
   try {
     const slugs: string[] = req.body.slugs;
-    if (!Array.isArray(slugs)) {
-      res.status(400).json({ error: 'slugs must be an array' });
+    if (!Array.isArray(slugs) || slugs.length > 50) {
+      res.status(400).json({ error: 'slugs must be an array of up to 50 items' });
       return;
     }
     const posts = await BlogModel.find(
@@ -361,9 +370,9 @@ blog.post('/api/blog/get-likes', async (req, res) => {
 /*****************************************************************
  * ROUTE: Like a blog post
  ****************************************************************/
-blog.post('/api/blog/like/:slug', async (req, res) => {
+blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
   try {
-    const slug = req.params.slug;
+    const slug = req.params['slug'];
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const ua = req.headers['user-agent'] || '';
     const hash = createHash('sha256').update(`${ip}|${ua}|${slug}`).digest('hex');

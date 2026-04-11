@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import UserModel from '@schema/user';
 import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
@@ -7,6 +8,25 @@ import 'dotenv/config';
 
 const auth = express();
 const AUTH_KEY = process.env['AUTH_KEY'];
+if (!AUTH_KEY) {
+  throw new Error('AUTH_KEY environment variable is not set — server cannot start');
+}
+
+const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts. Please try again later.' },
+});
+
+const registerRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { message: 'Too many registration attempts. Please try again later.' },
+});
 
 const COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -32,7 +52,7 @@ const sessionCookieOpts = {
  * ROUTE: Create paypal order
  ****************************************************************/
 
-auth.post('/api/auth/login', async (req, res) => {
+auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
 
   try {
 
@@ -62,7 +82,7 @@ auth.post('/api/auth/login', async (req, res) => {
 
 });
 
-auth.post('/api/auth/register', async (req, res) => {
+auth.post('/api/auth/register', registerRateLimit, async (req, res) => {
 // take incoming user data in the form {email, password}, hash password,
 // save to db, get json token and return to front end
 

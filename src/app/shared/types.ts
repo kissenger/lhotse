@@ -175,6 +175,122 @@ export interface OrderSummary {
   notes?: string
 }
 
+// ---------------------------------------------------------------------------
+// Organisations directory pipeline types
+// ---------------------------------------------------------------------------
+
+export interface OrgContacts {
+  emails?: string[];
+  phones?: string[];
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  twitter?: string;
+  youtube?: string;
+  tiktok?: string;
+  other_socials?: string[];
+}
+
+// discover sub-document — raw Apify data
+export interface OrgDiscover {
+  title: string;
+  website?: string;
+  url?: string;
+  address?: string;
+  neighborhood?: string;
+  street?: string;
+  city?: string;
+  postalCode?: string;
+  state?: string;
+  countryCode?: string;
+  phone?: string;
+  phoneUnformatted?: string;
+  categoryName?: string;
+  categories?: string[];
+  totalScore?: number;
+  reviewsCount?: number;
+  location?: { lat: number; lng: number };
+  placeId?: string;
+  imageUrl?: string;
+  scrapedAt?: string;
+  searchString?: string;
+  rank?: number;
+  isAdvertisement?: boolean;
+  temporarilyClosed?: boolean;
+  permanentlyClosed?: boolean;
+  status?: 'ineligible';
+  ineligible_reason?: string;
+  processed_at?: string;
+}
+
+// generate sub-document — Gemini-enriched fields
+export interface OrgGenerate {
+  source_id?: string;
+  status: 'generated' | 'error';
+  processed_at: string;
+  rank_score?: number;
+  criterion_scores?: Record<string, number>;
+  criterion_rationale?: Record<string, string>;
+  tags?: string[];
+  category?: string;
+  contacts?: OrgContacts;
+  description?: string;
+  reviewer_notes?: string;
+  grounding_sources?: string[];
+  error?: string;
+  flaggedForUpdate?: boolean;
+  newContentAvailable?: boolean;
+}
+
+// verify sub-document — fully verified, publication-ready
+export interface OrgVerify {
+  newContentPendingVerification?: boolean;
+  verified?: boolean;
+  verifiedAt?: string;
+  verifiedData?: {
+    description?: string;
+    tags?: string[];
+    category?: string;
+    name?: string;
+    localityOverride?: string;
+  };
+  publish?: boolean;
+  publishedAt?: string;
+}
+
+// Root document — one per organisation, accumulates pipeline stages
+export interface OrgDocument {
+  _id: string;
+  discover: OrgDiscover;
+  generate?: OrgGenerate;
+  verify?: OrgVerify;
+  reverse_geo?: any;
+}
+
+export type OrgCollectionKey = 'discover' | 'generate' | 'verify';
+
+export interface OrgListItem {
+  _id: string;
+  title: string;
+  city?: string;
+  countryCode?: string;
+  status?: string;
+  rank_score?: number;
+  category?: string;
+  newContentPendingVerification?: boolean;
+  isVerified?: boolean;
+  isPublished?: boolean;
+  flaggedForUpdate?: boolean;
+  newContentAvailable?: boolean;
+}
+
+export interface OrgListResponse {
+  docs: OrgListItem[];
+  total: number;
+}
+
+// ---------------------------------------------------------------------------
+
 export interface BlogSection {
   title: string;
   content: string;
