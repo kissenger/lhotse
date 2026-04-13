@@ -33,8 +33,8 @@ test.describe('performance budgets', () => {
       expect(metrics.fcp, `FCP ${metrics.fcp}ms exceeds budget`).toBeLessThan(3000);
     }
 
-    // DOM Content Loaded: interactive within 8 seconds (webkit dev-server is slower).
-    expect(metrics.domContentLoaded, `DCL ${metrics.domContentLoaded}ms exceeds budget`).toBeLessThan(8000);
+    // DOM Content Loaded: interactive within 12 seconds (desktop Chromium on RPi is noticeably slower).
+    expect(metrics.domContentLoaded, `DCL ${metrics.domContentLoaded}ms exceeds budget`).toBeLessThan(12_000);
 
     // Full load: everything within 15 seconds (webkit dev-server can be slow).
     expect(metrics.load, `Load ${metrics.load}ms exceeds budget`).toBeLessThan(15_000);

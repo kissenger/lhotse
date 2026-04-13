@@ -173,7 +173,7 @@ test.describe('PayPal sandbox nightly flow', () => {
 
     // ── 1. Load the shop page ──────────────────────────────────────────────
 
-    await page.goto('/home#buy-now');
+    await page.goto('/home', { waitUntil: 'domcontentloaded' });
 
     const closeOverlay = page.locator('.about-book .close-icon');
     if (await closeOverlay.isVisible().catch(() => false)) {
@@ -184,8 +184,13 @@ test.describe('PayPal sandbox nightly flow', () => {
       }
     }
 
+    // Scroll to the shop section to ensure the @defer block has rendered.
+    await page.evaluate(() => document.getElementById('buy-now')?.scrollIntoView({ behavior: 'instant' }));
+
     // ── 1b. Add an item to the basket — PayPal is lazy-init'd on first add ──
-    await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 15_000 });
+    // The shop is inside an @defer block (idle trigger) so allow extra time for
+    // Angular to render it after navigation, especially on slower hardware.
+    await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 30_000 });
     const addBtn = page.locator('.add-btn').first();
     await addBtn.scrollIntoViewIfNeeded();
     await addBtn.click();

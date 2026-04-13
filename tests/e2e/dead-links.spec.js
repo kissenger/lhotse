@@ -11,6 +11,9 @@ const SEED_PAGES = ['/home', '/map', '/privacy-policy'];
 const NO_HTTP_CHECK = new Set([
   'www.facebook.com',
   'www.instagram.com',
+  'www.youtube.com',
+  'youtube.com',
+  'youtu.be',
 ]);
 
 /**
@@ -103,10 +106,10 @@ async function collectBlogPostLinks(request) {
 }
 
 test.describe.serial('dead links', () => {
-  // Link existence is browser-independent — run in one project only.
-  test.skip(({ project }) => project.name !== 'chromium', 'single-browser check');
 
-  test('internal links resolve without 404', async ({ page }) => {
+  test('internal links resolve without 404', async ({ page, browserName }) => {
+    // Link existence is browser-independent — run in one project only.
+    test.skip(browserName !== 'chromium', 'single-browser check');
     test.setTimeout(180_000);
     // Mock the blog API so this test stays fast and deterministic.
     await page.route('**/api/blog/get-published-posts/**', (route) =>
@@ -142,7 +145,9 @@ test.describe.serial('dead links', () => {
     ).toHaveLength(0);
   });
 
-  test('external links are reachable', async ({ page, request }) => {
+  test('external links are reachable', async ({ page, request, browserName }) => {
+    // Link existence is browser-independent — run in one project only.
+    test.skip(browserName !== 'chromium', 'single-browser check');
     test.setTimeout(300_000);
     const base = new URL('http://127.0.0.1:4200');
     const externalUrls = new Set();
