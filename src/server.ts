@@ -444,7 +444,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     }))
   };
 
-  const { places: mapPlaces, posts: seoPosts } = await getSeoCache();
+  const { posts: seoPosts } = await getSeoCache();
 
   const blogSchemas = seoPosts.map((post: any) => ({
         '@context': 'https://schema.org',
@@ -459,11 +459,6 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
           name: 'Snorkelology'
         }
       }));
-
-  const mapSchema = mapPlaces.length ? {
-    '@context': 'https://schema.org',
-    '@graph': mapPlaces
-  } : null;
 
   const homepageVideoSchema = {
     '@context': 'https://schema.org',
@@ -512,7 +507,9 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     }
   };
 
-  const schemas = [orgSchema, ...productSchemas, ...bookSchemas, faqSchema, ...blogSchemas, mapImageSchema, mapCreativeWorkSchema, homepageVideoSchema, ...(mapSchema ? [mapSchema] : [])];
+  // The @graph of all places is expensive (267 entries) and already present on /map.
+  // Omitting it from the home page significantly reduces TBT without SEO cost.
+  const schemas = [orgSchema, ...productSchemas, ...bookSchemas, faqSchema, ...blogSchemas, mapImageSchema, mapCreativeWorkSchema, homepageVideoSchema];
 
   return {
     title: 'Snorkelology \u2014 British Snorkelling Map, Articles & Snorkelling Britain Book',

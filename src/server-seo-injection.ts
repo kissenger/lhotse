@@ -99,6 +99,12 @@ export function injectJsonLdIntoHead(html: string, schemas: object[]) {
     .map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
     .join('');
 
+  // Inject before </body> so JSON-LD is parsed after the page renders, reducing TBT.
+  // Falls back to </head> or prefix if no </body> is present.
+  if (html.includes('</body>')) {
+    return html.replace('</body>', `${scripts}</body>`);
+  }
+
   if (html.includes('</head>')) {
     return html.replace('</head>', `${scripts}</head>`);
   }
