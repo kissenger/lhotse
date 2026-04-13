@@ -8,8 +8,8 @@ set -euo pipefail
 # Let's Encrypt certificate status and dry-run renewal
 ERROR_MSG=$(sudo certbot renew --cert-name snorkelology.co.uk --dry-run 2>&1)
 if [ $? -ne 0 ]; then
-    printError "Certbot dry-run failed with error: ${ERROR_MSG}"
-    HAS_FAILURE=1
+    echo "Certbot dry-run failed with error: ${ERROR_MSG}" >&2
+    exit 1
 else
-    printSuccess "[OK] Certbot dry-run"
+    echo "[OK] Certbot dry-run"
 fi

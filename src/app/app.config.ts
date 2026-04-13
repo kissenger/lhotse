@@ -1,5 +1,6 @@
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter, withInMemoryScrolling, withRouterConfig, PreloadAllModules, withPreloading } from '@angular/router';
+import { ApplicationConfig, Injectable } from '@angular/core';
+import { provideRouter, withInMemoryScrolling, withRouterConfig, withPreloading, PreloadingStrategy, Route } from '@angular/router';
+import { Observable, of } from 'rxjs';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
@@ -9,6 +10,12 @@ import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
 import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interceptor.service';
 
+@Injectable({ providedIn: 'root' })
+export class SelectivePreloadingStrategy implements PreloadingStrategy {
+  preload(route: Route, load: () => Observable<any>): Observable<any> {
+    return route.data?.['noPreload'] ? of(null) : load();
+  }
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
       withInMemoryScrolling({scrollPositionRestoration: 'disabled', anchorScrolling: 'disabled'}),
-      withPreloading(PreloadAllModules)
+      withPreloading(SelectivePreloadingStrategy)
     ), 
     provideClientHydration(),
     provideHttpClient(

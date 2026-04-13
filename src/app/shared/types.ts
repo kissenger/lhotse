@@ -253,9 +253,17 @@ export interface OrgVerify {
     category?: string;
     name?: string;
     localityOverride?: string;
+    contacts?: {
+      website?: string;
+      phone?: string;
+      email?: string;
+      facebook?: string;
+      instagram?: string;
+      youtube?: string;
+    };
   };
-  publish?: boolean;
-  publishedAt?: string;
+  forcedPublish?: boolean;
+  suppressOnMap?: boolean;
 }
 
 // Root document — one per organisation, accumulates pipeline stages
@@ -265,6 +273,7 @@ export interface OrgDocument {
   generate?: OrgGenerate;
   verify?: OrgVerify;
   reverse_geo?: any;
+  favourite?: { isFavourite?: boolean; [key: string]: any };
 }
 
 export type OrgCollectionKey = 'discover' | 'generate' | 'verify';
@@ -279,14 +288,22 @@ export interface OrgListItem {
   category?: string;
   newContentPendingVerification?: boolean;
   isVerified?: boolean;
-  isPublished?: boolean;
+  isPublished?: boolean;     // kept for compat — equals isOnMap
+  isOnMap?: boolean;         // score >= threshold OR manual publish
+  isManualPublish?: boolean; // verify.forcedPublish flag
+  isSuppressed?: boolean;    // verify.suppressOnMap flag
   flaggedForUpdate?: boolean;
   newContentAvailable?: boolean;
+  isFavourite?: boolean;
 }
 
 export interface OrgListResponse {
   docs: OrgListItem[];
   total: number;
+}
+
+export interface OrgSettings {
+  scoringThreshold: number;
 }
 
 // ---------------------------------------------------------------------------

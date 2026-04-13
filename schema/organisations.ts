@@ -104,8 +104,8 @@ const VerifySchema = new Schema({
     tags:                [String],
     category:            String,    
   },
-  publish:              Boolean,
-  publishedAt:            Date,
+  forcedPublish:        Boolean,
+  suppressOnMap:        Boolean,
 }, { _id: false, strict: false });
 
 // ---------------------------------------------------------------------------

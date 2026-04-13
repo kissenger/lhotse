@@ -22,11 +22,11 @@
         <option value="">— select —</option>
         @for (item of sortedListItems; track item._id) {
           <option [value]="item._id"
-            [class.option-published]="item.isPublished"
-            [class.option-verified]="item.isVerified && !item.isPublished"
-            [class.option-unverified]="!item.isVerified && !item.isPublished"
+            [class.option-published]="item.isOnMap"
+            [class.option-verified]="item.isVerified && !item.isOnMap"
+            [class.option-unverified]="!item.isVerified && !item.isOnMap"
             [class.option-pending]="item.newContentPendingVerification">
-            {{ (item.newContentAvailable ? '◆ ' : '') + (item.flaggedForUpdate ? '⚑ ' : '') + (item.rank_score !== undefined ? '[' + item.rank_score + '] ' : '') + item.title + (item.city ? ' · ' + item.city : '') }}
+            {{ (item.isFavourite ? '⭐ ' : '') + (item.isOnMap ? '📍' : '') + (item.isVerified ? '✅' : '') + (item.isOnMap || item.isVerified ? ' ' : '') + (item.newContentAvailable ? '◆ ' : '') + (item.flaggedForUpdate ? '⚑ ' : '') + (item.rank_score !== undefined ? '[' + item.rank_score + '] ' : '') + item.title + (item.city ? ' · ' + item.city : '') }}
           </option>
         }
       </select>
@@ -40,19 +40,14 @@
           (click)="onSave()">
           Save &amp; Verify
         </button>
-        @if (asVerify?.publish) {
-          <button type="button" class="formButton btn-unpublish"
-            [disabled]="isSaving"
-            (click)="onUnpublish()">
-            Unpublish
-          </button>
-        } @else {
-          <button type="button" class="formButton btn-publish"
-            [disabled]="!selectedDoc || isDirty || isSaving || !asVerify?.verified"
-            (click)="onPublish()">
-            Publish
-          </button>
-        }
+        <label class="flag-regen-label force-map-label">
+          <input type="checkbox" [checked]="asVerify?.forcedPublish" (change)="onToggleManualPublish()" [disabled]="isSaving || !selectedDoc" name="forceOnMap">
+          Force on map
+        </label>
+        <label class="flag-regen-label suppress-map-label">
+          <input type="checkbox" [checked]="asVerify?.suppressOnMap" (change)="onToggleSuppressOnMap()" [disabled]="isSaving || !selectedDoc" name="suppressOnMap">
+          Suppress from map
+        </label>
         <button type="button" class="formButton btn-delete"
           [disabled]="!selectedId"
           (click)="onYesDelete(false)">
@@ -64,6 +59,20 @@
           <button type="button" class="formButton" (click)="onNoDelete()">No</button>
         </span>
       </div>
+    </div>
+
+    <!-- Threshold row -->
+    <div class="toolbar-row">
+      <label for="scoreThreshold">Score threshold:</label>
+      <input type="number" id="scoreThreshold" name="scoreThreshold" min="0" max="100" step="1"
+        [(ngModel)]="scoringThreshold"
+        (ngModelChange)="scoringThresholdDirty = true"
+        style="width:5em">
+      <button type="button" class="formButton"
+        [disabled]="!scoringThresholdDirty"
+        (click)="onSaveThreshold()">
+        Save threshold
+      </button>
     </div>
 
   </div>
@@ -79,11 +88,18 @@
 
       <!-- Status row -->
       <div class="status-row">
+        @if (selectedDoc.favourite?.isFavourite) {
+          <span class="badge badge-favourite">⭐ Favourite</span>
+        }
         @if (asVerify?.verified) {
           <span class="badge badge-verified">Verified</span>
         }
-        @if (asVerify?.publish) {
-          <span class="badge badge-published">Published</span>
+        @if (asVerify?.forcedPublish) {
+          <span class="badge badge-published">On map (forced)</span>
+        } @else if (asVerify?.suppressOnMap) {
+          <span class="badge badge-suppressed">Suppressed from map</span>
+        } @else if (isOnMap) {
+          <span class="badge badge-published">On map</span>
         }
         @if (!hasLocation) {
           <span class="badge badge-no-location">&#9888; No location — won't appear on map</span>
@@ -107,6 +123,9 @@
           <div class="col-header-gen">Generated (read-only)</div>
           <div class="col-header-ver">
             <span>Verified Data</span>
+            @if (asVerify?.verified) {
+              <span class="col-header-verified-tick" title="Verified">&#10003;</span>
+            }
           </div>
 
           <!-- === Name === -->
@@ -176,22 +195,30 @@
 
           <!-- === Description === -->
           <div class="section-heading read-only-section">Description</div>
-          <div class="section-heading">Description</div>
-          <div class="ro-block ro-desc">{{ asGenerate?.description || '—' }}</div>
-          <div class="desc-verified-col">
-            <div class="populate-row">
-              <button type="button" class="formButton btn-populate" (click)="populateFromGenerate()">
-                {{ verifiedDataEmpty ? 'Populate from Generate' : 'Reset from Generate' }}
-              </button>
-              <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
-                Overwrite existing data?
-                <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
-                <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>
-              </span>
-            </div>
-            <textarea name="vd_description" class="desc-textarea" spellcheck="true"
-              [(ngModel)]="verifiedData.description"></textarea>
+          <div class="section-heading">
+            Description
+            <button type="button" class="formButton btn-populate" (click)="populateFromGenerate()">
+              {{ verifiedDataEmpty ? 'Populate from Generate' : 'Reset from Generate' }}
+            </button>
+            <button type="button" class="formButton btn-clear-verified"
+              [disabled]="isSaving || !asVerify?.verified"
+              (click)="askForClearVerified = true">
+              Clear
+            </button>
+            <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
+              Overwrite existing data?
+              <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
+              <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>
+            </span>
+            <span [ngClass]="askForClearVerified ? 'showButton' : ''" class="sureButton">
+              Clear verified data?
+              <button type="button" class="formButton" (click)="onClearVerified()">Yes</button>
+              <button type="button" class="formButton" (click)="askForClearVerified = false">No</button>
+            </span>
           </div>
+          <div class="ro-block ro-desc">{{ asGenerate?.description || '—' }}</div>
+          <textarea name="vd_description" class="desc-textarea" spellcheck="true"
+            [(ngModel)]="verifiedData.description"></textarea>
 
           <!-- === Tags === -->
           <div class="section-heading read-only-section">Tags</div>
@@ -234,6 +261,74 @@
               <option [value]="cat">{{ cat }}</option>
             }
           </select>
+
+          <!-- === Social Links / Contact (full width) === -->
+          <div class="section-heading full-row">Social Links &amp; Contact</div>
+          <div class="contacts-review full-row">
+            <!-- headers -->
+            <div class="contacts-col-label">Generated (read-only)</div>
+            <div class="contacts-col-label">Verified</div>
+            <!-- Website -->
+            <div class="contact-cell">
+              <span class="contact-label">Website</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.website || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_website">Website</label>
+              <input id="vc_website" type="url" name="vc_website" class="contact-input"
+                [(ngModel)]="verifiedContacts.website" placeholder="https://…">
+            </div>
+            <!-- Phone -->
+            <div class="contact-cell">
+              <span class="contact-label">Phone</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.phones?.[0] || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_phone">Phone</label>
+              <input id="vc_phone" type="tel" name="vc_phone" class="contact-input"
+                [(ngModel)]="verifiedContacts.phone" placeholder="+44 …">
+            </div>
+            <!-- Email -->
+            <div class="contact-cell">
+              <span class="contact-label">Email</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.emails?.[0] || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_email">Email</label>
+              <input id="vc_email" type="email" name="vc_email" class="contact-input"
+                [(ngModel)]="verifiedContacts.email" placeholder="contact@…">
+            </div>
+            <!-- Facebook -->
+            <div class="contact-cell">
+              <span class="contact-label">Facebook</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.facebook || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_facebook">Facebook</label>
+              <input id="vc_facebook" type="url" name="vc_facebook" class="contact-input"
+                [(ngModel)]="verifiedContacts.facebook" placeholder="https://facebook.com/…">
+            </div>
+            <!-- Instagram -->
+            <div class="contact-cell">
+              <span class="contact-label">Instagram</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.instagram || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_instagram">Instagram</label>
+              <input id="vc_instagram" type="url" name="vc_instagram" class="contact-input"
+                [(ngModel)]="verifiedContacts.instagram" placeholder="https://instagram.com/…">
+            </div>
+            <!-- YouTube -->
+            <div class="contact-cell">
+              <span class="contact-label">YouTube</span>
+              <span class="contact-value">{{ asGenerate?.contacts?.youtube || '—' }}</span>
+            </div>
+            <div class="contact-cell">
+              <label class="contact-label" for="vc_youtube">YouTube</label>
+              <input id="vc_youtube" type="url" name="vc_youtube" class="contact-input"
+                [(ngModel)]="verifiedContacts.youtube" placeholder="https://youtube.com/…">
+            </div>
+          </div>
 
           <!-- === Ranking & Criterion Scores (full width) === -->
           @if (asGenerate?.rank_score !== undefined || criterionScoreEntries.length) {

@@ -286,6 +286,12 @@
   border: 1px solid #9ec5fe;
 }
 
+.badge-favourite {
+  background-color: #fef9c3;
+  color: #713f12;
+  border: 1px solid #fde047;
+}
+
 /* === Button overrides === */
 .flag-regen-label {
   display: inline-flex;
@@ -406,6 +412,58 @@
 
 .chip-input-row input {
   flex-grow: 1;
+}
+
+/* === Contacts review === */
+.contacts-review {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  row-gap: 0.5rem;
+  align-items: start;
+  padding: 0 0 0.75rem;
+}
+
+.contacts-col-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.contact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.contact-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.contact-value {
+  font-size: 0.85rem;
+  color: #333;
+  word-break: break-all;
+  padding: 0.3em 0.5em;
+  background: #f7f9fb;
+  border: 1px solid #e3e9ef;
+  border-radius: 4px;
+  min-height: 1.8em;
+}
+
+.contact-input {
+  width: 100%;
+  padding: 0.3em 0.5em;
+  border: 1px solid #ccd6e0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
 }
 
 /* === Scores section === */

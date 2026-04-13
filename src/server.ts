@@ -24,6 +24,17 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 let mongooseConnectPromise: Promise<void> | null = null;
 
 /**
+ * In-memory SEO cache.
+ * Populated on server startup (pre-warm) so every request is served from RAM.
+ * Refreshed by the daily RPi restart, or on demand via POST /api/refresh-seo-cache.
+ */
+interface SeoCache {
+  places: any[];
+  posts: any[];
+}
+let seoCache: SeoCache | null = null;
+
+/**
  * Admin subdomain handling:
  * - Redirect root path to /dashboard (avoids Angular SSR redirect-response falling through)
  * - Rewrite Host header so Angular's SSR host-validation passes
@@ -64,6 +75,49 @@ app.get('/api/ping/', (_req, res) => {
 
 app.get('/api/db-backup/', verifyToken, (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
+})
+
+/**
+ * POST /api/refresh-seo-cache
+ *
+ * Forces an immediate refresh of the in-memory SEO cache (map places + blog posts).
+ * Intended for use by a cron job or deployment hook to invalidate the cache
+ * without restarting the server.
+ *
+ * Usage:
+ *   curl -X POST https://snorkelology.co.uk/api/refresh-seo-cache \
+ *        -H "Authorization: Bearer <CACHE_REFRESH_SECRET>"
+ *
+ * Authentication:
+ *   Requires the Authorization header value to match the CACHE_REFRESH_SECRET
+ *   environment variable. If that variable is not set, the endpoint returns 404
+ *   so it cannot be discovered or abused.
+ *
+ * Cron example (runs at 03:00 every day):
+ *   0 3 * * * curl -s -X POST https://snorkelology.co.uk/api/refresh-seo-cache \
+ *             -H "Authorization: Bearer $(cat /etc/seo-cache-secret)"
+ */
+app.post('/api/refresh-seo-cache', async (req, res) => {
+  const secret = process.env['CACHE_REFRESH_SECRET'];
+  if (!secret) {
+    // Endpoint is intentionally inactive when no secret is configured.
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  const authHeader = req.headers['authorization'] || '';
+  const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!provided || provided !== secret) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  try {
+    await ensureMongooseConnected();
+    await refreshSeoCache();
+    res.status(200).json({ ok: true, places: seoCache?.places.length ?? 0, posts: seoCache?.posts.length ?? 0 });
+  } catch (err) {
+    console.error('POST /api/refresh-seo-cache failed:', err);
+    res.status(500).json({ error: 'Cache refresh failed' });
+  }
 })
 
 app.use(express.json()); // this is needed to interprete req.body
@@ -134,6 +188,7 @@ export const reqHandler = createNodeRequestHandler(app);
  */
 async function startServer() {
   await ensureMongooseConnected();
+  await refreshSeoCache();
 
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
@@ -204,6 +259,36 @@ export class BlogError extends Error {
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
 const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.png`;
+
+/**
+ * Fetches places and blog posts from the DB in parallel and stores them in the
+ * in-memory SEO cache. Called once on startup (pre-warm) and optionally via
+ * POST /api/refresh-seo-cache.
+ */
+async function refreshSeoCache(): Promise<void> {
+  if (SKIP_SEO_DB_LOOKUPS) return;
+  try {
+    const [places, posts] = await Promise.all([
+      getPlacesForSeo().catch((err) => { console.error('SEO cache: getPlacesForSeo failed', err); return []; }),
+      getPublishedPostsForSeo().catch((err) => { console.error('SEO cache: getPublishedPostsForSeo failed', err); return []; })
+    ]);
+    seoCache = { places, posts };
+    console.log(`SEO cache refreshed: ${places.length} places, ${posts.length} posts`);
+  } catch (err) {
+    console.error('SEO cache refresh failed:', err);
+  }
+}
+
+/**
+ * Returns the SEO cache, populating it first if it is empty (lazy fallback).
+ * Under normal operation the cache is always pre-warmed on startup, so the
+ * lazy path is only reached if the startup pre-warm itself failed.
+ */
+async function getSeoCache(): Promise<SeoCache> {
+  if (seoCache) return seoCache;
+  await refreshSeoCache();
+  return seoCache ?? { places: [], posts: [] };
+}
 
 async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string) {
   const payload = await getSeoPayload(pathname, query);
@@ -359,10 +444,9 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     }))
   };
 
-  const blogSchemas = SKIP_SEO_DB_LOOKUPS
-    ? []
-    : await getPublishedPostsForSeo().then(posts =>
-      posts.map((post: any) => ({
+  const { places: mapPlaces, posts: seoPosts } = await getSeoCache();
+
+  const blogSchemas = seoPosts.map((post: any) => ({
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
         headline: post.title,
@@ -374,16 +458,8 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
           '@type': 'Person',
           name: 'Snorkelology'
         }
-      }))
-    ).catch(() => []);
+      }));
 
-  const mapPlaces = SKIP_SEO_DB_LOOKUPS
-    ? []
-    : await getPlacesForSeo().catch((error) => {
-      // Keep SSR response resilient, but surface why map JSON-LD was skipped.
-      console.error('SEO map schema generation failed:', error);
-      return [];
-    });
   const mapSchema = mapPlaces.length ? {
     '@context': 'https://schema.org',
     '@graph': mapPlaces
@@ -681,12 +757,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     'snorkelology map', 'snorkelology snorkelling map'
   ].join(', ');
 
-  const mapPlaces = SKIP_SEO_DB_LOOKUPS
-    ? []
-    : await getPlacesForSeo().catch((error) => {
-      console.error('SEO map schema generation failed:', error);
-      return [];
-    });
+  const { places: mapPlaces } = await getSeoCache();
   const mapSchema = mapPlaces.length ? {
     '@context': 'https://schema.org',
     '@graph': mapPlaces

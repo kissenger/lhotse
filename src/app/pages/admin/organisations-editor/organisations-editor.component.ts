@@ -24,8 +24,12 @@ export class OrganisationsEditorComponent implements OnInit {
   isDirty = false;
   isSaving = false;
 
+  scoringThreshold = 70;
+  scoringThresholdDirty = false;
+
   askForConfirmation = false;
   askForOverwriteVerify = false;
+  askForClearVerified = false;
   tagInput = '';
 
   readonly CATEGORIES = [
@@ -61,10 +65,32 @@ export class OrganisationsEditorComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadSettings();
     this.loadList();
   }
 
   // ---- list loading ----
+
+  async loadSettings() {
+    try {
+      const s = await this._http.getOrgSettings();
+      this.scoringThreshold = s.scoringThreshold;
+    } catch {}
+    this._cdr.detectChanges();
+  }
+
+  async onSaveThreshold() {
+    try {
+      const saved = await this._http.saveOrgSettings({ scoringThreshold: this.scoringThreshold });
+      this.scoringThreshold = saved.scoringThreshold;
+      this.scoringThresholdDirty = false;
+      this._toaster.show('Threshold saved', 'success');
+      await this.loadList();
+    } catch {
+      this._toaster.show('Failed to save threshold', 'error');
+    }
+    this._cdr.detectChanges();
+  }
 
   async loadList() {
     this.listLoading = true;
@@ -106,11 +132,44 @@ export class OrganisationsEditorComponent implements OnInit {
 
   async onSave() {
     if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
-    this.isSaving = true;
     if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
     this.selectedDoc.verify.verified = true;
     this.selectedDoc.verify.verifiedAt = new Date().toISOString();
     this.selectedDoc.verify.newContentPendingVerification = false;
+    await this._doSave();
+  }
+
+  async onClearVerified() {
+    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
+    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
+    this.selectedDoc.verify.verified = false;
+    this.selectedDoc.verify.verifiedAt = undefined;
+    this.selectedDoc.verify.verifiedData = undefined;
+    this.askForClearVerified = false;
+    await this._doSave();
+  }
+
+  // ---- manual map override ----
+
+  async onToggleManualPublish() {
+    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
+    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
+    const newVal = !this.selectedDoc.verify.forcedPublish;
+    this.selectedDoc.verify.forcedPublish = newVal || undefined;
+    await this._doSave();
+  }
+
+  async onToggleSuppressOnMap() {
+    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
+    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
+    const newVal = !this.selectedDoc.verify.suppressOnMap;
+    this.selectedDoc.verify.suppressOnMap = newVal || undefined;
+    await this._doSave();
+  }
+
+  private async _doSave() {
+    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
+    this.isSaving = true;
     try {
       this.selectedDoc = await this._http.saveOrgDoc('verify', this.selectedId, this.selectedDoc);
       this.isDirty = false;
@@ -122,29 +181,6 @@ export class OrganisationsEditorComponent implements OnInit {
       this.isSaving = false;
       this._cdr.detectChanges();
     }
-  }
-
-  // ---- verify ----
-
-  async onVerify() {
-    await this.onSave();
-  }
-
-  // ---- publish / unpublish ----
-
-  async onPublish() {
-    if (!this.selectedDoc || !this.selectedId || this.isDirty) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    this.selectedDoc.verify.publish = true;
-    this.selectedDoc.verify.publishedAt = new Date().toISOString();
-    await this.onSave();
-  }
-
-  async onUnpublish() {
-    if (!this.selectedDoc || !this.selectedId) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    this.selectedDoc.verify.publish = false;
-    await this.onSave();
   }
 
   // ---- delete ----
@@ -190,7 +226,23 @@ export class OrganisationsEditorComponent implements OnInit {
   get verifiedDataEmpty(): boolean {
     const vd = this.selectedDoc?.verify?.verifiedData;
     if (!vd) return true;
-    return !vd.description && (!vd.tags || !vd.tags.length) && !vd.category && !vd.name;
+    const c = vd.contacts;
+    const hasContacts = !!(c && (c.website || c.phone || c.email || c.facebook || c.instagram || c.youtube));
+    return !vd.description && (!vd.tags || !vd.tags.length) && !vd.category && !vd.name && !hasContacts;
+  }
+
+  get verifiedContacts(): NonNullable<NonNullable<OrgVerify['verifiedData']>['contacts']> {
+    const vd = this.verifiedData;
+    if (!vd.contacts) vd.contacts = {};
+    return vd.contacts;
+  }
+
+  get isOnMap(): boolean {
+    if (!this.selectedDoc) return false;
+    if (this.selectedDoc.verify?.forcedPublish) return true;
+    if (this.selectedDoc.verify?.suppressOnMap) return false;
+    const score = this.selectedDoc.generate?.rank_score;
+    return score != null && score >= this.scoringThreshold;
   }
 
   populateFromGenerate() {

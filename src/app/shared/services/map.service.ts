@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { mapboxToken } from '../globals';
-import * as mapboxgl from 'mapbox-gl';
+import type * as mapboxgl from 'mapbox-gl';
 import { Subject } from 'rxjs';
 
 @Injectable({
@@ -61,7 +61,9 @@ export class MapService {
     return index;
   }
 
-  create(sites: any) {
+  async create(sites: any) {
+
+    const mapboxgl = (await import('mapbox-gl')).default;
 
     return new Promise<void>( (resolve, reject) => {
 
@@ -114,76 +116,132 @@ export class MapService {
       this._map?.on('load', () => {       resolve(); })
       this._map?.on('style.load', () => {
 
-        this._map?.loadImage('assets/icons/site-icon-blue-white.png', (error, image: any) => {
-          if (error) throw error;
-          this._map?.addImage('site-marker', image);
+        // 1×1 white pixel — kept for potential future use but no longer applied to labels
+        this._map?.addImage('label-bg', { width: 1, height: 1, data: new Uint8Array([255, 255, 255, 230]) });
+
+        this._map?.addSource('sitesSource', {
+          type: 'geojson',
+          data: sites,
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
+          // count how many features in each cluster are Snorkelling Sites
+          clusterProperties: {
+            siteCount: ['+', ['case', ['==', ['get', 'featureType'], 'Snorkelling Site'], 1, 0]],
+          },
         });
 
-        this._map?.loadImage('assets/icons/site-icon-white-blue.png', (error, image: any) => {
-          if (error) throw error;
-          this._map?.addImage('site-marker-active', image);
-        });
-
-        this._map?.loadImage('assets/icons/provider-icon-orange-white.png', (error, image: any) => {
-          if (error) throw error;
-          this._map?.addImage('organisation-marker', image);
-        });
-
-        this._map?.loadImage('assets/icons/provider-icon-white-orange.png', (error, image: any) => {
-          if (error) throw error;
-          this._map?.addImage('organisation-marker-active', image);
-        });
-
-        this._map?.addSource('sitesSource', {type: "geojson", data: sites});
-
-        // main symbol layer
+        // cluster bubble layer
         this._map?.addLayer({
-          id: 'symbolLayer', 
+          id: 'clusterLayer',
+          type: 'circle',
           source: 'sitesSource',
-          type: 'symbol', 
-          layout: { 
-            'icon-image': ['match', ['get','featureType'], 
-                'Snorkelling Site', 'site-marker',
-                'organisation-marker'],
-            'icon-allow-overlap': true,
-            'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 5, 0.5, 14, 1.6],
-            'symbol-sort-key': ['get', 'symbolSortOrder']
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': [
+              'case',
+              ['==', ['get', 'siteCount'], 0],                         // all orgs
+              '#E87722',
+              '#1D3D59',                                               // all sites, or mixed (ring handles mixed)
+            ],
+            'circle-radius': ['step', ['get', 'point_count'], 18, 10, 24, 50, 30],
+            'circle-opacity': 0.85,
+          },
+        });
+
+        // outer ring layer — only shown on mixed clusters (contains both types)
+        this._map?.addLayer({
+          id: 'clusterRingLayer',
+          type: 'circle',
+          source: 'sitesSource',
+          filter: ['all',
+            ['has', 'point_count'],
+            ['>', ['get', 'siteCount'], 0],
+            ['<', ['get', 'siteCount'], ['get', 'point_count']],
+          ],
+          paint: {
+            'circle-color': 'transparent',
+            'circle-radius': ['step', ['get', 'point_count'], 21, 10, 27, 50, 33],
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#E87722',
+            'circle-opacity': 0,
+          },
+        });
+
+        // cluster count label layer
+        this._map?.addLayer({
+          id: 'clusterCountLayer',
+          type: 'symbol',
+          source: 'sitesSource',
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-size': 13,
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          },
+          paint: { 'text-color': '#ffffff' },
+        });
+
+        // single unclustered symbol layer — data-driven colour + feature-state for selection
+        // organisations are rendered slightly smaller than sites to reinforce hierarchy
+        this._map?.addLayer({
+          id: 'symbolLayer',
+          type: 'circle',
+          source: 'sitesSource',
+          filter: ['!', ['has', 'point_count']],
+          layout: {
+            'circle-sort-key': ['get', 'symbolSortOrder'],
           },
           paint: {
-            'icon-opacity': [
+            'circle-color': [
               'case',
               ['boolean', ['feature-state', 'selected'], false],
+              '#ffffff',
+              ['match', ['get', 'featureType'], 'Snorkelling Site', '#1D3D59', '#E87722'],
+            ],
+            'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 5, 7, 14, 11],
+            'circle-stroke-width': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              3,
               0,
-              1.0
             ],
-          }
-        })
+            'circle-stroke-color': [
+              'match', ['get', 'featureType'], 'Snorkelling Site', '#1D3D59', '#E87722',
+            ],
+            'circle-pitch-alignment': 'map',
+          },
+        });
 
-        // highlight layer — uses active icon variants, only shown when selected
+        // label layer — site/org name shown at zoom >= 8
         this._map?.addLayer({
-          id: 'symbolLayerHighlight', 
+          id: 'symbolLabelLayer',
+          type: 'symbol',
           source: 'sitesSource',
-          type: 'symbol', 
-          layout: { 
-            'icon-image': ['match', ['get','featureType'],
-                'Snorkelling Site', 'site-marker-active',
-                'organisation-marker-active'],
-            'icon-allow-overlap': true,
-            'icon-anchor': 'bottom',
-            'icon-size': ['interpolate', ['exponential', 2], ['zoom'], 1, 0.5, 14, 1.6],
-            'symbol-sort-key': ['get','symbolSortOrder']
+          filter: ['!', ['has', 'point_count']],
+          minzoom: 6,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+            'text-size': 15,
+            // 'icon-image': 'label-bg',
+            // 'icon-text-fit': 'both',
+            // 'icon-text-fit-padding': [4, 8, 4, 8],
+            // variable-anchor lets Mapbox pick the best side to avoid collisions;
+            // radial-offset scales with zoom so text stays outside the growing circle
+            'text-variable-anchor': ['top', 'bottom', 'right', 'left'],
+            'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 5, 0.9, 14, 1.8],
+            'text-optional': true,
+            'text-max-width': 8,
+            'symbol-sort-key': ['get', 'symbolSortOrder'],
           },
           paint: {
-            'icon-opacity': [
-              'case',
-              ['boolean', ['feature-state', 'selected'], false],
-              1.0,
-              0
-            ],
-          }
-        })
-        
+            'text-color': ['match', ['get', 'featureType'], 'Snorkelling Site', '#1D3D59', '#E87722'],
+            'text-halo-color': 'rgba(255, 255, 255, 0.6)',
+            'text-halo-width': 1,
+          },
+        });
+
       })
 
       this._map?.addInteraction('click', {
@@ -212,6 +270,21 @@ export class MapService {
 
       });
 
+      this._map?.addInteraction('cluster-click', {
+        type: 'click',
+        target: { layerId: 'clusterLayer' },
+        handler: (e) => {
+          const features = this._map?.queryRenderedFeatures(e.point, { layers: ['clusterLayer'] });
+          if (!features?.length) return;
+          const clusterId = features[0].properties?.['cluster_id'];
+          const source = this._map?.getSource('sitesSource') as mapboxgl.GeoJSONSource;
+          source.getClusterExpansionZoom(clusterId, (err: any, zoom: number | null | undefined) => {
+            if (err || zoom == null) return;
+            this._map?.easeTo({ center: (features[0].geometry as any).coordinates, zoom });
+          });
+        },
+      });
+
       this._map?.addInteraction('map-click', {
         type: 'click',
         handler: () => {
@@ -231,12 +304,28 @@ export class MapService {
         }
       });
 
+      this._map?.addInteraction('cluster-mouseenter', {
+        type: 'mouseenter',
+        target: { layerId: 'clusterLayer' },
+        handler: (_e) => {
+          this._map!.getCanvas().style.cursor = 'pointer';
+        },
+      });
+
       this._map?.addInteraction('mouseleave', {
         type: 'mouseleave',
         target: { layerId: 'symbolLayer' },
         handler: (_e) => { 
           this._map!.getCanvas().style.cursor = '';
         }
+      });
+
+      this._map?.addInteraction('cluster-mouseleave', {
+        type: 'mouseleave',
+        target: { layerId: 'clusterLayer' },
+        handler: (_e) => {
+          this._map!.getCanvas().style.cursor = '';
+        },
       });
     
     });

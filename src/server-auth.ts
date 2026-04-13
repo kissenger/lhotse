@@ -82,7 +82,7 @@ auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
 
 });
 
-auth.post('/api/auth/register', registerRateLimit, async (req, res) => {
+auth.post('/api/auth/register', verifyToken, registerRateLimit, async (req, res) => {
 // take incoming user data in the form {email, password}, hash password,
 // save to db, get json token and return to front end
 

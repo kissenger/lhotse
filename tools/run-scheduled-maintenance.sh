@@ -51,7 +51,6 @@ sendEmail() {
 run_check() {
   local name="${1}"
   local script="${SCRIPT_DIR}/${name}"
-  local output=""
 
   if [[ ! -f "${script}" ]]; then
     echo -e "${RED}$(date -Iseconds) [FAIL] ${name} (script not found)${NC}" | tee -a "${LOG_FILE}" >&2
@@ -59,14 +58,12 @@ run_check() {
     return 1
   fi
 
-  if output="$(bash "${script}" 2>&1)"; then
+  # Sub-script output goes to terminal only — not to the log file
+  if bash "${script}"; then
     echo -e "${GREEN}$(date -Iseconds) [PASS] ${name}${NC}" | tee -a "${LOG_FILE}"
   else
     echo -e "${RED}$(date -Iseconds) [FAIL] ${name}${NC}" | tee -a "${LOG_FILE}" >&2
-    if [[ -n "${output}" ]]; then
-      echo -e "${RED}${output}${NC}" | tee -a "${LOG_FILE}" >&2
-    fi
-    ERROR_LINES+="$(date -Iseconds) [FAIL] ${name}\n${output}\n"
+    ERROR_LINES+="$(date -Iseconds) [FAIL] ${name}\n"
     return 1
   fi
 }

@@ -18,10 +18,16 @@
     } @else {
       <h2 class="section-heading"><a class="stealth-link" href="/map">Interactive Snorkelling Map of Britain</a></h2>
 
+      <p class="blockquote">
+        We've mapped snorkelling sites all over Britain —
+        from coastal rock pools and kelp forests to sheltered bays 
+        and offshore reefs in
+        England, Scotland, and Wales. 
+      </p>
       <p>
-        We've mapped 100+ snorkelling sites and organisations all over Britain —
-        from coastal rock pools and kelp forests to sheltered bays and offshore reefs in
-        England, Scotland, and Wales. Use the filter to narrow by habitat type or organisation category,
+        Added to this are snorkelling organisations.
+        
+        Use the filter to narrow by habitat type or organisation category,
         and click any pin for GPS coordinates, a description, and links to find out more.
         We're always adding new sites, so check back regularly for the latest spots.
       </p>
@@ -32,10 +38,6 @@
         our map is the most comprehensive guide to British snorkelling locations online.
       </p>
 
-      <p>
-        If you are a snorkelling organisation who would like to be included on the map, or if you know of a site
-        that should be included, please get in touch with us using the socials links in the header.
-      </p>
     }
 
     <div class="map-container">
@@ -47,8 +49,8 @@
           <div class="filter-group">
             <div class="filter-group-header" (click)="snorkellingExpanded = !snorkellingExpanded">
               <div class="filter-group-label">
-                <img class="filter-legend-icon" src="assets/icons/site-icon-blue-white.png" alt="Snorkelling site map marker">
-                <strong>Sites</strong>
+                <svg class="filter-legend-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#1D3D59"/></svg>
+                <strong>Snorkel Sites</strong>
               </div>
               <button class="chevron-btn" [class.expanded]="snorkellingExpanded" aria-label="Expand site categories">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -71,7 +73,7 @@
           <div class="filter-group">
             <div class="filter-group-header" (click)="otherExpanded = !otherExpanded">
               <div class="filter-group-label">
-                <img class="filter-legend-icon" src="assets/icons/provider-icon-orange-white.png" alt="Snorkelling organisation map marker">
+                <svg class="filter-legend-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E87722"/></svg>
                 <strong>Organisations</strong>
               </div>
               <button class="chevron-btn" [class.expanded]="otherExpanded" aria-label="Expand organisation categories">
@@ -128,8 +130,10 @@
                 {{feature.description}}
               </div>
 
-              @if (feature.aiGenerated) {
-                <a class="ai-content-notice" routerLink="/ai-transparency">About this content</a>
+              @if (feature.aiGenerated || feature.verified === false) {
+                <div class="ai-content-notice-row">
+                  <a class="ai-content-notice" routerLink="/ai-transparency">About this content</a>
+                </div>
               }
 
               @if (feature.featureType == 'Snorkelling Site') {
@@ -166,10 +170,12 @@
                     }
                     @for (item of feature.moreInfo; track item) {
                       @if (item.icon === 'phone') {
-                        <div class="icon icon-phone">
-                          <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
+                        <div class="phone-row">
+                          <div class="icon icon-phone">
+                            <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
+                          </div>
+                          <div class="phone-number">{{item.text}}</div>
                         </div>
-                        <div class="phone-number">{{item.text}}</div>
                       }
                     }
                   </div>

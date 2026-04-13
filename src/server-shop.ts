@@ -338,11 +338,21 @@ shop.post('/api/shop/send-posted-email', verifyToken, async (req, res) => {
 
 });
 
+const VALID_ORDER_STATUSES = new Set([
+  'orderCreated', 'orderCompleted', 'readyToPost', 'posted',
+  'returned', 'refunded', 'postedEmailSent', 'orderCancelled', 'invoiced', 'invoicePaid'
+]);
+
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
 shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
-  let setField =`orderSummary.timeStamps.${req.body.set}`;
+  const status = req.body.set;
+  if (!VALID_ORDER_STATUSES.has(status)) {
+    res.status(400).json({ error: 'ShopError', message: 'Invalid order status field' });
+    return;
+  }
+  let setField = `orderSummary.timeStamps.${status}`;
   await logShopEvent(req.body.orderNumber, {
     '$set': {
       [setField]: Date.now()
@@ -352,7 +362,12 @@ shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
 })
 
 shop.post('/api/shop/unset-order-status', verifyToken, async (req, res) => {
-  let unsetField =`orderSummary.timeStamps.${req.body.unset}`;
+  const status = req.body.unset;
+  if (!VALID_ORDER_STATUSES.has(status)) {
+    res.status(400).json({ error: 'ShopError', message: 'Invalid order status field' });
+    return;
+  }
+  let unsetField = `orderSummary.timeStamps.${status}`;
   await logShopEvent(req.body.orderNumber, {
     '$unset': {
       [unsetField]: ""

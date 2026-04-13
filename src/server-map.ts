@@ -4,32 +4,56 @@ import { OrganisationModel } from '../schema/organisations';
 import { verifyToken } from './server-auth';
 import 'dotenv/config';
 
-const AI_SCORE_THRESHOLD = 70;
+const AI_SCORE_THRESHOLD_DEFAULT = 70;
 
 const map = express();
+
+async function getOrgScoreThreshold(): Promise<number> {
+  try {
+    const doc = await (OrganisationModel as any).findOne({ __type: 'settings' }).lean();
+    if (doc?.scoringThreshold != null) return Number(doc.scoringThreshold);
+  } catch {}
+  return AI_SCORE_THRESHOLD_DEFAULT;
+}
+
+async function buildOrgFilter(): Promise<Record<string, unknown>> {
+  const threshold = await getOrgScoreThreshold();
+  return {
+    __type: { $exists: false },
+    $or: [
+      { 'verify.forcedPublish': true },
+      { 'verify.publish': true },
+      { 'generate.rank_score': { $gte: threshold }, 'verify.suppressOnMap': { $ne: true } },
+    ],
+  };
+}
 
 function orgToGeoJsonFeature(org: any, id: number) {
   const d = org.discover ?? {};
   const c = org.generate?.contacts ?? {};
+  const vc = org.verify?.verifiedData?.contacts ?? {};
+  const g = org.generate ?? {};
   const vd = org.verify?.verifiedData ?? {};
   const rgCtx = org.reverse_geo?.properties?.context ?? {};
   const coords: number[] | undefined = d.location?.coordinates;
   if (!coords || coords.length < 2) return null;
   const [lng, lat] = coords;
-  const website  = c.website  || d.website;
-  const phone    = d.phone    || c.phones?.[0];
-  const facebook = c.facebook;
-  const instagram= c.instagram;
-  const youtube  = c.youtube;
+  const website   = vc.website   || c.website   || d.website;
+  const facebook  = vc.facebook  || c.facebook;
+  const instagram = vc.instagram || c.instagram;
+  const youtube   = vc.youtube   || c.youtube;
+  // phone and email are only shown when verified — suppress generate/discover values
+  const phone     = vc.phone     || undefined;
+  const email     = vc.email     || undefined;
   return {
     type: 'Feature',
     id,
     geometry: { type: 'Point', coordinates: [lng, lat] },
     properties: {
-      featureType:  vd.category ?? 'Snorkelling Organisation',
-      name:         vd.name     || d.title || '',
-      description:  vd.description ?? '',
-      categories:   vd.tags ?? [],
+      featureType:  vd.category  ?? g.category  ?? 'Snorkelling Organisation',
+      name:         vd.name      || d.title      || '',
+      description:  vd.description ?? g.description ?? '',
+      categories:   vd.tags?.length ? vd.tags : (g.tags ?? []),
       location: {
         locality:    vd.localityOverride || rgCtx.place?.name || d.city,
         place:       rgCtx.place?.name,
@@ -40,12 +64,14 @@ function orgToGeoJsonFeature(org: any, id: number) {
         address:     d.address,
       },
       moreInfo: [
-        website   ? { icon: 'website',   url: website,        text: 'Website'   } : null,
-        facebook  ? { icon: 'facebook',  url: facebook,       text: 'Facebook'  } : null,
-        instagram ? { icon: 'instagram', url: instagram,      text: 'Instagram' } : null,
-        youtube   ? { icon: 'youtube',   url: youtube,        text: 'YouTube'   } : null,
-        phone     ? { icon: 'phone',     url: `tel:${phone}`, text: phone       } : null,
+        website   ? { icon: 'website',   url: website,           text: 'Website'   } : null,
+        facebook  ? { icon: 'facebook',  url: facebook,          text: 'Facebook'  } : null,
+        instagram ? { icon: 'instagram', url: instagram,         text: 'Instagram' } : null,
+        youtube   ? { icon: 'youtube',   url: youtube,           text: 'YouTube'   } : null,
+        phone     ? { icon: 'phone',     url: `tel:${phone}`,    text: phone       } : null,
+        email     ? { icon: 'email',     url: `mailto:${email}`, text: email       } : null,
       ].filter(Boolean),
+      verified:      org.verify?.verified ?? false,
       symbolSortOrder: id,
     }
   };
@@ -59,7 +85,7 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
     const visibilityArr = visibility.split('/');
     const [sites, orgs] = await Promise.all([
       FeatureModel.find({ $or: [{ showOnMap: visibilityArr }], 'properties.featureType': 'Snorkelling Site' }),
-      OrganisationModel.find({ 'verify.publish': true }).lean(),
+      OrganisationModel.find(await buildOrgFilter()).lean(),
     ]);
     const siteFeatures = sites.map((s: any, i: number) => ({
       type: 'Feature',
@@ -70,7 +96,6 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
     const orgFeatures = orgs
       .map((org: any, i: number) => orgToGeoJsonFeature(org, siteFeatures.length + i))
       .filter(Boolean);
-    console.log(`get-sites: ${siteFeatures.length} sites, ${orgs.length} published orgs (${orgFeatures.length} with valid coords)`);
     res.status(201).json({ type: 'FeatureCollection', features: [...siteFeatures, ...orgFeatures] });
   } catch (error: any) {
     console.error(error);
@@ -120,7 +145,7 @@ async function getPlacesForSeo() {
       { location: 1, properties: 1 }
     ).lean(),
     OrganisationModel.find(
-      { 'verify.publish': true },
+      { ...(await buildOrgFilter()), _id: { $exists: true } },
       { discover: 1, verify: 1 }
     ).lean(),
   ]);
@@ -174,8 +199,9 @@ async function getPlaceForSeo(siteName: string) {
 
   if (!site) {
     // Fall back to organisations collection
+    const orgFilter = await buildOrgFilter();
     const org = await OrganisationModel.findOne(
-      { 'discover.title': siteName, 'verify.publish': true },
+      { ...orgFilter, 'discover.title': siteName },
       { discover: 1, verify: 1 }
     ).lean();
 
@@ -248,7 +274,7 @@ export { map, getPlacesForSeo, getPlaceForSeo };
 map.get('/api/sites/get-provider-names/', async (_req, res) => {
   try {
     const orgs = await OrganisationModel.find(
-      { 'verify.publish': true },
+      { ...(await buildOrgFilter()) },
       { 'discover.title': 1, updatedAt: 1 }
     ).lean();
     const result = (orgs as any[])

@@ -88,7 +88,7 @@
                       @if (link.url.startsWith('/')) {
                         <a class="cta-link-btn" [routerLink]="ctaLinkPath(link.url)" [queryParams]="ctaLinkParams(link.url)">{{link.label}}</a>
                       } @else {
-                        <a class="cta-link-btn" [href]="link.url" target="_blank" rel="noopener noreferrer">{{link.label}}</a>
+                        <a class="cta-link-btn" [href]="link.url">{{link.label}}</a>
                       }
                     }
                   }

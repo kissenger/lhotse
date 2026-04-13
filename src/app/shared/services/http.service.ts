@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, BlogPost, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, BlogPost, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -189,6 +189,16 @@ export class HttpService {
 
   async deleteOrgDoc(collection: OrgCollectionKey, id: string): Promise<void> {
     const request = this._http.delete<void>(`/api/organisations/${collection}/${id}`, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async getOrgSettings(): Promise<OrgSettings> {
+    const request = this._http.get<OrgSettings>('/api/organisations/settings', { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async saveOrgSettings(settings: OrgSettings): Promise<OrgSettings> {
+    const request = this._http.post<OrgSettings>('/api/organisations/settings', settings, { withCredentials: true });
     return await lastValueFrom(request);
   }
 }
