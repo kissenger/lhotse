@@ -82,7 +82,7 @@
               ],     
               "optimization": true,               
               "extractLicenses": false,
-              "sourceMap": true,              
+              "sourceMap": false,              
               "outputHashing": "all",
               "namedChunks": true              
             },

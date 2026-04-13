@@ -31,10 +31,10 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "${TIMESTAMP} Starting mongo backup" | tee -a "${LOG_FILE}" >&2
+echo "${TIMESTAMP} Starting mongo backup"
 
 printErrorAndExit() {
-  echo "${TIMESTAMP} FAILURE ${1}" | tee -a "${LOG_FILE}" >&2
+  echo "${TIMESTAMP} FAILURE ${1}"
   exit 1
 }
 
@@ -69,4 +69,4 @@ rm -rf "${WORK_DIR}"
 find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
 
 # Finish
-echo "${TIMESTAMP} Mongo backup completed OK" | tee -a "${LOG_FILE}" >&2
+echo "${TIMESTAMP} Mongo backup completed OK"

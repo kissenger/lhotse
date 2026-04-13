@@ -23,18 +23,18 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "$(date -Iseconds) Starting SEO checks" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Starting SEO checks"  
 
 if ! output="$(npm run test:seo 2>&1)"; then
   if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE node output:" | tee -a "${LOG_FILE}" >&2
-    echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+    echo "$(date -Iseconds) FAILURE node output:"  
+    echo "${output}" | sed 's/^/    /'  
   fi
   exit 1
 fi
 
 if [[ -n "${output}" ]]; then
-  echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+  echo "${output}" | sed 's/^/    /'  
 fi
 
-echo "$(date -Iseconds) SEO checks completed OK" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) SEO checks completed OK"  

@@ -39,6 +39,30 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   snorkellingCategories: { name: string; enabled: boolean }[] = [];
   otherCategories: { name: string; enabled: boolean }[] = [];
 
+  get filteredSnorkelCount(): number {
+    if (!this.geoJson) return 0;
+    const enabledCats = new Set(this.snorkellingCategories.filter(c => c.enabled).map(c => c.name));
+    return this.geoJson.features.filter((f: any) => {
+      if (f.properties.featureType !== 'Snorkelling Site') return false;
+      if (!this.snorkellingSitesEnabled) return false;
+      const cats: string[] = f.properties.categories ?? [];
+      if (cats.length === 0) return true;
+      return cats.some((c: string) => enabledCats.has(c));
+    }).length;
+  }
+
+  get filteredOrgCount(): number {
+    if (!this.geoJson) return 0;
+    const enabledCats = new Set(this.otherCategories.filter(c => c.enabled).map(c => c.name));
+    return this.geoJson.features.filter((f: any) => {
+      if (f.properties.featureType === 'Snorkelling Site') return false;
+      if (!this.otherSitesEnabled) return false;
+      const cats: string[] = f.properties.categories ?? [];
+      if (cats.length === 0) return true;
+      return cats.some((c: string) => enabledCats.has(c));
+    }).length;
+  }
+
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,

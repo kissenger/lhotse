@@ -23,18 +23,18 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "$(date -Iseconds) Starting dead-links URL check" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Starting dead-links URL check"  
 
 if ! output="$(npm run test:ui:dead-links -- --config ./playwright.config.ts 2>&1)"; then
   if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE playwright output:" | tee -a "${LOG_FILE}" >&2
-    echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+    echo "$(date -Iseconds) FAILURE playwright output:"  
+    echo "${output}" | sed 's/^/    /'  
   fi
   exit 1
 fi
 
 if [[ -n "${output}" ]]; then
-  echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+  echo "${output}" | sed 's/^/    /'  
 fi
 
-echo "$(date -Iseconds) Dead-links URL check completed OK" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Dead-links URL check completed OK"  

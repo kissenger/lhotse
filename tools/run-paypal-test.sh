@@ -23,14 +23,14 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "$(date -Iseconds) Starting paypal checks" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Starting paypal checks"  
 
 # run checks
 if ! output="$(npm run test:ui:paypal:sandbox -- --config ./playwright.config.ts 2>&1)"; then
   if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) ${output}" | tee -a "${LOG_FILE}" >&2
+    echo "$(date -Iseconds) ${output}"  
   fi
   exit 1
 fi
 
-echo "$(date -Iseconds) Paypal checks completed OK" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Paypal checks completed OK"  

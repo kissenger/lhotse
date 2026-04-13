@@ -50,7 +50,7 @@
             <div class="filter-group-header" (click)="snorkellingExpanded = !snorkellingExpanded">
               <div class="filter-group-label">
                 <svg class="filter-legend-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#1D3D59"/></svg>
-                <strong>Snorkel Sites</strong>
+                <strong>Snorkel Sites</strong> <span class="filter-count">({{filteredSnorkelCount}})</span>
               </div>
               <button class="chevron-btn" [class.expanded]="snorkellingExpanded" aria-label="Expand site categories">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -74,7 +74,7 @@
             <div class="filter-group-header" (click)="otherExpanded = !otherExpanded">
               <div class="filter-group-label">
                 <svg class="filter-legend-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#E87722"/></svg>
-                <strong>Organisations</strong>
+                <strong>Organisations</strong> <span class="filter-count">({{filteredOrgCount}})</span>
               </div>
               <button class="chevron-btn" [class.expanded]="otherExpanded" aria-label="Expand organisation categories">
                 <svg width="12" height="12" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>

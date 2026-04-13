@@ -24,16 +24,16 @@ cd "/home/gort1975/snorkelology/"
 nvm use
 
 # print working status
-echo "$(date -Iseconds) Starting sitemap generation" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Starting sitemap generation"  
 
 mkdir -p "${SITEMAP_OUTPUT_DIR}"
 
 if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node ./tools/generate-sitemap.mjs 2>&1)"; then
   if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE node output:" | tee -a "${LOG_FILE}" >&2
-    echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+    echo "$(date -Iseconds) FAILURE node output:"  
+    echo "${output}" | sed 's/^/    /'  
   fi
   exit 1
 fi
 
-echo "$(date -Iseconds) Sitemap generation completed OK" | tee -a "${LOG_FILE}" >&2
+echo "$(date -Iseconds) Sitemap generation completed OK"  
