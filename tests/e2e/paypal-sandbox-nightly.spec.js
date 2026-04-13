@@ -175,15 +175,6 @@ test.describe('PayPal sandbox nightly flow', () => {
 
     await page.goto('/home', { waitUntil: 'domcontentloaded' });
 
-    const closeOverlay = page.locator('.about-book .close-icon');
-    if (await closeOverlay.isVisible().catch(() => false)) {
-      try {
-        await closeOverlay.click({ timeout: 2_000 });
-      } catch {
-        await closeOverlay.evaluate((el) => el.click()).catch(() => {});
-      }
-    }
-
     // Scroll to the shop section to ensure the @defer block has rendered.
     await page.evaluate(() => document.getElementById('buy-now')?.scrollIntoView({ behavior: 'instant' }));
 
@@ -191,6 +182,17 @@ test.describe('PayPal sandbox nightly flow', () => {
     // The shop is inside an @defer block (idle trigger) so allow extra time for
     // Angular to render it after navigation, especially on slower hardware.
     await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 30_000 });
+
+    // Dismiss the overlay AFTER the defer block has rendered (the overlay lives
+    // in the same @defer block, so it may appear after the scroll triggers it).
+    const closeOverlay = page.locator('.about-book .close-icon');
+    if (await closeOverlay.isVisible().catch(() => false)) {
+      try {
+        await closeOverlay.click({ timeout: 3_000 });
+      } catch {
+        await closeOverlay.evaluate((el) => el.click()).catch(() => {});
+      }
+    }
     const addBtn = page.locator('.add-btn').first();
     await addBtn.scrollIntoViewIfNeeded();
     await addBtn.click();
