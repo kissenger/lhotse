@@ -173,14 +173,21 @@ test.describe('PayPal sandbox nightly flow', () => {
 
     // ── 1. Load the shop page ──────────────────────────────────────────────
 
-    await page.goto('/home', { waitUntil: 'domcontentloaded' });
+    await page.goto('/home', { waitUntil: 'networkidle' });
 
-    // Scroll to the shop section to ensure the @defer block has rendered.
+    // The shop lives inside an @defer block with no trigger (= on idle).
+    // Explicitly yield to the browser's idle callback so Angular fires the
+    // defer trigger, then scroll the section into view.
+    await page.evaluate(() => new Promise((resolve) => {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => resolve(undefined), { timeout: 15_000 });
+      } else {
+        setTimeout(resolve, 2_000);
+      }
+    }));
     await page.evaluate(() => document.getElementById('buy-now')?.scrollIntoView({ behavior: 'instant' }));
 
     // ── 1b. Add an item to the basket — PayPal is lazy-init'd on first add ──
-    // The shop is inside an @defer block (idle trigger) so allow extra time for
-    // Angular to render it after navigation, especially on slower hardware.
     await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 30_000 });
 
     // Dismiss the overlay AFTER the defer block has rendered (the overlay lives

@@ -16,6 +16,7 @@
             "security": {
               "allowedHosts": [
                 "localhost",
+                "192.168.1.136",
                 "snorkelology.co.uk",
                 "beta.snorkelology.co.uk",
                 "admin.snorkelology.co.uk"
