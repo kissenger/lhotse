@@ -23,25 +23,25 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
     $or: [
       { 'verify.forcedPublish': true },
       { 'verify.publish': true },
-      { 'generate.rank_score': { $gte: threshold }, 'verify.suppressOnMap': { $ne: true } },
+      { 'generate.rank.rank_score': { $gte: threshold }, 'verify.suppressOnMap': { $ne: true } },
     ],
   };
 }
 
 function orgToGeoJsonFeature(org: any, id: number) {
   const d = org.discover ?? {};
-  const c = org.generate?.contacts ?? {};
+  const sl = org.generate?.rank?.socialLinks ?? {};
   const vc = org.verify?.verifiedData?.contacts ?? {};
-  const g = org.generate ?? {};
+  const gc = org.generate?.content ?? {};
   const vd = org.verify?.verifiedData ?? {};
   const rgCtx = org.reverse_geo?.properties?.context ?? {};
   const coords: number[] | undefined = d.location?.coordinates;
   if (!coords || coords.length < 2) return null;
   const [lng, lat] = coords;
-  const website   = vc.website   || c.website   || d.website;
-  const facebook  = vc.facebook  || c.facebook;
-  const instagram = vc.instagram || c.instagram;
-  const youtube   = vc.youtube   || c.youtube;
+  const website   = vc.website   || sl.website   || d.website;
+  const facebook  = vc.facebook  || sl.facebook;
+  const instagram = vc.instagram || sl.instagram;
+  const youtube   = vc.youtube   || sl.youtube;
   // phone and email are only shown when verified — suppress generate/discover values
   const phone     = vc.phone     || undefined;
   const email     = vc.email     || undefined;
@@ -50,10 +50,10 @@ function orgToGeoJsonFeature(org: any, id: number) {
     id,
     geometry: { type: 'Point', coordinates: [lng, lat] },
     properties: {
-      featureType:  vd.category  ?? g.category  ?? 'Snorkelling Organisation',
-      name:         vd.name      || d.title      || '',
-      description:  vd.description ?? g.description ?? '',
-      categories:   vd.tags?.length ? vd.tags : (g.tags ?? []),
+      featureType:  vd.category  ?? gc.category  ?? 'Snorkelling Organisation',
+      name:         vd.name      || gc.name       || d.title      || '',
+      description:  vd.description ?? gc.description ?? '',
+      categories:   vd.tags?.length ? vd.tags : (gc.tags ?? []),
       location: {
         locality:    vd.localityOverride || rgCtx.place?.name || d.city,
         place:       rgCtx.place?.name,

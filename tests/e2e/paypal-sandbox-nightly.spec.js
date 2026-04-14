@@ -188,18 +188,26 @@ test.describe('PayPal sandbox nightly flow', () => {
     await page.evaluate(() => document.getElementById('buy-now')?.scrollIntoView({ behavior: 'instant' }));
 
     // ── 1b. Add an item to the basket — PayPal is lazy-init'd on first add ──
-    await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 30_000 });
+    // Wait for the grid to be attached first (it may render with 0 height until
+    // the basket items populate, which is slower on webkit).
+    await page.locator('.product-grid').waitFor({ state: 'attached', timeout: 30_000 });
+    // Scroll it into view to ensure it is not clipped, then wait for visibility.
+    await page.locator('.product-grid').evaluate((el) => el.scrollIntoView({ behavior: 'instant', block: 'center' }));
+    await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 15_000 });
 
-    // Dismiss the overlay AFTER the defer block has rendered (the overlay lives
-    // in the same @defer block, so it may appear after the scroll triggers it).
-    const closeOverlay = page.locator('.about-book .close-icon');
-    if (await closeOverlay.isVisible().catch(() => false)) {
-      try {
-        await closeOverlay.click({ timeout: 3_000 });
-      } catch {
-        await closeOverlay.evaluate((el) => el.click()).catch(() => {});
-      }
+    // Dismiss the overlay if it appears — use waitFor so we catch it even if
+    // the overlay image loads AFTER the initial scroll (the overlay and shop
+    // share the same @defer block, so timing varies).
+    try {
+      await page.locator('.about-book.overlay-ready').waitFor({ state: 'visible', timeout: 5_000 });
+      await page.locator('.about-book .close-icon').click({ timeout: 3_000 }).catch(() =>
+        page.locator('.about-book .close-icon').evaluate((el) => el.click())
+      );
+      await page.locator('.about-book.overlay-ready').waitFor({ state: 'hidden', timeout: 3_000 }).catch(() => {});
+    } catch {
+      // Overlay did not appear within 5 s — safe to proceed.
     }
+
     const addBtn = page.locator('.add-btn').first();
     await addBtn.scrollIntoViewIfNeeded();
     await addBtn.click();

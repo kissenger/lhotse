@@ -216,7 +216,7 @@
               <button type="button" class="formButton" (click)="askForClearVerified = false">No</button>
             </span>
           </div>
-          <div class="ro-block ro-desc">{{ asGenerate?.description || '—' }}</div>
+          <div class="ro-block ro-desc">{{ asGenerate?.content?.description || '—' }}</div>
           <textarea name="vd_description" class="desc-textarea" spellcheck="true"
             [(ngModel)]="verifiedData.description"></textarea>
 
@@ -224,10 +224,10 @@
           <div class="section-heading read-only-section">Tags</div>
           <div class="section-heading">Tags</div>
           <div class="chip-list ro-chips">
-            @for (tag of (asGenerate?.tags ?? []); track tag) {
+            @for (tag of (asGenerate?.content?.tags ?? []); track tag) {
               <span class="chip chip-ro">{{ tag }}</span>
             }
-            @if (!asGenerate?.tags?.length) {
+            @if (!asGenerate?.content?.tags?.length) {
               <span class="read-only-value">—</span>
             }
           </div>
@@ -254,7 +254,7 @@
           <!-- === Category === -->
           <div class="section-heading read-only-section">Category</div>
           <div class="section-heading">Category</div>
-          <div class="ro-block">{{ asGenerate?.category || '—' }}</div>
+          <div class="ro-block">{{ asGenerate?.content?.category || '—' }}</div>
           <select name="vd_category" [(ngModel)]="verifiedData.category" class="cat-select">
             <option value="">— select —</option>
             @for (cat of CATEGORIES; track cat) {
@@ -271,7 +271,7 @@
             <!-- Website -->
             <div class="contact-cell">
               <span class="contact-label">Website</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.website || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.website || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_website">Website</label>
@@ -281,7 +281,7 @@
             <!-- Phone -->
             <div class="contact-cell">
               <span class="contact-label">Phone</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.phones?.[0] || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.phones?.[0] || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_phone">Phone</label>
@@ -291,7 +291,7 @@
             <!-- Email -->
             <div class="contact-cell">
               <span class="contact-label">Email</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.emails?.[0] || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.emails?.[0] || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_email">Email</label>
@@ -301,7 +301,7 @@
             <!-- Facebook -->
             <div class="contact-cell">
               <span class="contact-label">Facebook</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.facebook || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.facebook || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_facebook">Facebook</label>
@@ -311,7 +311,7 @@
             <!-- Instagram -->
             <div class="contact-cell">
               <span class="contact-label">Instagram</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.instagram || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.instagram || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_instagram">Instagram</label>
@@ -321,7 +321,7 @@
             <!-- YouTube -->
             <div class="contact-cell">
               <span class="contact-label">YouTube</span>
-              <span class="contact-value">{{ asGenerate?.contacts?.youtube || '—' }}</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.youtube || '—' }}</span>
             </div>
             <div class="contact-cell">
               <label class="contact-label" for="vc_youtube">YouTube</label>
@@ -331,14 +331,14 @@
           </div>
 
           <!-- === Ranking & Criterion Scores (full width) === -->
-          @if (asGenerate?.rank_score !== undefined || criterionScoreEntries.length) {
+          @if (asGenerate?.rank?.rank_score !== undefined || criterionScoreEntries.length) {
             <div class="section-heading full-row">Ranking &amp; Criterion Scores</div>
             <div class="scores-section full-row">
-              @if (asGenerate?.rank_score !== undefined) {
+              @if (asGenerate?.rank?.rank_score !== undefined) {
                 <div class="rank-score-row">
-                  Overall rank score: <strong>{{ asGenerate!.rank_score }}</strong>
-                  @if (asGenerate?.reviewer_notes) {
-                    <span class="reviewer-notes"> — {{ asGenerate!.reviewer_notes }}</span>
+                  Overall rank score: <strong>{{ asGenerate!.rank!.rank_score }}</strong>
+                  @if (asGenerate?.rank?.reviewer_notes) {
+                    <span class="reviewer-notes"> — {{ asGenerate!.rank!.reviewer_notes }}</span>
                   }
                 </div>
               }

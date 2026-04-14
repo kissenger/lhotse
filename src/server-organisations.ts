@@ -71,7 +71,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
       OrganisationModel
         .find(filter, {
           'discover.title': 1, 'discover.city': 1, 'discover.countryCode': 1, 'discover.status': 1,
-          'generate.rank_score': 1, 'generate.category': 1, 'generate.flaggedForUpdate': 1, 'generate.newContentAvailable': 1,
+          'generate.rank.rank_score': 1, 'generate.content.category': 1,
           'verify.rank_score': 1,  'verify.category': 1,
           'verify.newContentPendingVerification': 1,
           'verify.verified': 1,
@@ -81,7 +81,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
         })
         .sort(collection === 'verify'
           ? { 'verify.newContentPendingVerification': -1, 'discover.title': 1 }
-          : { 'generate.rank_score': -1, 'discover.title': 1 })
+          : { 'generate.rank.rank_score': -1, 'discover.title': 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
@@ -91,7 +91,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
     const threshold = settings.scoringThreshold;
 
     const docs = raw.map((d: any) => {
-      const score: number | undefined = d.generate?.rank_score;
+      const score: number | undefined = d.generate?.rank?.rank_score;
       const isOnMap = !!d.verify?.forcedPublish || (!d.verify?.suppressOnMap && score != null && score >= threshold);
       return {
         _id:         d._id,
@@ -100,16 +100,14 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
         countryCode: d.discover?.countryCode,
         status:      d.discover?.status,
         rank_score:  score ?? d.verify?.rank_score,
-        category:    d.generate?.category   ?? d.verify?.category,
+        category:    d.generate?.content?.category ?? d.verify?.category,
         newContentPendingVerification: d.verify?.newContentPendingVerification,
         isVerified:      !!d.verify?.verified,
         isOnMap,
         isPublished:     isOnMap, // kept for backward compat
         isManualPublish: !!d.verify?.forcedPublish,
         isSuppressed:    !!d.verify?.suppressOnMap,
-        flaggedForUpdate:    !!d.generate?.flaggedForUpdate,
-        newContentAvailable: !!d.generate?.newContentAvailable,
-        isFavourite:         !!d.favourite?.isFavourite,
+        isFavourite:     !!d.favourite?.isFavourite,
       };
     });
 

@@ -241,7 +241,7 @@ export class OrganisationsEditorComponent implements OnInit {
     if (!this.selectedDoc) return false;
     if (this.selectedDoc.verify?.forcedPublish) return true;
     if (this.selectedDoc.verify?.suppressOnMap) return false;
-    const score = this.selectedDoc.generate?.rank_score;
+    const score = this.selectedDoc.generate?.rank?.rank_score;
     return score != null && score >= this.scoringThreshold;
   }
 
@@ -267,10 +267,11 @@ export class OrganisationsEditorComponent implements OnInit {
     if (!this.selectedDoc) return;
     if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
     if (!this.selectedDoc.verify.verifiedData) this.selectedDoc.verify.verifiedData = {};
-    const g = this.selectedDoc.generate;
-    this.selectedDoc.verify.verifiedData.description = g?.description ?? '';
-    this.selectedDoc.verify.verifiedData.tags = g?.tags ? [...g.tags] : [];
-    this.selectedDoc.verify.verifiedData.category = g?.category ?? '';
+    const gc = this.selectedDoc.generate?.content;
+    this.selectedDoc.verify.verifiedData.description = gc?.description ?? '';
+    this.selectedDoc.verify.verifiedData.tags = gc?.tags ? [...gc.tags] : [];
+    this.selectedDoc.verify.verifiedData.category = gc?.category ?? '';
+    this.selectedDoc.verify.verifiedData.name = gc?.name ?? '';
     this.isDirty = true;
     this._cdr.detectChanges();
   }
@@ -301,7 +302,7 @@ export class OrganisationsEditorComponent implements OnInit {
   }
 
   get uniqueGroundingSources(): string[] {
-    const sources = this.selectedDoc?.generate?.grounding_sources ?? [];
+    const sources = this.selectedDoc?.generate?.content?.grounding_sources ?? [];
     const website = this.selectedDoc?.discover?.website;
     const seen = new Set<string>(website ? [website] : []);
     return sources.filter(s => { if (seen.has(s)) return false; seen.add(s); return true; });
@@ -311,27 +312,11 @@ export class OrganisationsEditorComponent implements OnInit {
     return [...this.listItems].sort((a, b) => (b.rank_score ?? -Infinity) - (a.rank_score ?? -Infinity));
   }
 
-  get flaggedForUpdate(): boolean {
-    return !!this.selectedDoc?.generate?.flaggedForUpdate;
-  }
+  get flaggedForUpdate(): boolean { return false; }
+  set flaggedForUpdate(_val: boolean) { /* field removed from schema */ }
 
-  set flaggedForUpdate(val: boolean) {
-    if (!this.selectedDoc) return;
-    if (!this.selectedDoc.generate) this.selectedDoc.generate = {} as OrgGenerate;
-    this.selectedDoc.generate.flaggedForUpdate = val ? true : false;
-    this.isDirty = true;
-  }
-
-  get newContentAvailable(): boolean {
-    return !!this.selectedDoc?.generate?.newContentAvailable;
-  }
-
-  set newContentAvailable(val: boolean) {
-    if (!this.selectedDoc) return;
-    if (!this.selectedDoc.generate) this.selectedDoc.generate = {} as OrgGenerate;
-    this.selectedDoc.generate.newContentAvailable = val ? true : false;
-    this.isDirty = true;
-  }
+  get newContentAvailable(): boolean { return false; }
+  set newContentAvailable(_val: boolean) { /* field removed from schema */ }
 
   get hasLocation(): boolean {
     const loc = this.selectedDoc?.discover?.location as any;
@@ -364,8 +349,8 @@ export class OrganisationsEditorComponent implements OnInit {
   }
 
   get criterionScoreEntries(): { key: string; score: number; rationale?: string }[] {
-    const scores = this.selectedDoc?.generate?.criterion_scores;
-    const rationale = this.selectedDoc?.generate?.criterion_rationale;
+    const scores = this.selectedDoc?.generate?.rank?.criterion_scores;
+    const rationale = this.selectedDoc?.generate?.rank?.criterion_rationale;
     if (!scores) return [];
     return Object.entries(scores).map(([key, score]) => ({
       key,

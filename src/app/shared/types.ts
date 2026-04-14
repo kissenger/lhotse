@@ -191,6 +191,53 @@ export interface OrgContacts {
   other_socials?: string[];
 }
 
+// socialLinks sub-document in generate.rank (replaces flat contacts)
+export interface OrgSocialLinks {
+  emails?: string[];
+  phones?: string[];
+  website?: string;
+  instagram?: string | null;
+  facebook?: string | null;
+  twitter?: string | null;
+  youtube?: string | null;
+  tiktok?: string | null;
+  other_socials?: string[];
+}
+
+// generate.rank — ranking/scoring output
+export interface OrgGenerateRank {
+  status?: 'ranked' | 'error';
+  processed_at?: string;
+  rank_score?: number;
+  criterion_scores?: Record<string, number>;
+  criterion_rationale?: Record<string, string>;
+  socialLinks?: OrgSocialLinks;
+  url_reachable?: boolean;
+  reviewer_notes?: string;
+  grounding_sources?: string[];
+  error?: string;
+}
+
+// generate.content — descriptive content output
+export interface OrgGenerateContent {
+  status?: 'generated' | 'error';
+  processed_at?: string;
+  description?: string;
+  name?: string;
+  tags?: string[];
+  category?: string;
+  url_reachable?: boolean;
+  reviewer_notes?: string;
+  grounding_sources?: string[];
+  error?: string;
+}
+
+// generate sub-document — pipeline output, split into rank and content
+export interface OrgGenerate {
+  rank?: OrgGenerateRank;
+  content?: OrgGenerateContent;
+}
+
 // discover sub-document — raw Apify data
 export interface OrgDiscover {
   title: string;
@@ -221,25 +268,6 @@ export interface OrgDiscover {
   status?: 'ineligible';
   ineligible_reason?: string;
   processed_at?: string;
-}
-
-// generate sub-document — Gemini-enriched fields
-export interface OrgGenerate {
-  source_id?: string;
-  status: 'generated' | 'error';
-  processed_at: string;
-  rank_score?: number;
-  criterion_scores?: Record<string, number>;
-  criterion_rationale?: Record<string, string>;
-  tags?: string[];
-  category?: string;
-  contacts?: OrgContacts;
-  description?: string;
-  reviewer_notes?: string;
-  grounding_sources?: string[];
-  error?: string;
-  flaggedForUpdate?: boolean;
-  newContentAvailable?: boolean;
 }
 
 // verify sub-document — fully verified, publication-ready

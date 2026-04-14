@@ -46,7 +46,17 @@ const DiscoverSchema = new Schema({
   searchString:      String,
 }, { _id: false, strict: false });
 
-const ContactsSchema = new Schema({
+const DiscoverSnapshotSchema = new Schema({
+  title:        String,
+  website:      String,
+  address:      String,
+  city:         String,
+  countryCode:  String,
+  phone:        String,
+  categoryName: String,
+}, { _id: false });
+
+const SocialLinksSchema = new Schema({
   emails:        [String],
   phones:        [String],
   website:       String,
@@ -58,41 +68,43 @@ const ContactsSchema = new Schema({
   other_socials: [String],
 }, { _id: false });
 
-const DiscoverSnapshotSchema = new Schema({
-  title:        String,
-  website:      String,
-  address:      String,
-  city:         String,
-  countryCode:  String,
-  phone:        String,
-  categoryName: String,
-}, { _id: false });
-
-const GenerateSchema = new Schema({
-  // Input snapshot — what was supplied to Gemini
+// generate.rank — ranking/scoring output from rank.py
+const GenerateRankSchema = new Schema({
   discover:            DiscoverSnapshotSchema,
-  // Pipeline status
-  status:              { type: String, enum: ['generated', 'error'] },
+  status:              { type: String, enum: ['ranked', 'error'] },
   processed_at:        Date,
-  // Gemini scores
   rank_score:          { type: Number, min: 0, max: 100 },
   criterion_scores:    { type: Map, of: Number },
   criterion_rationale: { type: Map, of: String },
-  // Classification
-  tags:                [String],
-  category:            String,
-  // Extracted contacts
-  contacts:            ContactsSchema,
-  // Output text
-  description:         String,
+  socialLinks:         SocialLinksSchema,
+  url_reachable:       Boolean,
   reviewer_notes:      String,
-  // Error tracking
   error:               String,
-  // Run metadata
   run_settings:        { type: Schema.Types.Mixed },
   grounding_sources:   [String],
+}, { _id: false, strict: false });
+
+// generate.content — descriptive content output from generate.py
+const GenerateContentSchema = new Schema({
+  discover:          DiscoverSnapshotSchema,
+  status:            { type: String, enum: ['generated', 'error'] },
+  processed_at:      Date,
+  description:       String,
+  name:              String,
+  tags:              [String],
+  category:          String,
+  url_reachable:     Boolean,
+  reviewer_notes:    String,
+  error:             String,
+  run_settings:      { type: Schema.Types.Mixed },
+  grounding_sources: [String],
+}, { _id: false, strict: false });
+
+const GenerateSchema = new Schema({
+  rank:    GenerateRankSchema,
+  content: GenerateContentSchema,
   // History — previous generate subdocs, oldest first
-  history:             { type: [Schema.Types.Mixed], default: undefined },
+  history: { type: [Schema.Types.Mixed], default: undefined },
 }, { _id: false, strict: false });
 
 const VerifySchema = new Schema({
@@ -130,9 +142,9 @@ const OrganisationSchema = new Schema({
 
 OrganisationSchema.index({ 'discover.countryCode': 1, 'discover.city': 1 });
 OrganisationSchema.index({ 'discover.status': 1 }, { sparse: true });
-OrganisationSchema.index({ 'generate.rank_score': -1 }, { sparse: true });
-OrganisationSchema.index({ 'generate.category': 1 }, { sparse: true });
-OrganisationSchema.index({ 'generate.tags': 1 }, { sparse: true });
+OrganisationSchema.index({ 'generate.rank.rank_score': -1 }, { sparse: true });
+OrganisationSchema.index({ 'generate.content.category': 1 }, { sparse: true });
+OrganisationSchema.index({ 'generate.content.tags': 1 }, { sparse: true });
 OrganisationSchema.index({ 'verify.verified_at': -1 }, { sparse: true });
 
 // ---------------------------------------------------------------------------
