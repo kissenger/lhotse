@@ -13,28 +13,20 @@ set -a
 source "/home/gort1975/snorkelology/.env"
 set +a
 
-# read .env variables
 LOG_FILE="${LOG_FILE}"
 
-# move to working directory
 cd "/home/gort1975/snorkelology/"
 
 . "/home/gort1975/.nvm/nvm.sh"
 nvm use
 
-# print working status
-echo "$(date -Iseconds) Starting dead-links URL check"  
+echo "$(date -Iseconds) Starting dead-links URL check"
 
-if ! output="$(npm run test:ui:dead-links -- --config ./playwright.config.ts 2>&1)"; then
-  if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE playwright output:"  
-    echo "${output}" | sed 's/^/    /'  
-  fi
+if ! output="$(node ./tests/test-dead-links.js 2>&1)"; then
+  echo "${output}"
+  echo "$(date -Iseconds) FAILURE Dead-links URL check failed"
   exit 1
 fi
 
-if [[ -n "${output}" ]]; then
-  echo "${output}" | sed 's/^/    /'  
-fi
-
-echo "$(date -Iseconds) Dead-links URL check completed OK"  
+echo "${output}"
+echo "$(date -Iseconds) Dead-links URL check completed OK"

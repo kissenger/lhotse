@@ -16,6 +16,7 @@
     "pull:master": "bash ./tools/pull.sh master",
     "deploy:beta": "bash ./tools/deploy.sh beta",
     "deploy:master": "bash ./tools/deploy.sh master",
+    "test:dead-links": "node ./tests/test-dead-links.js",
     "test:seo": "node ./tests/test-seo.js",
     "test:paypal": "node ./tests/test-paypal-integration.js",
     "test:shop-backend": "node ./tests/test-shop-backend-integration.js",
