@@ -277,6 +277,51 @@ h3 {
   line-height: 1.2;
 }
 
+/* Make the top-right Mapbox control bar a horizontal row */
+:host ::ng-deep .mapboxgl-ctrl-top-right {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+  top: 10px;
+  right: 10px;
+}
+
+/* Zero out Mapbox default margins — container position handles the offset */
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl {
+  margin: 0 !important;
+}
+
+/* Lay the zoom +/- buttons side-by-side and match expand button height */
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:not(.expand-ctrl) {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Normalise zoom +/- buttons to match expand height and look consistent */
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:not(.expand-ctrl) button {
+  width: 33px;
+  height: 33px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  border: none;
+  border-right: 1px solid #ddd;
+}
+
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:not(.expand-ctrl) button:last-child {
+  border-right: none;
+}
+
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:not(.expand-ctrl) button span,
+:host ::ng-deep .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:not(.expand-ctrl) button svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 /* Filter control (injected into Mapbox ctrl bar) */
 :host ::ng-deep .expand-ctrl {
   position: relative;
@@ -315,7 +360,7 @@ h3 {
 
 .filter-dropdown {
   position: absolute;
-  top: 50px;
+  top: 53px;
   right: 10px;
   z-index: 2;
   background: white;
@@ -338,10 +383,29 @@ h3 {
 
 .filter-group-header {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem;
+  justify-content: flex-start;
+  gap: 0.7rem;
   cursor: pointer;
+}
+
+/* Ensure label, chevron, and checkbox are horizontal with space */
+.filter-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 auto;
+}
+
+.chevron-btn {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.group-checkbox {
+  margin-left: auto;
+  margin-right: 0.2rem;
 }
 
 .filter-group-label {

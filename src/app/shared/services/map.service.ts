@@ -65,17 +65,19 @@ export class MapService {
 
     const mapboxgl = (await import('mapbox-gl')).default;
 
-    return new Promise<void>( (resolve, reject) => {
 
+    return new Promise<void>((resolve, reject) => {
       this._sites = sites;
-
       this._map = new mapboxgl.Map({
         accessToken: mapboxToken,
-        container: 'map', 
+        container: 'map',
         style: 'mapbox://styles/mapbox/standard',
         bounds: this._startingBounds,
         fitBoundsOptions: { padding: 15 },
       });
+
+      // Add Mapbox zoom controls (NavigationControl)
+      this._map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
 
       const fullscreenContainer = this._map.getContainer().parentElement ?? undefined;
 
