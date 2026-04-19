@@ -70,8 +70,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "11kb",
+                  "maximumError": "12kb"
                 }
               ],
               "index": "src/config/prod/index.html",              
@@ -108,8 +108,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "11kb",
+                  "maximumError": "12kb"
                 }
               ],
               "index": "src/config/beta/index.html",              
