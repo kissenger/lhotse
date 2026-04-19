@@ -1,9 +1,10 @@
-﻿import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpService } from '@shared/services/http.service';
 import { ToastService } from '@shared/services/toast.service';
-import { OrgDiscover, OrgDocument, OrgGenerate, OrgListItem, OrgVerify } from '@shared/types';
+import { OrgDiscover, OrgDocument, OrgGenerate, OrgListItem } from '@shared/types';
+import { CanLeaveOrganisationsEditor } from './organisations-unsaved-changes.guard';
 
 @Component({
   selector: 'app-organisations-editor',
@@ -12,7 +13,7 @@ import { OrgDiscover, OrgDocument, OrgGenerate, OrgListItem, OrgVerify } from '@
   templateUrl: './organisations-editor.component.html',
   styleUrl: './organisations-editor.component.css',
 })
-export class OrganisationsEditorComponent implements OnInit {
+export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisationsEditor {
 
   listItems: OrgListItem[] = [];
   listTotal = 0;
@@ -29,8 +30,9 @@ export class OrganisationsEditorComponent implements OnInit {
 
   askForConfirmation = false;
   askForOverwriteVerify = false;
-  askForClearVerified = false;
+  contentSource: 'generated' | 'favourite' = 'generated';
   tagInput = '';
+  private _savedFavouriteSnapshot = '';
 
   readonly CATEGORIES = [
     'Authors of Snorkelling Britain',
@@ -95,7 +97,7 @@ export class OrganisationsEditorComponent implements OnInit {
   async loadList() {
     this.listLoading = true;
     try {
-      const res = await this._http.listOrgDocs('verify', this.listSearch, 0, 2000);
+      const res = await this._http.listOrgDocs('discover', this.listSearch, 0, 2000);
       this.listItems = res.docs;
       this.listTotal = res.total;
     } catch {
@@ -113,39 +115,38 @@ export class OrganisationsEditorComponent implements OnInit {
   // ---- record selection ----
 
   async onFormSelect(id: string) {
-    if (!id) { this.selectedDoc = null; this.selectedId = ''; return; }
+    if (!id) {
+      this.selectedDoc = null;
+      this.selectedId = '';
+      this._savedFavouriteSnapshot = '';
+      return;
+    }
     this.selectedId = id;
     this.isDirty = false;
     this.askForConfirmation = false;
     this.askForOverwriteVerify = false;
     try {
       this.selectedDoc = await this._http.getOrgDoc('verify', id);
-      if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-      if (!this.selectedDoc.verify.verifiedData) this.selectedDoc.verify.verifiedData = {};
+      const savedSource = this._fav['contentSource'];
+      this.contentSource = savedSource === 'generated' || savedSource === 'favourite'
+        ? savedSource
+        : (this._fav['isFavourite'] ? 'favourite' : 'generated');
+      this._takeFavouriteSnapshot();
+      if (this._fav['isFavourite'] && this.verifiedDataEmpty) {
+        this._doPopulate();
+      }
     } catch {
       this._toaster.show('Could not load record', 'error');
     }
     this._cdr.detectChanges();
   }
 
-  // ---- save & verify ----
+  // ---- save ----
 
   async onSave() {
     if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    this.selectedDoc.verify.verified = true;
-    this.selectedDoc.verify.verifiedAt = new Date().toISOString();
-    this.selectedDoc.verify.newContentPendingVerification = false;
-    await this._doSave();
-  }
-
-  async onClearVerified() {
-    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    this.selectedDoc.verify.verified = false;
-    this.selectedDoc.verify.verifiedAt = undefined;
-    this.selectedDoc.verify.verifiedData = undefined;
-    this.askForClearVerified = false;
+    this._fav['contentSource'] = this.contentSource;
+    this._fav['isFavourite'] = true;
     await this._doSave();
   }
 
@@ -153,17 +154,30 @@ export class OrganisationsEditorComponent implements OnInit {
 
   async onToggleManualPublish() {
     if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    const newVal = !this.selectedDoc.verify.forcedPublish;
-    this.selectedDoc.verify.forcedPublish = newVal || undefined;
+    const newVal = !this._fav['forcedPublish'];
+    this._fav['forcedPublish'] = newVal || undefined;
     await this._doSave();
   }
 
   async onToggleSuppressOnMap() {
     if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    const newVal = !this.selectedDoc.verify.suppressOnMap;
-    this.selectedDoc.verify.suppressOnMap = newVal || undefined;
+    const newVal = !this._fav['suppressOnMap'];
+    this._fav['suppressOnMap'] = newVal || undefined;
+    await this._doSave();
+  }
+
+  async onToggleMapVisibility() {
+    if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
+    const fav = this._fav;
+
+    if (this.isOnMap) {
+      fav['forcedPublish'] = undefined;
+      fav['suppressOnMap'] = true;
+    } else {
+      fav['suppressOnMap'] = undefined;
+      fav['forcedPublish'] = this.isAutoSelected ? undefined : true;
+    }
+
     await this._doSave();
   }
 
@@ -173,6 +187,7 @@ export class OrganisationsEditorComponent implements OnInit {
     try {
       this.selectedDoc = await this._http.saveOrgDoc('verify', this.selectedId, this.selectedDoc);
       this.isDirty = false;
+      this._takeFavouriteSnapshot();
       this._toaster.show('Saved', 'success');
       await this.loadList();
     } catch {
@@ -200,6 +215,7 @@ export class OrganisationsEditorComponent implements OnInit {
       this._toaster.show('Deleted', 'success');
       this.selectedDoc = null;
       this.selectedId = '';
+      this._savedFavouriteSnapshot = '';
       this.isDirty = false;
       await this.loadList();
     } catch {
@@ -212,26 +228,47 @@ export class OrganisationsEditorComponent implements OnInit {
 
   get asDiscover(): OrgDiscover             { return this.selectedDoc!.discover; }
   get asGenerate(): OrgGenerate | undefined  { return this.selectedDoc?.generate; }
-  get asVerify():   OrgVerify   | undefined  { return this.selectedDoc?.verify; }
 
-  // ---- verifiedData helpers ----
+  private get _fav(): any {
+    if (!this.selectedDoc) return {};
+    if (!this.selectedDoc.favourite) this.selectedDoc.favourite = {};
+    return this.selectedDoc.favourite as any;
+  }
 
-  get verifiedData(): NonNullable<OrgVerify['verifiedData']> {
-    const v = this.selectedDoc?.verify;
-    if (!v) return {};
-    if (!v.verifiedData) v.verifiedData = {};
-    return v.verifiedData;
+  // ---- favourite-backed editor data helpers ----
+
+  get verifiedData(): any {
+    return this._fav;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (!this.canLeavePage()) {
+      event.preventDefault();
+    }
+  }
+
+  canLeavePage(): boolean {
+    if (this._hasIncompleteFavouriteSelection()) {
+      alert('Favourite content source requires Favourite Description, Category, and at least one Tag before leaving this page.');
+      return false;
+    }
+    if (this._hasUnsavedFavouriteChanges()) {
+      alert('You have unsaved changes in Favourite data. Please save before leaving this page.');
+      return false;
+    }
+    return true;
   }
 
   get verifiedDataEmpty(): boolean {
-    const vd = this.selectedDoc?.verify?.verifiedData;
+    const vd = this.selectedDoc?.favourite as any;
     if (!vd) return true;
-    const c = vd.contacts;
+    const c = (vd['contacts'] ?? vd['socialLinks']);
     const hasContacts = !!(c && (c.website || c.phone || c.email || c.facebook || c.instagram || c.youtube));
-    return !vd.description && (!vd.tags || !vd.tags.length) && !vd.category && !vd.name && !hasContacts;
+    return !vd['description'] && (!vd['tags'] || !vd['tags'].length) && !vd['category'] && !vd['name'] && !vd['localityOverride'] && !hasContacts;
   }
 
-  get verifiedContacts(): NonNullable<NonNullable<OrgVerify['verifiedData']>['contacts']> {
+  get verifiedContacts(): any {
     const vd = this.verifiedData;
     if (!vd.contacts) vd.contacts = {};
     return vd.contacts;
@@ -239,10 +276,67 @@ export class OrganisationsEditorComponent implements OnInit {
 
   get isOnMap(): boolean {
     if (!this.selectedDoc) return false;
-    if (this.selectedDoc.verify?.forcedPublish) return true;
-    if (this.selectedDoc.verify?.suppressOnMap) return false;
+    if (this._fav['suppressOnMap']) return false;
+    if (this._fav['forcedPublish']) return true;
+    if (this._fav['isFavourite']) return true;
     const score = this.selectedDoc.generate?.rank?.rank_score;
-    return score != null && score >= this.scoringThreshold;
+    const britishPass = this.selectedDoc.generate?.rank?.british_operations_pass === true;
+    const activePass = this.selectedDoc.generate?.rank?.active_presence_pass === true;
+    return score != null && score >= this.scoringThreshold && britishPass && activePass;
+  }
+
+  get isAutoSelected(): boolean {
+    if (!this.selectedDoc) return false;
+    if (this._fav['isFavourite']) return true;
+    const score = this.selectedDoc.generate?.rank?.rank_score;
+    const britishPass = this.selectedDoc.generate?.rank?.british_operations_pass === true;
+    const activePass = this.selectedDoc.generate?.rank?.active_presence_pass === true;
+    return score != null && score >= this.scoringThreshold && britishPass && activePass;
+  }
+
+  get mapToggleLabel(): string {
+    return this.isOnMap ? 'Remove from map' : 'Add to map';
+  }
+
+  get isForcedPublished(): boolean {
+    return !!this._fav['forcedPublish'];
+  }
+
+  get isSuppressedFromMap(): boolean {
+    return !!this._fav['suppressOnMap'];
+  }
+
+  get isFavouriteVerified(): boolean {
+    return !!this._fav['verified'];
+  }
+
+  get britishOperationsStatus(): 'pass' | 'fail' | 'unknown' {
+    const v = this.selectedDoc?.generate?.rank?.british_operations_pass;
+    if (v === true) return 'pass';
+    if (v === false) return 'fail';
+    return 'unknown';
+  }
+
+  get activePresenceStatus(): 'pass' | 'fail' | 'unknown' {
+    const v = this.selectedDoc?.generate?.rank?.active_presence_pass;
+    if (v === true) return 'pass';
+    if (v === false) return 'fail';
+    return 'unknown';
+  }
+
+  requestContentSource(source: 'generated' | 'favourite') {
+    if (source === this.contentSource) return;
+    if (source === 'generated') {
+      if (!this.selectedDoc) return;
+      this.contentSource = 'generated';
+      this._fav['contentSource'] = this.contentSource;
+      this.isDirty = true;
+      return;
+    }
+    if (!this.selectedDoc) return;
+    this.contentSource = source;
+    this._fav['contentSource'] = this.contentSource;
+    this.isDirty = true;
   }
 
   populateFromGenerate() {
@@ -265,13 +359,77 @@ export class OrganisationsEditorComponent implements OnInit {
 
   private _doPopulate() {
     if (!this.selectedDoc) return;
-    if (!this.selectedDoc.verify) this.selectedDoc.verify = {} as OrgVerify;
-    if (!this.selectedDoc.verify.verifiedData) this.selectedDoc.verify.verifiedData = {};
-    const gc = this.selectedDoc.generate?.content;
-    this.selectedDoc.verify.verifiedData.description = gc?.description ?? '';
-    this.selectedDoc.verify.verifiedData.tags = gc?.tags ? [...gc.tags] : [];
-    this.selectedDoc.verify.verifiedData.category = gc?.category ?? '';
-    this.selectedDoc.verify.verifiedData.name = gc?.name ?? '';
+    const favourite = this._fav;
+    const gc: any = this.selectedDoc.generate?.content;
+    const sl: any = this.selectedDoc.generate?.rank?.socialLinks;
+    const fav: any = favourite;
+    const discover: any = this.selectedDoc.discover;
+    const favSocial: any = fav?.socialLinks ?? fav?.contacts ?? {};
+
+    const fromCsv = (v: unknown): string[] => {
+      if (typeof v !== 'string') return [];
+      return v.split(',').map(s => s.trim()).filter(Boolean);
+    };
+    const toStringArray = (v: unknown): string[] => {
+      if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+      if (typeof v === 'string') return fromCsv(v);
+      return [];
+    };
+    const firstNonEmpty = (...vals: unknown[]): string => {
+      for (const v of vals) {
+        if (typeof v === 'string' && v.trim()) return v.trim();
+      }
+      return '';
+    };
+    const preferFavourite = this.contentSource === 'favourite' && fav?.isFavourite === true;
+
+    const description = preferFavourite
+      ? firstNonEmpty(fav?.description, gc?.description)
+      : firstNonEmpty(gc?.description, fav?.description);
+
+    const generateTags = toStringArray(gc?.tags);
+    const favouriteTags = toStringArray(fav?.tags).length ? toStringArray(fav?.tags) : toStringArray(fav?.keywords);
+    const tags = preferFavourite
+      ? (favouriteTags.length ? favouriteTags : generateTags)
+      : (generateTags.length ? generateTags : favouriteTags);
+
+    const category = preferFavourite
+      ? firstNonEmpty(fav?.category, fav?.categoryName, gc?.category, discover?.categoryName)
+      : firstNonEmpty(gc?.category, fav?.category, fav?.categoryName, discover?.categoryName);
+    const name = preferFavourite
+      ? firstNonEmpty(fav?.name, gc?.name, discover?.title)
+      : firstNonEmpty(gc?.name, fav?.name, discover?.title);
+
+    const website = preferFavourite
+      ? firstNonEmpty(favSocial?.website, fav?.website, sl?.website, discover?.website)
+      : firstNonEmpty(sl?.website, favSocial?.website, fav?.website, discover?.website);
+    const phone = preferFavourite
+      ? firstNonEmpty(favSocial?.phones?.[0], favSocial?.phone, fav?.phone, sl?.phones?.[0], discover?.phone)
+      : firstNonEmpty(sl?.phones?.[0], favSocial?.phones?.[0], favSocial?.phone, fav?.phone, discover?.phone);
+    const email = preferFavourite
+      ? firstNonEmpty(favSocial?.emails?.[0], favSocial?.email, fav?.email, sl?.emails?.[0])
+      : firstNonEmpty(sl?.emails?.[0], favSocial?.emails?.[0], favSocial?.email, fav?.email);
+    const facebook = preferFavourite
+      ? firstNonEmpty(favSocial?.facebook, fav?.facebook, sl?.facebook)
+      : firstNonEmpty(sl?.facebook, favSocial?.facebook, fav?.facebook);
+    const instagram = preferFavourite
+      ? firstNonEmpty(favSocial?.instagram, fav?.instagram, sl?.instagram)
+      : firstNonEmpty(sl?.instagram, favSocial?.instagram, fav?.instagram);
+    const youtube = preferFavourite
+      ? firstNonEmpty(favSocial?.youtube, fav?.youtube, sl?.youtube)
+      : firstNonEmpty(sl?.youtube, favSocial?.youtube, fav?.youtube);
+
+    favourite['description'] = description || undefined;
+    favourite['tags'] = [...tags];
+    favourite['category'] = category || undefined;
+    favourite['name'] = name || undefined;
+    if (!favourite['contacts']) favourite['contacts'] = {};
+    favourite['contacts'].website = website || undefined;
+    favourite['contacts'].phone = phone || undefined;
+    favourite['contacts'].email = email || undefined;
+    favourite['contacts'].facebook = facebook || undefined;
+    favourite['contacts'].instagram = instagram || undefined;
+    favourite['contacts'].youtube = youtube || undefined;
     this.isDirty = true;
     this._cdr.detectChanges();
   }
@@ -280,7 +438,7 @@ export class OrganisationsEditorComponent implements OnInit {
 
   removeVerifiedTag(tag: string) {
     const vd = this.verifiedData;
-    vd.tags = (vd.tags ?? []).filter(t => t !== tag);
+    vd.tags = (vd.tags ?? []).filter((t: string) => t !== tag);
     this.isDirty = true;
   }
 
@@ -294,6 +452,12 @@ export class OrganisationsEditorComponent implements OnInit {
       this.isDirty = true;
     }
     this.tagInput = '';
+  }
+
+  onTagSelected(tag: string) {
+    this.tagInput = (tag ?? '').trim();
+    if (!this.tagInput) return;
+    this.addVerifiedTag();
   }
 
   get availableTags(): string[] {
@@ -310,6 +474,29 @@ export class OrganisationsEditorComponent implements OnInit {
 
   get sortedListItems(): OrgListItem[] {
     return [...this.listItems].sort((a, b) => (b.rank_score ?? -Infinity) - (a.rank_score ?? -Infinity));
+  }
+
+  get totalSitesInDb(): number {
+    return this.listTotal;
+  }
+
+  get criteriaMatchedCount(): number {
+    return this.listItems.filter(item => {
+      const score = item.rank_score;
+      const britishPass = item.british_operations_pass === true;
+      const activePass = item.active_presence_pass === true;
+      return score != null && score >= this.scoringThreshold && britishPass && activePass;
+    }).length;
+  }
+
+  get shownOnMapCount(): number {
+    return this.listItems.filter(item => item.isOnMap === true).length;
+  }
+
+  getMapStatusSymbolPrefix(item: OrgListItem): string {
+    if (item.isSuppressed) return '❌ ';
+    if (item.isOnMap) return '✅ ';
+    return '';
   }
 
   get flaggedForUpdate(): boolean { return false; }
@@ -372,4 +559,22 @@ export class OrganisationsEditorComponent implements OnInit {
   get rgPostcode(): string { return this._rgCtx.postcode?.name ?? ''; }
   get rgAddress():  string { return this.selectedDoc?.reverse_geo?.properties?.full_address ?? ''; }
   get hasReverseGeo(): boolean { return !!this.selectedDoc?.reverse_geo; }
+
+  private _takeFavouriteSnapshot() {
+    this._savedFavouriteSnapshot = JSON.stringify(this.selectedDoc?.favourite ?? {});
+  }
+
+  private _hasUnsavedFavouriteChanges(): boolean {
+    if (!this.selectedDoc) return false;
+    return JSON.stringify(this.selectedDoc.favourite ?? {}) !== this._savedFavouriteSnapshot;
+  }
+
+  private _hasIncompleteFavouriteSelection(): boolean {
+    if (!this.selectedDoc || this.contentSource !== 'favourite') return false;
+    const fav = (this.selectedDoc.favourite ?? {}) as any;
+    const hasDescription = typeof fav.description === 'string' && fav.description.trim().length > 0;
+    const hasCategory = typeof fav.category === 'string' && fav.category.trim().length > 0;
+    const hasTags = Array.isArray(fav.tags) && fav.tags.some((t: unknown) => typeof t === 'string' && t.trim().length > 0);
+    return !hasDescription || !hasCategory || !hasTags;
+  }
 }

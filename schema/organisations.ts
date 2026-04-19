@@ -74,6 +74,8 @@ const GenerateRankSchema = new Schema({
   status:              { type: String, enum: ['ranked', 'error'] },
   processed_at:        Date,
   rank_score:          { type: Number, min: 0, max: 100 },
+  british_operations_pass: Boolean,
+  active_presence_pass: Boolean,
   criterion_scores:    { type: Map, of: Number },
   criterion_rationale: { type: Map, of: String },
   socialLinks:         SocialLinksSchema,

@@ -21,9 +21,18 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
   return {
     __type: { $exists: false },
     $or: [
-      { 'verify.forcedPublish': true },
-      { 'verify.publish': true },
-      { 'generate.rank.rank_score': { $gte: threshold }, 'verify.suppressOnMap': { $ne: true } },
+      { 'favourite.forcedPublish': true },
+      {
+        'favourite.suppressOnMap': { $ne: true },
+        $or: [
+          { 'favourite.isFavourite': true },
+          {
+            'generate.rank.rank_score': { $gte: threshold },
+            'generate.rank.british_operations_pass': true,
+            'generate.rank.active_presence_pass': true,
+          },
+        ],
+      },
     ],
   };
 }
@@ -31,31 +40,40 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
 function orgToGeoJsonFeature(org: any, id: number) {
   const d = org.discover ?? {};
   const sl = org.generate?.rank?.socialLinks ?? {};
-  const vc = org.verify?.verifiedData?.contacts ?? {};
+  const fav = org.favourite ?? {};
+  const favContacts = fav.contacts ?? fav.socialLinks ?? {};
   const gc = org.generate?.content ?? {};
-  const vd = org.verify?.verifiedData ?? {};
   const rgCtx = org.reverse_geo?.properties?.context ?? {};
   const coords: number[] | undefined = d.location?.coordinates;
   if (!coords || coords.length < 2) return null;
   const [lng, lat] = coords;
-  const website   = vc.website   || sl.website   || d.website;
-  const facebook  = vc.facebook  || sl.facebook;
-  const instagram = vc.instagram || sl.instagram;
-  const youtube   = vc.youtube   || sl.youtube;
-  // phone and email are only shown when verified — suppress generate/discover values
-  const phone     = vc.phone     || undefined;
-  const email     = vc.email     || undefined;
+  const firstNonEmpty = (...vals: unknown[]): string => {
+    for (const v of vals) {
+      if (typeof v === 'string' && v.trim() !== '') return v.trim();
+    }
+    return '';
+  };
+  const hasNonEmptyArray = (v: unknown): v is string[] => Array.isArray(v) && v.some(x => typeof x === 'string' && x.trim() !== '');
+  const favouriteTags = hasNonEmptyArray(fav.tags) ? fav.tags : [];
+  const generatedTags = hasNonEmptyArray(gc.tags) ? gc.tags : [];
+
+  const website   = firstNonEmpty(favContacts.website, fav.website, sl.website, d.website);
+  const facebook  = firstNonEmpty(favContacts.facebook, fav.facebook, sl.facebook);
+  const instagram = firstNonEmpty(favContacts.instagram, fav.instagram, sl.instagram);
+  const youtube   = firstNonEmpty(favContacts.youtube, fav.youtube, sl.youtube);
+  const phone     = firstNonEmpty(favContacts.phone, fav.phone) || undefined;
+  const email     = firstNonEmpty(favContacts.email, fav.email) || undefined;
   return {
     type: 'Feature',
     id,
     geometry: { type: 'Point', coordinates: [lng, lat] },
     properties: {
-      featureType:  vd.category  ?? gc.category  ?? 'Snorkelling Organisation',
-      name:         vd.name      || gc.name       || d.title      || '',
-      description:  vd.description ?? gc.description ?? '',
-      categories:   vd.tags?.length ? vd.tags : (gc.tags ?? []),
+      featureType:  firstNonEmpty(fav.category, fav.categoryName, gc.category) || 'Snorkelling Organisation',
+      name:         firstNonEmpty(fav.name, gc.name, d.title),
+      description:  firstNonEmpty(fav.description, gc.description),
+      categories:   favouriteTags.length ? favouriteTags : generatedTags,
       location: {
-        locality:    vd.localityOverride || rgCtx.place?.name || d.city,
+        locality:    firstNonEmpty(fav.localityOverride, rgCtx.place?.name, d.city),
         place:       rgCtx.place?.name,
         district:    rgCtx.district?.name,
         region:      rgCtx.region?.name,
@@ -71,7 +89,7 @@ function orgToGeoJsonFeature(org: any, id: number) {
         phone     ? { icon: 'phone',     url: `tel:${phone}`,    text: phone       } : null,
         email     ? { icon: 'email',     url: `mailto:${email}`, text: email       } : null,
       ].filter(Boolean),
-      verified:      org.verify?.verified ?? false,
+      verified:      fav.verified ?? false,
       symbolSortOrder: id,
     }
   };
@@ -146,7 +164,7 @@ async function getPlacesForSeo() {
     ).lean(),
     OrganisationModel.find(
       { ...(await buildOrgFilter()), _id: { $exists: true } },
-      { discover: 1, verify: 1 }
+      { discover: 1, favourite: 1 }
     ).lean(),
   ]);
 
@@ -170,13 +188,15 @@ async function getPlacesForSeo() {
 
   const orgSchemas = orgs.map((org: any) => {
     const d = org.discover ?? {};
-    const vd = org.verify?.verifiedData ?? {};
+    const fav = org.favourite ?? {};
     const coords: number[] = d.location?.coordinates ?? [0, 0];
-    const tags: string[] = vd.tags ?? [];
+    const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
+    const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
+    const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
     return {
       '@type': 'SportsActivityLocation',
       name: d.title,
-      description: vd.category ? vd.category + ': ' + (vd.description ?? '') : (vd.description ?? ''),
+      description: category ? category + ': ' + descriptionText : descriptionText,
       keywords: tags.length ? tags.join(', ') : undefined,
       address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
       geo: {
@@ -202,18 +222,20 @@ async function getPlaceForSeo(siteName: string) {
     const orgFilter = await buildOrgFilter();
     const org = await OrganisationModel.findOne(
       { ...orgFilter, 'discover.title': siteName },
-      { discover: 1, verify: 1 }
+      { discover: 1, favourite: 1 }
     ).lean();
 
     if (!org) return null;
 
     const d = (org as any).discover ?? {};
-    const vd = (org as any).verify?.verifiedData ?? {};
+    const fav = (org as any).favourite ?? {};
     const coords: number[] = d.location?.coordinates ?? [0, 0];
-    const tags: string[] = vd.tags ?? [];
-    const description = vd.category
-      ? `${vd.category}${d.city ? ' in ' + d.city : ''}${vd.description ? '. ' + vd.description : ''}`
-      : (vd.description ?? '');
+    const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
+    const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
+    const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
+    const description = category
+      ? `${category}${d.city ? ' in ' + d.city : ''}${descriptionText ? '. ' + descriptionText : ''}`
+      : descriptionText;
     return {
       '@type': 'SportsActivityLocation' as const,
       name: d.title as string,

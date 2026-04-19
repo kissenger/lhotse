@@ -2,7 +2,7 @@
 
 /* === Scrolling area override === */
 .scrolling-div {
-  margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 100px);
+  margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 72px);
 }
 
 /* === Label width override === */
@@ -12,16 +12,49 @@ label, .label {
   margin-right: 1em;
 }
 
-/* === Toolbar row — select and search input grow to fill === */
-.toolbar-row select,
-.toolbar-row input[type="search"] {
-  flex-grow: 1;
+.static-div {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
-.static-div {
+.header-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.2fr) minmax(420px, 1fr);
+  align-items: start;
+  gap: 0.2em 1em;
+}
+
+.header-fields {
+  display: grid;
+  gap: 0.2em;
+}
+
+.header-field-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.25em;
+  align-items: center;
+  min-width: 0;
+}
+
+.header-field-row input[type="search"],
+.header-field-row select {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.header-actions {
+  justify-content: flex-end;
+  align-self: start;
+}
+
+/* Hidden confirm spans should not reserve space in the compact header. */
+.header-actions .sureButton {
+  display: none;
+}
+
+.header-actions .showButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
 }
 
 h3 {
@@ -49,6 +82,36 @@ form > div {
   flex-direction: row;
   align-items: center;
   margin: 0.4em 0;
+}
+
+.description-row {
+  align-items: flex-start;
+}
+
+.input-with-meta {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.word-count {
+  display: block;
+  width: 100%;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #5f6b76;
+  margin-top: 0.15em;
+}
+
+.word-count.over {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.alert {
+  border-color: #e07070;
+  background-color: #fff8f8;
+  outline: none;
 }
 
 input[type="checkbox"] {
@@ -100,8 +163,9 @@ input[type="checkbox"] {
 }
 
 .formButton {
-  width: 100px;
-  margin: 6px;
+  width: auto;
+  min-width: 88px;
+  margin: 2px;
 }
 
 .qaButton {
@@ -130,6 +194,53 @@ input[readonly] {
   width: 100%;
   margin: 0.75em 0;
   border-radius: 4px;
+}
+
+.map-section {
+  display: grid;
+  grid-template-columns: minmax(340px, 1.1fr) 600px;
+  gap: 0.5em 1em;
+  align-items: start;
+  margin: 0.4em 0 0.8em;
+}
+
+.map-section-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  min-width: 0;
+}
+
+.map-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.map-field-row input[type="text"] {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.map-actions-row {
+  justify-content: flex-start;
+}
+
+.map-section-right {
+  width: 600px;
+  justify-self: end;
+}
+
+.map-section-right #features-edit-map,
+.map-section-right #features-edit-parking-map {
+  width: 600px;
+  height: 400px;
+  min-height: 400px;
+  margin: 0;
+}
+
+.map-section-compact {
+  margin-top: 0.1em;
 }
 
 .research-links {
@@ -190,4 +301,35 @@ option.option-production {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.25em;
+}
+
+@media (max-width: 980px) {
+  .header-grid {
+    grid-template-columns: 1fr;
+    gap: 0.4em;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .scrolling-div {
+    margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 112px);
+  }
+
+  .map-section {
+    grid-template-columns: 1fr;
+    gap: 0.5em;
+  }
+
+  .map-section-right {
+    justify-self: start;
+  }
+
+  .map-section-right #features-edit-map,
+  .map-section-right #features-edit-parking-map {
+    width: 600px;
+    height: 400px;
+    min-height: 400px;
+  }
 }

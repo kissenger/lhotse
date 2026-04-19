@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { unsavedChangesGuard } from '@pages/admin/sites-editor/unsaved-changes.guard';
+import { organisationsUnsavedChangesGuard } from '@pages/admin/organisations-editor/organisations-unsaved-changes.guard';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
 import { MapPageComponent } from '@pages/home/map/map-page.component';
@@ -25,7 +26,7 @@ export const routes: Routes = [
   { path: 'adminmap', loadComponent: () =>
     import('@pages/admin/admin-map/admin-map.component').then((m) => m.AdminMapComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'organisations', loadComponent: () =>
-    import('@pages/admin/organisations-editor/organisations-editor.component').then((m) => m.OrganisationsEditorComponent), canActivate: [AuthGuard], data: { noPreload: true }},
+    import('@pages/admin/organisations-editor/organisations-editor.component').then((m) => m.OrganisationsEditorComponent), canActivate: [AuthGuard], canDeactivate: [organisationsUnsavedChangesGuard], data: { noPreload: true }},
   { path: 'login', loadComponent: () =>
     import('@pages/admin/auth/login/login.component').then((m) => m.LoginComponent), canActivate: [AdminSubdomainGuard], data: { noPreload: true }},
   { path: 'privacy-policy', loadComponent: () =>

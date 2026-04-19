@@ -53,8 +53,11 @@ export class HttpService {
     return this._publishedPostsCache;
   }
 
-  async getPostBySlug(slug: string) {
-    const request =  this._http.get<{article: BlogPost}>(`/api/blog/get-post-by-slug/${slug}`);
+  async getPostBySlug(slug: string, preview = false) {
+    const path = preview
+      ? `/api/blog/get-post-preview-by-slug/${slug}`
+      : `/api/blog/get-post-by-slug/${slug}`;
+    const request = this._http.get<{article: BlogPost}>(path, { withCredentials: preview });
     return await lastValueFrom(request);
   }
 

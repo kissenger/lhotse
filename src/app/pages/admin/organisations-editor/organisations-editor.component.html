@@ -2,77 +2,100 @@
 
   <!-- ===== Fixed toolbar ===== -->
   <div class="static-div">
+    <div class="summary-compact">
+      <div class="summary-left">
+        <div class="toolbar-row">
+          <label for="orgSearch">Search:</label>
+          <input type="search" id="orgSearch" name="orgSearch"
+            [(ngModel)]="listSearch"
+            (ngModelChange)="onSearch()"
+            placeholder="Filter by title…"
+            autocomplete="off">
+          <span class="record-count">{{ listTotal }} record{{ listTotal === 1 ? '' : 's' }}</span>
+        </div>
 
-    <!-- Search + record selector -->
-    <div class="toolbar-row">
-      <label for="orgSearch">Search:</label>
-      <input type="search" id="orgSearch" name="orgSearch"
-        [(ngModel)]="listSearch"
-        (ngModelChange)="onSearch()"
-        placeholder="Filter by title…"
-        autocomplete="off">
-      <span class="record-count">{{ listTotal }} record{{ listTotal === 1 ? '' : 's' }}</span>
-    </div>
+        <div class="toolbar-row">
+          <label for="orgSelect">Record:</label>
+          <select id="orgSelect" name="orgSelect"
+            [ngModel]="selectedId"
+            (ngModelChange)="onFormSelect($event)">
+            <option value="">— select —</option>
+            @for (item of sortedListItems; track item._id) {
+              <option [value]="item._id"
+                [class.option-published]="item.isOnMap"
+                [class.option-verified]="item.isVerified && !item.isOnMap"
+                [class.option-unverified]="!item.isVerified && !item.isOnMap"
+                [class.option-pending]="item.newContentPendingVerification">
+                {{ (item.isFavourite ? '⭐ ' : '') + getMapStatusSymbolPrefix(item) + (item.newContentAvailable ? '◆ ' : '') + (item.flaggedForUpdate ? '⚑ ' : '') + (item.rank_score !== undefined ? '[' + item.rank_score + '] ' : '') + item.title + (item.city ? ' · ' + item.city : '') }}
+              </option>
+            }
+          </select>
+        </div>
 
-    <div class="toolbar-row">
-      <label for="orgSelect">Record:</label>
-      <select id="orgSelect" name="orgSelect"
-        [ngModel]="selectedId"
-        (ngModelChange)="onFormSelect($event)">
-        <option value="">— select —</option>
-        @for (item of sortedListItems; track item._id) {
-          <option [value]="item._id"
-            [class.option-published]="item.isOnMap"
-            [class.option-verified]="item.isVerified && !item.isOnMap"
-            [class.option-unverified]="!item.isVerified && !item.isOnMap"
-            [class.option-pending]="item.newContentPendingVerification">
-            {{ (item.isFavourite ? '⭐ ' : '') + (item.isOnMap ? '📍' : '') + (item.isVerified ? '✅' : '') + (item.isOnMap || item.isVerified ? ' ' : '') + (item.newContentAvailable ? '◆ ' : '') + (item.flaggedForUpdate ? '⚑ ' : '') + (item.rank_score !== undefined ? '[' + item.rank_score + '] ' : '') + item.title + (item.city ? ' · ' + item.city : '') }}
-          </option>
-        }
-      </select>
-    </div>
-
-    <!-- Actions -->
-    <div class="toolbar-row">
-      <div class="toolbar-actions">
-        <button type="button" class="formButton btn-save"
-          [disabled]="!selectedDoc || !isDirty || isSaving || verifiedDataEmpty"
-          (click)="onSave()">
-          Save &amp; Verify
-        </button>
-        <label class="flag-regen-label force-map-label">
-          <input type="checkbox" [checked]="asVerify?.forcedPublish" (change)="onToggleManualPublish()" [disabled]="isSaving || !selectedDoc" name="forceOnMap">
-          Force on map
-        </label>
-        <label class="flag-regen-label suppress-map-label">
-          <input type="checkbox" [checked]="asVerify?.suppressOnMap" (change)="onToggleSuppressOnMap()" [disabled]="isSaving || !selectedDoc" name="suppressOnMap">
-          Suppress from map
-        </label>
-        <button type="button" class="formButton btn-delete"
-          [disabled]="!selectedId"
-          (click)="onYesDelete(false)">
-          Delete
-        </button>
-        <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
-          Are you sure?
-          <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
-          <button type="button" class="formButton" (click)="onNoDelete()">No</button>
-        </span>
+        <div class="toolbar-row">
+          <label for="scoreThreshold">Score threshold:</label>
+          <input type="number" id="scoreThreshold" name="scoreThreshold" min="0" max="100" step="1"
+            [(ngModel)]="scoringThreshold"
+            (ngModelChange)="scoringThresholdDirty = true"
+            style="width:5em">
+          <button type="button" class="formButton"
+            [disabled]="!scoringThresholdDirty"
+            (click)="onSaveThreshold()">
+            Save threshold
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Threshold row -->
-    <div class="toolbar-row">
-      <label for="scoreThreshold">Score threshold:</label>
-      <input type="number" id="scoreThreshold" name="scoreThreshold" min="0" max="100" step="1"
-        [(ngModel)]="scoringThreshold"
-        (ngModelChange)="scoringThresholdDirty = true"
-        style="width:5em">
-      <button type="button" class="formButton"
-        [disabled]="!scoringThresholdDirty"
-        (click)="onSaveThreshold()">
-        Save threshold
-      </button>
+      <div class="summary-right">
+        <div class="header-actions">
+          <button type="button" class="formButton btn-map-toggle"
+            [class.active]="isOnMap"
+            [disabled]="isSaving || !selectedDoc"
+            (click)="onToggleMapVisibility()">
+            {{ mapToggleLabel }}
+          </button>
+          <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
+            Overwrite existing data?
+            <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
+            <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>
+          </span>
+        </div>
+
+        <div class="header-pills">
+          @if (selectedDoc?.favourite?.isFavourite) {
+            <span class="info-pill favourite">⭐ Favourite</span>
+          }
+          <span class="info-pill" [ngClass]="britishOperationsStatus">
+            British: {{ britishOperationsStatus === 'pass' ? 'Pass' : (britishOperationsStatus === 'fail' ? 'Fail' : 'Unknown') }}
+          </span>
+          <span class="info-pill" [ngClass]="activePresenceStatus">
+            Active Presence: {{ activePresenceStatus === 'pass' ? 'Pass' : (activePresenceStatus === 'fail' ? 'Fail' : 'Unknown') }}
+          </span>
+          @if (isSuppressedFromMap) {
+            <span class="info-pill suppressed">Suppressed from map</span>
+          }
+          @if (isDirty) {
+            <span class="info-pill unsaved">Unsaved changes</span>
+          }
+        </div>
+
+        <table class="summary-stats" aria-label="Organisation summary counts">
+          <tbody>
+            <tr>
+              <th scope="row">Sites in DB</th>
+              <td>{{ totalSitesInDb }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Meet criteria</th>
+              <td>{{ criteriaMatchedCount }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Shown on map</th>
+              <td>{{ shownOnMapCount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div>
@@ -85,59 +108,10 @@
     }
 
     @if (selectedDoc) {
-
-      <!-- Status row -->
-      <div class="status-row">
-        @if (selectedDoc.favourite?.isFavourite) {
-          <span class="badge badge-favourite">⭐ Favourite</span>
-        }
-        @if (asVerify?.verified) {
-          <span class="badge badge-verified">Verified</span>
-        }
-        @if (asVerify?.forcedPublish) {
-          <span class="badge badge-published">On map (forced)</span>
-        } @else if (asVerify?.suppressOnMap) {
-          <span class="badge badge-suppressed">Suppressed from map</span>
-        } @else if (isOnMap) {
-          <span class="badge badge-published">On map</span>
-        }
-        @if (!hasLocation) {
-          <span class="badge badge-no-location">&#9888; No location — won't appear on map</span>
-        }
-        @if (isDirty) {
-          <span class="unsaved-badge">Unsaved changes</span>
-        }
-        @if (asVerify?.newContentPendingVerification) {
-          <span class="unsaved-badge new-content-badge">&#9670; New generated content available</span>
-        }
-        <label class="flag-regen-label">
-          <input type="checkbox" [(ngModel)]="flaggedForUpdate" name="flaggedForUpdate">
-          Flag for regenerate
-        </label>
-      </div>
-
       <form (input)="isDirty = true" (change)="isDirty = true">
-        <div class="review-grid">
+        <div class="review-grid" [class.mode-generated]="contentSource === 'generated'" [class.mode-favourite]="contentSource === 'favourite'">
 
-          <!-- === Column headers === -->
-          <div class="col-header-gen">Generated (read-only)</div>
-          <div class="col-header-ver">
-            <span>Verified Data</span>
-            @if (asVerify?.verified) {
-              <span class="col-header-verified-tick" title="Verified">&#10003;</span>
-            }
-          </div>
-
-          <!-- === Name === -->
-          <div class="section-heading read-only-section">Name</div>
-          <div class="section-heading">Name override</div>
-          <div class="ro-block ro-title">{{ asDiscover.title || '—' }}</div>
-          <input type="text" name="vd_name" class="name-input"
-            [ngModel]="verifiedData.name ?? ''"
-            (ngModelChange)="verifiedData.name = $event || undefined"
-            placeholder="Leave blank to use original title">
-
-          <!-- === Location (full width) === -->
+          <!-- === Location (non-common, full width) === -->
           <div class="section-heading full-row location-heading">
             Location
             @if (!hasLocation) {
@@ -160,7 +134,6 @@
             <span class="location-hint">Decimal degrees. Use <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google Maps</a> — right-click a location to copy coords.</span>
           </div>
 
-          <!-- === Geocoded Address (full width) === -->
           @if (hasReverseGeo) {
             <div class="section-heading full-row">Geocoded Address</div>
             <div class="geo-grid full-row">
@@ -187,150 +160,13 @@
               <div class="geo-field geo-field--override">
                 <label class="geo-label">Locality Override <span class="geo-hint">(replaces Place on map)</span></label>
                 <input type="text" class="geo-input geo-input--editable" name="vd_localityOverride"
+                  [disabled]="contentSource === 'generated'"
                   [(ngModel)]="verifiedData.localityOverride"
                   placeholder="Leave blank to use Place (Town)">
               </div>
             </div>
           }
 
-          <!-- === Description === -->
-          <div class="section-heading read-only-section">Description</div>
-          <div class="section-heading">
-            Description
-            <button type="button" class="formButton btn-populate" (click)="populateFromGenerate()">
-              {{ verifiedDataEmpty ? 'Populate from Generate' : 'Reset from Generate' }}
-            </button>
-            <button type="button" class="formButton btn-clear-verified"
-              [disabled]="isSaving || !asVerify?.verified"
-              (click)="askForClearVerified = true">
-              Clear
-            </button>
-            <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
-              Overwrite existing data?
-              <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
-              <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>
-            </span>
-            <span [ngClass]="askForClearVerified ? 'showButton' : ''" class="sureButton">
-              Clear verified data?
-              <button type="button" class="formButton" (click)="onClearVerified()">Yes</button>
-              <button type="button" class="formButton" (click)="askForClearVerified = false">No</button>
-            </span>
-          </div>
-          <div class="ro-block ro-desc">{{ asGenerate?.content?.description || '—' }}</div>
-          <textarea name="vd_description" class="desc-textarea" spellcheck="true"
-            [(ngModel)]="verifiedData.description"></textarea>
-
-          <!-- === Tags === -->
-          <div class="section-heading read-only-section">Tags</div>
-          <div class="section-heading">Tags</div>
-          <div class="chip-list ro-chips">
-            @for (tag of (asGenerate?.content?.tags ?? []); track tag) {
-              <span class="chip chip-ro">{{ tag }}</span>
-            }
-            @if (!asGenerate?.content?.tags?.length) {
-              <span class="read-only-value">—</span>
-            }
-          </div>
-          <div class="chip-editor">
-            <div class="chip-list">
-              @for (tag of (verifiedData.tags ?? []); track tag) {
-                <span class="chip">{{ tag }}<button type="button" (click)="removeVerifiedTag(tag)">×</button></span>
-              }
-              @if (!verifiedData.tags?.length) {
-                <span class="read-only-value">— no tags</span>
-              }
-            </div>
-            <div class="chip-input-row">
-              <select name="tagInput" [(ngModel)]="tagInput">
-                <option value="">— select tag —</option>
-                @for (tag of availableTags; track tag) {
-                  <option [value]="tag">{{ tag }}</option>
-                }
-              </select>
-              <button type="button" class="formButton" (click)="addVerifiedTag()">Add</button>
-            </div>
-          </div>
-
-          <!-- === Category === -->
-          <div class="section-heading read-only-section">Category</div>
-          <div class="section-heading">Category</div>
-          <div class="ro-block">{{ asGenerate?.content?.category || '—' }}</div>
-          <select name="vd_category" [(ngModel)]="verifiedData.category" class="cat-select">
-            <option value="">— select —</option>
-            @for (cat of CATEGORIES; track cat) {
-              <option [value]="cat">{{ cat }}</option>
-            }
-          </select>
-
-          <!-- === Social Links / Contact (full width) === -->
-          <div class="section-heading full-row">Social Links &amp; Contact</div>
-          <div class="contacts-review full-row">
-            <!-- headers -->
-            <div class="contacts-col-label">Generated (read-only)</div>
-            <div class="contacts-col-label">Verified</div>
-            <!-- Website -->
-            <div class="contact-cell">
-              <span class="contact-label">Website</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.website || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_website">Website</label>
-              <input id="vc_website" type="url" name="vc_website" class="contact-input"
-                [(ngModel)]="verifiedContacts.website" placeholder="https://…">
-            </div>
-            <!-- Phone -->
-            <div class="contact-cell">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.phones?.[0] || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_phone">Phone</label>
-              <input id="vc_phone" type="tel" name="vc_phone" class="contact-input"
-                [(ngModel)]="verifiedContacts.phone" placeholder="+44 …">
-            </div>
-            <!-- Email -->
-            <div class="contact-cell">
-              <span class="contact-label">Email</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.emails?.[0] || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_email">Email</label>
-              <input id="vc_email" type="email" name="vc_email" class="contact-input"
-                [(ngModel)]="verifiedContacts.email" placeholder="contact@…">
-            </div>
-            <!-- Facebook -->
-            <div class="contact-cell">
-              <span class="contact-label">Facebook</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.facebook || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_facebook">Facebook</label>
-              <input id="vc_facebook" type="url" name="vc_facebook" class="contact-input"
-                [(ngModel)]="verifiedContacts.facebook" placeholder="https://facebook.com/…">
-            </div>
-            <!-- Instagram -->
-            <div class="contact-cell">
-              <span class="contact-label">Instagram</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.instagram || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_instagram">Instagram</label>
-              <input id="vc_instagram" type="url" name="vc_instagram" class="contact-input"
-                [(ngModel)]="verifiedContacts.instagram" placeholder="https://instagram.com/…">
-            </div>
-            <!-- YouTube -->
-            <div class="contact-cell">
-              <span class="contact-label">YouTube</span>
-              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.youtube || '—' }}</span>
-            </div>
-            <div class="contact-cell">
-              <label class="contact-label" for="vc_youtube">YouTube</label>
-              <input id="vc_youtube" type="url" name="vc_youtube" class="contact-input"
-                [(ngModel)]="verifiedContacts.youtube" placeholder="https://youtube.com/…">
-            </div>
-          </div>
-
-          <!-- === Ranking & Criterion Scores (full width) === -->
           @if (asGenerate?.rank?.rank_score !== undefined || criterionScoreEntries.length) {
             <div class="section-heading full-row">Ranking &amp; Criterion Scores</div>
             <div class="scores-section full-row">
@@ -361,7 +197,6 @@
             </div>
           }
 
-          <!-- === Sources (full width) === -->
           @if (asDiscover.website || uniqueGroundingSources.length) {
             <div class="section-heading full-row">Sources</div>
             <div class="sources-section full-row">
@@ -379,6 +214,175 @@
             </div>
           }
 
+          <!-- === Shared Generated/Favourite fields (bottom) === -->
+          <div class="content-source-row full-row">
+            <span class="content-source-group">
+              <span class="content-source-label">Content Source:</span>
+              <button type="button" class="formButton content-source-btn"
+                [class.active]="contentSource === 'generated'"
+                (click)="requestContentSource('generated')">
+                Generated
+              </button>
+              <button type="button" class="formButton content-source-btn"
+                [class.active]="contentSource === 'favourite'"
+                (click)="requestContentSource('favourite')">
+                Favourite
+              </button>
+            </span>
+          </div>
+
+          <div class="col-header-gen" [class.source-dim]="contentSource === 'favourite'">Generated (read-only)</div>
+          <div class="col-header-ver" [class.source-dim]="contentSource === 'generated'">
+            <span>Favourite Data</span>
+            @if (isFavouriteVerified) {
+              <span class="col-header-verified-tick" title="Verified">&#10003;</span>
+            }
+          </div>
+
+          <div class="section-heading read-only-section">Name</div>
+          <div class="section-heading">Name override</div>
+          <div class="ro-block ro-title" [class.source-dim]="contentSource === 'favourite'">{{ asDiscover.title || '—' }}</div>
+          <input type="text" name="vd_name" class="name-input"
+            [class.source-dim]="contentSource === 'generated'"
+            [disabled]="contentSource === 'generated'"
+            [ngModel]="verifiedData.name ?? ''"
+            (ngModelChange)="verifiedData.name = $event || undefined"
+            placeholder="Leave blank to use original title">
+
+          <div class="section-heading read-only-section">Description</div>
+          <div class="section-heading with-actions">
+            <span>Description</span>
+            <span class="section-heading-actions">
+              <button type="button" class="formButton btn-populate" (click)="populateFromGenerate()">
+                {{ verifiedDataEmpty ? 'Populate from Source' : 'Reset from Source' }}
+              </button>
+              <button type="button" class="formButton btn-save"
+                [disabled]="isSaving || !selectedDoc || verifiedDataEmpty || !isDirty"
+                (click)="onSave()">
+                Save
+              </button>
+            </span>
+          </div>
+          <div class="ro-block ro-desc" [class.source-dim]="contentSource === 'favourite'">{{ asGenerate?.content?.description || '—' }}</div>
+          <textarea name="vd_description" class="desc-textarea" spellcheck="true"
+            [class.source-dim]="contentSource === 'generated'"
+            [disabled]="contentSource === 'generated'"
+            [(ngModel)]="verifiedData.description"></textarea>
+
+          <div class="section-heading read-only-section">Tags</div>
+          <div class="section-heading">Tags</div>
+          <div class="chip-list ro-chips" [class.source-dim]="contentSource === 'favourite'">
+            @for (tag of (asGenerate?.content?.tags ?? []); track tag) {
+              <span class="chip chip-ro">{{ tag }}</span>
+            }
+            @if (!asGenerate?.content?.tags?.length) {
+              <span class="read-only-value">—</span>
+            }
+          </div>
+          <div class="chip-editor" [class.source-dim]="contentSource === 'generated'">
+            <div class="chip-list">
+              @for (tag of (verifiedData.tags ?? []); track tag) {
+                <span class="chip">{{ tag }}<button type="button" [disabled]="contentSource === 'generated'" (click)="removeVerifiedTag(tag)">×</button></span>
+              }
+              @if (!verifiedData.tags?.length) {
+                <span class="read-only-value">— no tags</span>
+              }
+            </div>
+            <div class="chip-input-row">
+              <select
+                name="tagInput"
+                [disabled]="contentSource === 'generated'"
+                [ngModel]="tagInput"
+                (ngModelChange)="onTagSelected($event)">
+                <option value="">— select tag —</option>
+                @for (tag of availableTags; track tag) {
+                  <option [value]="tag">{{ tag }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="section-heading read-only-section">Category</div>
+          <div class="section-heading">Category</div>
+          <div class="ro-block" [class.source-dim]="contentSource === 'favourite'">{{ asGenerate?.content?.category || '—' }}</div>
+          <select name="vd_category" [class.source-dim]="contentSource === 'generated'" [disabled]="contentSource === 'generated'" [(ngModel)]="verifiedData.category" class="cat-select">
+            <option value="">— select —</option>
+            @for (cat of CATEGORIES; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+
+          <div class="section-heading full-row">Social Links &amp; Contact</div>
+          <div class="contacts-review full-row">
+            <div class="contacts-col-label" [class.source-dim]="contentSource === 'favourite'">Generated (read-only)</div>
+            <div class="contacts-col-label" [class.source-dim]="contentSource === 'generated'">Favourite</div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">Website</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.website || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_website">Website</label>
+              <input id="vc_website" type="url" name="vc_website" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.website" placeholder="https://…">
+            </div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">Phone</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.phones?.[0] || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_phone">Phone</label>
+              <input id="vc_phone" type="tel" name="vc_phone" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.phone" placeholder="+44 …">
+            </div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">Email</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.emails?.[0] || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_email">Email</label>
+              <input id="vc_email" type="email" name="vc_email" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.email" placeholder="contact@…">
+            </div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">Facebook</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.facebook || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_facebook">Facebook</label>
+              <input id="vc_facebook" type="url" name="vc_facebook" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.facebook" placeholder="https://facebook.com/…">
+            </div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">Instagram</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.instagram || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_instagram">Instagram</label>
+              <input id="vc_instagram" type="url" name="vc_instagram" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.instagram" placeholder="https://instagram.com/…">
+            </div>
+
+            <div class="contact-cell" [class.source-dim]="contentSource === 'favourite'">
+              <span class="contact-label">YouTube</span>
+              <span class="contact-value">{{ asGenerate?.rank?.socialLinks?.youtube || '—' }}</span>
+            </div>
+            <div class="contact-cell" [class.source-dim]="contentSource === 'generated'">
+              <label class="contact-label" for="vc_youtube">YouTube</label>
+              <input id="vc_youtube" type="url" name="vc_youtube" class="contact-input"
+                [disabled]="contentSource === 'generated'"
+                [(ngModel)]="verifiedContacts.youtube" placeholder="https://youtube.com/…">
+            </div>
+          </div>
         </div>
       </form>
     }

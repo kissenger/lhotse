@@ -209,6 +209,8 @@ export interface OrgGenerateRank {
   status?: 'ranked' | 'error';
   processed_at?: string;
   rank_score?: number;
+  british_operations_pass?: boolean;
+  active_presence_pass?: boolean;
   criterion_scores?: Record<string, number>;
   criterion_rationale?: Record<string, string>;
   socialLinks?: OrgSocialLinks;
@@ -275,6 +277,7 @@ export interface OrgVerify {
   newContentPendingVerification?: boolean;
   verified?: boolean;
   verifiedAt?: string;
+  contentSource?: 'generated' | 'favourite';
   verifiedData?: {
     description?: string;
     tags?: string[];
@@ -313,6 +316,8 @@ export interface OrgListItem {
   countryCode?: string;
   status?: string;
   rank_score?: number;
+  british_operations_pass?: boolean;
+  active_presence_pass?: boolean;
   category?: string;
   newContentPendingVerification?: boolean;
   isVerified?: boolean;

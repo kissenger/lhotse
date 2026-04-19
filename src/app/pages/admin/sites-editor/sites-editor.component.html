@@ -1,26 +1,29 @@
 <main>
 
   <div class="static-div">
-    <div class="toolbar-row">
-      <label for="siteSearch">Search:</label>
-      <input type="search" id="siteSearch" name="siteSearch" [(ngModel)]="siteSearch" placeholder="Filter sites…" autocomplete="off">
-    </div>
-    <div class="toolbar-row">
-      <label for="siteSelect">Site:</label>
-      <select [ngModel]="selectedSite._id" (ngModelChange)="onFormSelect($event)" name="siteSelect" id="siteSelect">
-        @if (snorkellingSites.length) {
-          <optgroup label="Snorkelling Sites">
-            @for (site of snorkellingSites; track site._id) {
-              <option [value]="site._id" [class.option-production]="site.showOnMap === 'Production'">
-                {{ site.properties.name || 'Unnamed' }}
-              </option>
+    <div class="header-grid">
+      <div class="header-fields">
+        <div class="header-field-row">
+          <label for="siteSearch">Search:</label>
+          <input type="search" id="siteSearch" name="siteSearch" [(ngModel)]="siteSearch" placeholder="Filter sites…" autocomplete="off">
+        </div>
+        <div class="header-field-row">
+          <label for="siteSelect">Site:</label>
+          <select [ngModel]="selectedSite._id" (ngModelChange)="onFormSelect($event)" name="siteSelect" id="siteSelect">
+            @if (snorkellingSites.length) {
+              <optgroup label="Snorkelling Sites">
+                @for (site of snorkellingSites; track site._id) {
+                  <option [value]="site._id" [class.option-production]="site.showOnMap === 'Production'">
+                    {{ site.properties.name || 'Unnamed' }}
+                  </option>
+                }
+              </optgroup>
             }
-          </optgroup>
-        }
-      </select>
-    </div>
-    <div class="toolbar-row">
-      <div class="toolbar-actions">
+          </select>
+        </div>
+      </div>
+
+      <div class="toolbar-actions header-actions">
         @if (hasUnsavedChanges()) { <span class="unsaved-badge">Unsaved changes</span> }
         <button type="button" class="formButton btn-new" (click)="onNewSite()">+ New</button>
         <button type="submit" class="formButton btn-save" (click)="onSave()" [disabled]="!hasUnsavedChanges()">Save</button>
@@ -88,9 +91,16 @@
         <input type="text" id="imageUrl" name="imageUrl" [(ngModel)]="selectedSite.properties.imageUrl">
       </div>
 
-      <div>
+      <div class="description-row">
         <label for="description">Description:</label>
-        <textarea id="description" name="description" [(ngModel)]="selectedSite.properties.description"></textarea>
+        <div class="input-with-meta">
+          <textarea id="description" name="description"
+            [class.alert]="wordCountOver(selectedSite.properties.description, 40)"
+            [(ngModel)]="selectedSite.properties.description"></textarea>
+          <span class="word-count" [class.over]="wordCountOver(selectedSite.properties.description, 40)">
+            Words: {{ wordCountText(selectedSite.properties.description, 40) }}
+          </span>
+        </div>
       </div>
 
       <div class="categories-row">
@@ -116,16 +126,21 @@
       <!-- ── Location ── -->
       <h3>Coordinates</h3>
 
-      <div>
-        <label for="coordString">Lat, Lng:</label>
-        <input type="text" id="coordString" name="coordString" [ngModel]="coordString" (change)="setCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
-        <button type="button" class="qaButton" [disabled]="!coordString" (click)="openInGoogleMaps()">Google Maps</button>
+      <div class="map-section">
+        <div class="map-section-left">
+          <div class="map-field-row">
+            <label for="coordString">Lat, Lng:</label>
+            <input type="text" id="coordString" name="coordString" [ngModel]="coordString" (change)="setCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
+            <button type="button" class="qaButton" [disabled]="!coordString" (click)="openInGoogleMaps()">Google Maps</button>
+          </div>
+          <div class="map-field-row map-actions-row">
+            <button type="button" class="qaButton" (click)="toggleMainMapSatellite()">{{ mainMapSatellite ? 'Map' : 'Satellite' }}</button>
+          </div>
+        </div>
+        <div class="map-section-right">
+          <div id="features-edit-map"></div>
+        </div>
       </div>
-
-      <div class="map-toolbar">
-        <button type="button" class="qaButton" (click)="toggleMainMapSatellite()">{{ mainMapSatellite ? 'Map' : 'Satellite' }}</button>
-      </div>
-      <div id="features-edit-map"></div>
 
       <!-- ── Visibility ── -->
       <h3>Visibility</h3>
@@ -278,15 +293,21 @@
             <input type="checkbox" id="parkingPay" name="parkingPay" [(ngModel)]="selectedSite.properties.siteInfo.parking.isPayAndDisplay">
           </div>
           @if (selectedSite.properties.siteInfo.parking.location) {
-            <div>
-              <label for="parkingCoordString">Lat, Lng:</label>
-              <input type="text" id="parkingCoordString" name="parkingCoordString" [ngModel]="parkingCoordString" (change)="setParkingCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
-              <button type="button" class="qaButton" [disabled]="!parkingCoordString" (click)="openParkingInGoogleMaps()">Google Maps</button>
+            <div class="map-section map-section-compact">
+              <div class="map-section-left">
+                <div class="map-field-row">
+                  <label for="parkingCoordString">Lat, Lng:</label>
+                  <input type="text" id="parkingCoordString" name="parkingCoordString" [ngModel]="parkingCoordString" (change)="setParkingCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
+                  <button type="button" class="qaButton" [disabled]="!parkingCoordString" (click)="openParkingInGoogleMaps()">Google Maps</button>
+                </div>
+                <div class="map-field-row map-actions-row">
+                  <button type="button" class="qaButton" (click)="toggleParkingMapSatellite()">{{ parkingMapSatellite ? 'Map' : 'Satellite' }}</button>
+                </div>
+              </div>
+              <div class="map-section-right">
+                <div id="features-edit-parking-map"></div>
+              </div>
             </div>
-            <div class="map-toolbar">
-              <button type="button" class="qaButton" (click)="toggleParkingMapSatellite()">{{ parkingMapSatellite ? 'Map' : 'Satellite' }}</button>
-            </div>
-            <div id="features-edit-parking-map"></div>
           }
         }
 

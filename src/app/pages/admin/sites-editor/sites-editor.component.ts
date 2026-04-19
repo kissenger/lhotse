@@ -86,6 +86,18 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       .sort((a, b) => (a.properties.name || '').localeCompare(b.properties.name || ''));
   }
 
+  wordCountOver(v: string | undefined | null, max: number): boolean {
+    return this._countWords(v) >= max;
+  }
+
+  wordCountText(v: string | undefined | null, max: number): string {
+    return `${this._countWords(v)}/${max}`;
+  }
+
+  private _countWords(v: string | undefined | null): number {
+    return typeof v === 'string' && v.trim() ? v.trim().split(/\s+/).length : 0;
+  }
+
   constructor(
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,

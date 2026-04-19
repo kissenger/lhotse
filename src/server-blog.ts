@@ -13,6 +13,19 @@ import 'dotenv/config';
 
 const blog = express();
 
+function isLocalRequest(req: express.Request): boolean {
+  const host = (req.hostname || '').toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
+function previewAuthGuard(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (isLocalRequest(req)) {
+    next();
+    return;
+  }
+  verifyToken(req as any, res as any, next as any);
+}
+
 const likeRateLimit = rateLimit({
   windowMs: 60 * 1000,
   limit: 30,
@@ -84,7 +97,7 @@ blog.get('/api/blog/get-published-posts/', async (_req, res) => {
 blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
 
   try {
-    const slug = req.params.slug;
+    const slug = req.params['slug'];
     const article = await BlogModel.findOne({ slug, publishedAt: { $ne: null } });
     if (!article) {
       throw new BlogError('Not Found');
@@ -101,12 +114,35 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
   }
 });
 
+/*
+  Get post from provided slug (preview version)
+  - Includes unpublished posts
+  - Requires auth unless request is local (localhost)
+*/
+blog.get('/api/blog/get-post-preview-by-slug/:slug', previewAuthGuard, async (req, res) => {
+  try {
+    const slug = req.params['slug'];
+    const article = await BlogModel.findOne({ slug });
+    if (!article) {
+      throw new BlogError('Not Found');
+    }
+
+    res.status(200).json({ article });
+  } catch (error: any) {
+    if (error?.name === 'BlogError') {
+      res.status(404).json({ message: 'Not Found' });
+      return;
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
 
   try {
 
     const listOfSlugs: Array<{slug: string}> = await getSlugs(true);
-    const index = listOfSlugs.map(r => r.slug).indexOf(req.params.slug);
+    const index = listOfSlugs.map(r => r.slug).indexOf(req.params['slug']);
 
     if (index < 0 || listOfSlugs.length === 0) {
       throw new BlogError('Error finding next or last slug');

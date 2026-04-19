@@ -57,14 +57,14 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   private async _fetchPost(slug: string): Promise<any> {
     if (this.isPreview) {
       const postResult = await Promise.race([
-        this._http.getPostBySlug(slug),
+        this._http.getPostBySlug(slug, true),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
       ]);
       return { ...postResult, nextSlug: '', lastSlug: '' };
     }
     const [postResult, slugResult] = await Promise.race([
       Promise.all([
-        this._http.getPostBySlug(slug),
+        this._http.getPostBySlug(slug, false),
         this._http.getLastAndNextSlugs(slug)
       ]),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))

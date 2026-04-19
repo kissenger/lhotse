@@ -17,8 +17,31 @@ async function readOrgSettings(): Promise<{ scoringThreshold: number }> {
 // Returns an extra filter to select docs at a given pipeline stage
 function stageFilter(collection: string): Record<string, unknown> {
   if (collection === 'generate') return { generate: { $exists: true } };
-  if (collection === 'verify')   return { verify:   { $exists: true } };
+  // In verify view, always include docs with favourite data.
+  if (collection === 'verify')   return { $or: [{ favourite: { $exists: true } }, { 'favourite.isFavourite': true }] };
   return {}; // 'discover' — all documents
+}
+
+// Verify list should include records that are currently map-visible by auto-selection
+// even if they do not yet have a verify block.
+function verifyListFilter(scoringThreshold: number): Record<string, unknown> {
+  return {
+    $or: [
+      { favourite: { $exists: true } },
+      { 'favourite.isFavourite': true },
+      { 'favourite.forcedPublish': true },
+      {
+        'favourite.suppressOnMap': { $ne: true },
+        $or: [
+          {
+            'generate.rank.rank_score': { $gte: scoringThreshold },
+            'generate.rank.british_operations_pass': true,
+            'generate.rank.active_presence_pass': true,
+          },
+        ],
+      },
+    ],
+  };
 }
 
 /*
@@ -61,53 +84,64 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
     const skip   = Math.max(0, parseInt(req.query['skip']  as string) || 0);
     const limit  = Math.min(2000, Math.max(1, parseInt(req.query['limit'] as string) || 100));
 
+    const settings = await readOrgSettings();
+    const threshold = settings.scoringThreshold;
+
     const filter: Record<string, unknown> = {
       __type: { $exists: false }, // exclude settings doc
-      ...stageFilter(collection),
+      ...(collection === 'verify' ? verifyListFilter(threshold) : stageFilter(collection)),
       ...(search ? { 'discover.title': { $regex: search, $options: 'i' } } : {}),
     };
 
-    const [raw, total, settings] = await Promise.all([
+    const [raw, total] = await Promise.all([
       OrganisationModel
         .find(filter, {
           'discover.title': 1, 'discover.city': 1, 'discover.countryCode': 1, 'discover.status': 1,
           'generate.rank.rank_score': 1, 'generate.content.category': 1,
-          'verify.rank_score': 1,  'verify.category': 1,
-          'verify.newContentPendingVerification': 1,
-          'verify.verified': 1,
-          'verify.forcedPublish': 1,
-          'verify.suppressOnMap': 1,
+          'generate.rank.british_operations_pass': 1,
+          'generate.rank.active_presence_pass': 1,
+          'favourite.tags': 1,
+          'favourite.category': 1,
+          'favourite.newContentPendingVerification': 1,
+          'favourite.verified': 1,
+          'favourite.forcedPublish': 1,
+          'favourite.suppressOnMap': 1,
           'favourite.isFavourite': 1,
         })
         .sort(collection === 'verify'
-          ? { 'verify.newContentPendingVerification': -1, 'discover.title': 1 }
+          ? { 'favourite.newContentPendingVerification': -1, 'discover.title': 1 }
           : { 'generate.rank.rank_score': -1, 'discover.title': 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       OrganisationModel.countDocuments(filter),
-      readOrgSettings(),
     ]);
-    const threshold = settings.scoringThreshold;
 
     const docs = raw.map((d: any) => {
       const score: number | undefined = d.generate?.rank?.rank_score;
-      const isOnMap = !!d.verify?.forcedPublish || (!d.verify?.suppressOnMap && score != null && score >= threshold);
+      const isFavourite = d.favourite?.isFavourite === true;
+      const britishPass = d.generate?.rank?.british_operations_pass === true;
+      const activePass = d.generate?.rank?.active_presence_pass === true;
+      const isSuppressed = !!d.favourite?.suppressOnMap;
+      const isAutoSelected = !isSuppressed && (isFavourite || (score != null && score >= threshold && britishPass && activePass));
+      const isOnMap = !!d.favourite?.forcedPublish || isAutoSelected;
       return {
         _id:         d._id,
         title:       d.discover?.title ?? '—',
         city:        d.discover?.city,
         countryCode: d.discover?.countryCode,
         status:      d.discover?.status,
-        rank_score:  score ?? d.verify?.rank_score,
-        category:    d.generate?.content?.category ?? d.verify?.category,
-        newContentPendingVerification: d.verify?.newContentPendingVerification,
-        isVerified:      !!d.verify?.verified,
+        rank_score:  score,
+        british_operations_pass: britishPass,
+        active_presence_pass: activePass,
+        category:    d.generate?.content?.category ?? d.favourite?.category,
+        newContentPendingVerification: d.favourite?.newContentPendingVerification,
+        isVerified:      !!d.favourite?.verified,
         isOnMap,
         isPublished:     isOnMap, // kept for backward compat
-        isManualPublish: !!d.verify?.forcedPublish,
-        isSuppressed:    !!d.verify?.suppressOnMap,
-        isFavourite:     !!d.favourite?.isFavourite,
+        isManualPublish: !!d.favourite?.forcedPublish,
+        isSuppressed:    !!d.favourite?.suppressOnMap,
+        isFavourite,
       };
     });
 
