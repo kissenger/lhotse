@@ -120,9 +120,7 @@
                   allowfullscreen>
                 </iframe>
               </div>
-              @if (section.imgAlt || section.imgCredit) {
-                <p class="image-credit">{{section.imgAlt}}{{section.imgAlt && section.imgCredit ? ' · ' : ''}}{{section.imgCredit ? '© ' + section.imgCredit : ''}}</p>
-              }
+              <p class="image-credit">{{section.imgAlt}}{{section.imgAlt ? ' · ' : ''}}© {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
             }
             <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
           }

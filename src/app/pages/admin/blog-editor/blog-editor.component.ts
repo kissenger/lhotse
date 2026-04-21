@@ -71,6 +71,12 @@ export class BlogEditorComponent implements OnInit {
     return `${count} / ${max}`;
   }
 
+  isSectionAltMissing(section: { imgFname?: string; videoUrl?: string; imgAlt?: string }): boolean {
+    const hasMedia = !!(section.imgFname?.trim() || section.videoUrl?.trim());
+    const hasAlt = !!section.imgAlt?.trim();
+    return hasMedia && !hasAlt;
+  }
+
   makeSlug() {
     this.selectedPost.slug = this._kebaber.transform(this.selectedPost.title);
     return this.selectedPost.slug;

@@ -164,7 +164,7 @@
 
                             <div class="field-row">
                                 <label for="alt{{si}}">Image alt:</label>
-                                <input type="text" id="alt{{si}}" name="alt{{si}}" [(ngModel)]="section.imgAlt">
+                                <input type="text" id="alt{{si}}" name="alt{{si}}" [class.alert]="isSectionAltMissing(section)" [(ngModel)]="section.imgAlt">
                             </div>
 
                             <div class="field-row">
