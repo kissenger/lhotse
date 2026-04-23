@@ -366,7 +366,7 @@ map.get('/api/sites/get-provider-names/', async (_req, res) => {
         showOnMap: { $in: ['Production', 'Development'] },
         'properties.featureType': 'Snorkelling Site'
       },
-      { 'properties.name': 1, updatedAt: 1 }
+      { 'properties.name': 1, 'properties.location': 1, updatedAt: 1 }
     ).lean();
     const result = (sites as any[])
       .filter((site: any) => typeof site.properties?.name === 'string' && site.properties.name.trim() !== '')

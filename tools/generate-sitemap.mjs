@@ -203,6 +203,14 @@ async function main() {
     })),
     ...providerNames
       .filter((item) => item && typeof item.path === 'string' && item.path.trim() !== '')
+      // Only include site-level URLs with complete routing: /map/country/county/siteName (4 segments)
+      // Country must be england/scotland/wales (not britain or uk)
+      .filter((item) => {
+        const pathSegments = item.path.split('/').filter(Boolean);
+        if (pathSegments.length !== 4) return false; // /map, country, county, siteName
+        const validCountries = new Set(['england', 'scotland', 'wales']);
+        return validCountries.has(decodeURIComponent(pathSegments[1]));
+      })
       .map((item) => ({
         loc: `${SITE_URL}${item.path}`,
         lastmod: normalizeLastMod(item.updatedAt),
