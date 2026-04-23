@@ -181,7 +181,11 @@ async function main() {
   // ── Internal paths ─────────────────────────────────────────────────────────
   console.log(`\nChecking ${internalPaths.size} internal paths ...`);
   for (const path of internalPaths) {
-    const status = await getStatus(`${BASE_URL}${path}`);
+    let status = await getStatus(`${BASE_URL}${path}`, 'HEAD');
+    if (status === 404 || status === 405 || status === 'error') {
+      status = await getStatus(`${BASE_URL}${path}`, 'GET');
+    }
+
     if (status === 404 || status === 'error') {
       intBroken.push({ path, status });
       console.log(`  [FAIL] ${status} — ${path}`);

@@ -26,7 +26,7 @@ nvm use
 echo "$(date -Iseconds) Starting paypal checks"  
 
 # run checks
-if ! output="$(npm run test:ui:paypal:sandbox -- --config ./playwright.config.ts 2>&1)"; then
+if ! output="$(npm run test:paypal:sandbox -- --config ./playwright.config.ts 2>&1)"; then
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) ${output}"  
   fi

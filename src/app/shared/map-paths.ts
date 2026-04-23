@@ -101,7 +101,7 @@ export function normaliseCountySegment(value: string | null | undefined): string
 
 export function normaliseSiteSegment(value: string | null | undefined): string | null {
   const slug = slugifyMapSegment(decodeSegment(value));
-  return slug || null;
+  return normaliseCountySlug(slug || null);
 }
 
 export function getCountrySlugFromRegion(region: string | null | undefined): string {
@@ -114,6 +114,19 @@ export function getCountySlugFromLocation(location: any): string | null {
     .find((value) => typeof value === 'string' && value.trim() !== '');
 
   return typeof raw === 'string' ? slugifyMapSegment(raw) : null;
+}
+
+export function normaliseCountySlug(countySlug: string | null | undefined): string | null {
+  if (!countySlug) return null;
+  
+  // Map aliases to their canonical form
+  for (const [canonical, aliases] of Object.entries(MAP_COUNTY_ALIAS_GROUPS)) {
+    if (aliases.includes(countySlug)) {
+      return canonical;
+    }
+  }
+  
+  return countySlug;
 }
 
 export function getCountyMatchSlugs(countySlug: string): Set<string> {
