@@ -15,6 +15,7 @@ set +a
 
 # read .env variables
 LOG_FILE="${LOG_FILE}"
+PAYPAL_NIGHTLY_BASE_URL="${PAYPAL_NIGHTLY_BASE_URL:-http://127.0.0.1:4001}"
 
 # move to working directory
 cd "/home/gort1975/snorkelology/"
@@ -26,7 +27,7 @@ nvm use
 echo "$(date -Iseconds) Starting paypal checks"  
 
 # run checks
-if ! output="$(npm run test:paypal:sandbox -- --config ./playwright.config.ts 2>&1)"; then
+if ! output="$(PLAYWRIGHT_BASE_URL="${PAYPAL_NIGHTLY_BASE_URL}" npm run test:paypal:sandbox -- --config ./playwright.config.ts --project=chromium --workers=1 --retries=1 2>&1)"; then
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) ${output}"  
   fi
