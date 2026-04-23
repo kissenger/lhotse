@@ -2,6 +2,7 @@ import express from 'express';
 import FeatureModel from '../schema/feature';
 import { OrganisationModel } from '../schema/organisations';
 import { verifyToken } from './server-auth';
+import { buildMapPath, getCountrySlugFromRegion, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
 import 'dotenv/config';
 
 const AI_SCORE_THRESHOLD_DEFAULT = 70;
@@ -90,6 +91,7 @@ function orgToGeoJsonFeature(org: any, id: number) {
         email     ? { icon: 'email',     url: `mailto:${email}`, text: email       } : null,
       ].filter(Boolean),
       verified:      fav.verified ?? false,
+      updatedAt: org.updatedAt,
       symbolSortOrder: id,
     }
   };
@@ -109,7 +111,10 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
       type: 'Feature',
       id: i,
       geometry: s.location,
-      properties: s.properties,
+      properties: {
+        ...s.properties,
+        updatedAt: s.updatedAt,
+      },
     }));
     const orgFeatures = orgs
       .map((org: any, i: number) => orgToGeoJsonFeature(org, siteFeatures.length + i))
@@ -156,6 +161,75 @@ function extractProviderLinks(moreInfo: any[]): { url: string | undefined; sameA
   return { url: primaryUrl, sameAs: rest.length ? rest : undefined };
 }
 
+function toSiteSeoPlace(site: any) {
+  const coords = site.location?.coordinates || [];
+  const p = site.properties || {};
+  const categories: string[] = p.categories || [];
+  const location = p.location || {};
+  const countrySlug = getCountrySlugFromRegion(location.region);
+  const countySlug = getCountySlugFromLocation(location);
+  const siteSlug = normaliseSiteSegment(p.name);
+
+  return {
+    '@type': 'Place',
+    name: p.name,
+    description: p.featureType + ': ' + p.description,
+    keywords: categories.length ? categories.join(', ') : undefined,
+    address: toPostalAddress(location),
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: coords[1],
+      longitude: coords[0]
+    },
+    countrySlug,
+    countySlug,
+    siteSlug,
+    path: buildMapPath({ country: countrySlug, county: countySlug, siteName: p.name }),
+    district: location.district as string | undefined,
+    image: p.imageUrl || undefined,
+  };
+}
+
+function toOrganisationSeoPlace(org: any) {
+  const d = org.discover ?? {};
+  const fav = org.favourite ?? {};
+  const coords: number[] = d.location?.coordinates ?? [0, 0];
+  const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
+  const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
+  const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
+  const reverseGeo = org.reverse_geo?.properties?.context ?? {};
+  const district = reverseGeo.district?.name as string | undefined;
+  const region = reverseGeo.region?.name as string | undefined;
+  const countrySlug = getCountrySlugFromRegion(region);
+  const countySlug = getCountySlugFromLocation({ district });
+  const siteSlug = normaliseSiteSegment(d.title);
+
+  return {
+    '@type': 'SportsActivityLocation',
+    name: d.title,
+    description: category ? `${category}${d.city ? ' in ' + d.city : ''}${descriptionText ? '. ' + descriptionText : ''}` : descriptionText,
+    keywords: tags.length ? tags.join(', ') : undefined,
+    address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: coords[1],
+      longitude: coords[0]
+    },
+    ...(d.website ? { url: d.website } : {}),
+    countrySlug,
+    countySlug,
+    siteSlug,
+    path: buildMapPath({ country: countrySlug, county: countySlug, siteName: d.title }),
+    district,
+    image: d.imageUrl || undefined,
+  };
+}
+
+function stripRouteMeta(place: any) {
+  const { countrySlug: _countrySlug, countySlug: _countySlug, siteSlug: _siteSlug, path: _path, ...schemaPlace } = place;
+  return schemaPlace;
+}
+
 async function getPlacesForSeo() {
   const [sites, orgs] = await Promise.all([
     FeatureModel.find(
@@ -164,103 +238,38 @@ async function getPlacesForSeo() {
     ).lean(),
     OrganisationModel.find(
       { ...(await buildOrgFilter()), _id: { $exists: true } },
-      { discover: 1, favourite: 1 }
+      { discover: 1, favourite: 1, reverse_geo: 1 }
     ).lean(),
   ]);
 
-  const siteSchemas = sites.map((site: any) => {
-    const coords = site.location?.coordinates || [];
-    const p = site.properties || {};
-    const categories: string[] = p.categories || [];
-    return {
-      '@type': 'Place',
-      name: p.name,
-      description: p.featureType + ': ' + p.description,
-      keywords: categories.length ? categories.join(', ') : undefined,
-      address: toPostalAddress(p.location),
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: coords[1],
-        longitude: coords[0]
-      },
-    };
-  });
-
-  const orgSchemas = orgs.map((org: any) => {
-    const d = org.discover ?? {};
-    const fav = org.favourite ?? {};
-    const coords: number[] = d.location?.coordinates ?? [0, 0];
-    const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
-    const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
-    const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
-    return {
-      '@type': 'SportsActivityLocation',
-      name: d.title,
-      description: category ? category + ': ' + descriptionText : descriptionText,
-      keywords: tags.length ? tags.join(', ') : undefined,
-      address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: coords[1],
-        longitude: coords[0]
-      },
-      ...(d.website ? { url: d.website } : {}),
-    };
-  });
+  const siteSchemas = sites.map((site: any) => stripRouteMeta(toSiteSeoPlace(site)));
+  const orgSchemas = orgs.map((org: any) => stripRouteMeta(toOrganisationSeoPlace(org)));
 
   return [...siteSchemas, ...orgSchemas];
 }
 
 async function getPlaceForSeo(siteName: string) {
   const site = await FeatureModel.findOne(
-    { 'properties.name': siteName, showOnMap: { $in: ['Production', 'Development'] } },
+    {
+      'properties.name': siteName,
+      showOnMap: { $in: ['Production', 'Development'] },
+      'properties.featureType': 'Snorkelling Site'
+    },
     { location: 1, properties: 1 }
   ).lean();
 
   if (!site) {
-    // Fall back to organisations collection
-    const orgFilter = await buildOrgFilter();
-    const org = await OrganisationModel.findOne(
-      { ...orgFilter, 'discover.title': siteName },
-      { discover: 1, favourite: 1 }
-    ).lean();
-
-    if (!org) return null;
-
-    const d = (org as any).discover ?? {};
-    const fav = (org as any).favourite ?? {};
-    const coords: number[] = d.location?.coordinates ?? [0, 0];
-    const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
-    const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
-    const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
-    const description = category
-      ? `${category}${d.city ? ' in ' + d.city : ''}${descriptionText ? '. ' + descriptionText : ''}`
-      : descriptionText;
-    return {
-      '@type': 'SportsActivityLocation' as const,
-      name: d.title as string,
-      description,
-      keywords: tags.length ? tags.join(', ') : undefined,
-      address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
-      geo: coords[0] != null && coords[1] != null ? {
-        '@type': 'GeoCoordinates',
-        latitude: coords[1],
-        longitude: coords[0],
-      } : undefined,
-      image: d.imageUrl || undefined,
-      ...(d.website ? { url: d.website } : {}),
-      district: undefined as string | undefined,
-    };
+    return null;
   }
 
   const s = site as any;
-  const coords = s.location?.coordinates || [];
+  const basePlace = toSiteSeoPlace(s);
   const p = s.properties || {};
+  const coords = s.location?.coordinates || [];
   const categories: string[] = p.categories || [];
   const loc = p.location || {};
   const localityParts = [loc.localityOverride || loc.locality || loc.place, loc.district].filter(Boolean);
   const localityStr = localityParts.join(', ');
-
   const descriptionParts: string[] = [];
   if (p.featureType) descriptionParts.push(p.featureType);
   if (localityStr) descriptionParts.push(`in ${localityStr}`);
@@ -268,12 +277,12 @@ async function getPlaceForSeo(siteName: string) {
   const description = p.description
     ? `${baseDesc ? baseDesc + '. ' : ''}${p.description}`
     : baseDesc;
-
   const isSnorkellingSite = p.featureType === 'Snorkelling Site';
   const schemaType = isSnorkellingSite ? 'TouristAttraction' : 'SportsActivityLocation';
   const links = isSnorkellingSite ? { url: undefined, sameAs: undefined } : extractProviderLinks(p.moreInfo);
 
   return {
+    ...basePlace,
     '@type': schemaType,
     name: p.name as string,
     description,
@@ -291,17 +300,85 @@ async function getPlaceForSeo(siteName: string) {
   };
 }
 
-export { map, getPlacesForSeo, getPlaceForSeo };
+async function getPlaceForSeoByRoute(countrySlug: string | null, countySlug: string | null, siteSlug: string) {
+  const sites = await FeatureModel.find(
+    {
+      showOnMap: { $in: ['Production', 'Development'] },
+      'properties.featureType': 'Snorkelling Site'
+    },
+    { location: 1, properties: 1 }
+  ).lean();
+
+  const places = (sites as any[]).map((site: any) => toSiteSeoPlace(site));
+
+  const normalisedCountry = normaliseCountrySegment(countrySlug);
+  const normalisedCounty = normaliseCountySegment(countySlug);
+  const normalisedSite = normaliseSiteSegment(siteSlug);
+
+  const exactMatch = places.find((place: any) => {
+    if (place.siteSlug !== normalisedSite) {
+      return false;
+    }
+    if (normalisedCounty && place.countySlug && place.countySlug !== normalisedCounty) {
+      return false;
+    }
+    if (normalisedCountry && place.countrySlug !== normalisedCountry) {
+      return false;
+    }
+    return true;
+  });
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return places.find((place: any) => place.siteSlug === normalisedSite) ?? null;
+}
+
+async function getCountrySlugForCounty(countySlug: string) {
+  const sites = await FeatureModel.find(
+    { showOnMap: { $in: ['Production', 'Development'] } },
+    { 'properties.location': 1 }
+  ).lean();
+
+  const normalisedCounty = normaliseCountySegment(countySlug);
+  for (const site of sites as any[]) {
+    const location = site.properties?.location ?? {};
+    if (getCountySlugFromLocation(location) === normalisedCounty) {
+      return getCountrySlugFromRegion(location.region);
+    }
+    const districtSlug = slugifyMapSegment(location.district as string | undefined);
+    const legacySlug = slugifyMapSegment(location.adminLevel3 as string | undefined);
+    if (districtSlug === normalisedCounty || legacySlug === normalisedCounty) {
+      return getCountrySlugFromRegion(location.region);
+    }
+  }
+
+  return null;
+}
+
+export { map, getPlacesForSeo, getPlaceForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty };
 
 map.get('/api/sites/get-provider-names/', async (_req, res) => {
   try {
-    const orgs = await OrganisationModel.find(
-      { ...(await buildOrgFilter()) },
-      { 'discover.title': 1, updatedAt: 1 }
+    const sites = await FeatureModel.find(
+      {
+        showOnMap: { $in: ['Production', 'Development'] },
+        'properties.featureType': 'Snorkelling Site'
+      },
+      { 'properties.name': 1, updatedAt: 1 }
     ).lean();
-    const result = (orgs as any[])
-      .filter((o: any) => typeof o.discover?.title === 'string' && o.discover.title.trim() !== '')
-      .map((o: any) => ({ name: o.discover.title as string, updatedAt: o.updatedAt }));
+    const result = (sites as any[])
+      .filter((site: any) => typeof site.properties?.name === 'string' && site.properties.name.trim() !== '')
+      .map((site: any) => ({
+        name: site.properties.name as string,
+        updatedAt: site.updatedAt,
+        path: buildMapPath({
+          country: getCountrySlugFromRegion(site.properties?.location?.region),
+          county: getCountySlugFromLocation(site.properties?.location),
+          siteName: site.properties.name as string,
+        })
+      }));
     res.status(200).json(result);
   } catch (error: any) {
     console.error(error);
@@ -312,14 +389,25 @@ map.get('/api/sites/get-provider-names/', async (_req, res) => {
 map.get('/api/sites/get-districts/', async (_req, res) => {
   try {
     const sites = await FeatureModel.find(
-      { showOnMap: { $in: ['Production', 'Development'] } },
-      { 'properties.location.district': 1 }
+      { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': 'Snorkelling Site' },
+      { 'properties.location': 1 }
     ).lean();
-    const districts: string[] = [...new Set<string>(
+    const districts = [...new Map(
       (sites as any[])
-        .map((s: any) => s.properties?.location?.district)
-        .filter((d: any): d is string => typeof d === 'string' && d.trim() !== '')
-    )].sort();
+        .map((site: any) => {
+          const location = site.properties?.location ?? {};
+          const countySlug = getCountySlugFromLocation(location);
+          if (!countySlug) {
+            return null;
+          }
+          const path = buildMapPath({
+            country: getCountrySlugFromRegion(location.region),
+            county: countySlug,
+          });
+          return [path, { name: location.district ?? location.county ?? location.adminLevel3, path }];
+        })
+        .filter((entry: any): entry is [string, { name: string; path: string }] => !!entry)
+    ).values()].sort((a, b) => a.path.localeCompare(b.path));
     res.status(200).json(districts);
   } catch (error: any) {
     console.error(error);

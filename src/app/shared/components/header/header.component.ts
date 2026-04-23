@@ -131,7 +131,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
     const [path, fragment] = url.split('#');
     const isHomeRoute = path === '/' || path === '/home' || path === '';
-    const isMapRoute = path === '/map';
+    const isMapRoute = path === '/map' || path.startsWith('/map/');
 
     if (isMapRoute) {
       this.activeMenuItem = 'Map';

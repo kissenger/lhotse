@@ -13,6 +13,9 @@ export const routes: Routes = [
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
   { path: 'map', component: MapPageComponent },
+  { path: 'map/:country', component: MapPageComponent },
+  { path: 'map/:country/:county', component: MapPageComponent },
+  { path: 'map/:country/:county/:siteName', component: MapPageComponent },
   { path: 'dashboard', loadComponent: () =>
     import('@pages/admin/admin.component').then((m) => m.AdminComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'orders', loadComponent: () =>

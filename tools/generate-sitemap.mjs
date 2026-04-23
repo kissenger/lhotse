@@ -12,7 +12,7 @@ const STATIC_URL_PATHS = [
   }
 ];
 
-const NATION_URL_PATHS = ['england', 'scotland', 'wales', 'britain', 'uk'];
+const NATION_URL_PATHS = ['england', 'scotland', 'wales', 'britain'];
 
 function xmlEscape(value) {
   return String(value)
@@ -189,29 +189,33 @@ async function main() {
           return imageUrl ? [imageUrl] : [];
         })()
       })),
-    ...districts.map((district) => ({
-      loc: `${SITE_URL}/map?county=${encodeURIComponent(district.toLowerCase())}`,
+    ...districts
+      .filter((item) => item && typeof item.path === 'string' && item.path.trim() !== '')
+      .map((item) => ({
+      loc: `${SITE_URL}${item.path}`,
       lastmod: rootLastMod,
       images: []
     })),
     ...NATION_URL_PATHS.map((nation) => ({
-      loc: `${SITE_URL}/map?nation=${encodeURIComponent(nation)}`,
+      loc: `${SITE_URL}/map/${encodeURIComponent(nation)}`,
       lastmod: rootLastMod,
       images: []
     })),
     ...providerNames
-      .filter((item) => item && typeof item.name === 'string' && item.name.trim() !== '')
+      .filter((item) => item && typeof item.path === 'string' && item.path.trim() !== '')
       .map((item) => ({
-        loc: `${SITE_URL}/map?site=${encodeURIComponent(item.name)}`,
+        loc: `${SITE_URL}${item.path}`,
         lastmod: normalizeLastMod(item.updatedAt),
         images: []
       }))
   ];
 
-  const xml = toSitemapXml(entries);
+  const dedupedEntries = [...new Map(entries.map((entry) => [entry.loc, entry])).values()];
+
+  const xml = toSitemapXml(dedupedEntries);
   const outputPath = await writeSitemapAtomically(xml);
 
-  console.log(`[sitemap] Wrote ${entries.length} URLs to ${outputPath}`);
+  console.log(`[sitemap] Wrote ${dedupedEntries.length} URLs to ${outputPath}`);
 }
 
 main().catch((error) => {

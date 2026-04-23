@@ -34,6 +34,18 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
+    path: 'map/:country',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'map/:country/:county',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'map/:country/:county/:siteName',
+    renderMode: RenderMode.Server
+  },
+  {
     path: 'adminmap',
     renderMode: RenderMode.Client
   },

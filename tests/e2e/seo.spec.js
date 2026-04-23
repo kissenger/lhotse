@@ -12,6 +12,25 @@ async function getSchemas(page) {
   );
 }
 
+function slugifyMapSegment(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’']/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+}
+
+function buildMapPath(country, county, siteName) {
+  const segments = ['/map'];
+  if (country) segments.push(encodeURIComponent(slugifyMapSegment(country)));
+  if (county) segments.push(encodeURIComponent(slugifyMapSegment(county)));
+  if (siteName) segments.push(encodeURIComponent(slugifyMapSegment(siteName)));
+  return segments.join('/');
+}
+
 // ---------------------------------------------------------------------------
 // Home page
 // ---------------------------------------------------------------------------
@@ -424,12 +443,12 @@ test.describe('/blog/:slug — individual blog post', () => {
 });
 
 // ---------------------------------------------------------------------------
-// /map?county=cornwall
+// /map/england/cornwall
 // ---------------------------------------------------------------------------
 
-test.describe('/map?county=cornwall', () => {
+test.describe('/map/england/cornwall', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/map?county=cornwall', { waitUntil: 'domcontentloaded' });
+    await page.goto('/map/england/cornwall', { waitUntil: 'domcontentloaded' });
   });
 
   test('title is correct for Cornwall', async ({ page }) => {
@@ -440,9 +459,9 @@ test.describe('/map?county=cornwall', () => {
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Cornwall/i);
   });
 
-  test('canonical contains /map?county=cornwall', async ({ page }) => {
+  test('canonical contains /map/england/cornwall', async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      'href', /snorkelology\.co\.uk\/map\?county=cornwall/
+      'href', /snorkelology\.co\.uk\/map\/england\/cornwall/
     );
   });
 
@@ -456,24 +475,25 @@ test.describe('/map?county=cornwall', () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /index/);
   });
 
-  test('BreadcrumbList has 3 items: Home → Map → Cornwall', async ({ page }) => {
+  test('BreadcrumbList has 4 items: Home → Map → England → Cornwall', async ({ page }) => {
     const schemas = await getSchemas(page);
     const bc = schemas.find((s) => s['@type'] === 'BreadcrumbList');
     expect(bc, 'BreadcrumbList should be present').toBeTruthy();
-    expect(bc.itemListElement).toHaveLength(3);
+    expect(bc.itemListElement).toHaveLength(4);
     expect(bc.itemListElement[0].name).toBe('Home');
     expect(bc.itemListElement[1].item).toContain('/map');
-    expect(bc.itemListElement[2].item).toContain('county=cornwall');
+    expect(bc.itemListElement[2].item).toContain('/map/england');
+    expect(bc.itemListElement[3].item).toContain('/map/england/cornwall');
   });
 });
 
 // ---------------------------------------------------------------------------
-// /map?nation=england
+// /map/england
 // ---------------------------------------------------------------------------
 
-test.describe('/map?nation=england', () => {
+test.describe('/map/england', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/map?nation=england', { waitUntil: 'domcontentloaded' });
+    await page.goto('/map/england', { waitUntil: 'domcontentloaded' });
   });
 
   test('title is correct for England', async ({ page }) => {
@@ -484,9 +504,9 @@ test.describe('/map?nation=england', () => {
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /England/);
   });
 
-  test('canonical contains /map?nation=england', async ({ page }) => {
+  test('canonical contains /map/england', async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      'href', /snorkelology\.co\.uk\/map\?nation=england/
+      'href', /snorkelology\.co\.uk\/map\/england/
     );
   });
 
@@ -499,69 +519,73 @@ test.describe('/map?nation=england', () => {
     const bc = schemas.find((s) => s['@type'] === 'BreadcrumbList');
     expect(bc, 'BreadcrumbList should be present').toBeTruthy();
     expect(bc.itemListElement).toHaveLength(3);
-    expect(bc.itemListElement[2].item).toContain('nation=england');
+    expect(bc.itemListElement[2].item).toContain('/map/england');
   });
 });
 
 // ---------------------------------------------------------------------------
-// /map?site=X  (dynamic — uses first published site from the API)
+// /map/country/county/site-name  (dynamic — uses first published site from the API)
 // ---------------------------------------------------------------------------
 
-test.describe('/map?site=X — individual map site', () => {
+test.describe('/map/country/county/site-name — individual map site', () => {
   /** First site name fetched from the API. */
   let siteName = '';
+  let sitePath = '';
 
   test.beforeAll(async ({ request }) => {
     const res = await request.get('/api/sites/get-sites/Production', { timeout: 15_000 });
     if (!res.ok()) return;
     const data = await res.json();
-    siteName = data.features?.[0]?.properties?.name ?? '';
+    const feature = (data.features || []).find((f) => f?.properties?.featureType === 'Snorkelling Site');
+    siteName = feature?.properties?.name ?? '';
+    if (!siteName) return;
+    sitePath = buildMapPath(feature?.properties?.location?.region, feature?.properties?.location?.district ?? feature?.properties?.location?.county ?? feature?.properties?.location?.adminLevel3, siteName);
   });
 
   test('title contains site name', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     const title = await page.title();
     expect(title).toContain(siteName);
   });
 
   test('meta description is non-empty', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.+/);
   });
 
-  test('canonical contains /map?site=', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+  test('canonical contains the hierarchical site path', async ({ page }) => {
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      'href', /snorkelology\.co\.uk\/map\?site=/
+      'href', new RegExp(`snorkelology\\.co\\.uk${sitePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
     );
   });
 
   test('robots allows indexing', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /index/);
   });
 
-  test('BreadcrumbList has 3 items: Home → Map → Site', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+  test('BreadcrumbList contains the hierarchical site path', async ({ page }) => {
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     const schemas = await getSchemas(page);
     const bc = schemas.find((s) => s['@type'] === 'BreadcrumbList');
     expect(bc, 'BreadcrumbList should be present').toBeTruthy();
-    expect(bc.itemListElement).toHaveLength(3);
+    expect(bc.itemListElement.length).toBeGreaterThanOrEqual(4);
     expect(bc.itemListElement[0].name).toBe('Home');
     expect(bc.itemListElement[1].item).toContain('/map');
-    expect(bc.itemListElement[2].item).toContain('/map?site=');
+    expect(bc.itemListElement[bc.itemListElement.length - 1].item).toContain(sitePath);
   });
 
   test('place schema has @type and name', async ({ page }) => {
-    test.skip(!siteName, 'No sites available');
-    await page.goto(`/map?site=${encodeURIComponent(siteName)}`, { waitUntil: 'domcontentloaded' });
+    test.skip(!sitePath, 'No sites available');
+    await page.goto(sitePath, { waitUntil: 'domcontentloaded' });
     const schemas = await getSchemas(page);
-    const place = schemas.find((s) => s['@type'] === 'Place' || s['@type'] === 'SportsActivityLocation');
+    const place = schemas.find((s) => s['@type'] === 'TouristAttraction' || s['@type'] === 'SportsActivityLocation' || s['@type'] === 'Place');
     expect(place, 'Place or SportsActivityLocation schema should be present').toBeTruthy();
     expect(place.name).toBeTruthy();
   });

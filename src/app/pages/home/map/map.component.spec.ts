@@ -3,6 +3,7 @@ import { MapComponent } from './map.component';
 import { LazyServiceInjector } from '@shared/services/lazyloader.service';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 
 // Test fixtures — coordinates are [lng, lat]
 const SITE_A = {
@@ -28,9 +29,10 @@ const PROVIDER_KENT = {
 
 const ALL_FEATURES = [SITE_A, SITE_B, SITE_C, PROVIDER_KENT];
 
-function buildMap(queryParams: Record<string, string> = {}, features = ALL_FEATURES) {
+function buildMap(pathParams: Record<string, string> = {}, queryParams: Record<string, string> = {}, features = ALL_FEATURES) {
   const mockQueryParamMap = { get: (key: string) => queryParams[key] ?? null };
-  const mockRoute = { snapshot: { queryParamMap: mockQueryParamMap } };
+  const mockParamMap = { get: (key: string) => pathParams[key] ?? null };
+  const mockRoute = { snapshot: { queryParamMap: mockQueryParamMap, paramMap: mockParamMap } };
 
   const mockMapService = {
     create: jasmine.createSpy('create').and.returnValue(Promise.resolve()),
@@ -55,6 +57,7 @@ function buildMap(queryParams: Record<string, string> = {}, features = ALL_FEATU
       { provide: LazyServiceInjector, useValue: mockLazy },
       { provide: HttpService, useValue: mockHttp },
       { provide: ActivatedRoute, useValue: mockRoute },
+      { provide: Location, useValue: { replaceState: jasmine.createSpy('replaceState') } },
     ]
   });
 
@@ -74,6 +77,14 @@ describe('MapComponent', () => {
     expect(comp.loadingState).toBe('success');
   });
 
+  it('sets siteContext from a site route path', () => {
+    const { comp } = buildMap({ country: 'england', county: 'east-riding-of-yorkshire', siteName: 'flamborough-head' });
+    comp.ngOnInit();
+    expect(comp.siteContext?.displayName).toBe('Flamborough Head');
+    expect(comp.siteContext?.countyDisplayName).toBe('East Riding of Yorkshire');
+    expect(comp.siteContext?.countryDisplayName).toBe('England');
+  });
+
   it('displays loaded feature data', async () => {
     const { comp, mockHttp } = buildMap();
     mockHttp.getSites.and.returnValue(Promise.resolve({
@@ -88,7 +99,7 @@ describe('MapComponent', () => {
   // --- ?county ---
 
   it('county filter includes providers by default', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'Kent' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(3); // Site A, Site B, Provider Kent
@@ -96,7 +107,7 @@ describe('MapComponent', () => {
   });
 
   it('county filter excludes providers when includeProviders=false', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'Kent', includeProviders: 'false' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' }, { includeProviders: 'false' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(2); // Site A, Site B only
@@ -104,7 +115,7 @@ describe('MapComponent', () => {
   });
 
   it('calls fitBoundsToFeatures for county filter', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'Kent' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     expect(mockMapService.fitBoundsToFeatures).toHaveBeenCalledWith(
       jasmine.arrayContaining([jasmine.objectContaining({ properties: jasmine.objectContaining({ name: 'Site A' }) })])
@@ -113,7 +124,7 @@ describe('MapComponent', () => {
   });
 
   it('county filter is case-insensitive', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'kent' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(3);
@@ -125,7 +136,7 @@ describe('MapComponent', () => {
       geometry: { coordinates: [-6.3, 49.9] },
       properties: { name: 'Scilly Site', featureType: 'Snorkelling Site', categories: [], location: { county: 'Cornwall', adminLevel3: 'Isles of Scilly' } }
     };
-    const { comp, mockMapService } = buildMap({ county: 'Cornwall' }, [...ALL_FEATURES, scilly]);
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'cornwall' }, {}, [...ALL_FEATURES, scilly]);
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(1);
@@ -133,7 +144,7 @@ describe('MapComponent', () => {
   });
 
   it('county filter falls back to adminLevel3 when county field is empty', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'Kent' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     // Fixtures have no county field set, so fallback to adminLevel3 applies
@@ -141,7 +152,7 @@ describe('MapComponent', () => {
   });
 
   it('county filter returns empty when no match', async () => {
-    const { comp, mockMapService } = buildMap({ county: 'Cornwall' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'cornwall' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(0);
@@ -150,19 +161,19 @@ describe('MapComponent', () => {
   // --- ?site ---
 
   it('calls flyToAndSelect when site param matches', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Site A' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' });
     await comp.ngAfterViewInit();
     expect(mockMapService.flyToAndSelect).toHaveBeenCalledWith(0, [0, 51] as any);
   });
 
   it('site lookup is case-insensitive', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'site a' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' });
     await comp.ngAfterViewInit();
     expect(mockMapService.flyToAndSelect).toHaveBeenCalledWith(0, [0, 51] as any);
   });
 
   it('does not call flyToAndSelect for unknown site name', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Unknown Site' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'unknown-site' });
     await comp.ngAfterViewInit();
     expect(mockMapService.flyToAndSelect).not.toHaveBeenCalled();
   });
@@ -170,7 +181,7 @@ describe('MapComponent', () => {
   // --- ?site + ?sitesWithin ---
 
   it('filters to nearby features when sitesWithin is provided (km suffix)', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Site A', sitesWithin: '10km' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10km' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     // Site A, Site B (~4.8km), Provider Kent (~1.8km) within 10km; Site C (~261km) excluded
@@ -182,7 +193,7 @@ describe('MapComponent', () => {
   });
 
   it('sitesWithin excludes providers when includeProviders=false', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Site A', sitesWithin: '10km', includeProviders: 'false' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10km', includeProviders: 'false' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(2); // Site A, Site B only
@@ -190,7 +201,7 @@ describe('MapComponent', () => {
   });
 
   it('calls fitBoundsToFeatures without selectId when sitesWithin is provided', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Site A', sitesWithin: '10km' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10km' });
     await comp.ngAfterViewInit();
     expect(mockMapService.flyToAndSelect).not.toHaveBeenCalled();
     expect(mockMapService.fitBoundsToFeatures).toHaveBeenCalledWith(
@@ -200,14 +211,14 @@ describe('MapComponent', () => {
   });
 
   it('parses sitesWithin without unit suffix', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Site A', sitesWithin: '10' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
     expect(filtered.features.length).toBe(3); // Site A, Site B (~4.8km), Provider Kent (~1.8km)
   });
 
   it('does not filter when sitesWithin site name is unknown', async () => {
-    const { comp, mockMapService } = buildMap({ site: 'Unknown', sitesWithin: '10km' });
+    const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'unknown' }, { sitesWithin: '10km' });
     await comp.ngAfterViewInit();
     expect(mockMapService.updateSourceData).not.toHaveBeenCalled();
     expect(mockMapService.flyToAndSelect).not.toHaveBeenCalled();

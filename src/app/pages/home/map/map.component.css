@@ -44,6 +44,29 @@
   font-style: italic;
 }
 
+.map-jump-row {
+  margin: 0.2rem 0 0.75rem;
+}
+
+.map-jump-pill {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: #0b4f88;
+  border: 1px solid #9fc1df;
+  border-radius: 999px;
+  padding: 0.22rem 0.65rem;
+  background-color: #f2f8ff;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.map-jump-pill:hover {
+  border-color: #79a7cf;
+  background-color: #e7f2ff;
+}
+
 .section-heading a,
 .section-heading a:hover,
 .section-heading a:visited,
@@ -59,7 +82,111 @@
 .also-known-as {
   font-size: 0.85em;
   color: #777;
-  margin-top: -0.5em;
+  margin-top: 0.75rem;
+}
+
+.map-route-links {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 0.9rem;
+  max-width: 66rem;
+  border: 1px solid #dce5ee;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f9fcff 0%, #f3f8fc 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.map-route-links h3 {
+  margin-top: 0;
+  margin-bottom: 0.45rem;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.map-route-links ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.map-route-links li + li {
+  margin-top: 0.3rem;
+}
+
+.map-route-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.8rem 0 1rem;
+  max-width: 66rem;
+}
+
+.map-route-card {
+  margin: 0;
+}
+
+.map-route-card-country {
+  display: inline-block;
+  width: fit-content !important;
+  max-width: min(34rem, 100%) !important;
+}
+
+.map-route-card-county {
+  display: inline-block;
+  width: fit-content !important;
+  max-width: min(34rem, 100%) !important;
+}
+
+.map-route-card-nearby {
+  grid-column: auto;
+}
+
+.map-route-card-nearby li {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+}
+
+.map-route-card-nearby li > a {
+  min-width: 0;
+}
+
+.route-link-meta {
+  color: #666;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.route-trust-note {
+  font-size: 0.88rem;
+  color: #4f4f4f;
+  margin-top: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 767px) {
+  .map-route-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-route-links {
+    max-width: 100%;
+  }
+
+  .map-route-card-country,
+  .map-route-card-county {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1080px) {
+  .map-route-card-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-route-card-nearby {
+    grid-column: 1 / -1;
+  }
 }
 
 .map-container {
@@ -104,7 +231,7 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.18);
 }
 
-.panel-content {
+.map-feature-popover {
   position: relative;
   padding: 1.1rem 1rem 1rem;
 }
@@ -126,7 +253,7 @@
   opacity: 1;
 }
 
-.panel-type {
+.map-feature-type {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -135,13 +262,13 @@
   margin-bottom: 0.1rem;
 }
 
-.panel-location {
+.map-feature-location {
   font-size: 0.85rem;
   color: #777;
   margin-bottom: 0.25rem;
 }
 
-.panel-content > h4 {
+.map-feature-popover > h4 {
   margin: 0px;
 }
 
@@ -159,14 +286,16 @@
   right: 1rem;
 }
 
-.keywords {
+.map-feature-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
   margin: 0.4rem 0 0.6rem;
+  padding: 0;
+  list-style: none;
 }
 
-.keyword-chip {
+.map-feature-tag {
   display: inline-block;
   font-size: 0.68rem;
   font-weight: 500;
@@ -177,7 +306,7 @@
   letter-spacing: 0.02em;
 }
 
-.more-info-label {
+.map-feature-links-label {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -187,14 +316,17 @@
   margin-bottom: 0.3rem;
 }
 
-.more-info-links {
+.map-feature-links-list {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.phone-row {
+.map-feature-phone-row {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -202,13 +334,14 @@
   margin-top: 0.1rem;
 }
 
-.phone-number {
+.map-feature-phone-number {
   display: inline-block;
   align-content: center;
   white-space: nowrap;
+  margin: 0;
 }
 
-.icons {
+.map-feature-icons {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -217,13 +350,13 @@
   row-gap: 0;
 }
 
-.icon {
+.map-feature-icon {
   display: inline-block;
   margin-right: 0.5rem;
   margin-top: 0.25rem;
 }
 
-.icon a {
+.map-feature-icon a {
   border-bottom: none;
   padding-bottom: 0;
 }
@@ -266,12 +399,12 @@ h3 {
   margin-bottom: 0.3rem;
 }
 
-.description, .caveat {
+.map-feature-description, .map-feature-caveat {
   margin-top: 0;
   margin-bottom: 0.7rem;
 }
 
-.caveat {
+.map-feature-caveat {
   font-style: italic;
   font-size: 0.7rem;
   line-height: 1.2;

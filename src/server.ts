@@ -6,14 +6,16 @@ import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
+import FeatureModel from '../schema/feature';
 import { shop } from './server-shop';
 import { auth, verifyToken } from './server-auth';
 import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
-import { getPlacesForSeo, getPlaceForSeo, map } from './server-map';
+import { getPlacesForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty, map } from './server-map';
 import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
+import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
 import 'dotenv/config';
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -143,6 +145,93 @@ app.use(organisations);
  */
 
 app.use(express.static(browserDistFolder, {maxAge: '1y',index: false,redirect: false,}),);
+
+app.use(async (req, res, next) => {
+  if (req.method !== 'GET' || !req.path.startsWith('/map/')) {
+    next();
+    return;
+  }
+
+  const segments = req.path.split('/').filter(Boolean).slice(1);
+  if (segments.length === 0) {
+    next();
+    return;
+  }
+
+  if (segments.length > 3) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  const passthrough = new URLSearchParams();
+  for (const [key, value] of Object.entries(req.query)) {
+    if (typeof value === 'string') {
+      passthrough.set(key, value);
+    }
+  }
+
+  const redirectTo = (path: string) => {
+    const query = passthrough.toString();
+    res.redirect(301, query ? `${path}?${query}` : path);
+  };
+
+  const country = normaliseCountrySegment(segments[0]);
+  if (!country) {
+    redirectTo('/map');
+    return;
+  }
+
+  if (segments.length === 1) {
+    const canonicalPath = buildMapPath({ country });
+    if (canonicalPath !== req.path) {
+      redirectTo(canonicalPath);
+      return;
+    }
+    next();
+    return;
+  }
+
+  const county = normaliseCountySegment(segments[1]);
+  if (!county) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  const countyCountry = await getCountrySlugForCounty(county).catch(() => null);
+  if (!countyCountry || countyCountry !== country) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  if (segments.length === 2) {
+    const canonicalPath = buildMapPath({ country, county });
+    if (canonicalPath !== req.path) {
+      redirectTo(canonicalPath);
+      return;
+    }
+    next();
+    return;
+  }
+
+  const siteSlug = normaliseSiteSegment(segments[2]);
+  if (!siteSlug) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  const place = await getPlaceForSeoByRoute(country, county, siteSlug).catch(() => null);
+  if (!place?.path) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  if (place.path !== req.path) {
+    redirectTo(place.path);
+    return;
+  }
+
+  next();
+});
 
 app.use((req, res, next) => {
   angularApp.handle(req)
@@ -301,27 +390,56 @@ async function injectSeoIntoHtml(pathname: string, query: Record<string, string>
   return injectSeoPayloadIntoHtml(html, payload, SITE_URL);
 }
 
-async function getSeoPayload(pathname: string, query: Record<string, string> = {}): Promise<SeoPayload | null> {
+async function getSeoPayload(pathname: string, _query: Record<string, string> = {}): Promise<SeoPayload | null> {
   const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 
   if (normalizedPath === '/' || normalizedPath === '/home') {
     return getHomeSeoPayload();
   }
 
-  if (normalizedPath === '/map') {
-    const site = typeof query['site'] === 'string' ? query['site'].trim() : null;
-    if (site) {
-      return getSiteSeoPayload(site);
+  if (normalizedPath === '/map' || normalizedPath.startsWith('/map/')) {
+    const segments = normalizedPath.split('/').filter(Boolean).slice(1);
+    const pathCountry = normaliseCountrySegment(segments[0]);
+    const pathCounty = normaliseCountySegment(segments[1]);
+    const pathSite = normaliseSiteSegment(segments[2]);
+
+    const mapQueryNoindexKeys = new Set([
+      'sitesWithin',
+      'includeProviders',
+      'site',
+      'county',
+      'district',
+      'nation',
+      'country',
+      'region',
+    ]);
+    const shouldNoindexMapVariant = Object.keys(_query).some((key) => mapQueryNoindexKeys.has(key));
+
+    const applyMapRobotsOverride = (payload: SeoPayload | null): SeoPayload | null => {
+      if (!payload || !shouldNoindexMapVariant) return payload;
+      const nonRobotsMetaTags = (payload.metaTags ?? []).filter((tag) => !(tag.key === 'name' && tag.keyValue === 'robots'));
+      return {
+        ...payload,
+        metaTags: [
+          ...nonRobotsMetaTags,
+          { key: 'name', keyValue: 'robots', content: 'noindex,follow,max-image-preview:large' }
+        ]
+      };
+    };
+
+    if (pathSite) {
+      return applyMapRobotsOverride(await getSiteSeoPayload(pathCountry, pathCounty, pathSite));
     }
-    const county = typeof query['county'] === 'string' ? query['county'].toLowerCase().trim() : null;
-    if (county) {
-      return getCountyMapSeoPayload(county);
+
+    if (pathCountry && pathCounty) {
+      return applyMapRobotsOverride(await getCountyMapSeoPayload(pathCountry, pathCounty));
     }
-    const nation = typeof query['nation'] === 'string' ? query['nation'].toLowerCase().trim() : null;
-    if (nation && NATION_SEO_CONFIG[nation]) {
-      return getNationMapSeoPayload(nation);
+
+    if (pathCountry && NATION_SEO_CONFIG[pathCountry]) {
+      return applyMapRobotsOverride(await getNationMapSeoPayload(pathCountry));
     }
-    return getMapSeoPayload();
+
+    return applyMapRobotsOverride(await getMapSeoPayload());
   }
 
   if (normalizedPath === '/ai-transparency') {
@@ -530,28 +648,6 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   };
 }
 
-// Counties that are UI aliases of a parent county — the parent is listed first in the display name
-const COUNTY_DISPLAY_ALIASES: Record<string, string> = {
-  // special combined display names
-  'cornwall': 'Cornwall & the Isles of Scilly',
-  'highlands': 'The Highlands',
-  // user-friendly slug aliases
-  'orkney': 'Orkney Islands',
-  'anglesey': 'Isle of Anglesey',
-  'outer hebrides': 'Outer Hebrides',
-  'western isles': 'Outer Hebrides',
-  'east yorkshire': 'East Riding of Yorkshire',
-  'east riding': 'East Riding of Yorkshire',
-  // fix title-case for multi-word DB names used directly as URL params
-  'argyll and bute': 'Argyll and Bute',
-  'brighton and hove': 'Brighton and Hove',
-  'east riding of yorkshire': 'East Riding of Yorkshire',
-  'isle of anglesey': 'Isle of Anglesey',
-  'isle of wight': 'Isle of Wight',
-  'na h-eileanan siar': 'Na h-Eileanan Siar',
-  'redcar and cleveland': 'Redcar and Cleveland',
-};
-
 const NATION_SEO_CONFIG: Record<string, { displayName: string; description: string }> = {
   'england': {
     displayName: 'England',
@@ -577,7 +673,7 @@ const NATION_SEO_CONFIG: Record<string, { displayName: string; description: stri
 
 async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
   const { displayName, description } = NATION_SEO_CONFIG[nation];
-  const canonicalNation = encodeURIComponent(nation);
+  const nationPath = buildMapPath({ country: nation });
 
   const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
   const keywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, best snorkelling ${displayName}, snorkelling map ${displayName}`;
@@ -588,19 +684,42 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
-      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}/map?nation=${canonicalNation}` }
+      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}${nationPath}` }
     ]
+  };
+
+  const nationSiteEntries = await getMapSiteListEntries({ country: nation, limit: 18 });
+  const collectionSchemas = buildMapCollectionSchemas({
+    title: `Snorkelling sites in ${displayName}`,
+    canonicalPath: nationPath,
+    description,
+    entries: nationSiteEntries
+  });
+
+  const isTopLevel = nation === 'britain' || nation === 'uk';
+  const nationPlaceSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'AdministrativeArea',
+    name: displayName,
+    url: `${SITE_URL}${nationPath}`,
+    description,
+    ...(isTopLevel ? {} : {
+      containedInPlace: {
+        '@type': 'Country',
+        name: 'United Kingdom',
+      },
+    }),
   };
 
   return {
     title,
     description,
     keywords,
-    canonicalPath: `/map?nation=${canonicalNation}`,
+    canonicalPath: nationPath,
     ogType: 'website',
     ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
     twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
-    schemas: [breadcrumbSchema],
+    schemas: [breadcrumbSchema, nationPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
@@ -609,19 +728,18 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
   };
 }
 
-
-
-function toTitleCase(str: string): string {
-  return str.replace(/\b\w/g, c => c.toUpperCase());
-}
-
-async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
-  const place = await getPlaceForSeo(siteName).catch(() => null);
+async function getSiteSeoPayload(country: string | null, county: string | null, siteSlug: string): Promise<SeoPayload | null> {
+  const place = await getPlaceForSeoByRoute(country, county, siteSlug).catch(() => null);
   if (!place) return null;
 
+  const siteName = place.name as string;
   const isProvider = (place as any)['@type'] === 'SportsActivityLocation';
-  const canonicalSite = encodeURIComponent(siteName);
-  const siteUrl = `${SITE_URL}/map?site=${canonicalSite}`;
+  const sitePath = place.path as string;
+  const siteUrl = `${SITE_URL}${sitePath}`;
+  const countryPath = place.countrySlug ? buildMapPath({ country: place.countrySlug }) : '/map';
+  const countyPath = place.countrySlug && place.countySlug
+    ? buildMapPath({ country: place.countrySlug, county: place.countySlug })
+    : countryPath;
 
   const locationHint = place.district ? ` in ${place.district}` : '';
   const description = place.description
@@ -653,15 +771,46 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
-      { '@type': 'ListItem', position: 3, name: siteName, item: siteUrl }
+      ...(place.countrySlug ? [{ '@type': 'ListItem', position: 3, name: `Snorkelling in ${MAP_COUNTRY_DISPLAY_NAMES[place.countrySlug] ?? toTitleCase(place.countrySlug)}`, item: `${SITE_URL}${countryPath}` }] : []),
+      ...(place.countySlug ? [{ '@type': 'ListItem', position: place.countrySlug ? 4 : 3, name: `Snorkelling in ${getCountyDisplayName(place.countySlug)}`, item: `${SITE_URL}${countyPath}` }] : []),
+      { '@type': 'ListItem', position: place.countySlug ? 5 : place.countrySlug ? 4 : 3, name: siteName, item: siteUrl }
     ]
   };
 
-  const { district: _district, ...placeSchemaFields } = place;
+  const {
+    district: _district,
+    countrySlug: _countrySlug,
+    countySlug: _countySlug,
+    siteSlug: _siteSlug,
+    path: _path,
+    ...placeSchemaFields
+  } = place;
+
+  const containedInPlace = place.countySlug
+    ? {
+        '@type': 'AdministrativeArea',
+        name: getCountyDisplayName(place.countySlug),
+        url: `${SITE_URL}${countyPath}`,
+        containedInPlace: {
+          '@type': 'AdministrativeArea',
+          name: MAP_COUNTRY_DISPLAY_NAMES[place.countrySlug ?? ''] ?? 'United Kingdom',
+          url: `${SITE_URL}${countryPath}`,
+        },
+      }
+    : place.countrySlug
+      ? {
+          '@type': 'AdministrativeArea',
+          name: MAP_COUNTRY_DISPLAY_NAMES[place.countrySlug] ?? 'United Kingdom',
+          url: `${SITE_URL}${countryPath}`,
+        }
+      : undefined;
+
   const placeSchema = {
     '@context': 'https://schema.org',
     ...placeSchemaFields,
-    url: siteUrl
+    url: siteUrl,
+    ...(!isProvider ? { touristType: 'Snorkelling' } : {}),
+    ...(containedInPlace ? { containedInPlace } : {}),
   };
 
   return {
@@ -670,7 +819,7 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
       : `${siteName} | Snorkelling Site | Snorkelology`,
     description,
     keywords,
-    canonicalPath: `/map?site=${canonicalSite}`,
+    canonicalPath: sitePath,
     ogType: 'website',
     ogImage: place.image || DEFAULT_SOCIAL_IMAGE,
     twitterImage: place.image || DEFAULT_TWITTER_IMAGE,
@@ -684,17 +833,102 @@ async function getSiteSeoPayload(siteName: string): Promise<SeoPayload | null> {
 }
 
 const COUNTY_EXTRA_KEYWORDS: Record<string, string[]> = {
-  'isles of scilly': ['Scillies', 'Scilly Isles'],
+  'isles-of-scilly': ['Scillies', 'Scilly Isles'],
   'highland': ['Highlands', 'Scottish Highlands'],
-  'na h-eileanan siar': ['Outer Hebrides', 'Western Isles'],
-  'east riding of yorkshire': ['East Yorkshire'],
-  'isle of anglesey': ['Anglesey'],
-  'orkney islands': ['Orkney'],
+  'na-h-eileanan-siar': ['Outer Hebrides', 'Western Isles'],
+  'east-riding-of-yorkshire': ['East Yorkshire'],
+  'isle-of-anglesey': ['Anglesey'],
+  'orkney-islands': ['Orkney'],
 };
 
-async function getCountyMapSeoPayload(county: string): Promise<SeoPayload> {
-  const displayName = COUNTY_DISPLAY_ALIASES[county] ?? toTitleCase(county);
-  const canonicalCounty = encodeURIComponent(county);
+type MapSiteListEntry = {
+  name: string;
+  path: string;
+  description?: string;
+};
+
+async function getMapSiteListEntries(filters: { country?: string; county?: string; limit: number }): Promise<MapSiteListEntry[]> {
+  const sites = await FeatureModel.find(
+    {
+      showOnMap: { $in: ['Production', 'Development'] },
+      'properties.featureType': 'Snorkelling Site'
+    },
+    { location: 1, properties: 1 }
+  ).lean();
+
+  return (sites as any[])
+    .map((site: any) => {
+      const properties = site.properties ?? {};
+      const location = properties.location ?? {};
+      const countrySlug = getCountrySlugFromRegion(location.region);
+      const countySlug = getCountySlugFromLocation(location);
+      return {
+        name: properties.name as string,
+        description: properties.description as string | undefined,
+        countrySlug,
+        countySlug,
+        path: buildMapPath({ country: countrySlug, county: countySlug, siteName: properties.name as string })
+      };
+    })
+    .filter((item: any) => typeof item.name === 'string' && item.name.trim() !== '')
+    .filter((item: any) => !filters.country || item.countrySlug === filters.country)
+    .filter((item: any) => !filters.county || item.countySlug === filters.county)
+    .sort((a: any, b: any) => a.name.localeCompare(b.name))
+    .slice(0, filters.limit)
+    .map((item: any) => ({
+      name: item.name,
+      path: item.path,
+      description: item.description,
+    }));
+}
+
+function buildMapCollectionSchemas(options: {
+  title: string;
+  canonicalPath: string;
+  description: string;
+  entries: MapSiteListEntry[];
+}) {
+  if (!options.entries.length) {
+    return [];
+  }
+
+  const itemListId = `${SITE_URL}${options.canonicalPath}#featured-sites`;
+  const itemListElements = options.entries.map((entry, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: entry.name,
+    url: `${SITE_URL}${entry.path}`,
+    ...(entry.description ? { description: entry.description } : {})
+  }));
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@id': itemListId,
+    '@type': 'ItemList',
+    name: `${options.title} featured snorkelling sites`,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: itemListElements.length,
+    itemListElement: itemListElements
+  };
+
+  const collectionPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: options.title,
+    description: options.description,
+    url: `${SITE_URL}${options.canonicalPath}`,
+    mainEntity: { '@id': itemListId }
+  };
+
+  return [collectionPageSchema, itemListSchema];
+}
+
+async function getCountyMapSeoPayload(country: string, county: string): Promise<SeoPayload> {
+  const canonicalCountry = await getCountrySlugForCounty(county).catch(() => null) ?? country;
+  const displayName = getCountyDisplayName(county);
+  const countryDisplayName = MAP_COUNTRY_DISPLAY_NAMES[canonicalCountry] ?? toTitleCase(canonicalCountry);
+  const countryPath = buildMapPath({ country: canonicalCountry });
+  const countyPath = buildMapPath({ country: canonicalCountry, county });
   const extraKeywords = COUNTY_EXTRA_KEYWORDS[county] ?? [];
 
   const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
@@ -710,19 +944,41 @@ async function getCountyMapSeoPayload(county: string): Promise<SeoPayload> {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: 'Snorkelling Map of Britain', item: `${SITE_URL}/map` },
-      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}/map?county=${canonicalCounty}` }
+      { '@type': 'ListItem', position: 3, name: `Snorkelling in ${countryDisplayName}`, item: `${SITE_URL}${countryPath}` },
+      { '@type': 'ListItem', position: 4, name: `Snorkelling in ${displayName}`, item: `${SITE_URL}${countyPath}` }
     ]
+  };
+
+  const countySiteEntries = await getMapSiteListEntries({ country: canonicalCountry, county, limit: 18 });
+  const collectionSchemas = buildMapCollectionSchemas({
+    title: `Snorkelling sites in ${displayName}`,
+    canonicalPath: countyPath,
+    description,
+    entries: countySiteEntries
+  });
+
+  const countyPlaceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'AdministrativeArea',
+    name: displayName,
+    url: `${SITE_URL}${countyPath}`,
+    containedInPlace: {
+      '@type': 'AdministrativeArea',
+      name: countryDisplayName,
+      url: `${SITE_URL}${countryPath}`,
+    },
+    description: `${displayName} is a coastal area in ${countryDisplayName} with ${countySiteEntries.length} mapped snorkelling site${countySiteEntries.length === 1 ? '' : 's'} on the Snorkelology interactive map.`,
   };
 
   return {
     title,
     description,
     keywords,
-    canonicalPath: `/map?county=${canonicalCounty}`,
+    canonicalPath: countyPath,
     ogType: 'website',
     ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
     twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
-    schemas: [breadcrumbSchema],
+    schemas: [breadcrumbSchema, countyPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },

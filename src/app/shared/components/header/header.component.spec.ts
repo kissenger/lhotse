@@ -94,6 +94,11 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
+  it('sets activeMenuItem to Map on nested /map route', () => {
+    const { component } = buildHeader('/map/england/cornwall');
+    expect(component.activeMenuItem).toBe('Map');
+  });
+
   it('sets activeMenuItem to undefined on unknown route', () => {
     const { component } = buildHeader('/blog/some-post');
     expect(component.activeMenuItem).toBeUndefined();
@@ -117,15 +122,21 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
+  it('updates activeMenuItem when router navigates to nested /map route', () => {
+    const { component, routerEvents$ } = buildHeader('/');
+    routerEvents$.next(new NavigationEnd(2, '/map/england/cornwall', '/map/england/cornwall'));
+    expect(component.activeMenuItem).toBe('Map');
+  });
+
   it('updates activeMenuItem when router navigates to /#buy-now', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(2, '/#buy-now', '/#buy-now'));
+    routerEvents$.next(new NavigationEnd(3, '/#buy-now', '/#buy-now'));
     expect(component.activeMenuItem).toBe('Shop');
   });
 
   it('clears activeMenuItem when router navigates to non-home route', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(3, '/privacy-policy', '/privacy-policy'));
+    routerEvents$.next(new NavigationEnd(4, '/privacy-policy', '/privacy-policy'));
     expect(component.activeMenuItem).toBeUndefined();
   });
 

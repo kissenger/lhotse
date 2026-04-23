@@ -1,17 +1,141 @@
   <div class="dynamic-container">
 
-    @if (filterContext) {
-      <h2 class="section-heading">Snorkelling Sites in {{filterContext.displayName}}</h2>
+    @if (siteContext) {
+      <h2 class="section-heading">{{siteContext.displayName}}</h2>
       <p>
-        Showing snorkelling sites and organisations in {{filterContext.displayName}}.
-        Click any pin for GPS coordinates, a description, and links to find out more.
+        {{siteContext.displayName}} is a snorkelling site
+        @if (siteContext.countyDisplayName && siteContext.countryDisplayName) {
+          in {{siteContext.countyDisplayName}}, {{siteContext.countryDisplayName}},
+        } @else if (siteContext.countyDisplayName) {
+          in {{siteContext.countyDisplayName}},
+        } @else if (siteContext.countryDisplayName) {
+          in {{siteContext.countryDisplayName}},
+        }
+        listed on the Snorkelology interactive map of Britain. Tap the pin to view GPS coordinates, habitat tags, and site notes.
       </p>
+      <p class="map-jump-row">
+        <a href="#map" class="map-jump-pill" (click)="scrollToMap($event)">Scroll To Map</a>
+      </p>
+      <p>
+        @if (siteContext.countyDisplayName) {
+          Use the map to explore {{siteContext.countyDisplayName}}'s coastline and discover other snorkelling spots nearby.
+        } @else {
+          Use the map to explore the surrounding coastline and discover other snorkelling spots nearby.
+        }
+      </p>
+      <p class="route-trust-note">
+        @if (routeLastUpdatedLabel) {
+          Last updated: {{routeLastUpdatedLabel}}.
+        }
+        Data is sourced from our map records and reviewed regularly for accuracy.
+      </p>
+      @if (relatedNearbySiteLinks.length || relatedCountySiteLinks.length || relatedHabitatSiteLinks.length) {
+        <div class="map-route-card-grid" aria-label="Related snorkelling sites">
+          @if (relatedNearbySiteLinks.length) {
+            <section class="map-route-links map-route-card map-route-card-nearby">
+              <h3>Nearby snorkelling sites</h3>
+              <ul>
+                @for (item of relatedNearbySiteLinks; track item.path) {
+                  <li><a [href]="item.path">{{item.name}}</a><span class="route-link-meta">&nbsp;({{item.distanceLabel}})</span></li>
+                }
+              </ul>
+            </section>
+          }
+
+          @if (relatedCountySiteLinks.length) {
+            <section class="map-route-links map-route-card map-route-card-county">
+              <h3>More sites in this county</h3>
+              <ul>
+                @for (item of relatedCountySiteLinks; track item.path) {
+                  <li><a [href]="item.path">{{item.name}}</a></li>
+                }
+              </ul>
+            </section>
+          }
+
+          @if (relatedHabitatSiteLinks.length) {
+            <section class="map-route-links map-route-card map-route-card-habitat">
+              <h3>Sites with similar habitat tags</h3>
+              <ul>
+                @for (item of relatedHabitatSiteLinks; track item.path) {
+                  <li><a [href]="item.path">{{item.name}}</a></li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+      }
+      @if (upLevelLink) {
+        <p class="filter-clear-row">
+          <a [href]="upLevelLink.path" class="filter-clear-link">← {{upLevelLink.label}}</a>
+        </p>
+      }
+    } @else if (filterContext) {
+      <h2 class="section-heading">Snorkelling Sites in {{filterContext.displayName}}</h2>
+      @if (routeLevel === 'county') {
+        <p>
+          Explore snorkelling sites in {{filterContext.displayName}} on the Snorkelology map of Britain.
+          Each pin marks a snorkelling location with GPS coordinates, habitat category tags, and a site description to help you plan your snorkel.
+        </p>
+        <p>
+          Browse featured sites below, or zoom into the map to find snorkelling spots near you in {{filterContext.displayName}}.
+        </p>
+      } @else {
+        <p>
+          Discover snorkelling sites across {{filterContext.displayName}} on the Snorkelology interactive map.
+          From rocky reef coastlines to sheltered coves and kelp forests, explore the best snorkelling locations in {{filterContext.displayName}} —
+          with GPS coordinates, habitat tags, and site descriptions for each entry.
+        </p>
+        <p>
+          Browse popular sites and counties below, or use the map to find snorkelling near you in {{filterContext.displayName}}.
+        </p>
+      }
+      <p class="map-jump-row">
+        <a href="#map" class="map-jump-pill" (click)="scrollToMap($event)">Scroll To Map</a>
+      </p>
+      <p class="route-trust-note">
+        @if (routeLastUpdatedLabel) {
+          Last updated: {{routeLastUpdatedLabel}}.
+        }
+        @if (routeLevel === 'county') {
+          All {{filterContext.displayName}} snorkelling site listings include GPS coordinates and habitat category tags, maintained from current map records.
+        } @else {
+          All {{filterContext.displayName}} snorkelling site listings include GPS coordinates, habitat category tags, and site descriptions, maintained from current map records.
+        }
+      </p>
+      @if (routeLevel === 'county' && countyFeaturedLinks.length) {
+        <section class="map-route-links map-route-card map-route-card-county" aria-label="Featured county snorkelling sites">
+          <h3>Featured sites in {{filterContext.displayName}}</h3>
+          <ul>
+            @for (item of countyFeaturedLinks; track item.path) {
+              <li>
+                <a [href]="item.path">{{item.name}}</a>
+                @if (item.locality) {
+                  <span class="route-link-meta"> ({{item.locality}})</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+      @if (routeLevel === 'country' && countryFeaturedLinks.length) {
+        <section class="map-route-links map-route-card map-route-card-country" aria-label="Featured country snorkelling sites">
+          <h3>Popular sites in {{filterContext.displayName}}</h3>
+          <ul>
+            @for (item of countryFeaturedLinks; track item.path) {
+              <li><a [href]="item.path">{{item.name}}</a><span class="route-link-meta">&nbsp;({{item.county}})</span></li>
+            }
+          </ul>
+        </section>
+      }
       @if (filterContext.alsoKnownAs?.length) {
         <p class="also-known-as">Also known as: {{filterContext.alsoKnownAs!.join(', ')}}</p>
       }
-      <p class="filter-clear-row">
-        <a href="/map" class="filter-clear-link">← View all sites in Britain</a>
-      </p>
+      @if (upLevelLink) {
+        <p class="filter-clear-row">
+          <a [href]="upLevelLink.path" class="filter-clear-link">← {{upLevelLink.label}}</a>
+        </p>
+      }
       @if (filterEmpty) {
         <p class="filter-empty-notice">No snorkelling sites found for this area. They may not have been added yet.</p>
       }
@@ -101,34 +225,34 @@
       }
        @else {
 
-        <div class="panel" [ngClass]="map?.popupPosition">
+        <div class="panel" [ngClass]="panelPositionClass">
 
-          @let feature = this.geoJson?.features[map?.selectedSymbolId]?.properties;
+          @let feature = currentFeature;
 
           <!-- This is needed so that null feature doesnt trigger this block  -->
           @if (!!feature) {          
 
-            <div class="panel-content">
+            <article class="map-feature-popover">
 
-              <button class="panel-close" (click)="map?.deselectSymbol()" aria-label="Close">
+              <button class="panel-close" (click)="closePanel()" aria-label="Close">
                 <app-svg-close-icon theme="darkOnLight"></app-svg-close-icon>
               </button>
 
-              <div class="panel-type">{{feature.featureType}}</div>
-              <div class="panel-location">{{feature.location.locality ?? feature.location.place}}@if (feature.location.district){, {{feature.location.district}}}</div>
+              <p class="map-feature-type">{{feature.featureType}}</p>
+              <p class="map-feature-location">{{feature.location.locality ?? feature.location.place}}@if (feature.location.district){, {{feature.location.district}}}</p>
               <h3>{{feature.name}}</h3>
 
               @if (feature.categories?.length) {
-                <div class="keywords">
+                <ul class="map-feature-tags" aria-label="Feature categories">
                   @for (item of feature.categories; track item) {
-                    <span class="keyword-chip">{{item}}</span>
+                    <li class="map-feature-tag">{{item}}</li>
                   }
-                </div>
+                </ul>
               }
 
-              <div class="description">
+              <p class="map-feature-description">
                 {{feature.description}}
-              </div>
+              </p>
 
               @if (feature.aiGenerated || feature.verified === false) {
                 <div class="ai-content-notice-row">
@@ -137,25 +261,27 @@
               }
 
               @if (feature.featureType == 'Snorkelling Site') {
-                <div class="caveat">
+                <p class="map-feature-caveat">
                   Information provided is for guidance only. You are responsible for your snorkelling safety.
-                </div>
+                </p>
                 @if (feature.moreInfo?.length) {
-                  <div class="more-info-label">Find Out More</div>
-                  <div class="more-info-links">
+                  <h4 class="map-feature-links-label">Find Out More</h4>
+                  <ul class="map-feature-links-list">
                     @for (item of feature.moreInfo; track item) {
-                      <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
-                        href={{item.url}}>{{item.title}}</a>
+                      <li>
+                        <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
+                          href={{item.url}}>{{item.title}}</a>
+                      </li>
                     }
-                  </div>
+                  </ul>
                 }
               } @else {
                 @if (feature.moreInfo?.length) {
-                  <div class="more-info-label">Find Out More</div>
-                  <div class="icons">
+                  <h4 class="map-feature-links-label">Find Out More</h4>
+                  <div class="map-feature-icons" aria-label="Organisation links">
                     @for (item of feature.moreInfo; track item) {
                       @if (item.icon !== 'phone') {
-                        <div class="icon icon-grow">
+                        <div class="map-feature-icon map-feature-icon-grow">
                           <a class="suppress-external-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
                             @switch (item.icon) {
                               @case ('youtube')   { <app-svg-youtube   theme="darkOnLight" height="20px"></app-svg-youtube> }
@@ -170,18 +296,18 @@
                     }
                     @for (item of feature.moreInfo; track item) {
                       @if (item.icon === 'phone') {
-                        <div class="phone-row">
-                          <div class="icon icon-phone">
+                        <div class="map-feature-phone-row">
+                          <div class="map-feature-icon map-feature-icon-phone">
                             <app-svg-phone theme="darkOnLight" height="20px"></app-svg-phone>
                           </div>
-                          <div class="phone-number">{{item.text}}</div>
+                          <p class="map-feature-phone-number">{{item.text}}</p>
                         </div>
                       }
                     }
                   </div>
                 }
               }
-            </div>
+            </article>
           }
 
         </div>
