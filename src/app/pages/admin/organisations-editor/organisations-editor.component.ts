@@ -29,7 +29,7 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
   scoringThresholdDirty = false;
 
   askForConfirmation = false;
-  askForOverwriteVerify = false;
+  askForOverwrite = false;
   contentSource: 'generated' | 'favourite' = 'generated';
   tagInput = '';
   private _savedFavouriteSnapshot = '';
@@ -124,9 +124,9 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
     this.selectedId = id;
     this.isDirty = false;
     this.askForConfirmation = false;
-    this.askForOverwriteVerify = false;
+    this.askForOverwrite = false;
     try {
-      this.selectedDoc = await this._http.getOrgDoc('verify', id);
+      this.selectedDoc = await this._http.getOrgDoc('discover', id);
       const savedSource = this._fav['contentSource'];
       this.contentSource = savedSource === 'generated' || savedSource === 'favourite'
         ? savedSource
@@ -185,7 +185,7 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
     if (!this.selectedDoc || !this.selectedId || this.isSaving) return;
     this.isSaving = true;
     try {
-      this.selectedDoc = await this._http.saveOrgDoc('verify', this.selectedId, this.selectedDoc);
+      this.selectedDoc = await this._http.saveOrgDoc('discover', this.selectedId, this.selectedDoc);
       this.isDirty = false;
       this._takeFavouriteSnapshot();
       this._toaster.show('Saved', 'success');
@@ -211,7 +211,7 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
   private async _doDelete() {
     if (!this.selectedId) return;
     try {
-      await this._http.deleteOrgDoc('verify', this.selectedId);
+      await this._http.deleteOrgDoc('discover', this.selectedId);
       this._toaster.show('Deleted', 'success');
       this.selectedDoc = null;
       this.selectedId = '';
@@ -342,19 +342,19 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
   populateFromGenerate() {
     if (!this.selectedDoc) return;
     if (!this.verifiedDataEmpty) {
-      this.askForOverwriteVerify = true;
+      this.askForOverwrite = true;
       return;
     }
     this._doPopulate();
   }
 
   confirmOverwrite() {
-    this.askForOverwriteVerify = false;
+    this.askForOverwrite = false;
     this._doPopulate();
   }
 
   cancelOverwrite() {
-    this.askForOverwriteVerify = false;
+    this.askForOverwrite = false;
   }
 
   private _doPopulate() {

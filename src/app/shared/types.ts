@@ -272,42 +272,16 @@ export interface OrgDiscover {
   processed_at?: string;
 }
 
-// verify sub-document — fully verified, publication-ready
-export interface OrgVerify {
-  newContentPendingVerification?: boolean;
-  verified?: boolean;
-  verifiedAt?: string;
-  contentSource?: 'generated' | 'favourite';
-  verifiedData?: {
-    description?: string;
-    tags?: string[];
-    category?: string;
-    name?: string;
-    localityOverride?: string;
-    contacts?: {
-      website?: string;
-      phone?: string;
-      email?: string;
-      facebook?: string;
-      instagram?: string;
-      youtube?: string;
-    };
-  };
-  forcedPublish?: boolean;
-  suppressOnMap?: boolean;
-}
-
 // Root document — one per organisation, accumulates pipeline stages
 export interface OrgDocument {
   _id: string;
   discover: OrgDiscover;
   generate?: OrgGenerate;
-  verify?: OrgVerify;
   reverse_geo?: any;
   favourite?: { isFavourite?: boolean; [key: string]: any };
 }
 
-export type OrgCollectionKey = 'discover' | 'generate' | 'verify';
+export type OrgCollectionKey = 'discover' | 'generate';
 
 export interface OrgListItem {
   _id: string;
@@ -323,8 +297,8 @@ export interface OrgListItem {
   isVerified?: boolean;
   isPublished?: boolean;     // kept for compat — equals isOnMap
   isOnMap?: boolean;         // score >= threshold OR manual publish
-  isManualPublish?: boolean; // verify.forcedPublish flag
-  isSuppressed?: boolean;    // verify.suppressOnMap flag
+  isManualPublish?: boolean; // favourite.forcedPublish flag
+  isSuppressed?: boolean;    // favourite.suppressOnMap flag
   flaggedForUpdate?: boolean;
   newContentAvailable?: boolean;
   isFavourite?: boolean;

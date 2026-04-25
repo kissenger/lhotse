@@ -54,7 +54,7 @@
             (click)="onToggleMapVisibility()">
             {{ mapToggleLabel }}
           </button>
-          <span [ngClass]="askForOverwriteVerify ? 'showButton' : ''" class="sureButton">
+          <span [ngClass]="askForOverwrite ? 'showButton' : ''" class="sureButton">
             Overwrite existing data?
             <button type="button" class="formButton" (click)="confirmOverwrite()">Yes</button>
             <button type="button" class="formButton" (click)="cancelOverwrite()">No</button>

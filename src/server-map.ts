@@ -6,6 +6,7 @@ import { buildMapPath, getCountrySlugFromRegion, getCountySlugFromLocation, norm
 import 'dotenv/config';
 
 const AI_SCORE_THRESHOLD_DEFAULT = 70;
+const TRUTHY_FLAG_VALUES: Array<string | number | boolean> = [true, 'true', 1, '1', 'yes', 'on'];
 
 const map = express();
 
@@ -22,15 +23,11 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
   return {
     __type: { $exists: false },
     $or: [
-      { 'favourite.forcedPublish': true },
-      { 'verify.forcedPublish': true },
+      { 'favourite.forcedPublish': { $in: TRUTHY_FLAG_VALUES } },
       {
-        $and: [
-          { 'favourite.suppressOnMap': { $ne: true } },
-          { 'verify.suppressOnMap': { $ne: true } },
-        ],
+        'favourite.suppressOnMap': { $nin: TRUTHY_FLAG_VALUES },
         $or: [
-          { 'favourite.isFavourite': true },
+          { 'favourite.isFavourite': { $in: TRUTHY_FLAG_VALUES } },
           {
             'generate.rank.rank_score': { $gte: threshold },
             'generate.rank.british_operations_pass': true,

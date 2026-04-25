@@ -5,9 +5,17 @@ import 'dotenv/config';
 
 const organisations = express();
 
-const VALID_COLLECTIONS = new Set(['discover', 'generate', 'verify']);
+const VALID_COLLECTIONS = new Set(['discover', 'generate']);
 const DEFAULT_SCORING_THRESHOLD = 70;
 const SETTINGS_FILTER = { __type: 'settings' };
+const TRUTHY_FLAG_VALUES: Array<string | number | boolean> = [true, 'true', 1, '1', 'yes', 'on'];
+
+function isTruthyFlag(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return ['true', '1', 'yes', 'on'].includes(value.trim().toLowerCase());
+  }
+  return value === true || value === 1;
+}
 
 async function readOrgSettings(): Promise<{ scoringThreshold: number }> {
   const doc = await (OrganisationModel as any).findOne(SETTINGS_FILTER).lean();
@@ -17,35 +25,7 @@ async function readOrgSettings(): Promise<{ scoringThreshold: number }> {
 // Returns an extra filter to select docs at a given pipeline stage
 function stageFilter(collection: string): Record<string, unknown> {
   if (collection === 'generate') return { generate: { $exists: true } };
-  // In verify view, always include docs with favourite data.
-  if (collection === 'verify')   return { $or: [{ favourite: { $exists: true } }, { 'favourite.isFavourite': true }] };
   return {}; // 'discover' — all documents
-}
-
-// Verify list should include records that are currently map-visible by auto-selection
-// even if they do not yet have a verify block.
-function verifyListFilter(scoringThreshold: number): Record<string, unknown> {
-  return {
-    $or: [
-      { favourite: { $exists: true } },
-      { 'favourite.isFavourite': true },
-      { 'favourite.forcedPublish': true },
-      { 'verify.forcedPublish': true },
-      {
-        $and: [
-          { 'favourite.suppressOnMap': { $ne: true } },
-          { 'verify.suppressOnMap': { $ne: true } },
-        ],
-        $or: [
-          {
-            'generate.rank.rank_score': { $gte: scoringThreshold },
-            'generate.rank.british_operations_pass': true,
-            'generate.rank.active_presence_pass': true,
-          },
-        ],
-      },
-    ],
-  };
 }
 
 /*
@@ -93,7 +73,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
 
     const filter: Record<string, unknown> = {
       __type: { $exists: false }, // exclude settings doc
-      ...(collection === 'verify' ? verifyListFilter(threshold) : stageFilter(collection)),
+      ...stageFilter(collection),
       ...(search ? { 'discover.title': { $regex: search, $options: 'i' } } : {}),
     };
 
@@ -112,9 +92,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
           'favourite.suppressOnMap': 1,
           'favourite.isFavourite': 1,
         })
-        .sort(collection === 'verify'
-          ? { 'favourite.newContentPendingVerification': -1, 'discover.title': 1 }
-          : { 'generate.rank.rank_score': -1, 'discover.title': 1 })
+        .sort({ 'generate.rank.rank_score': -1, 'discover.title': 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
@@ -123,12 +101,12 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
 
     const docs = raw.map((d: any) => {
       const score: number | undefined = d.generate?.rank?.rank_score;
-      const isFavourite = d.favourite?.isFavourite === true;
+      const isFavourite = isTruthyFlag(d.favourite?.isFavourite);
       const britishPass = d.generate?.rank?.british_operations_pass === true;
       const activePass = d.generate?.rank?.active_presence_pass === true;
-      const isSuppressed = !!(d.favourite?.suppressOnMap || d.verify?.suppressOnMap);
+      const isSuppressed = isTruthyFlag(d.favourite?.suppressOnMap);
       const isAutoSelected = !isSuppressed && (isFavourite || (score != null && score >= threshold && britishPass && activePass));
-      const isOnMap = !!(d.favourite?.forcedPublish || d.verify?.forcedPublish) || isAutoSelected;
+      const isOnMap = isTruthyFlag(d.favourite?.forcedPublish) || isAutoSelected;
       return {
         _id:         d._id,
         title:       d.discover?.title ?? '—',
@@ -143,7 +121,7 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
         isVerified:      !!d.favourite?.verified,
         isOnMap,
         isPublished:     isOnMap, // kept for backward compat
-        isManualPublish: !!(d.favourite?.forcedPublish || d.verify?.forcedPublish),
+        isManualPublish: isTruthyFlag(d.favourite?.forcedPublish),
         isSuppressed,
         isFavourite,
       };

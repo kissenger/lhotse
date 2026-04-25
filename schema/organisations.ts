@@ -6,7 +6,6 @@
 // Each document holds all pipeline stages as sub-documents:
 //   discover  — raw Google Maps data      (written by Apify actor)
 //   generate  — Gemini review results     (written by generate.py)
-//   verify    — verification outcome      (written by verify.py)
 //
 // Usage (ESM):
 //   import { Organisation } from './organisationSchema.js';
@@ -109,19 +108,6 @@ const GenerateSchema = new Schema({
   history: { type: [Schema.Types.Mixed], default: undefined },
 }, { _id: false, strict: false });
 
-const VerifySchema = new Schema({
-  newContentPendingVerification: Boolean,
-  verified:              Boolean,
-  verifiedAt:            Date,
-  verifiedData: {
-    description:         String,
-    tags:                [String],
-    category:            String,    
-  },
-  forcedPublish:        Boolean,
-  suppressOnMap:        Boolean,
-}, { _id: false, strict: false });
-
 // ---------------------------------------------------------------------------
 // Root schema
 // ---------------------------------------------------------------------------
@@ -129,7 +115,6 @@ const VerifySchema = new Schema({
 const OrganisationSchema = new Schema({
   discover: { type: DiscoverSchema, required: true },
   generate: { type: GenerateSchema },
-  verify:   { type: VerifySchema },
   // Preflight results
   preflight: { type: Schema.Types.Mixed },
 }, {
@@ -147,7 +132,6 @@ OrganisationSchema.index({ 'discover.status': 1 }, { sparse: true });
 OrganisationSchema.index({ 'generate.rank.rank_score': -1 }, { sparse: true });
 OrganisationSchema.index({ 'generate.content.category': 1 }, { sparse: true });
 OrganisationSchema.index({ 'generate.content.tags': 1 }, { sparse: true });
-OrganisationSchema.index({ 'verify.verified_at': -1 }, { sparse: true });
 
 // ---------------------------------------------------------------------------
 
