@@ -22,18 +22,14 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
   const threshold = await getOrgScoreThreshold();
   return {
     __type: { $exists: false },
+    'favourite.suppressOnMap': { $nin: TRUTHY_FLAG_VALUES },
     $or: [
       { 'favourite.forcedPublish': { $in: TRUTHY_FLAG_VALUES } },
+      { 'favourite.isFavourite': { $in: TRUTHY_FLAG_VALUES } },
       {
-        'favourite.suppressOnMap': { $nin: TRUTHY_FLAG_VALUES },
-        $or: [
-          { 'favourite.isFavourite': { $in: TRUTHY_FLAG_VALUES } },
-          {
-            'generate.rank.rank_score': { $gte: threshold },
-            'generate.rank.british_operations_pass': true,
-            'generate.rank.active_presence_pass': true,
-          },
-        ],
+        'generate.rank.rank_score': { $gte: threshold },
+        'generate.rank.british_operations_pass': true,
+        'generate.rank.active_presence_pass': true,
       },
     ],
   };
