@@ -40,8 +40,8 @@ async function collectHrefs(page, path, { waitForSelector } = {}) {
 }
 
 /**
- * Fetch all production map sites via the public API and extract every external
- * URL from moreInfo entries and imageUrl fields.
+ * Fetch production map features via the public API and extract every
+ * external URL from moreInfo entries and imageUrl fields.
  */
 async function collectSiteLinks(request) {
   let data;

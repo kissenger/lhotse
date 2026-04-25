@@ -23,8 +23,12 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
     __type: { $exists: false },
     $or: [
       { 'favourite.forcedPublish': true },
+      { 'verify.forcedPublish': true },
       {
-        'favourite.suppressOnMap': { $ne: true },
+        $and: [
+          { 'favourite.suppressOnMap': { $ne: true } },
+          { 'verify.suppressOnMap': { $ne: true } },
+        ],
         $or: [
           { 'favourite.isFavourite': true },
           {
@@ -104,7 +108,9 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
   try {
     const visibilityArr = visibility.split('/');
     const [sites, orgs] = await Promise.all([
-      FeatureModel.find({ $or: [{ showOnMap: visibilityArr }], 'properties.featureType': 'Snorkelling Site' }),
+      FeatureModel.find({
+        showOnMap: { $in: visibilityArr },
+      }),
       OrganisationModel.find(await buildOrgFilter()).lean(),
     ]);
     const siteFeatures = sites.map((s: any, i: number) => ({

@@ -30,8 +30,12 @@ function verifyListFilter(scoringThreshold: number): Record<string, unknown> {
       { favourite: { $exists: true } },
       { 'favourite.isFavourite': true },
       { 'favourite.forcedPublish': true },
+      { 'verify.forcedPublish': true },
       {
-        'favourite.suppressOnMap': { $ne: true },
+        $and: [
+          { 'favourite.suppressOnMap': { $ne: true } },
+          { 'verify.suppressOnMap': { $ne: true } },
+        ],
         $or: [
           {
             'generate.rank.rank_score': { $gte: scoringThreshold },
@@ -122,9 +126,9 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
       const isFavourite = d.favourite?.isFavourite === true;
       const britishPass = d.generate?.rank?.british_operations_pass === true;
       const activePass = d.generate?.rank?.active_presence_pass === true;
-      const isSuppressed = !!d.favourite?.suppressOnMap;
+      const isSuppressed = !!(d.favourite?.suppressOnMap || d.verify?.suppressOnMap);
       const isAutoSelected = !isSuppressed && (isFavourite || (score != null && score >= threshold && britishPass && activePass));
-      const isOnMap = !!d.favourite?.forcedPublish || isAutoSelected;
+      const isOnMap = !!(d.favourite?.forcedPublish || d.verify?.forcedPublish) || isAutoSelected;
       return {
         _id:         d._id,
         title:       d.discover?.title ?? '—',
@@ -139,8 +143,8 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
         isVerified:      !!d.favourite?.verified,
         isOnMap,
         isPublished:     isOnMap, // kept for backward compat
-        isManualPublish: !!d.favourite?.forcedPublish,
-        isSuppressed:    !!d.favourite?.suppressOnMap,
+        isManualPublish: !!(d.favourite?.forcedPublish || d.verify?.forcedPublish),
+        isSuppressed,
         isFavourite,
       };
     });
