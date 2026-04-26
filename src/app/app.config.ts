@@ -13,7 +13,8 @@ import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interc
 @Injectable({ providedIn: 'root' })
 export class SelectivePreloadingStrategy implements PreloadingStrategy {
   preload(route: Route, load: () => Observable<any>): Observable<any> {
-    return route.data?.['noPreload'] ? of(null) : load();
+    // Opt-in preloading only: routes preload only when explicitly flagged.
+    return route.data?.['preload'] ? load() : of(null);
   }
 }
 
