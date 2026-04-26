@@ -24,6 +24,7 @@ import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { LazyServiceInjector } from '@shared/services/lazyloader.service';
 import { environment } from '@environments/environment';
+import { MAPBOX_CSS_URL } from '@shared/globals';
 import { WebsiteSvgComponent } from '@shared/svg/website/website.component';
 import { PhoneSvgComponent } from '@shared/svg/phone/phone.component';
 import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
@@ -376,7 +377,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const link = this._document.createElement('link');
     link.id = id;
     link.rel = 'stylesheet';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css';
+    link.href = MAPBOX_CSS_URL;
+    link.crossOrigin = 'anonymous';
+    link.referrerPolicy = 'strict-origin-when-cross-origin';
     this._document.head.appendChild(link);
   }
 

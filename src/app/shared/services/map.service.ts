@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { mapboxToken } from '../globals';
 import type * as mapboxgl from 'mapbox-gl';
 import { Subject } from 'rxjs';
+import { loadMapboxFromCdn } from './mapbox-cdn-loader';
 
 @Injectable({
   providedIn: 'root'
@@ -62,8 +63,8 @@ export class MapService {
   }
 
   async create(sites: any) {
-
-    const mapboxgl = (await import('mapbox-gl')).default;
+    const mapboxgl = await loadMapboxFromCdn();
+    mapboxgl.accessToken = mapboxToken;
 
 
     return new Promise<void>((resolve, reject) => {

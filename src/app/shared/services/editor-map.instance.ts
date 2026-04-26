@@ -1,6 +1,7 @@
-import * as mapboxgl from 'mapbox-gl';
+import type * as mapboxgl from 'mapbox-gl';
 import { Subject } from 'rxjs';
 import { mapboxToken } from '../globals';
+import { loadMapboxFromCdn } from './mapbox-cdn-loader';
 
 const OUTDOORS  = 'mapbox://styles/mapbox/outdoors-v12';
 const SATELLITE = 'mapbox://styles/mapbox/satellite-streets-v12';
@@ -28,6 +29,7 @@ export class EditorMapInstance {
   private _map: mapboxgl.Map | null = null;
   private _marker: mapboxgl.Marker | null = null;
   private _satellite = false;
+  private _initToken = 0;
 
   /** Emits [lng, lat] on marker dragend */
   readonly dragEnd$ = new Subject<[number, number]>();
@@ -40,6 +42,15 @@ export class EditorMapInstance {
 
   init(opts: EditorMapInitOpts) {
     this.destroy();
+
+    const currentInitToken = ++this._initToken;
+    void this._initAsync(opts, currentInitToken);
+  }
+
+  private async _initAsync(opts: EditorMapInitOpts, initToken: number) {
+    const mapboxgl = await loadMapboxFromCdn();
+    if (initToken !== this._initToken) return;
+    mapboxgl.accessToken = mapboxToken;
 
     const {
       containerId,
@@ -55,7 +66,6 @@ export class EditorMapInstance {
     const center: [number, number] = hasCoords ? coords! : fallbackCenter;
 
     this._map = new mapboxgl.Map({
-      accessToken: mapboxToken,
       container: containerId,
       style: OUTDOORS,
       center,
@@ -91,6 +101,7 @@ export class EditorMapInstance {
   }
 
   destroy() {
+    this._initToken++;
     this._map?.remove();
     this._map    = null;
     this._marker = null;

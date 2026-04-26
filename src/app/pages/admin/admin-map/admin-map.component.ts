@@ -3,7 +3,8 @@ import { DOCUMENT, DatePipe } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
 import { mapboxToken } from '@shared/globals';
-import * as mapboxgl from 'mapbox-gl';
+import type * as mapboxgl from 'mapbox-gl';
+import { loadMapboxFromCdn } from '@shared/services/mapbox-cdn-loader';
 import { ToastService } from '@shared/services/toast.service';
 
 type SiteStatus = 'visited-production' | 'visited-hidden' | 'unvisited-priority' | 'unvisited';
@@ -66,7 +67,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
         if (links) s.properties.researchNotes.links = this._cleanLinks(links);
         return s;
       });
-      this._initMap();
+      await this._initMap();
     } catch {
       this.loadingState = 'failed';
       this._toaster.show('Failed to load sites', 'error');
@@ -79,9 +80,11 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
     this._map = null;
   }
 
-  private _initMap() {
+  private async _initMap() {
+    const mapboxgl = await loadMapboxFromCdn(this._window.document);
+    mapboxgl.accessToken = mapboxToken;
+
     this._map = new mapboxgl.Map({
-      accessToken: mapboxToken,
       container: 'admin-map',
       style: 'mapbox://styles/mapbox/outdoors-v12',
       bounds: [[-8.16, 49.72], [1.85, 59.37]],

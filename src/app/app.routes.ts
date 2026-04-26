@@ -3,19 +3,20 @@ import { unsavedChangesGuard } from '@pages/admin/sites-editor/unsaved-changes.g
 import { organisationsUnsavedChangesGuard } from '@pages/admin/organisations-editor/organisations-unsaved-changes.guard';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
 import { HomeComponent } from '@pages/home/home.component';
-import { MapPageComponent } from '@pages/home/map/map-page.component';
 import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
+
+const loadMapPage = () => import('@pages/home/map/map-page.component').then((m) => m.MapPageComponent);
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
-  { path: 'map', component: MapPageComponent },
-  { path: 'map/:country', component: MapPageComponent },
-  { path: 'map/:country/:county', component: MapPageComponent },
-  { path: 'map/:country/:county/:siteName', component: MapPageComponent },
+  { path: 'map', loadComponent: loadMapPage },
+  { path: 'map/:country', loadComponent: loadMapPage },
+  { path: 'map/:country/:county', loadComponent: loadMapPage },
+  { path: 'map/:country/:county/:siteName', loadComponent: loadMapPage },
   { path: 'dashboard', loadComponent: () =>
     import('@pages/admin/admin.component').then((m) => m.AdminComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'orders', loadComponent: () =>

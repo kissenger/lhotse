@@ -8,7 +8,7 @@ const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/prod/browser/index.c
 const STATIC_URL_PATHS = [
   {
     path: '/map',
-    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`
   }
 ];
 

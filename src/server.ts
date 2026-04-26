@@ -64,6 +64,26 @@ app.use((_req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+  // Start with report-only to safely observe violations before enforcing CSP.
+  res.setHeader(
+    'Content-Security-Policy-Report-Only',
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "frame-ancestors 'self'",
+      "script-src 'self' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com",
+      "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https://api.mapbox.com",
+      "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com",
+      "worker-src 'self' blob:",
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.paypal.com https://www.sandbox.paypal.com"
+    ].join('; ')
+  );
+
   if (ENVIRONMENT === 'PRODUCTION') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
@@ -348,8 +368,8 @@ export class BlogError extends Error {
 }
  
 const SITE_URL = 'https://snorkelology.co.uk';
-const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.png`;
-const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.png`;
+const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.webp`;
+const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.webp`;
 
 /**
  * Fetches places and blog posts from the DB in parallel and stores them in the
@@ -594,11 +614,11 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   const mapImageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     name: 'Snorkelology interactive snorkelling map of Britain',
     description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
     representativeOfPage: true,
-    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
   };
 
   const mapCreativeWorkSchema = {
@@ -607,7 +627,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     name: 'Snorkelling Map of Britain',
     description: 'An interactive map of 100+ of the best snorkelling sites around the British coastline, with GPS coordinates, site descriptions and categories.',
     url: `${SITE_URL}/map`,
-    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     creator: {
       '@type': 'Organization',
       name: 'Snorkelology',
@@ -717,8 +737,8 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
     keywords,
     canonicalPath: nationPath,
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     schemas: [breadcrumbSchema, nationPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -976,8 +996,8 @@ async function getCountyMapSeoPayload(country: string, county: string): Promise<
     keywords,
     canonicalPath: countyPath,
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     schemas: [breadcrumbSchema, countyPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -1024,7 +1044,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     name: 'Interactive Snorkelling Map of Britain — 100+ Sites',
     description,
     url: `${SITE_URL}/map`,
-    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     creator: {
       '@type': 'Organization',
       name: 'Snorkelology',
@@ -1051,11 +1071,11 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
   const mapImageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     name: 'Snorkelology interactive snorkelling map of Britain',
     description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
     representativeOfPage: true,
-    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
   };
 
   const breadcrumbSchema = {
@@ -1073,8 +1093,8 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     keywords,
     canonicalPath: '/map',
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
     schemas: [breadcrumbSchema, mapCreativeWorkSchema, mapImageSchema, ...(mapSchema ? [mapSchema] : [])],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },

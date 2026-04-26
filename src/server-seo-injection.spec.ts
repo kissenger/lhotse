@@ -130,7 +130,7 @@ describe('server-seo-injection', () => {
     const imageSchema = {
       '@context': 'https://schema.org',
       '@type': 'ImageObject',
-      url: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+      url: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
       representativeOfPage: true
     };
     const html = '<html><head><title>Old</title></head><body></body></html>';
@@ -187,10 +187,10 @@ describe('server-seo-injection', () => {
     const imageSchema = {
       '@context': 'https://schema.org',
       '@type': 'ImageObject',
-      url: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`,
+      url: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
       name: 'Snorkelology interactive snorkelling map of Britain',
       representativeOfPage: true,
-      contentUrl: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`
+      contentUrl: `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.webp`
     };
     const html = '<html><head><title>Old</title></head><body></body></html>';
     const result = injectSeoPayloadIntoHtml(html, { ...payload, schemas: [imageSchema] }, siteUrl);
@@ -238,7 +238,7 @@ describe('server-seo-injection', () => {
   });
 
   it('map page payload uses map-specific ogImage, not default social image', () => {
-    const mapImage = `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.jpg`;
+    const mapImage = `${siteUrl}/assets/snorkelology-unique-snorkel-map-of-britain.webp`;
     const html = '<html><head><title>Old</title><meta property="og:image" content></head><body></body></html>';
     const result = injectSeoPayloadIntoHtml(html, { ...payload, ogImage: mapImage, twitterImage: mapImage }, siteUrl);
     expect(result).toContain(`<meta property="og:image" content="${mapImage}">`);
