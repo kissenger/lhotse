@@ -2,7 +2,7 @@ import { ApplicationConfig, Injectable } from '@angular/core';
 import { provideRouter, withInMemoryScrolling, withRouterConfig, withPreloading, PreloadingStrategy, Route } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withIncrementalHydration } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
 import { IMAGE_LOADER, ImageLoaderConfig } from '@angular/common';
 import { environment } from '@environments/environment';
@@ -27,7 +27,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({scrollPositionRestoration: 'disabled', anchorScrolling: 'disabled'}),
       withPreloading(SelectivePreloadingStrategy)
     ), 
-    provideClientHydration(),
+    provideClientHydration(withIncrementalHydration()),
     provideHttpClient(
       withFetch(),
       withInterceptorsFromDi()
@@ -46,7 +46,7 @@ export const appConfig: ApplicationConfig = {
         const w = config.width ? `&w=${config.width}` : '';
         // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused
         // 422 when imgix had no Accept header during SSR and fell back to JPEG).
-        return `${base}?fm=webp&auto=compress&fit=max&q=60${w}`;
+        return `${base}?fm=webp&auto=compress&fit=max&q=40${w}`;
       }
     },
   ]
