@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
         const w = config.width ? `&w=${config.width}` : '';
         // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused
         // 422 when imgix had no Accept header during SSR and fell back to JPEG).
-        return `${base}?fm=webp&fit=max${w}`;
+        return `${base}?fm=webp&auto=compress&fit=max&q=60${w}`;
       }
     },
   ]

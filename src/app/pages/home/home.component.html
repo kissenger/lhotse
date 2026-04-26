@@ -34,10 +34,10 @@
   <div #anchor class="anchor" id="home" data-scrollspy-anchor>
     <app-slideshow></app-slideshow>
     <app-about></app-about> 
-    <div #window id="windowOne" class="window"></div>
+    <div #window #windowOne id="windowOne" class="window"></div>
   </div>
 
-  @defer {
+  @defer (on viewport(windowOne)) {
     <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
       <app-blog></app-blog>
       <div #window id="windowTwo" class="window"></div>  

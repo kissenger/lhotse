@@ -74,11 +74,11 @@ app.use((_req, res, next) => {
       "default-src 'self'",
       "base-uri 'self'",
       "frame-ancestors 'self'",
-      "script-src 'self' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com",
+      "script-src 'self' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://api.mapbox.com",
-      "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com",
+      "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://cloudflareinsights.com",
       "worker-src 'self' blob:",
       "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.paypal.com https://www.sandbox.paypal.com"
     ].join('; ')

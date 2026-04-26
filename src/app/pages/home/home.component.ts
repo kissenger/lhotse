@@ -38,14 +38,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
   private static readonly _VISITED_COOKIE = 'sn_visited';
 
-  staticBackgrounds: Record<string, string> = {
-    windowOne: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall",
-    windowTwo: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain",
-    windowThree: "photos/parallax/child-in-snorkelling-gear-scotland",
-    windowFour: "photos/parallax/dahlia-anemone-snorkelling-dorset-britain",
-    windowFive: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall",
-    windowSix: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain"
+  readonly panelConfig: Record<string, { path: string }> = {
+    windowOne:   { path: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall" },
+    windowTwo:   { path: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain" },
+    windowThree: { path: "photos/parallax/child-in-snorkelling-gear-scotland" },
+    windowFour:  { path: "photos/parallax/dahlia-anemone-snorkelling-dorset-britain" },
+    windowFive:  { path: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall" },
+    windowSix:   { path: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain" },
   }
+
+  private _windowObserver?: IntersectionObserver;
 
   private _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
 
@@ -59,6 +61,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
+      // Background images are loaded lazily via windows.changes when deferred sections render.
+
       // Hide book overlay for returning visitors (non-tracking, functional cookie)
       if (document.cookie.split(';').some(c => c.trim().startsWith(HomeComponent._VISITED_COOKIE + '='))) {
         this.hideAboutBookOverlay = true;
@@ -91,7 +95,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     //watch for changes as querylist will change when deferred views are loaded
     this._subs.push(this.windows.changes.subscribe(() => {
-      this.loadBackgroundImages();
+      this._observeWindows();
     }));
  
     this.widthDescriptor = this._screen.widthDescriptor;
@@ -104,23 +108,45 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  loadBackgroundImages() {
-    this.windows.forEach( (w) => {
-      // dont try to load on the server as we dont have a screen size and therefore dont know which image to load
-      if (isPlatformBrowser(this.platformId)) {
-        const elementId: string = w.nativeElement.id;
-        const basePath = this.staticBackgrounds[elementId];
-        if (!basePath) {
-          return;
-        }
-        const orientation = this._screen.deviceOrientation;
-        const width = this._screen.width;
-        const url = `${this._imgixBase}${basePath}-${orientation}.webp?w=${width}&auto=format,compress&fit=crop`;
-        w.nativeElement.style.backgroundImage = `url('${url}')`;        
-        w.nativeElement.style.backgroundSize = 'cover';
-        w.nativeElement.style.backgroundPosition = 'center';
+  private _observeWindows() {
+    if (!this._windowObserver) {
+      this._windowObserver = new IntersectionObserver((entries) => {
+        entries.filter(e => e.isIntersecting).forEach(entry => {
+          this._loadWindowBackground(entry.target as HTMLElement);
+          this._windowObserver!.unobserve(entry.target);
+        });
+      }, { rootMargin: '200px 0px' });
+    }
+    this.windows.forEach(w => {
+      if (!w.nativeElement.style.backgroundImage) {
+        this._windowObserver!.observe(w.nativeElement);
       }
-    })
+    });
+  }
+
+  private _loadWindowBackground(el: HTMLElement) {
+    const panel = this.panelConfig[el.id];
+    if (!panel) return;
+    const orientation = this._screen.deviceOrientation;
+    const dpr = Math.min(window.devicePixelRatio ?? 1, 2);
+    const width = Math.round(this._screen.width * dpr);
+    const height = Math.round(this._screen.height * 0.8 * dpr);
+    const url = `${this._imgixBase}${panel.path}-${orientation}.webp?w=${width}&h=${height}&auto=format,compress&fit=crop&q=60`;
+    el.style.backgroundImage = `url('${url}')`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+  }
+
+  // Called on orientation change: reload already-visible panels and re-observe the rest.
+  loadBackgroundImages() {
+    this._windowObserver?.disconnect();
+    this._windowObserver = undefined;
+    this.windows.forEach(w => {
+      if (w.nativeElement.style.backgroundImage) {
+        w.nativeElement.style.backgroundImage = '';
+      }
+    });
+    this._observeWindows();
   }
 
   hideOverlay(overlay: string) {
@@ -133,6 +159,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this._subs.forEach((sub) => sub.unsubscribe());
+    this._windowObserver?.disconnect();
     if (this._fragmentScrollTimer) {
       clearTimeout(this._fragmentScrollTimer);
     }
