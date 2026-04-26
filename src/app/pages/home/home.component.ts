@@ -131,7 +131,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const dpr = Math.min(window.devicePixelRatio ?? 1, 2);
     const width = Math.round(this._screen.width * dpr);
     const height = Math.round(this._screen.height * 0.8 * dpr);
-    const url = `${this._imgixBase}${panel.path}-${orientation}.webp?w=${width}&h=${height}&auto=format,compress&fit=crop&q=60`;
+    const url = `${this._imgixBase}${panel.path}-${orientation}.webp?w=${width}&h=${height}&fm=webp&auto=compress&fit=crop&q=40`;
     el.style.backgroundImage = `url('${url}')`;
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center';

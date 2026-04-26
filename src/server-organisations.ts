@@ -8,7 +8,6 @@ const organisations = express();
 const VALID_COLLECTIONS = new Set(['discover', 'generate']);
 const DEFAULT_SCORING_THRESHOLD = 70;
 const SETTINGS_FILTER = { __type: 'settings' };
-const TRUTHY_FLAG_VALUES: Array<string | number | boolean> = [true, 'true', 1, '1', 'yes', 'on'];
 
 function isTruthyFlag(value: unknown): boolean {
   if (typeof value === 'string') {

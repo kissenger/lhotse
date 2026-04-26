@@ -13,7 +13,7 @@ import { CarouselImages } from '@shared/types';
 export class SlideshowComponent {
 
   public slideshowImages: CarouselImages = [{
-    src: "photos/slideshow/child-walking-beach-after-snorkelling-in-yorkshire-england-britain-5.jpg",
+    src: "photos/slideshow/child-walking-beach-after-snorkelling-in-yorkshire-england-britain-5.webp",
     alt: "Photo of child walking up a beach holding snorkelling gear with blue-green sea behind",
     textbox: {
       header: "Welcome to Snorkelology",
@@ -21,14 +21,14 @@ export class SlideshowComponent {
     },
     priority: true
   },{
-    src: "photos/slideshow/drone-shot-of-woman-snorkelling-with-book-cover-overlaid.jpg",
+    src: "photos/slideshow/drone-shot-of-woman-snorkelling-with-book-cover-overlaid.webp",
     alt: "Snorkelling Britain book cover with drone view of woman snorkelling behind",
     textbox: {
       header: "Snorkelling Britain",
       text: "Find out about our new guidebook to 100 British snorkelling sites"
     }
   },{
-    src: "photos/slideshow/children-rock-pool-snorkelling-in-cornwall-britain.jpg",
+    src: "photos/slideshow/children-rock-pool-snorkelling-in-cornwall-britain.webp",
     alt: "Photo showing children pointing at marine life while snorkelling in a rock pool",
     textbox: {
       header: "Learn about British snorkelling",

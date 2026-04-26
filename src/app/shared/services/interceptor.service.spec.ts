@@ -1,6 +1,5 @@
 import { TokenInterceptor, HttpErrorInterceptor } from './interceptor.service';
 import { HttpRequest } from '@angular/common/http';
-import { PLATFORM_ID } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
 describe('TokenInterceptor', () => {

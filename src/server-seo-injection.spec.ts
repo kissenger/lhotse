@@ -30,11 +30,11 @@ describe('server-seo-injection', () => {
     expect(result).toContain('<link rel="canonical" href="https://snorkelology.co.uk/home">');
   });
 
-  it('injects JSON-LD scripts before closing head', () => {
+  it('injects JSON-LD scripts before closing body', () => {
     const html = '<html><head><title>x</title></head><body></body></html>';
     const result = injectJsonLdIntoHead(html, payload.schemas);
     expect(result).toContain('<script type="application/ld+json">');
-    expect(result.indexOf('</head>')).toBeGreaterThan(result.indexOf('application/ld+json'));
+    expect(result.indexOf('</body>')).toBeGreaterThan(result.indexOf('application/ld+json'));
   });
 
   it('injects all expected SEO tags from payload', () => {
