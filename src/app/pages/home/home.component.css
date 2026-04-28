@@ -18,6 +18,45 @@
   height: 500px;
   width: 500px;
 }
+
+.map-preview-card {
+  margin: 2rem auto;
+  max-width: var(--container-width);
+  padding: 1.25rem;
+  border: 1px solid #d5e1ea;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f8fcff 0%, #eef6fb 100%);
+}
+
+.map-preview-card h2 {
+  margin-top: 0;
+}
+
+.map-preview-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.map-preview-btn {
+  border: none;
+  border-radius: 8px;
+  background-color: #1d3d59;
+  color: #ffffff;
+  font: inherit;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+.map-preview-btn:hover {
+  background-color: #234c6f;
+}
+
+.map-preview-link {
+  border-bottom: none;
+  font-weight: 600;
+}
 .overlay {
   position: fixed;
   display: flex;

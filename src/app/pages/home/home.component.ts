@@ -33,11 +33,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   public hideAboutBookOverlay = false;
   public overlayReady = false;
+  public deferredSectionsReady = false;
   public widthDescriptor?: string;
   private _subs: Subscription[] = [];
   private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
   private _idleCallbackId?: number;
   private _idleTimeoutId?: ReturnType<typeof setTimeout>;
+  private readonly _isBrowser: boolean;
   private static readonly _VISITED_COOKIE = 'sn_visited';
 
   readonly panelConfig: Record<string, { path: string }> = {
@@ -49,8 +51,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     windowSix:   { path: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain" },
   }
 
-  private _windowObserver?: IntersectionObserver;
-
   private _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
 
   constructor(
@@ -59,10 +59,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
     private _cdr: ChangeDetectorRef,
-  ) {}
+  ) {
+    this._isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId)) {
+    if (this._isBrowser) {
       // Background images are loaded lazily via windows.changes when deferred sections render.
 
       // Hide book overlay for returning visitors (non-tracking, functional cookie)
@@ -84,6 +86,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     // Scrollspy is non-critical for first paint; initialize during idle.
     this._scheduleNonCritical(() => {
+      this.deferredSectionsReady = true;
+      this._cdr.detectChanges();
+
       this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
         if (!this.hideAboutBookOverlay && isect.id !== 'home') {
           this.hideAboutBookOverlay = true;
@@ -96,12 +101,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this._subs.push(this.anchors.changes.subscribe(() => {
         this._scrollSpy.observeChildren(this.anchors);
       }));
+
+      // Load all static window backgrounds together after first paint.
+      this.loadBackgroundImages();
     });
+
+    if (!this._isBrowser) {
+      return;
+    }
 
     //watch for changes as querylist will change when deferred views are loaded
     this._subs.push(this.windows.changes.subscribe(() => {
-      this._observeWindows();
+      this._loadAllWindowBackgrounds();
     }));
+
+    this._loadAllWindowBackgrounds();
  
     this.widthDescriptor = this._screen.widthDescriptor;
     this._subs.push(this._screen.resize.subscribe((hasOrientationChanged) => {
@@ -114,7 +128,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   private _scheduleNonCritical(task: () => void) {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (!this._isBrowser) {
       return;
     }
 
@@ -133,23 +147,17 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }, 300);
   }
 
-  private _observeWindows() {
-    if (!this._windowObserver) {
-      this._windowObserver = new IntersectionObserver((entries) => {
-        entries.filter(e => e.isIntersecting).forEach(entry => {
-          this._loadWindowBackground(entry.target as HTMLElement);
-          this._windowObserver!.unobserve(entry.target);
-        });
-      }, { rootMargin: '200px 0px' });
-    }
+  private _loadAllWindowBackgrounds() {
     this.windows.forEach(w => {
       if (!w.nativeElement.style.backgroundImage) {
-        this._windowObserver!.observe(w.nativeElement);
+        this._loadWindowBackground(w.nativeElement);
       }
     });
   }
 
   private _loadWindowBackground(el: HTMLElement) {
+    if (!this._isBrowser) return;
+
     const panel = this.panelConfig[el.id];
     if (!panel) return;
     const orientation = this._screen.deviceOrientation;
@@ -164,28 +172,27 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   // Called on orientation change: reload already-visible panels and re-observe the rest.
   loadBackgroundImages() {
-    this._windowObserver?.disconnect();
-    this._windowObserver = undefined;
     this.windows.forEach(w => {
       if (w.nativeElement.style.backgroundImage) {
         w.nativeElement.style.backgroundImage = '';
       }
     });
-    this._observeWindows();
+    this._loadAllWindowBackgrounds();
   }
 
   hideOverlay(overlay: string) {
     if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
       // Ensure overlay stays hidden on future visits
-      document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
+      if (this._isBrowser) {
+        document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
+      }
     }
   }
 
   ngOnDestroy() {
     this._subs.forEach((sub) => sub.unsubscribe());
-    this._windowObserver?.disconnect();
-    if (this._idleCallbackId !== undefined && window.cancelIdleCallback) {
+    if (this._isBrowser && this._idleCallbackId !== undefined && window.cancelIdleCallback) {
       window.cancelIdleCallback(this._idleCallbackId);
     }
     if (this._idleTimeoutId) {

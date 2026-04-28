@@ -82,19 +82,35 @@
 
   <h2>Snorkelling Britain Flick-Through</h2>
 
-  <!-- This is responsible for some console warnings eg
-            [Violation] 'setTimeout' handler took 168ms 
-            [Violation] Added non-passive event listener to a ...
-   -->
   <div class="youtube-container">
-    <iframe
-      src="https://www.youtube-nocookie.com/embed/nglkG5wdsmY?controls=0&mute=1&autoplay=1&loop=1&playlist=nglkG5wdsmY" 
-      title="Snorkelling Britain book flick-through video" 
-      frameborder="0" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-      referrerpolicy="strict-origin-when-cross-origin" 
-      allowfullscreen>
-    </iframe>
+    @if (!isVideoLoaded) {
+      <button
+        type="button"
+        class="video-facade"
+        (click)="loadVideo()"
+        aria-label="Play Snorkelling Britain book flick-through video"
+      >
+        <img
+          ngSrc="https://i.ytimg.com/vi/nglkG5wdsmY/hqdefault.jpg"
+          alt="Preview image for Snorkelling Britain book flick-through video"
+          width="480"
+          height="360"
+          sizes="(max-width: 768px) calc(100vw - 2rem), 700px"
+          loading="lazy"
+        />
+        <span class="video-facade-play" aria-hidden="true">Play video</span>
+      </button>
+    } @else {
+      <iframe
+        [src]="youtubeEmbedUrl"
+        title="Snorkelling Britain book flick-through video"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        loading="lazy"
+        allowfullscreen>
+      </iframe>
+    }
   </div>
 
 

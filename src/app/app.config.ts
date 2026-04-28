@@ -38,7 +38,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: IMAGE_LOADER,
       useValue: (config: ImageLoaderConfig) => {
-        const src = config.src.replace(/^\//, '');
+        const rawSrc = config.src.trim();
+        if (/^(https?:)?\/\//i.test(rawSrc) || rawSrc.startsWith('data:') || rawSrc.startsWith('blob:')) {
+          return rawSrc;
+        }
+
+        const src = rawSrc.replace(/^\//, '');
         if (environment.STAGE === 'dev') {
           return `/assets/${src}`;
         }

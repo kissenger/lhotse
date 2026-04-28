@@ -284,6 +284,10 @@ app.use((req, res, next) => {
         const html = await response.text();
         const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
         const headers = new Headers(response.headers);
+        const cacheControl = getPublicHtmlCacheControl(req);
+        if (cacheControl) {
+          headers.set('cache-control', cacheControl);
+        }
         headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
 
         const rewritten = new Response(withSeo, {
@@ -391,6 +395,31 @@ export class BlogError extends Error {
 const SITE_URL = 'https://snorkelology.co.uk';
 const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.webp`;
 const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.webp`;
+const PUBLIC_HTML_EDGE_CACHE_CONTROL = 'public, max-age=0, s-maxage=120, stale-while-revalidate=300';
+
+function getPublicHtmlCacheControl(req: express.Request): string | null {
+  if (req.hostname === 'admin.snorkelology.co.uk') {
+    return null;
+  }
+
+  // Keep parameterised variants dynamic until explicitly reviewed for cache safety.
+  if (Object.keys(req.query ?? {}).length > 0) {
+    return null;
+  }
+
+  const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path;
+  const isPublicPath =
+    path === '/' ||
+    path === '/home' ||
+    path === '/privacy-policy' ||
+    path === '/ai-transparency' ||
+    path === '/blog' ||
+    path.startsWith('/blog/') ||
+    path === '/map' ||
+    path.startsWith('/map/');
+
+  return isPublicPath ? PUBLIC_HTML_EDGE_CACHE_CONTROL : null;
+}
 
 /**
  * Fetches places and blog posts from the DB in parallel and stores them in the
