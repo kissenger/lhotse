@@ -236,10 +236,16 @@
   padding: 1.1rem 1rem 1rem;
 }
 
+.map-feature-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.02rem;
+}
+
 .panel-close {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  position: static;
   background: none;
   border: none;
   padding: 2px;
@@ -259,13 +265,14 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--sn-colour);
-  margin-bottom: 0.1rem;
+  margin: 0;
 }
 
 .map-feature-location {
   font-size: 0.85rem;
   color: #777;
-  margin-bottom: 0.25rem;
+  margin-top: 0;
+  margin-bottom: 0.2rem;
 }
 
 .map-feature-popover > h4 {

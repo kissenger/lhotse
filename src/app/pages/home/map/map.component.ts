@@ -152,7 +152,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get relatedCountySiteLinks(): Array<{ name: string; path: string }> {
     if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this.selectedFeature;
+    const selected = this._getSiteContextFeature();
     if (!selected) return [];
 
     const countySlug = getCountySlugFromLocation(selected.properties.location);
@@ -173,7 +173,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get relatedHabitatSiteLinks(): Array<{ name: string; path: string }> {
     if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this.selectedFeature;
+    const selected = this._getSiteContextFeature();
     if (!selected) return [];
 
     const selectedCategories: string[] = selected.properties.categories ?? [];
@@ -197,7 +197,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get relatedNearbySiteLinks(): Array<{ name: string; path: string; distanceLabel: string }> {
     if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this.selectedFeature;
+    const selected = this._getSiteContextFeature();
     if (!selected) return [];
 
     const currentName = selected.properties.name as string;
@@ -245,7 +245,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     if (this.routeLevel === 'site') {
-      return formatLabel(getUpdatedAtMs(this.selectedFeature));
+      return formatLabel(getUpdatedAtMs(this._getSiteContextFeature()));
     }
 
     const { country, county } = this._resolveParams();
@@ -332,6 +332,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
+    if (!this._isBrowser) {
+      // Avoid blocking SSR on API fetch/timeout; map data is loaded on the client.
+      this.loadingState = 'success';
+      this._cdr.detectChanges();
+      return;
+    }
   
     try {
       const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
@@ -537,10 +543,55 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _findFeatureIndex(siteSlug: string): number {
-    return this.geoJson.features.findIndex(
-      (f: any) => f.properties.featureType === 'Snorkelling Site'
-        && slugifyMapSegment(f.properties.name as string) === siteSlug
-    );
+    if (!this.geoJson?.features?.length) return -1;
+    const { country, county } = this._resolveParams();
+    return this._findFeatureIndexByRoute(siteSlug, country, county);
+  }
+
+  private _findFeatureIndexByRoute(siteSlug: string, country: string | null, county: string | null): number {
+    if (!this.geoJson?.features?.length) return -1;
+
+    const normalisedSite = normaliseSiteSegment(siteSlug);
+    if (!normalisedSite) return -1;
+
+    const normalisedCountry = normaliseCountrySegment(country);
+    const normalisedCounty = normaliseCountySegment(county);
+
+    return this.geoJson.features.findIndex((feature: any) => {
+      const props = feature?.properties ?? {};
+      if (slugifyMapSegment(props.name as string) !== normalisedSite) {
+        return false;
+      }
+
+      const featureCountry = getCountrySlugFromRegion(props.location?.region as string);
+      if (normalisedCountry && featureCountry !== normalisedCountry) {
+        return false;
+      }
+
+      if (normalisedCounty) {
+        const featureCounty = getCountySlugFromLocation(props.location);
+        if (featureCounty !== normalisedCounty) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  // Keep site-route content stable even when map selection is cleared.
+  private _getSiteContextFeature(): any | null {
+    if (!this.geoJson?.features || this.routeLevel !== 'site') return null;
+
+    const selected = this.selectedFeature;
+    if (selected) return selected;
+
+    const { site } = this._resolveParams();
+    if (!site) return null;
+
+    const { country, county } = this._resolveParams();
+    const idx = this._findFeatureIndexByRoute(site, country, county);
+    return idx >= 0 ? this.geoJson.features[idx] ?? null : null;
   }
 
   // Resolves path params first, then falls back to the legacy query-param scheme.

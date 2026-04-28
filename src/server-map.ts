@@ -230,6 +230,11 @@ function stripRouteMeta(place: any) {
 }
 
 async function getPlacesForSeo() {
+  const places = await getPlacesForSeoWithRouteMeta();
+  return places.map((place: any) => stripRouteMeta(place));
+}
+
+async function getPlacesForSeoWithRouteMeta() {
   const [sites, orgs] = await Promise.all([
     FeatureModel.find(
       { showOnMap: { $in: ['Production', 'Development'] } },
@@ -241,8 +246,8 @@ async function getPlacesForSeo() {
     ).lean(),
   ]);
 
-  const siteSchemas = sites.map((site: any) => stripRouteMeta(toSiteSeoPlace(site)));
-  const orgSchemas = orgs.map((org: any) => stripRouteMeta(toOrganisationSeoPlace(org)));
+  const siteSchemas = sites.map((site: any) => toSiteSeoPlace(site));
+  const orgSchemas = orgs.map((org: any) => toOrganisationSeoPlace(org));
 
   return [...siteSchemas, ...orgSchemas];
 }
@@ -300,15 +305,24 @@ async function getPlaceForSeo(siteName: string) {
 }
 
 async function getPlaceForSeoByRoute(countrySlug: string | null, countySlug: string | null, siteSlug: string) {
-  const sites = await FeatureModel.find(
-    {
-      showOnMap: { $in: ['Production', 'Development'] },
-      'properties.featureType': 'Snorkelling Site'
-    },
-    { location: 1, properties: 1 }
-  ).lean();
+  const [sites, orgs] = await Promise.all([
+    FeatureModel.find(
+      {
+        showOnMap: { $in: ['Production', 'Development'] },
+        'properties.featureType': 'Snorkelling Site'
+      },
+      { location: 1, properties: 1 }
+    ).lean(),
+    OrganisationModel.find(
+      { ...(await buildOrgFilter()), _id: { $exists: true } },
+      { discover: 1, favourite: 1, reverse_geo: 1 }
+    ).lean(),
+  ]);
 
-  const places = (sites as any[]).map((site: any) => toSiteSeoPlace(site));
+  const places = [
+    ...(sites as any[]).map((site: any) => toSiteSeoPlace(site)),
+    ...(orgs as any[]).map((org: any) => toOrganisationSeoPlace(org)),
+  ];
 
   const normalisedCountry = normaliseCountrySegment(countrySlug);
   const normalisedCounty = normaliseCountySegment(countySlug);
@@ -335,10 +349,16 @@ async function getPlaceForSeoByRoute(countrySlug: string | null, countySlug: str
 }
 
 async function getCountrySlugForCounty(countySlug: string) {
-  const sites = await FeatureModel.find(
-    { showOnMap: { $in: ['Production', 'Development'] } },
-    { 'properties.location': 1 }
-  ).lean();
+  const [sites, orgs] = await Promise.all([
+    FeatureModel.find(
+      { showOnMap: { $in: ['Production', 'Development'] } },
+      { 'properties.location': 1 }
+    ).lean(),
+    OrganisationModel.find(
+      { ...(await buildOrgFilter()), _id: { $exists: true } },
+      { reverse_geo: 1 }
+    ).lean(),
+  ]);
 
   const normalisedCounty = normaliseCountySegment(countySlug);
   for (const site of sites as any[]) {
@@ -353,10 +373,19 @@ async function getCountrySlugForCounty(countySlug: string) {
     }
   }
 
+  for (const org of orgs as any[]) {
+    const district = org.reverse_geo?.properties?.context?.district?.name as string | undefined;
+    if (!district) continue;
+    if (slugifyMapSegment(district) === normalisedCounty) {
+      const region = org.reverse_geo?.properties?.context?.region?.name as string | undefined;
+      return getCountrySlugFromRegion(region);
+    }
+  }
+
   return null;
 }
 
-export { map, getPlacesForSeo, getPlaceForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty };
+export { map, getPlacesForSeo, getPlacesForSeoWithRouteMeta, getPlaceForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty };
 
 map.get('/api/sites/get-provider-names/', async (_req, res) => {
   try {

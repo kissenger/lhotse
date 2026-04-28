@@ -1,4 +1,4 @@
-import { ApplicationConfig, Injectable } from '@angular/core';
+import { ApplicationConfig, Injectable, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withInMemoryScrolling, withRouterConfig, withPreloading, PreloadingStrategy, Route } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { routes } from './app.routes';
@@ -22,6 +22,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     AuthGuard,
     AdminSubdomainGuard,
+    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes, 
       withRouterConfig({onSameUrlNavigation: 'reload'}),
       withInMemoryScrolling({scrollPositionRestoration: 'disabled', anchorScrolling: 'disabled'}),

@@ -36,6 +36,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   public widthDescriptor?: string;
   private _subs: Subscription[] = [];
   private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
+  private _idleCallbackId?: number;
+  private _idleTimeoutId?: ReturnType<typeof setTimeout>;
   private static readonly _VISITED_COOKIE = 'sn_visited';
 
   readonly panelConfig: Record<string, { path: string }> = {
@@ -80,18 +82,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }, 500);
     }
 
-    this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
-      if (!this.hideAboutBookOverlay && isect.id !== 'home') {
-        this.hideAboutBookOverlay = true;
-        this._cdr.detectChanges();
-      }
-    }));
+    // Scrollspy is non-critical for first paint; initialize during idle.
+    this._scheduleNonCritical(() => {
+      this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
+        if (!this.hideAboutBookOverlay && isect.id !== 'home') {
+          this.hideAboutBookOverlay = true;
+          this._cdr.detectChanges();
+        }
+      }));
 
-    // Observe initial anchors and keep observing when deferred views render.
-    this._scrollSpy.observeChildren(this.anchors);
-    this._subs.push(this.anchors.changes.subscribe(() => {
+      // Observe initial anchors and keep observing when deferred views render.
       this._scrollSpy.observeChildren(this.anchors);
-    }));
+      this._subs.push(this.anchors.changes.subscribe(() => {
+        this._scrollSpy.observeChildren(this.anchors);
+      }));
+    });
 
     //watch for changes as querylist will change when deferred views are loaded
     this._subs.push(this.windows.changes.subscribe(() => {
@@ -106,6 +111,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }
     }));
 
+  }
+
+  private _scheduleNonCritical(task: () => void) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const requestIdle = window.requestIdleCallback?.bind(window);
+    if (requestIdle) {
+      this._idleCallbackId = requestIdle(() => {
+        this._idleCallbackId = undefined;
+        task();
+      }, { timeout: 1500 });
+      return;
+    }
+
+    this._idleTimeoutId = setTimeout(() => {
+      this._idleTimeoutId = undefined;
+      task();
+    }, 300);
   }
 
   private _observeWindows() {
@@ -160,6 +185,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this._subs.forEach((sub) => sub.unsubscribe());
     this._windowObserver?.disconnect();
+    if (this._idleCallbackId !== undefined && window.cancelIdleCallback) {
+      window.cancelIdleCallback(this._idleCallbackId);
+    }
+    if (this._idleTimeoutId) {
+      clearTimeout(this._idleTimeoutId);
+    }
     if (this._fragmentScrollTimer) {
       clearTimeout(this._fragmentScrollTimer);
     }

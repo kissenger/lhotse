@@ -234,11 +234,12 @@
 
             <article class="map-feature-popover">
 
-              <button class="panel-close" (click)="closePanel()" aria-label="Close">
-                <app-svg-close-icon theme="darkOnLight"></app-svg-close-icon>
-              </button>
-
-              <p class="map-feature-type">{{feature.featureType}}</p>
+              <div class="map-feature-header">
+                <p class="map-feature-type">{{feature.featureType}}</p>
+                <button class="panel-close" (click)="closePanel()" aria-label="Close">
+                  <app-svg-close-icon theme="darkOnLight"></app-svg-close-icon>
+                </button>
+              </div>
               <p class="map-feature-location">{{feature.location.locality ?? feature.location.place}}@if (feature.location.district){, {{feature.location.district}}}</p>
               <h3>{{feature.name}}</h3>
 

@@ -10,7 +10,7 @@ import FeatureModel from '../schema/feature';
 import { shop } from './server-shop';
 import { auth, verifyToken } from './server-auth';
 import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
-import { getPlacesForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty, map } from './server-map';
+import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
@@ -34,9 +34,18 @@ let mongooseConnectPromise: Promise<void> | null = null;
  */
 interface SeoCache {
   places: any[];
+  routePlaces: any[];
   posts: any[];
 }
 let seoCache: SeoCache | null = null;
+let seoCacheRefreshPromise: Promise<void> | null = null;
+
+function scheduleSeoCacheRefresh(): void {
+  if (seoCacheRefreshPromise) return;
+  seoCacheRefreshPromise = refreshSeoCache().finally(() => {
+    seoCacheRefreshPromise = null;
+  });
+}
 
 /**
  * Admin subdomain handling:
@@ -172,6 +181,8 @@ app.use(async (req, res, next) => {
     return;
   }
 
+  const { routePlaces } = await getSeoCache();
+
   const segments = req.path.split('/').filter(Boolean).slice(1);
   if (segments.length === 0) {
     next();
@@ -217,7 +228,13 @@ app.use(async (req, res, next) => {
     return;
   }
 
-  const countyCountry = await getCountrySlugForCounty(county).catch(() => null);
+  // If cache is not ready yet, don't block first render with strict validation.
+  if (!routePlaces.length) {
+    next();
+    return;
+  }
+
+  const countyCountry = routePlaces.find((place: any) => place.countySlug === county)?.countrySlug ?? null;
   if (!countyCountry || countyCountry !== country) {
     res.status(404).send('Not found');
     return;
@@ -239,7 +256,7 @@ app.use(async (req, res, next) => {
     return;
   }
 
-  const place = await getPlaceForSeoByRoute(country, county, siteSlug).catch(() => null);
+  const place = findPlaceByRoute(routePlaces, country, county, siteSlug);
   if (!place?.path) {
     res.status(404).send('Not found');
     return;
@@ -298,13 +315,17 @@ export const reqHandler = createNodeRequestHandler(app);
  * @returns 
  */
 async function startServer() {
-  await ensureMongooseConnected();
-  await refreshSeoCache();
-
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
   app.listen(PORT, () => {
     console.log(`Node Express server listening on port ${PORT}`);
   });
+
+  // Warm dependencies in the background so startup does not block requests.
+  void ensureMongooseConnected()
+    .then(() => refreshSeoCache())
+    .catch((error) => {
+      console.error('Background startup warmup failed:', error);
+    });
 }
 
 function wait(ms: number) {
@@ -379,11 +400,12 @@ const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter 
 async function refreshSeoCache(): Promise<void> {
   if (SKIP_SEO_DB_LOOKUPS) return;
   try {
-    const [places, posts] = await Promise.all([
+    const [places, routePlaces, posts] = await Promise.all([
       getPlacesForSeo().catch((err) => { console.error('SEO cache: getPlacesForSeo failed', err); return []; }),
+      getPlacesForSeoWithRouteMeta().catch((err) => { console.error('SEO cache: getPlacesForSeoWithRouteMeta failed', err); return []; }),
       getPublishedPostsForSeo().catch((err) => { console.error('SEO cache: getPublishedPostsForSeo failed', err); return []; })
     ]);
-    seoCache = { places, posts };
+    seoCache = { places, routePlaces, posts };
     console.log(`SEO cache refreshed: ${places.length} places, ${posts.length} posts`);
   } catch (err) {
     console.error('SEO cache refresh failed:', err);
@@ -397,8 +419,38 @@ async function refreshSeoCache(): Promise<void> {
  */
 async function getSeoCache(): Promise<SeoCache> {
   if (seoCache) return seoCache;
-  await refreshSeoCache();
-  return seoCache ?? { places: [], posts: [] };
+  scheduleSeoCacheRefresh();
+  return { places: [], routePlaces: [], posts: [] };
+}
+
+function findPlaceByRoute(
+  places: any[],
+  countrySlug: string | null,
+  countySlug: string | null,
+  siteSlug: string
+): any | null {
+  const normalisedCountry = normaliseCountrySegment(countrySlug);
+  const normalisedCounty = normaliseCountySegment(countySlug);
+  const normalisedSite = normaliseSiteSegment(siteSlug);
+
+  const exactMatch = places.find((place: any) => {
+    if (place.siteSlug !== normalisedSite) {
+      return false;
+    }
+    if (normalisedCounty && place.countySlug && place.countySlug !== normalisedCounty) {
+      return false;
+    }
+    if (normalisedCountry && place.countrySlug !== normalisedCountry) {
+      return false;
+    }
+    return true;
+  });
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return places.find((place: any) => place.siteSlug === normalisedSite) ?? null;
 }
 
 async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string) {
@@ -749,7 +801,8 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
 }
 
 async function getSiteSeoPayload(country: string | null, county: string | null, siteSlug: string): Promise<SeoPayload | null> {
-  const place = await getPlaceForSeoByRoute(country, county, siteSlug).catch(() => null);
+  const { routePlaces } = await getSeoCache();
+  const place = findPlaceByRoute(routePlaces, country, county, siteSlug);
   if (!place) return null;
 
   const siteName = place.name as string;
@@ -944,7 +997,7 @@ function buildMapCollectionSchemas(options: {
 }
 
 async function getCountyMapSeoPayload(country: string, county: string): Promise<SeoPayload> {
-  const canonicalCountry = await getCountrySlugForCounty(county).catch(() => null) ?? country;
+  const canonicalCountry = (await getSeoCache()).routePlaces.find((place: any) => place.countySlug === county)?.countrySlug ?? country;
   const displayName = getCountyDisplayName(county);
   const countryDisplayName = MAP_COUNTRY_DISPLAY_NAMES[canonicalCountry] ?? toTitleCase(canonicalCountry);
   const countryPath = buildMapPath({ country: canonicalCountry });
