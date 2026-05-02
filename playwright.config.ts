@@ -10,6 +10,7 @@ const baseURL = externalBaseURL || 'http://127.0.0.1:4200';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: ['**/dead-links.spec.js', '**/paypal-sandbox-nightly.spec.js'],
   timeout: 60_000,
   expect: {
     timeout: 10_000

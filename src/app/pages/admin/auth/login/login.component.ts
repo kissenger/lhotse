@@ -36,7 +36,6 @@ export class LoginComponent {
       const redirect = (rawRedirect?.startsWith('/') && !rawRedirect.startsWith('//')) ? rawRedirect : '/dashboard';
       this._router.navigateByUrl(redirect);
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(<string>error?.error?.message || 'Login failed', 'error');
     } finally {
       document.body.style.cursor = 'auto';

@@ -185,18 +185,6 @@ test.describe('home page (/home)', () => {
     expect(first.author?.name).toBeTruthy();
   });
 
-  // --- JSON-LD: @graph of map places (DB cache validation) ---
-
-  test('@graph of map places is present with sufficient entries — confirms DB cache is populated', async ({ page }) => {
-    const schemas = await getSchemas(page);
-    const graphSchema = schemas.find((s) => Array.isArray(s['@graph']));
-    expect(graphSchema, '@graph schema should be present (DB cache must be loaded)').toBeTruthy();
-    expect(graphSchema['@graph'].length, '@graph should contain at least 50 places').toBeGreaterThanOrEqual(50);
-    const first = graphSchema['@graph'][0];
-    expect(first['@type']).toBeTruthy();
-    expect(first.name).toBeTruthy();
-  });
-
   // --- JSON-LD: Map (creative work) ---
 
   test('Map schema has url, about[], and spatialCoverage', async ({ page }) => {

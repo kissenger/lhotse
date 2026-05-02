@@ -57,7 +57,6 @@ export class BlogEditorComponent implements OnInit {
       const result = await this._http.getAllPosts();
       this.refreshPostList(result);
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(error?.error?.message || 'Could not load posts', 'error');
     }
   }
@@ -212,7 +211,6 @@ export class BlogEditorComponent implements OnInit {
       this.isDirty = false;
       this._toaster.show('Post saved successfully.', 'success');
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(error?.error?.message || 'Could not save post', 'error');
     }
   }
@@ -229,7 +227,6 @@ export class BlogEditorComponent implements OnInit {
         this.isDirty = false;
         this._toaster.show('Post deleted.', 'success');
       } catch (error: any) {
-        console.error(error);
         this._toaster.show(error?.error?.message || 'Could not delete post', 'error');
       }
    }

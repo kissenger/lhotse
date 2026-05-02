@@ -148,7 +148,6 @@ app.post('/api/refresh-seo-cache', async (req, res) => {
     await refreshSeoCache();
     res.status(200).json({ ok: true, places: seoCache?.places.length ?? 0, posts: seoCache?.posts.length ?? 0 });
   } catch (err) {
-    console.error('POST /api/refresh-seo-cache failed:', err);
     res.status(500).json({ error: 'Cache refresh failed' });
   }
 })
@@ -328,17 +327,8 @@ app.use(async (req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-  const requestStartNs = process.hrtime.bigint();
-  const shouldLogBlogPerf = req.method === 'GET'
-    && req.path.startsWith('/blog')
-    && (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-
-  const toMs = (startNs: bigint, endNs: bigint): number => Number(endNs - startNs) / 1_000_000;
-
   try {
-    const handleStartNs = process.hrtime.bigint();
     const response = await angularApp.handle(req);
-    const handleEndNs = process.hrtime.bigint();
 
     if (!response) {
       if (req.method === 'GET' && !req.path.startsWith('/api/')) {
@@ -356,13 +346,9 @@ app.use(async (req, res, next) => {
     const contentType = response.headers.get('content-type') || '';
 
     if (req.method === 'GET' && contentType.includes('text/html')) {
-      const readHtmlStartNs = process.hrtime.bigint();
       const html = await response.text();
-      const readHtmlEndNs = process.hrtime.bigint();
 
-      const seoStartNs = process.hrtime.bigint();
       const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
-      const seoEndNs = process.hrtime.bigint();
 
       const headers = new Headers(response.headers);
       const cacheControl = getPublicHtmlCacheControl(req);
@@ -377,33 +363,13 @@ app.use(async (req, res, next) => {
         headers
       });
 
-      const writeStartNs = process.hrtime.bigint();
       await writeResponseToNodeResponse(rewritten, res);
-      const writeEndNs = process.hrtime.bigint();
 
-      if (shouldLogBlogPerf) {
-        console.log(
-          `[SSR PERF] ${req.path} total=${toMs(requestStartNs, writeEndNs).toFixed(1)}ms ` +
-          `handle=${toMs(handleStartNs, handleEndNs).toFixed(1)}ms ` +
-          `readHtml=${toMs(readHtmlStartNs, readHtmlEndNs).toFixed(1)}ms ` +
-          `seoInject=${toMs(seoStartNs, seoEndNs).toFixed(1)}ms ` +
-          `write=${toMs(writeStartNs, writeEndNs).toFixed(1)}ms`
-        );
-      }
       return;
     }
 
-    const writeStartNs = process.hrtime.bigint();
     await writeResponseToNodeResponse(response, res);
-    const writeEndNs = process.hrtime.bigint();
 
-    if (shouldLogBlogPerf) {
-      console.log(
-        `[SSR PERF] ${req.path} total=${toMs(requestStartNs, writeEndNs).toFixed(1)}ms ` +
-        `handle=${toMs(handleStartNs, handleEndNs).toFixed(1)}ms ` +
-        `write=${toMs(writeStartNs, writeEndNs).toFixed(1)}ms`
-      );
-    }
   } catch (error) {
     next(error);
   }
@@ -424,16 +390,12 @@ export const reqHandler = createNodeRequestHandler(app);
  */
 async function startServer() {
   const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
-  app.listen(PORT, () => {
-    console.log(`Node Express server listening on port ${PORT}`);
-  });
+  app.listen(PORT);
 
   // Warm dependencies in the background so startup does not block requests.
   void ensureMongooseConnected()
     .then(() => refreshSeoCache())
-    .catch((error) => {
-      console.error('Background startup warmup failed:', error);
-    });
+    .catch(() => {});
 }
 
 function wait(ms: number) {
@@ -467,9 +429,7 @@ async function connectToMongoose()  {
     try {
       await mongoose.connect(MONGO_URI);
       return;
-    } catch (error) {
-      console.error('Mongoose failed to connect, retrying in 5000ms...');
-      console.error(error);
+    } catch {
       await wait(5000);
     }
   }
@@ -534,14 +494,12 @@ async function refreshSeoCache(): Promise<void> {
   if (SKIP_SEO_DB_LOOKUPS) return;
   try {
     const [places, routePlaces, posts] = await Promise.all([
-      getPlacesForSeo().catch((err) => { console.error('SEO cache: getPlacesForSeo failed', err); return []; }),
-      getPlacesForSeoWithRouteMeta().catch((err) => { console.error('SEO cache: getPlacesForSeoWithRouteMeta failed', err); return []; }),
-      getPublishedPostsForSeo().catch((err) => { console.error('SEO cache: getPublishedPostsForSeo failed', err); return []; })
+      getPlacesForSeo().catch(() => []),
+      getPlacesForSeoWithRouteMeta().catch(() => []),
+      getPublishedPostsForSeo().catch(() => [])
     ]);
     seoCache = { places, routePlaces, posts };
-    console.log(`SEO cache refreshed: ${places.length} places, ${posts.length} posts`);
-  } catch (err) {
-    console.error('SEO cache refresh failed:', err);
+  } catch {
   }
 }
 
@@ -586,10 +544,14 @@ function findPlaceByRoute(
   return places.find((place: any) => place.siteSlug === normalisedSite) ?? null;
 }
 
+function stripCanonicalTag(html: string): string {
+  return html.replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi, '');
+}
+
 async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string) {
   const payload = await getSeoPayload(pathname, query);
   if (!payload) {
-    return html;
+    return stripCanonicalTag(html);
   }
 
   return injectSeoPayloadIntoHtml(html, payload, SITE_URL);

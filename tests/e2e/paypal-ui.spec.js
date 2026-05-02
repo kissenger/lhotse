@@ -52,18 +52,23 @@ test('checkout UI triggers create and capture API calls', async ({ page }) => {
 
   await page.goto('/home#buy-now');
 
-  const closeOverlay = page.locator('.about-book .close-icon');
-  if (await closeOverlay.isVisible().catch(() => false)) {
-    await closeOverlay.evaluate((el) => el.click()).catch(() => {});
-  }
+  // Dismiss overlay unconditionally (force bypasses opacity/pointer-events state).
+  // The overlay starts opacity:0 so isVisible() can race with image load on WebKit.
+  await page.locator('.about-book .close-icon').click({ force: true, timeout: 3_000 }).catch(() => {});
+  // Wait for Angular to remove the overlay from the DOM before proceeding.
+  await page.locator('.about-book').waitFor({ state: 'detached', timeout: 5_000 }).catch(() => {});
 
   // Wait for the shop product grid to render (it's in a @defer block).
   await page.locator('.product-grid').waitFor({ state: 'visible', timeout: 15_000 });
 
   // Add an item to the basket so the order summary and PayPal button are rendered.
+  // Use force:true so any residual fixed overlay cannot intercept the click.
   const addBtn = page.locator('.add-btn').first();
   await addBtn.scrollIntoViewIfNeeded();
-  await addBtn.click();
+  await addBtn.click({ force: true });
+
+  // Wait for Angular to update basket state (qty-selector appears when qty > 0).
+  await page.locator('.qty-selector').first().waitFor({ state: 'visible', timeout: 5_000 });
 
   await expect(page.locator('#paypal-button-container')).toBeVisible({ timeout: 10_000 });
 

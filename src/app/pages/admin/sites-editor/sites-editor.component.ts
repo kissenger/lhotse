@@ -241,7 +241,6 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       const result = await this._http.getAllSitesAdmin();
       this.refreshSiteList(result);
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(error?.error?.message || 'Failed to load sites', 'error');
     }
   }
@@ -555,7 +554,6 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       }
       this._toaster.show('Site saved successfully.', 'success');
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(error?.error?.message || 'Save failed', 'error');
     }
   }
@@ -592,7 +590,6 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       this.refreshSiteList(result);
       this._toaster.show('Site deleted.', 'success');
     } catch (error: any) {
-      console.error(error);
       this._toaster.show(error?.error?.message || 'Delete failed', 'error');
     }
   }

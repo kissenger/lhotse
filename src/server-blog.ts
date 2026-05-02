@@ -51,7 +51,6 @@ blog.get('/api/blog/get-all-posts/', verifyToken, async (_req, res) => {
       .lean();
     res.status(201).json(result);
   } catch (error: any) { 
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -64,7 +63,6 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
     };
     res.status(201).json(result); 
   } catch (error: any) { 
-    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -78,7 +76,6 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
 
       res.status(200).json(result);
     } catch (error: any) {
-      console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -92,7 +89,6 @@ blog.get('/api/blog/get-published-posts/', async (_req, res) => {
     const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"}).lean();
     res.status(201).json(result);
   } catch (error: any) { 
-    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -212,7 +208,6 @@ blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
     const result = await BlogModel.find({});
     res.status(201).json(result);
   } catch (error: any) {
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -241,7 +236,6 @@ blog.post('/api/blog/backfill-published-at/', verifyToken, async (_req, res) => 
     );
     res.status(200).json({ updated: result.modifiedCount });
   } catch (error: any) {
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -405,7 +399,6 @@ blog.post('/api/blog/get-likes', async (req, res) => {
     }
     res.json(likesMap);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to fetch likes' });
   }
 });
@@ -445,7 +438,6 @@ blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
 
     res.json({ likes: post.likes, alreadyLiked: false });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to like post' });
   }
 });

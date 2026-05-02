@@ -119,7 +119,6 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
               that.toaster.show('Payment successful, thank you for your order.', 'success');
               return;
             } catch (err: any) {
-              console.error(err);
               const issue = err?.error?.error || err?.error?.details?.[0]?.issue;
               if (issue === 'INSTRUMENT_DECLINED') {
                 that.toaster.show('Your payment was declined by PayPal — please try a different card or payment method.', 'warning');

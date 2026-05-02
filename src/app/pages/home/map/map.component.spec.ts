@@ -9,22 +9,22 @@ import { Location } from '@angular/common';
 const SITE_A = {
   type: 'Feature', id: 0,
   geometry: { coordinates: [0, 51] },
-  properties: { name: 'Site A', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Kent' } }
+  properties: { name: 'Site A', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Kent', region: 'England' } }
 };
 const SITE_B = {
   type: 'Feature', id: 1,
   geometry: { coordinates: [0.05, 51.03] }, // ~4.8 km from Site A
-  properties: { name: 'Site B', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Kent' } }
+  properties: { name: 'Site B', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Kent', region: 'England' } }
 };
 const SITE_C = {
   type: 'Feature', id: 2,
   geometry: { coordinates: [2, 53] }, // ~261 km from Site A
-  properties: { name: 'Site C', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Yorkshire' } }
+  properties: { name: 'Site C', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Yorkshire', region: 'England' } }
 };
 const PROVIDER_KENT = {
   type: 'Feature', id: 3,
   geometry: { coordinates: [0.02, 51.01] }, // ~1.8 km from Site A
-  properties: { name: 'Provider Kent', featureType: 'Organisation', categories: [], location: { adminLevel3: 'Kent' } }
+  properties: { name: 'Provider Kent', featureType: 'Organisation', categories: [], location: { adminLevel3: 'Kent', region: 'England' } }
 };
 
 const ALL_FEATURES = [SITE_A, SITE_B, SITE_C, PROVIDER_KENT];
@@ -134,7 +134,7 @@ describe('MapComponent', () => {
     const scilly = {
       type: 'Feature', id: 4,
       geometry: { coordinates: [-6.3, 49.9] },
-      properties: { name: 'Scilly Site', featureType: 'Snorkelling Site', categories: [], location: { county: 'Cornwall', adminLevel3: 'Isles of Scilly' } }
+      properties: { name: 'Scilly Site', featureType: 'Snorkelling Site', categories: [], location: { county: 'Cornwall', adminLevel3: 'Isles of Scilly', region: 'England' } }
     };
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'cornwall' }, {}, [...ALL_FEATURES, scilly]);
     await comp.ngAfterViewInit();

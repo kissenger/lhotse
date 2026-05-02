@@ -54,7 +54,6 @@ export class OrdersComponent {
       await this._http.deactivateOrder(orderNumber);
     } catch (error) {
       this.orders = originalOrders;
-      console.error(error);
       this._toaster.show('Failed to delete order', 'error');
     }
   }
@@ -80,7 +79,6 @@ export class OrdersComponent {
       this.orders = os.filter((o: OrderSummary) => !!o.orderNumber);
       this.cdr.markForCheck();
     } catch (error) {
-      console.error(error);
       this._toaster.show('Failed to load orders', 'error');
     } finally {
       document.body.style.cursor = 'auto';
@@ -119,7 +117,6 @@ export class OrdersComponent {
       if (order && originalTimestamps !== undefined) {
         order.timeStamps = originalTimestamps;
       }
-      console.error(error);
       this._toaster.show('Failed to update order status', 'error');
     }
   }
@@ -137,7 +134,6 @@ export class OrdersComponent {
       if (order && originalTimestamps !== undefined) {
         order.timeStamps = originalTimestamps;
       }
-      console.error(error);
       this._toaster.show('Failed to update order status', 'error');
     }
   }
@@ -166,7 +162,6 @@ export class OrdersComponent {
       if (order) {
         order.notes = originalNotes;
       }
-      console.error(error);
       this._toaster.show('Failed to add note', 'error');
     }
   }
@@ -183,7 +178,6 @@ export class OrdersComponent {
       if (order && originalTimestamps !== undefined) {
         order.timeStamps = originalTimestamps;
       }
-      console.error(error);
       this._toaster.show('Failed to send posted email', 'error');
     }
   }

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" [attr.height]="height" role="img" [attr.aria-label]="alt">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" [attr.height]="height" [attr.role]="alt ? 'img' : null" [attr.aria-label]="alt || null" [attr.aria-hidden]="alt ? null : 'true'">
   @if (alt) { <title>{{alt}}</title> }
   <!-- <g transform="matrix(1.11655 0 0 -1.11655 -136.953 433.606)">
     <path [attr.stroke]="strokeColour" stroke-width="30" d="M0 0c8.134 0 14.73 6.596 14.73 14.73v237.434c0 8.137-6.596 14.731-14.73 14.731h-237.433c-8.137 0-14.73-6.594-14.73-14.731V14.73c0-8.134 6.593-14.73 14.73-14.73z"  transform="translate(375.716 120.553)"/>

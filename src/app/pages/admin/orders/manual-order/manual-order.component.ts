@@ -76,7 +76,6 @@ export class ManualOrderComponent  {
       orderSummary.orderNumber = this._orderNumber;
       await this._http.upsertManualOrder(orderSummary);
     } catch (error) {
-      console.error(error);
     }
     this._router.navigateByUrl(`/orders`); 
   }
@@ -87,7 +86,6 @@ export class ManualOrderComponent  {
       this.shop.user.setDetails = order.user;
       this.cdr.markForCheck();
     } catch (error) {
-      console.error(error);
     }
   }
 
@@ -97,7 +95,6 @@ export class ManualOrderComponent  {
       this.orders = os.filter((o: OrderSummary) => !!o.orderNumber);
       this.cdr.markForCheck();
     } catch (error) {
-      console.error(error);
     }
   }
 

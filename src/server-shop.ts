@@ -84,7 +84,6 @@ shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _
 
     const json = await result.json();
     if (!result.ok || Array.isArray(json.details)) {
-      console.error('PayPal create order failed:', JSON.stringify(json));
       throw json;
     } else {
       const resp = await logShopEvent( orderNumber, 
@@ -194,7 +193,6 @@ shop.post('/api/shop/capture-paypal-payment', checkoutRateLimit, async (req, res
         await sendEmail(payerEmail, emailBody, 'Thank you for ordering from Snorkelology');
       }
     } catch (emailErr) {
-      console.error('Confirmation email failed (payment was captured successfully):', emailErr);
     }
 
   } catch (err: any) {
@@ -294,7 +292,6 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken
     }
     
   } catch (error: any) { 
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -430,7 +427,6 @@ async function getOrderSummary(orderNumber: string) {
     const order = await ShopModel.findOne({orderNumber}, {'orderSummary': 1});
     return order?.orderSummary;
   } catch (error: any) {
-    console.error(error);
     return error;
   }
 }
@@ -481,7 +477,6 @@ async function setOrderSummary(orderNumber: string) {
 
     return newOrder.orderSummary;
   } catch (error) {
-    console.error(error);
     const fallbackOrder = await ShopModel.findOne({orderNumber}, {'orderSummary': 1});
     return fallbackOrder?.orderSummary ?? { orderNumber };
   }
@@ -509,7 +504,6 @@ export async function logShopError(orderNumber: string | null, error: Object) {
       }
     });
   } catch (logError) {
-    console.error('Failed to persist shop error to database', logError);
   }
 }
 
@@ -537,7 +531,6 @@ async function getAccessToken() {
   }
 
   if (json.error) {
-    console.error(`PayPal oauth error: ${json.error} - ${json.error_description}`);
     throw new ShopError(`PayPal oauth API: Authorisation failed (${json.error}: ${json.error_description})`);
   }
   
@@ -560,7 +553,6 @@ function sendEmail(to: string, html: string, subject: string) {
   transporter.sendMail(message)
     .then((_info) => {
     }).catch((err) => {
-      console.error(`sendMail error: ${err}`);
     }
   );
 }

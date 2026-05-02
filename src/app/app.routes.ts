@@ -11,6 +11,8 @@ const loadMapPage = () => import('@pages/home/map/map-page.component').then((m) 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
+  { path: 'blog', loadComponent: () =>
+    import('@pages/home/blog/blog.component').then((m) => m.BlogComponent)},
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
   { path: 'map', loadComponent: loadMapPage },

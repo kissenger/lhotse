@@ -120,7 +120,6 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
       .filter(Boolean);
     res.status(201).json({ type: 'FeatureCollection', features: [...siteFeatures, ...orgFeatures] });
   } catch (error: any) {
-    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -409,7 +408,6 @@ map.get('/api/sites/get-provider-names/', async (_req, res) => {
       }));
     res.status(200).json(result);
   } catch (error: any) {
-    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -438,7 +436,6 @@ map.get('/api/sites/get-districts/', async (_req, res) => {
     ).values()].sort((a, b) => a.path.localeCompare(b.path));
     res.status(200).json(districts);
   } catch (error: any) {
-    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -450,7 +447,6 @@ map.get('/api/sites/get-all-sites-admin/', verifyToken, async (_req, res) => {
     const sites = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(200).json(sites);
   } catch (error: any) {
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -476,7 +472,6 @@ map.post('/api/sites/upsert-site/', verifyToken, async (req, res) => {
     const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(201).json(result);
   } catch (error: any) {
-    console.error(error);
     res.status(500).send(error);
   }
 });
@@ -487,7 +482,6 @@ map.get('/api/sites/delete-site/:_id', verifyToken, async (req, res) => {
     const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(201).json(result);
   } catch (error: any) {
-    console.error(error);
     res.status(500).send(error);
   }
 });

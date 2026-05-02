@@ -34,7 +34,7 @@ function stageFilter(collection: string): Record<string, unknown> {
 */
 organisations.get('/api/organisations/settings', verifyToken, async (_req, res) => {
   try { res.json(await readOrgSettings()); }
-  catch (err) { console.error(err); res.status(500).json({ error: 'Failed to read settings' }); }
+  catch { res.status(500).json({ error: 'Failed to read settings' }); }
 });
 
 organisations.post('/api/organisations/settings', verifyToken, async (req, res) => {
@@ -48,7 +48,6 @@ organisations.post('/api/organisations/settings', verifyToken, async (req, res) 
     );
     res.json({ scoringThreshold: t });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to save settings' });
   }
 });
@@ -128,7 +127,6 @@ organisations.get('/api/organisations/:collection', verifyToken, async (req, res
 
     res.json({ docs, total });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to list documents' });
   }
 });
@@ -145,7 +143,6 @@ organisations.get('/api/organisations/:collection/:id', verifyToken, async (req,
     if (!doc) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(doc);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to fetch document' });
   }
 });
@@ -163,7 +160,6 @@ organisations.post('/api/organisations/:collection/:id', verifyToken, async (req
     if (!doc) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(doc);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to update document' });
   }
 });
@@ -180,7 +176,6 @@ organisations.delete('/api/organisations/:collection/:id', verifyToken, async (r
     if (!doc) { res.status(404).json({ error: 'Not found' }); return; }
     res.json({ ok: true });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to delete document' });
   }
 });
