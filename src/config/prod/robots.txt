@@ -1,6 +1,8 @@
 # Allow all URLs except backend and admin routes (see https://www.robotstxt.org/robotstxt.html)
 User-agent: *
 Disallow: /api/
+Allow: /api/blog/get-post-by-slug/
+Allow: /api/blog/get-last-and-next-slugs/
 Disallow: /login
 Disallow: /dashboard
 Disallow: /orders

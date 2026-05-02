@@ -175,6 +175,63 @@ app.use(organisations);
 
 app.use(express.static(browserDistFolder, {maxAge: '1y',index: false,redirect: false,}),);
 
+const BLOG_SLUG_REDIRECTS: Record<string, string> = {
+  'snorkelling-ipo': 'snorkelling-and-ipo',
+};
+
+app.use(async (req, res, next) => {
+  if (req.method !== 'GET' || !req.path.startsWith('/blog/')) {
+    next();
+    return;
+  }
+
+  const segments = req.path.split('/').filter(Boolean);
+  if (segments.length !== 2) {
+    next();
+    return;
+  }
+
+  const slug = decodeURIComponent(segments[1] ?? '').trim().toLowerCase();
+  if (!slug) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  const redirectSlug = BLOG_SLUG_REDIRECTS[slug];
+  if (redirectSlug) {
+    const passthrough = new URLSearchParams();
+    for (const [key, value] of Object.entries(req.query)) {
+      if (typeof value === 'string') {
+        passthrough.set(key, value);
+      }
+    }
+    const query = passthrough.toString();
+    const canonicalPath = `/blog/${encodeURIComponent(redirectSlug)}`;
+    res.redirect(301, query ? `${canonicalPath}?${query}` : canonicalPath);
+    return;
+  }
+
+  if (SKIP_SEO_DB_LOOKUPS) {
+    next();
+    return;
+  }
+
+  const { posts } = await getSeoCache();
+  const cacheMatch = posts.some((post: any) => typeof post.slug === 'string' && post.slug === slug);
+  if (cacheMatch) {
+    next();
+    return;
+  }
+
+  const post = await getPublishedPostBySlugForSeo(slug).catch(() => null);
+  if (!post) {
+    res.status(404).send('Not found');
+    return;
+  }
+
+  next();
+});
+
 app.use(async (req, res, next) => {
   if (req.method !== 'GET' || !req.path.startsWith('/map/')) {
     next();
@@ -284,6 +341,14 @@ app.use(async (req, res, next) => {
     const handleEndNs = process.hrtime.bigint();
 
     if (!response) {
+      if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+        res.sendFile(resolve(browserDistFolder, 'index.csr.html'), (err) => {
+          if (err) {
+            next(err);
+          }
+        });
+        return;
+      }
       next();
       return;
     }

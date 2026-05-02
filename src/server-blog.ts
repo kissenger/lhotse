@@ -13,6 +13,12 @@ import 'dotenv/config';
 
 const blog = express();
 
+// Blog API endpoints are machine-readable responses and should never appear in search results.
+blog.use('/api/blog', (_req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  next();
+});
+
 function isLocalRequest(req: express.Request): boolean {
   const host = (req.hostname || '').toLowerCase();
   return host === 'localhost' || host === '127.0.0.1' || host === '::1';
