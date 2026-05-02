@@ -83,7 +83,7 @@ app.use((_req, res, next) => {
       "default-src 'self'",
       "base-uri 'self'",
       "frame-ancestors 'self'",
-      "script-src 'self' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
+      "script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://api.mapbox.com",
@@ -270,39 +270,78 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  angularApp.handle(req)
-    .then(async (response) => {
-      if (!response) {
-        next();
-        return;
+app.use(async (req, res, next) => {
+  const requestStartNs = process.hrtime.bigint();
+  const shouldLogBlogPerf = req.method === 'GET'
+    && req.path.startsWith('/blog')
+    && (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
+
+  const toMs = (startNs: bigint, endNs: bigint): number => Number(endNs - startNs) / 1_000_000;
+
+  try {
+    const handleStartNs = process.hrtime.bigint();
+    const response = await angularApp.handle(req);
+    const handleEndNs = process.hrtime.bigint();
+
+    if (!response) {
+      next();
+      return;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+
+    if (req.method === 'GET' && contentType.includes('text/html')) {
+      const readHtmlStartNs = process.hrtime.bigint();
+      const html = await response.text();
+      const readHtmlEndNs = process.hrtime.bigint();
+
+      const seoStartNs = process.hrtime.bigint();
+      const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
+      const seoEndNs = process.hrtime.bigint();
+
+      const headers = new Headers(response.headers);
+      const cacheControl = getPublicHtmlCacheControl(req);
+      if (cacheControl) {
+        headers.set('cache-control', cacheControl);
       }
+      headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
 
-      const contentType = response.headers.get('content-type') || '';
+      const rewritten = new Response(withSeo, {
+        status: response.status,
+        statusText: response.statusText,
+        headers
+      });
 
-      if (req.method === 'GET' && contentType.includes('text/html')) {
-        const html = await response.text();
-        const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
-        const headers = new Headers(response.headers);
-        const cacheControl = getPublicHtmlCacheControl(req);
-        if (cacheControl) {
-          headers.set('cache-control', cacheControl);
-        }
-        headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
+      const writeStartNs = process.hrtime.bigint();
+      await writeResponseToNodeResponse(rewritten, res);
+      const writeEndNs = process.hrtime.bigint();
 
-        const rewritten = new Response(withSeo, {
-          status: response.status,
-          statusText: response.statusText,
-          headers
-        });
-
-        writeResponseToNodeResponse(rewritten, res);
-        return;
+      if (shouldLogBlogPerf) {
+        console.log(
+          `[SSR PERF] ${req.path} total=${toMs(requestStartNs, writeEndNs).toFixed(1)}ms ` +
+          `handle=${toMs(handleStartNs, handleEndNs).toFixed(1)}ms ` +
+          `readHtml=${toMs(readHtmlStartNs, readHtmlEndNs).toFixed(1)}ms ` +
+          `seoInject=${toMs(seoStartNs, seoEndNs).toFixed(1)}ms ` +
+          `write=${toMs(writeStartNs, writeEndNs).toFixed(1)}ms`
+        );
       }
+      return;
+    }
 
-      writeResponseToNodeResponse(response, res);
-    })
-    .catch(next);
+    const writeStartNs = process.hrtime.bigint();
+    await writeResponseToNodeResponse(response, res);
+    const writeEndNs = process.hrtime.bigint();
+
+    if (shouldLogBlogPerf) {
+      console.log(
+        `[SSR PERF] ${req.path} total=${toMs(requestStartNs, writeEndNs).toFixed(1)}ms ` +
+        `handle=${toMs(handleStartNs, handleEndNs).toFixed(1)}ms ` +
+        `write=${toMs(writeStartNs, writeEndNs).toFixed(1)}ms`
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Only run side effects (DB connection and listening on a port)

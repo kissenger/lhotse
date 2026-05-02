@@ -36,6 +36,11 @@ blogSchema.pre(/^find/, function (this: any, next) {
   next();
 });
 
+// Support hot read paths used by blog page SSR/API lookups.
+blogSchema.index({ slug: 1 });
+blogSchema.index({ slug: 1, publishedAt: 1 });
+blogSchema.index({ publishedAt: -1, createdAt: -1 });
+
 const BlogModel = model('post', blogSchema);
 
 export default BlogModel; 

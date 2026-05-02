@@ -41,7 +41,8 @@ blog.get('/api/blog/get-all-posts/', verifyToken, async (_req, res) => {
   try {
     const result = await BlogModel
       .find({})
-      .sort({"createdAt": "descending"});
+      .sort({"createdAt": "descending"})
+      .lean();
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
@@ -67,7 +68,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
       const result = await BlogModel.find(
         { publishedAt: { $ne: null } },
         { slug: 1, updatedAt: 1, imgFname: 1 }
-      ).sort({ "createdAt": "descending" });
+      ).sort({ "createdAt": "descending" }).lean();
 
       res.status(200).json(result);
     } catch (error: any) {
@@ -82,7 +83,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
 */
 blog.get('/api/blog/get-published-posts/', async (_req, res) => {
   try {
-    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"});
+    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"}).lean();
     res.status(201).json(result);
   } catch (error: any) { 
     console.error(error);
@@ -98,7 +99,7 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
 
   try {
     const slug = req.params['slug'];
-    const article = await BlogModel.findOne({ slug, publishedAt: { $ne: null } });
+    const article = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }).lean();
     if (!article) {
       throw new BlogError('Not Found');
     }
@@ -122,7 +123,7 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
 blog.get('/api/blog/get-post-preview-by-slug/:slug', previewAuthGuard, async (req, res) => {
   try {
     const slug = req.params['slug'];
-    const article = await BlogModel.findOne({ slug });
+    const article = await BlogModel.findOne({ slug }).lean();
     if (!article) {
       throw new BlogError('Not Found');
     }
@@ -214,7 +215,7 @@ async function getSlugs(onlyPublishedPosts: boolean = true) {
   const result =  await BlogModel.find(
     onlyPublishedPosts ? { publishedAt: { $ne: null } } : {}, 
     {slug: 1, title: 1, updatedAt: 1}).sort({"createdAt": "descending"}
-  );
+  ).lean();
   if (!result || result.length === 0) {
     throw new BlogError('Not Found');
   };
@@ -256,7 +257,7 @@ async function getPublishedPostsForSeo() {
   const posts = await BlogModel.find(
     { publishedAt: { $ne: null } },
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1 }
-  ).sort({ "createdAt": "descending" });
+  ).sort({ "createdAt": "descending" }).lean();
   return posts;
 }
 
@@ -264,7 +265,7 @@ async function getPublishedPostBySlugForSeo(slug: string) {
   const post = await BlogModel.findOne(
     { publishedAt: { $ne: null }, slug },
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1 }
-  );
+  ).lean();
   return post;
 }
 
@@ -391,7 +392,7 @@ blog.post('/api/blog/get-likes', async (req, res) => {
     const posts = await BlogModel.find(
       { slug: { $in: slugs }, publishedAt: { $ne: null } },
       { slug: 1, likes: 1 }
-    );
+    ).lean();
     const likesMap: Record<string, number> = {};
     for (const p of posts) {
       likesMap[p.slug] = p.likes ?? 0;
@@ -418,7 +419,7 @@ blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
       await BlogLikeModel.create({ hash, slug });
     } catch (dupErr: any) {
       if (dupErr?.code === 11000) {
-        const post = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }, { likes: 1 });
+        const post = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }, { likes: 1 }).lean();
         res.json({ likes: post?.likes ?? 0, alreadyLiked: true });
         return;
       }

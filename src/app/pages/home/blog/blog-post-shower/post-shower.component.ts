@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subscription, switchMap } from 'rxjs';
+import { Subscription, switchMap, tap } from 'rxjs';
 import { BlogPost } from '@shared/types';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
@@ -34,6 +34,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   likeCount: number = 0;
   hasLiked: boolean = false;
   isPreview: boolean = false;
+  private readonly _isBrowser: boolean;
   private _routeSubs: Subscription | undefined;
 
   constructor(
@@ -42,7 +43,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     private _htmler: HtmlerPipe,
     private _router: Router,
     private sanitizer: DomSanitizer,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.post = new BlogPost();
     this.isReadyToLoad = false;
@@ -52,6 +54,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     this.nextTitle = '';
     this.lastTitle = '';
     this.stage = stage;
+    this._isBrowser = isPlatformBrowser(platformId);
   }
 
   private async _fetchPost(slug: string): Promise<any> {
@@ -73,9 +76,20 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
+    // Do not block SSR on API calls for blog body content; render quickly and hydrate on client.
+    if (!this._isBrowser) {
+      return;
+    }
+
     this.isPreview = this._route.snapshot.queryParamMap.has('preview');
     this._routeSubs = this._route.params
       .pipe(
+        tap(() => {
+          this.isReadyToLoad = false;
+          this.contentVisible = false;
+          this.loadingState = 'loading';
+          this._cdr.detectChanges();
+        }),
         switchMap(async (params: { [key: string]: string }) => {
           const slug = params['slug'];
           return this._fetchPost(slug);

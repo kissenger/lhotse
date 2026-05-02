@@ -3,6 +3,7 @@ import { DOCUMENT, DatePipe } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
 import { mapboxToken } from '@shared/globals';
+import { normaliseResearchLinks } from '@shared/research-links';
 import type * as mapboxgl from 'mapbox-gl';
 import { loadMapboxFromCdn } from '@shared/services/mapbox-cdn-loader';
 import { ToastService } from '@shared/services/toast.service';
@@ -64,7 +65,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
       const raw = await this._http.getAllSitesAdmin();
       this._allSites = raw.map(s => {
         const links = s.properties?.researchNotes?.links;
-        if (links) s.properties.researchNotes.links = this._cleanLinks(links);
+        if (links) s.properties.researchNotes.links = normaliseResearchLinks(links);
         return s;
       });
       await this._initMap();
@@ -160,17 +161,6 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
   private _updateSource() {
     const source = this._map?.getSource('admin-sites') as mapboxgl.GeoJSONSource | undefined;
     source?.setData(this._buildGeoJson());
-  }
-
-  private _cleanLinks(raw: any): string[] {
-    if (!raw) return [];
-    if (typeof raw === 'string') {
-      try { raw = JSON.parse(raw); } catch { raw = [raw]; }
-    }
-    if (!Array.isArray(raw)) return [];
-    return raw
-      .map((l: any) => String(l).replace(/^[\s["']+|[\s\]"']+$/g, '').trim())
-      .filter((l: string) => /^https?:\/\//i.test(l));
   }
 
   toggleFilter(cat: FilterCategory) {

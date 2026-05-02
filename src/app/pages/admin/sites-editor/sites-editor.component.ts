@@ -9,6 +9,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { EditorMapInstance } from '@shared/services/editor-map.instance';
 import { mapboxToken } from '@shared/globals';
+import { normaliseResearchLink, normaliseResearchLinks } from '@shared/research-links';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '@shared/services/toast.service';
 
@@ -265,7 +266,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
         },
       },
       researchNotes: { ...defaults.properties.researchNotes, ...(raw.properties?.researchNotes ?? {}),
-        links: this._normaliseLinks(raw.properties?.researchNotes?.links) },
+        links: normaliseResearchLinks(raw.properties?.researchNotes?.links) },
     };
     return site;
   }
@@ -468,18 +469,6 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     } catch { /* silently ignore geocoding failures */ }
   }
 
-  private _normaliseLinks(raw: any): string[] {
-    if (!raw) return [];
-    // If stored as a single stringified array e.g. '["https://...","https://..."]'
-    if (typeof raw === 'string') {
-      try { raw = JSON.parse(raw); } catch { raw = [raw]; }
-    }
-    if (!Array.isArray(raw)) return [];
-    return raw
-      .map((l: any) => String(l).replace(/^[\s["']+|[\s\]"']+$/g, '').trim())
-      .filter((l: string) => /^https?:\/\//i.test(l));
-  }
-
   safeUrl(url: string): SafeUrl {
     return this._sanitizer.bypassSecurityTrustUrl(url);
   }
@@ -489,7 +478,9 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     let url = this._window?.prompt('Enter URL:')?.trim();
     if (!url) return;
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-    this.selectedSite.properties.researchNotes.links.push(url);
+    const normalisedUrl = normaliseResearchLink(url);
+    if (!normalisedUrl) return;
+    this.selectedSite.properties.researchNotes.links.push(normalisedUrl);
   }
 
   deleteResearchLink(index: number) {
