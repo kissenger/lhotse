@@ -163,6 +163,16 @@ h1 {
   margin-top: 1.5rem;
 }
 
+.deferred-content-placeholder {
+  margin-top: 1.25rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #d9e2ea;
+  background: #f7fafc;
+  color: #607080;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
 .article-nav-compact {
   display: flex;
   justify-content: space-between;
