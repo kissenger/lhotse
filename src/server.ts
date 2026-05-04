@@ -56,6 +56,11 @@ function scheduleSeoCacheRefresh(): void {
 app.use((req, res, next) => {
   if (req.hostname === 'admin.snorkelology.co.uk') {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    // Prevent proxy/edge caches from storing admin responses.
+    res.setHeader('Cache-Control', 'private, no-store, no-cache, max-age=0, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('X-Accel-Expires', '0');
     if (req.path === '/') {
       res.redirect(302, '/dashboard');
       return;
