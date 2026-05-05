@@ -135,4 +135,7 @@ export class EditorMapInstance {
   hideMarker() {
     if (this._marker) this._marker.getElement().style.display = 'none';
   }
+
+  zoomIn()  { this._map?.zoomIn(); }
+  zoomOut() { this._map?.zoomOut(); }
 }

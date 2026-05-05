@@ -19,26 +19,44 @@ label, .label {
 
 .header-grid {
   display: grid;
-  grid-template-columns: minmax(360px, 1.2fr) minmax(420px, 1fr);
+  grid-template-columns: 1fr 1fr;
   align-items: start;
   gap: 0.2em 1em;
 }
 
 .header-fields {
-  display: grid;
-  gap: 0.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .header-field-row {
   display: flex;
+  gap: 0.5em;
   align-items: center;
-  min-width: 0;
+  width: 100%;
+}
+
+.header-field-row label {
+  width: 90px;
+  flex-shrink: 0;
 }
 
 .header-field-row input[type="search"],
 .header-field-row select {
-  flex-grow: 1;
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+.header-field-row label {
+  width: 90px;
+  min-width: 90px;
+  margin-right: 0;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .header-actions {
@@ -119,8 +137,97 @@ input[type="checkbox"] {
   height: 18px;
 }
 
+.more-info-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0 0 0.4em;
+  width: 100%;
+}
+
+.more-info-row > label {
+  margin-bottom: 0.2em;
+  align-self: flex-start;
+}
+
+.more-info-editor {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  margin-top: 0.5em;
+}
+
+.more-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+
+.more-info-delete {
+  flex-shrink: 0;
+  width: 1.8em;
+  height: 1.8em;
+  padding: 0;
+  line-height: 1;
+  font-size: 1em;
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-info-delete:hover {
+  background: #fee;
+  border-color: #e07070;
+  color: #c00;
+}
+
+.more-info-fields {
+  display: flex;
+  gap: 0.4em;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 980px) {
+  .more-info-fields {
+    flex-direction: column;
+    width: 100%;
+  }
+  .more-info-fields input[type="text"],
+  .more-info-fields select {
+    width: 100%;
+    flex: unset;
+  }
+  .more-info-delete {
+    flex-shrink: 0;
+  }
+}
+
+.more-info-fields input[type="text"] {
+  flex: 1;
+  min-width: 80px;
+}
+
+.more-info-fields select {
+  flex: 0 0 auto;
+}
+
+.more-info-add {
+  align-self: flex-start;
+}
+
 .categories-row {
   align-items: flex-start !important;
+  margin-bottom: 1.2em;
 }
 
 .categories-editor {
@@ -146,6 +253,12 @@ input[type="checkbox"] {
   border-radius: 3px;
   padding: 1px 6px;
   font-size: 0.875rem;
+}
+
+.category-none {
+  font-style: italic;
+  color: #aaa;
+  font-size: 0.9em;
 }
 
 .category-chip button {
@@ -196,51 +309,96 @@ input[readonly] {
   border-radius: 4px;
 }
 
+.section-note {
+  font-size: 0.85em;
+  color: #666;
+  margin: 0.2em 0 0.6em;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 0.8em 0;
+}
+
 .map-section {
   display: grid;
-  grid-template-columns: minmax(340px, 1.1fr) 600px;
+  grid-template-columns: minmax(280px, 1fr) 600px;
+  grid-template-rows: auto 1fr;
   gap: 0.5em 1em;
   align-items: start;
   margin: 0.4em 0 0.8em;
 }
 
-.map-section-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45em;
-  min-width: 0;
-}
-
-.map-field-row {
+.map-coord-row {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: 0.5em;
 }
 
-.map-field-row input[type="text"] {
-  flex-grow: 1;
+.map-coord-row input[type="text"] {
+  flex: 1;
   min-width: 0;
 }
 
-.map-actions-row {
-  justify-content: flex-start;
-}
-
-.map-section-right {
+.map-map-container {
+  grid-column: 2;
+  grid-row: 1 / 3;
   width: 600px;
-  justify-self: end;
+  position: relative;
 }
 
-.map-section-right #features-edit-map,
-.map-section-right #features-edit-parking-map {
+.map-map-container #features-edit-map,
+.map-map-container #features-edit-parking-map {
   width: 600px;
   height: 400px;
   min-height: 400px;
   margin: 0;
 }
 
+.map-buttons-row {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.map-zoom-overlay {
+  position: absolute;
+  bottom: 0.6em;
+  right: 0.6em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+}
+
+.map-zoom-overlay button {
+  width: 1.8em;
+  height: 1.8em;
+  font-size: 1.1em;
+  font-weight: bold;
+  line-height: 1;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+
+.map-zoom-overlay button:hover {
+  background: #f0f0f0;
+}
+
 .map-section-compact {
   margin-top: 0.1em;
+}
+
+.map-section-right {
+  position: relative;
 }
 
 .research-links {
@@ -309,27 +467,60 @@ option.option-production {
     gap: 0.4em;
   }
 
+  .header-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8em;
+    align-items: center;
+  }
+
+  .header-field-row {
+    flex: 0 0 auto;
+    min-width: 180px;
+  }
+
   .header-actions {
     justify-content: flex-start;
-  }
-
-  .scrolling-div {
-    margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 112px);
-  }
-
-  .map-section {
-    grid-template-columns: 1fr;
+    flex-wrap: wrap;
     gap: 0.5em;
   }
 
-  .map-section-right {
-    justify-self: start;
+  .scrolling-div {
+    margin-top: calc(var(--header-height) + var(--admin-navbar-height) + 150px);
   }
 
-  .map-section-right #features-edit-map,
-  .map-section-right #features-edit-parking-map {
-    width: 600px;
-    height: 400px;
-    min-height: 400px;
+  label,
+  .label {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .map-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5em;
+  }
+
+  .map-coord-row,
+  .map-map-container,
+  .map-buttons-row {
+    display: flex !important;
+    grid-column: unset !important;
+    grid-row: unset !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .map-buttons-row {
+    flex-direction: row;
+    gap: 0.5em;
+  }
+
+  .map-map-container #features-edit-map,
+  .map-map-container #features-edit-parking-map {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 320px;
+    min-height: 320px;
   }
 }

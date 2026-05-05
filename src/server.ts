@@ -804,7 +804,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   const schemas = [orgSchema, ...productSchemas, ...bookSchemas, faqSchema, ...blogSchemas, mapImageSchema, mapCreativeWorkSchema, homepageVideoSchema];
 
   return {
-    title: 'Snorkelology \u2014 British Snorkelling Map, Articles & Snorkelling Britain Book',
+    title: 'Snorkelling in Britain - Map, Articles & Book | Snorkelology',
     description,
     keywords,
     canonicalPath: '/',
@@ -1323,6 +1323,9 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
   const authorName = post.author || 'Snorkelology';
   const articleUrl = `${SITE_URL}/blog/${slug}`;
+  const seoOnlyArticleKeywords = ['snorkelling', 'british snorkelling', 'snorkelling guide'];
+  const schemaKeywords = Array.from(new Set([...(post.keywords || []), ...seoOnlyArticleKeywords]));
+  const schemaKeywordsCsv = schemaKeywords.join(', ');
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1353,6 +1356,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         '@type': 'BlogPosting',
         headline: post.title,
         description,
+        keywords: schemaKeywordsCsv,
         image: imageObject,
         url: articleUrl,
         mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
@@ -1380,7 +1384,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     }));
 
   // Fix 6: emit keywords as article:tag meta properties
-  const keywordTags = (post.keywords || []).map((kw: string) => ({
+  const keywordTags = schemaKeywords.map((kw: string) => ({
     key: 'property' as const,
     keyValue: 'article:tag',
     content: kw
@@ -1389,7 +1393,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   return {
     title: post.title || 'Snorkelology Blog',
     description,
-    keywords: (post.keywords || []).join(', '),
+    keywords: schemaKeywordsCsv,
     canonicalPath: `/blog/${slug}`,
     ogType: 'article',  // Fix 7: always 'article' for individual posts
     ogImage: imageUrl,

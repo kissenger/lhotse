@@ -21,6 +21,13 @@
             }
           </select>
         </div>
+        <div class="header-field-row">
+          <label for="publishTop">Publish:</label>
+          <select id="publishTop" name="publishTop" [ngModel]="showOnMapToggle" (ngModelChange)="setShowOnMapToggle($event)">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
       </div>
 
       <div class="toolbar-actions header-actions">
@@ -53,17 +60,8 @@
   <div class="scrolling-div">
     <form>
 
-      <!-- ── Core Properties ── -->
-      <h3>Core Properties</h3>
-
-      <div>
-        <label for="featureType">Feature Type:</label>
-        <select id="featureType" name="featureType" [(ngModel)]="selectedSite.properties.featureType">
-          @for (ft of featureTypes; track ft) {
-            <option [value]="ft">{{ ft }}</option>
-          }
-        </select>
-      </div>
+      <!-- ── Site Details ── -->
+      <h3>Site Details</h3>
 
       <div>
         <label for="name">Name:</label>
@@ -81,15 +79,6 @@
         </select>
       </div>
 
-      <div>
-        <label for="symbolSortOrder">Sort Order:</label>
-        <input type="number" id="symbolSortOrder" name="symbolSortOrder" [ngModel]="selectedSite.properties.symbolSortOrder" readonly>
-      </div>
-
-      <div>
-        <label for="imageUrl">Image URL:</label>
-        <input type="text" id="imageUrl" name="imageUrl" [(ngModel)]="selectedSite.properties.imageUrl">
-      </div>
 
       <div class="description-row">
         <label for="description">Description:</label>
@@ -113,6 +102,9 @@
                 <button type="button" (click)="removeCategory(cat)">&times;</button>
               </span>
             }
+            @if (!selectedSite.properties.categories.length) {
+              <span class="category-none">none</span>
+            }
           </div>
           <select id="categoryAdd" name="categoryAdd" (change)="addCategory($any($event.target))">
             <option value="">+ Add category&hellip;</option>
@@ -123,50 +115,50 @@
         </div>
       </div>
 
+      <!-- ── More Info Links ── -->
+      <div class="more-info-row">
+        <label>More Info:</label>
+        <div class="more-info-editor">
+          @for (info of selectedSite.properties.moreInfo; track $index) {
+            <div class="more-info-item">
+              <div class="more-info-fields">
+                <input type="text" placeholder="Text"
+                  [id]="'infoText' + $index" [name]="'infoText' + $index"
+                  [(ngModel)]="info.text">
+                <input type="text" placeholder="URL"
+                  [id]="'infoUrl' + $index" [name]="'infoUrl' + $index"
+                  [(ngModel)]="info.url">
+              </div>
+              <button type="button" class="more-info-delete" (click)="deleteMoreInfo($index)">&times;</button>
+            </div>
+          }
+          <button type="button" class="qaButton more-info-add" (click)="addMoreInfo()">+ Add Link</button>
+        </div>
+      </div>
+
+      <!-- <hr class="section-divider"> -->
+      <p class="section-note"><em>More Info links are visible on the production site. For research links, use Research Notes below.</em></p>
+
       <!-- ── Location ── -->
-      <h3>Coordinates</h3>
-
       <div class="map-section">
-        <div class="map-section-left">
-          <div class="map-field-row">
-            <label for="coordString">Lat, Lng:</label>
-            <input type="text" id="coordString" name="coordString" [ngModel]="coordString" (change)="setCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
-            <button type="button" class="qaButton" [disabled]="!coordString" (click)="openInGoogleMaps()">Google Maps</button>
-          </div>
-          <div class="map-field-row map-actions-row">
-            <button type="button" class="qaButton" (click)="toggleMainMapSatellite()">{{ mainMapSatellite ? 'Map' : 'Satellite' }}</button>
-          </div>
+        <div class="map-coord-row">
+          <label for="coordString">Lat, Lng:</label>
+          <input type="text" id="coordString" name="coordString" [ngModel]="coordString" (change)="setCoordString($any($event.target).value)" placeholder="e.g. 50.123, -5.456">
         </div>
-        <div class="map-section-right">
+        <div class="map-map-container">
           <div id="features-edit-map"></div>
+          <div class="map-zoom-overlay">
+            <button type="button" (click)="zoomMainMapIn()">+</button>
+            <button type="button" (click)="zoomMainMapOut()">−</button>
+          </div>
+        </div>
+        <div class="map-buttons-row">
+          <button type="button" class="qaButton" [disabled]="!coordString" (click)="openInGoogleMaps()">&#8594; Google Maps</button>
+          <button type="button" class="qaButton" (click)="toggleMainMapSatellite()">&#8594; {{ mainMapSatellite ? 'Map' : 'Satellite' }}</button>
         </div>
       </div>
-
-      <!-- ── Visibility ── -->
-      <h3>Visibility</h3>
-
-      <div>
-        <label for="showOnMap">Show on Map:</label>
-        <select id="showOnMap" name="showOnMap" [(ngModel)]="selectedSite.showOnMap">
-          <option value="No">No</option>
-          <option value="Development">Development</option>
-          <option value="Production">Production</option>
-        </select>
-      </div>
-
-      @if (selectedSite._id) {
-        <div>
-          <label>Created:</label>
-          <span>{{ selectedSite.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
-        </div>
-        <div>
-          <label>Updated:</label>
-          <span>{{ selectedSite.updatedAt | date:'dd MMM yyyy HH:mm' }}</span>
-        </div>
-      }
 
       <!-- ── Address ── -->
-      <h3>Address</h3>
 
       <div>
         <label for="country">Country:</label>
@@ -211,67 +203,7 @@
         </div>
       }
 
-      @if (selectedSite.properties.featureType !== 'Snorkelling Site') {
-
-        <!-- ── More Info links ── -->
-        <h3>More Info Links</h3>
-
-        @for (info of selectedSite.properties.moreInfo; track $index) {
-          <hr>
-          <div class="section-header">
-            <span>Link {{ $index + 1 }}</span>
-            <button type="button" class="qaButton" (click)="deleteMoreInfo($index)">Delete</button>
-          </div>
-          <div>
-            <label for="infoUrl{{ $index }}">{{ info.icon === 'phone' ? 'Text:' : 'URL:' }}</label>
-            @if (info.icon === 'phone') {
-              <input type="text" id="infoUrl{{ $index }}" name="infoUrl{{ $index }}" [(ngModel)]="info.text">
-            } @else {
-              <input type="text" id="infoUrl{{ $index }}" name="infoUrl{{ $index }}" [(ngModel)]="info.url">
-            }
-          </div>
-          <div>
-            <label for="infoIcon{{ $index }}">Icon:</label>
-            <select id="infoIcon{{ $index }}" name="infoIcon{{ $index }}" [(ngModel)]="info.icon">
-              <option value="">— none —</option>
-              <option value="facebook">facebook</option>
-              <option value="instagram">instagram</option>
-              <option value="email">email</option>
-              <option value="phone">phone</option>
-              <option value="youtube">youtube</option>
-              <option value="website">website</option>
-            </select>
-          </div>
-          <div>
-            <label for="infoPreferred{{ $index }}">Preferred:</label>
-            <input type="checkbox" id="infoPreferred{{ $index }}" name="infoPreferred{{ $index }}" [(ngModel)]="info.preferred">
-          </div>
-        }
-        <button type="button" class="qaButton" (click)="addMoreInfo()">+ Add Link</button>
-
-      }
-
       @if (selectedSite.properties.featureType === 'Snorkelling Site') {
-
-        <!-- ── More Info links (Snorkelling Site) ── -->
-        <h3>More Info Links</h3>
-
-        @for (info of selectedSite.properties.moreInfo; track $index) {
-          <hr>
-          <div class="section-header">
-            <span>Link {{ $index + 1 }}</span>
-            <button type="button" class="qaButton" (click)="deleteMoreInfo($index)">Delete</button>
-          </div>
-          <div>
-            <label for="siteInfoTitle{{ $index }}">Title:</label>
-            <input type="text" id="siteInfoTitle{{ $index }}" name="siteInfoTitle{{ $index }}" [(ngModel)]="info.title">
-          </div>
-          <div>
-            <label for="siteInfoUrl{{ $index }}">URL:</label>
-            <input type="text" id="siteInfoUrl{{ $index }}" name="siteInfoUrl{{ $index }}" [(ngModel)]="info.url">
-          </div>
-        }
-        <button type="button" class="qaButton" (click)="addMoreInfo()">+ Add Link</button>
 
         <!-- ── Parking ── -->
         <h3>Parking</h3>
@@ -306,6 +238,10 @@
               </div>
               <div class="map-section-right">
                 <div id="features-edit-parking-map"></div>
+                <div class="map-zoom-overlay">
+                  <button type="button" (click)="zoomParkingMapIn()">+</button>
+                  <button type="button" (click)="zoomParkingMapOut()">−</button>
+                </div>
               </div>
             </div>
           }
@@ -331,8 +267,13 @@
           </select>
         </div>
         <div>
-          <label for="researchNotes">Notes:</label>
-          <textarea id="researchNotes" name="researchNotes" [(ngModel)]="selectedSite.properties.researchNotes.notes"></textarea>
+          <label for="researchNotesHistory">Comment History:</label>
+          <textarea id="researchNotesHistory" name="researchNotesHistory" [ngModel]="selectedSite.properties.researchNotes.notes" readonly></textarea>
+        </div>
+        <div>
+          <label for="newResearchComment">New Comment:</label>
+          <textarea id="newResearchComment" name="newResearchComment" [(ngModel)]="newResearchComment" placeholder="Add a new research comment..."></textarea>
+          <button type="button" class="qaButton" (click)="addResearchComment()">Add Comment</button>
         </div>
         <div class="research-links">
           <label>Links:</label>

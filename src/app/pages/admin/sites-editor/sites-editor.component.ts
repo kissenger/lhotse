@@ -3,7 +3,7 @@ import { HasUnsavedChanges } from './unsaved-changes.guard';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
 import { FormsModule } from '@angular/forms';
-import { NgClass, DatePipe, DOCUMENT } from '@angular/common';
+import { NgClass, DOCUMENT } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -16,7 +16,7 @@ import { ToastService } from '@shared/services/toast.service';
 @Component({
   selector: 'app-sites-editor',
   standalone: true,
-  imports: [NgClass, FormsModule, DatePipe],
+  imports: [NgClass, FormsModule],
   templateUrl: './sites-editor.component.html',
   styleUrl: './sites-editor.component.css'
 })
@@ -30,6 +30,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   public selectedSite: MapFeature = new MapFeature();
   public sites: Array<MapFeature> = [this.selectedSite];
   public siteSearch: string = '';
+  public newResearchComment: string = '';
   public askForConfirmation: boolean = false;
   public askForResetForm: boolean = false;
   public askForDiscardChanges: boolean = false;
@@ -40,14 +41,14 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   get mainMapSatellite() { return this._mainMapInst.satellite; }
   get parkingMapSatellite() { return this._parkingMapInst.satellite; }
 
-  readonly featureTypes = [
-    'Authors of Snorkelling Britain',
-    'Snorkelling Retailer',
-    'Marine Interest Group',
-    'Outdoor Activities Provider',
-    'Snorkelling Club or School',
-    'Snorkelling Site',
-  ];
+  get showOnMapToggle(): 'Yes' | 'No' {
+    return this.selectedSite.showOnMap === 'No' ? 'No' : 'Yes';
+  }
+
+  setShowOnMapToggle(value: 'Yes' | 'No') {
+    this.selectedSite.showOnMap = value === 'Yes' ? 'Production' : 'No';
+  }
+
   readonly ratingOptions: Array<'good' | 'ok' | 'poor' | 'not for snorkelling' | ''> = ['', 'good', 'ok', 'poor', 'not for snorkelling'];
   snorkellingCategories: string[] = [];
   providerCategories: string[] = [];
@@ -235,6 +236,10 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   toggleMainMapSatellite() { this._mainMapInst.toggleSatellite(); }
   toggleParkingMapSatellite() { this._parkingMapInst.toggleSatellite(); }
+  zoomMainMapIn()      { this._mainMapInst.zoomIn(); }
+  zoomMainMapOut()     { this._mainMapInst.zoomOut(); }
+  zoomParkingMapIn()   { this._parkingMapInst.zoomIn(); }
+  zoomParkingMapOut()  { this._parkingMapInst.zoomOut(); }
 
   async getSites() {
     try {
@@ -307,6 +312,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     if (this.hasUnsavedChanges()) {
       this._pendingNavAction = () => {
         this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+        this.newResearchComment = '';
         this._placeMarker();
         if (this.selectedSite.properties.siteInfo.parking.location) {
           setTimeout(() => this._initParkingMap(), 0);
@@ -320,6 +326,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return;
     }
     this.selectedSite = this.sites.find(s => s._id === id) ?? this.sites[0];
+    this.newResearchComment = '';
     this._placeMarker();
     if (this.selectedSite.properties.siteInfo.parking.location) {
       setTimeout(() => this._initParkingMap(), 0);
@@ -333,6 +340,8 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     if (this.hasUnsavedChanges()) {
       this._pendingNavAction = () => {
         this.selectedSite = new MapFeature();
+        this.selectedSite.properties.featureType = 'Snorkelling Site';
+        this.newResearchComment = '';
         this._mainMapInst.hideMarker();
         this._mainMapInst.jumpTo(-3.5, 54.5, 5);
         this._destroyParkingMap();
@@ -342,6 +351,8 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return;
     }
     this.selectedSite = new MapFeature();
+    this.selectedSite.properties.featureType = 'Snorkelling Site';
+    this.newResearchComment = '';
     this._mainMapInst.hideMarker();
     this._mainMapInst.jumpTo(-3.5, 54.5, 5);
     this._destroyParkingMap();
@@ -486,6 +497,29 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.selectedSite.properties.researchNotes.links.splice(index, 1);
   }
 
+  addResearchComment() {
+    this._appendResearchComment();
+  }
+
+  private _appendResearchComment() {
+    const comment = this.newResearchComment.trim();
+    if (!comment) return;
+    const stamp = this._formatCommentTimestamp(new Date());
+    const entry = `${stamp} ${comment}`;
+    const existing = (this.selectedSite.properties.researchNotes.notes ?? '').trim();
+    this.selectedSite.properties.researchNotes.notes = existing ? `${entry}\n${existing}` : entry;
+    this.newResearchComment = '';
+  }
+
+  private _formatCommentTimestamp(d: Date): string {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `[${yyyy}-${mm}-${dd} ${hh}:${min}]`;
+  }
+
   // moreInfo
   addMoreInfo() {
     this.selectedSite.properties.moreInfo.push({ title: '', icon: '', url: '', text: '', preferred: false });
@@ -535,6 +569,10 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   async onSave() {
     try {
+      if (!this.selectedSite._id) {
+        this.selectedSite.properties.featureType = 'Snorkelling Site';
+      }
+      this._appendResearchComment();
       const id = this.selectedSite._id;
       const name = this.selectedSite.properties.name;
       const result = await this._http.upsertSite(this.selectedSite);
