@@ -178,6 +178,14 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
     // no-op: legend is always visible
   }
 
+  zoomIn() {
+    this._map?.zoomIn();
+  }
+
+  zoomOut() {
+    this._map?.zoomOut();
+  }
+
   clearSelection() {
     this.selectedSite = null;
   }
