@@ -49,7 +49,6 @@
               "tsConfig": "tsconfig.json",                     
               "outputPath": "dist/prod",              
               "assets": [
-                "src/favicon.ico",
                 "src/assets",
                 {
                   "glob": "robots.txt",
@@ -92,7 +91,6 @@
               "tsConfig": "tsconfig.json",                
               "outputPath": "dist/beta",
               "assets": [
-                "src/favicon.ico",
                 "src/assets",
                 {
                   "glob": "robots.txt",
@@ -137,7 +135,6 @@
               "outputHashing": "all",
               "namedChunks": true,
               "assets": [
-                "src/favicon.ico",
                 "src/assets"    
               ]                   
             }
@@ -173,7 +170,6 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
-              "src/favicon.ico",
               "src/assets"
             ],
             "styles": [
