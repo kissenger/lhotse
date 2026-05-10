@@ -59,6 +59,10 @@ const MAP_COUNTY_ALIAS_GROUPS: Record<string, string[]> = {
   'east-riding': ['east-riding-of-yorkshire'],
 };
 
+const MAP_COUNTY_URL_SLUGS: Record<string, string> = {
+  highlands: 'the-highlands',
+};
+
 function decodeSegment(value: string | null | undefined): string | null {
   if (!value) {
     return null;
@@ -96,7 +100,8 @@ export function normaliseCountrySegment(value: string | null | undefined): strin
 
 export function normaliseCountySegment(value: string | null | undefined): string | null {
   const slug = slugifyMapSegment(decodeSegment(value));
-  return slug || null;
+  if (!slug) return null;
+  return normaliseCountySlug(slug);
 }
 
 export function normaliseSiteSegment(value: string | null | undefined): string | null {
@@ -113,11 +118,18 @@ export function getCountySlugFromLocation(location: any): string | null {
   const raw = [location?.county, location?.district, location?.adminLevel3]
     .find((value) => typeof value === 'string' && value.trim() !== '');
 
-  return typeof raw === 'string' ? slugifyMapSegment(raw) : null;
+  return typeof raw === 'string' ? normaliseCountySlug(slugifyMapSegment(raw)) : null;
 }
 
 export function normaliseCountySlug(countySlug: string | null | undefined): string | null {
   if (!countySlug) return null;
+  
+  // First check if it's a URL slug and map back to canonical
+  for (const [canonical, urlSlug] of Object.entries(MAP_COUNTY_URL_SLUGS)) {
+    if (countySlug === urlSlug) {
+      return canonical;
+    }
+  }
   
   // Map aliases to their canonical form
   for (const [canonical, aliases] of Object.entries(MAP_COUNTY_ALIAS_GROUPS)) {
@@ -170,7 +182,8 @@ export function buildMapPath(parts: { country?: string | null; county?: string |
     segments.push(encodeURIComponent(country));
   }
   if (county) {
-    segments.push(encodeURIComponent(county));
+    const countyUrlSlug = MAP_COUNTY_URL_SLUGS[county] ?? county;
+    segments.push(encodeURIComponent(countyUrlSlug));
   }
   if (siteSlug) {
     segments.push(encodeURIComponent(siteSlug));

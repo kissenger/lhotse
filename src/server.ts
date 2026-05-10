@@ -15,7 +15,7 @@ import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
-import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
+import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, getCountyMatchSlugs, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
 import 'dotenv/config';
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
@@ -295,7 +295,8 @@ app.use(async (req, res, next) => {
     return;
   }
 
-  const countyCountry = routePlaces.find((place: any) => place.countySlug === county)?.countrySlug ?? null;
+  const countyMatches = getCountyMatchSlugs(county);
+  const countyCountry = routePlaces.find((place: any) => countyMatches.has(place.countySlug))?.countrySlug ?? null;
   if (!countyCountry || countyCountry !== country) {
     res.status(404).send('Not found');
     return;
@@ -528,12 +529,13 @@ function findPlaceByRoute(
   const normalisedCountry = normaliseCountrySegment(countrySlug);
   const normalisedCounty = normaliseCountySegment(countySlug);
   const normalisedSite = normaliseSiteSegment(siteSlug);
+  const countyMatches = normalisedCounty ? getCountyMatchSlugs(normalisedCounty) : null;
 
   const exactMatch = places.find((place: any) => {
     if (place.siteSlug !== normalisedSite) {
       return false;
     }
-    if (normalisedCounty && place.countySlug && place.countySlug !== normalisedCounty) {
+    if (normalisedCounty && place.countySlug && !countyMatches?.has(place.countySlug)) {
       return false;
     }
     if (normalisedCountry && place.countrySlug !== normalisedCountry) {
@@ -1097,7 +1099,8 @@ function buildMapCollectionSchemas(options: {
 }
 
 async function getCountyMapSeoPayload(country: string, county: string): Promise<SeoPayload> {
-  const canonicalCountry = (await getSeoCache()).routePlaces.find((place: any) => place.countySlug === county)?.countrySlug ?? country;
+  const countyMatches = getCountyMatchSlugs(county);
+  const canonicalCountry = (await getSeoCache()).routePlaces.find((place: any) => countyMatches.has(place.countySlug))?.countrySlug ?? country;
   const displayName = getCountyDisplayName(county);
   const countryDisplayName = MAP_COUNTRY_DISPLAY_NAMES[canonicalCountry] ?? toTitleCase(canonicalCountry);
   const countryPath = buildMapPath({ country: canonicalCountry });

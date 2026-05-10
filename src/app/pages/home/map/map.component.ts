@@ -29,11 +29,15 @@ import { WebsiteSvgComponent } from '@shared/svg/website/website.component';
 import { PhoneSvgComponent } from '@shared/svg/phone/phone.component';
 import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component';
+import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
+import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 
 @Component({
   standalone: true,
+  providers: [HtmlerPipe],
   imports: [YoutubeSvgComponent, InstagramSvgComponent, EmailSvgComponent, WebsiteSvgComponent, 
-    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass, RouterLink ],
+    FacebookSvgComponent, PhoneSvgComponent, CloseIconSvgComponent, LoaderComponent, NgClass, RouterLink,
+    SanitizerPipe ],
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
@@ -43,15 +47,61 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public geoJson: any = null;
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
+  public sitesLoaded: boolean = false;
+  public descriptionsLoaded: boolean = false;
+  public isBrowser: boolean = false;
   public map?: MapService;
   public selectedFeatureIndex: number | null = null;
   public filterContext: { displayName: string; alsoKnownAs?: string[] } | null = null;
+  public countyDescription: string = '';
+  public countyDescriptionHtml: string = '';
+  public countryDescription: string = '';
+  public countryDescriptionHtml: string = '';
   public siteContext: { displayName: string; countyDisplayName?: string; countryDisplayName?: string; parentPath: string } | null = null;
   public upLevelLink: { path: string; label: string } | null = null;
   public routeLevel: 'root' | 'country' | 'county' | 'site' = 'root';
   public filterEmpty: boolean = false;
   public routeScopedFeatures: any[] = [];
+  public panelTopPx: number | null = 16;
+  private _panelSide: 'left' | 'right' | 'none' = 'none';
+  private _panelRecomputeTimer: ReturnType<typeof setTimeout> | null = null;
+  private _resizeHandler?: () => void;
   private _selectionSub?: import('rxjs').Subscription;
+  private _viewportSub?: import('rxjs').Subscription;
+
+  get breadcrumbLinks(): Array<{ label: string; path: string }> {
+    const { country, county, site } = this._resolveParams();
+    const links: Array<{ label: string; path: string }> = [
+      { label: 'Britain', path: '/map' }
+    ];
+
+    if (country) {
+      links.push({
+        label: this._getCountryDisplayName(country),
+        path: buildMapPath({ country })
+      });
+    }
+
+    if (county) {
+      links.push({
+        label: getCountyDisplayName(county),
+        path: buildMapPath({ country, county })
+      });
+    }
+
+    if (site) {
+      links.push({
+        label: this._formatSlugForDisplay(site),
+        path: buildMapPath({ country, county, siteName: site })
+      });
+    }
+
+    return links;
+  }
+
+  get pageLoaderState(): 'loading' | 'failed' {
+    return this.loadingState === 'failed' ? 'failed' : 'loading';
+  }
 
   snorkellingSitesEnabled = true;
   otherSitesEnabled = true;
@@ -74,12 +124,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get panelPositionClass(): 'left' | 'right' | 'none' {
-    if (this.map) {
-      const mapPosition = this.map.popupPosition;
-      return mapPosition === 'left' || mapPosition === 'right' ? mapPosition : 'none';
-    }
-
-    return this.currentFeature ? 'right' : 'none';
+    return this._panelSide;
   }
 
   get filteredSnorkelCount(): number {
@@ -129,16 +174,50 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       }));
   }
 
+  get countySiteLinks(): Array<{ name: string; path: string }> {
+    if (!this.geoJson || this.routeLevel !== 'county') return [];
+    const { county, country } = this._resolveParams();
+    if (!county) return [];
+    const matches = getCountyMatchSlugs(county);
+
+    return this.geoJson.features
+      .filter((f: any) => {
+        if (f.properties.featureType !== 'Snorkelling Site') return false;
+        const loc = f.properties.location;
+        const featureCountySlugs = [loc?.county, loc?.district, loc?.adminLevel3]
+          .filter((value: unknown): value is string => typeof value === 'string' && value.trim() !== '')
+          .map((value: string) => slugifyMapSegment(value));
+        return featureCountySlugs.some((value: string) => matches.has(value));
+      })
+      .sort((a: any, b: any) => (a.properties.name as string).localeCompare(b.properties.name as string))
+      .slice(0, 12)
+      .map((f: any) => ({
+        name: f.properties.name as string,
+        path: buildMapPath({ country, county, siteName: f.properties.name as string }),
+      }));
+  }
+
   get countryFeaturedLinks(): Array<{ name: string; path: string; county: string }> {
     if (!this.geoJson || this.routeLevel !== 'country') return [];
     const { country } = this._resolveParams();
     if (!country) return [];
+
+    const rankFor = (siteName: string): number => {
+      const key = `${country}:${siteName}`;
+      let hash = 2166136261;
+      for (let i = 0; i < key.length; i++) {
+        hash ^= key.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    };
 
     return this.geoJson.features
       .filter((f: any) => {
         if (f.properties.featureType !== 'Snorkelling Site') return false;
         return getCountrySlugFromRegion(f.properties.location?.region as string) === country;
       })
+      .sort((a: any, b: any) => rankFor(a.properties.name as string) - rankFor(b.properties.name as string))
       .slice(0, 12)
       .map((f: any) => {
         const countySlug = getCountySlugFromLocation(f.properties.location);
@@ -150,137 +229,79 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  get relatedCountySiteLinks(): Array<{ name: string; path: string }> {
-    if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this._getSiteContextFeature();
-    if (!selected) return [];
+  get countryCountyLinks(): Array<{ name: string; path: string }> {
+    if (!this.geoJson || this.routeLevel !== 'country') return [];
+    const { country } = this._resolveParams();
+    if (!country) return [];
 
-    const countySlug = getCountySlugFromLocation(selected.properties.location);
-    if (!countySlug) return [];
-    const countrySlug = getCountrySlugFromRegion(selected.properties.location?.region as string);
-    const currentName = selected.properties.name as string;
+    const countiesBySlug = new Map<string, string>();
 
-    return this.geoJson.features
-      .filter((f: any) => f.properties.featureType === 'Snorkelling Site')
-      .filter((f: any) => f.properties.name !== currentName)
-      .filter((f: any) => getCountySlugFromLocation(f.properties.location) === countySlug)
-      .slice(0, 8)
-      .map((f: any) => ({
-        name: f.properties.name as string,
-        path: buildMapPath({ country: countrySlug, county: countySlug, siteName: f.properties.name as string }),
+    for (const feature of this.geoJson.features) {
+      if (feature?.properties?.featureType !== 'Snorkelling Site') continue;
+      if (getCountrySlugFromRegion(feature.properties?.location?.region as string) !== country) continue;
+
+      const countySlug = getCountySlugFromLocation(feature.properties?.location);
+      if (!countySlug) continue;
+      if (countySlug === 'isles-of-scilly') continue; // Skip, only show as part of Cornwall
+      if (!countiesBySlug.has(countySlug)) {
+        countiesBySlug.set(countySlug, getCountyDisplayName(countySlug));
+      }
+    }
+
+    return [...countiesBySlug.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .slice(0, 12)
+      .map(([countySlug, displayName]) => ({
+        name: displayName,
+        path: buildMapPath({ country, county: countySlug }),
       }));
   }
 
-  get relatedHabitatSiteLinks(): Array<{ name: string; path: string }> {
-    if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this._getSiteContextFeature();
-    if (!selected) return [];
-
-    const selectedCategories: string[] = selected.properties.categories ?? [];
-    if (!selectedCategories.length) return [];
-    const selectedSet = new Set(selectedCategories);
-    const currentName = selected.properties.name as string;
-
-    return this.geoJson.features
-      .filter((f: any) => f.properties.featureType === 'Snorkelling Site')
-      .filter((f: any) => f.properties.name !== currentName)
-      .filter((f: any) => {
-        const cats: string[] = f.properties.categories ?? [];
-        return cats.some((cat: string) => selectedSet.has(cat));
-      })
-      .slice(0, 8)
-      .map((f: any) => ({
-        name: f.properties.name as string,
-        path: buildMapPathForFeature(f.properties),
-      }));
+  get rootCountryLinks(): Array<{ name: string; path: string }> {
+    const countrySlugs: Array<'england' | 'scotland' | 'wales'> = ['england', 'scotland', 'wales'];
+    return countrySlugs.map((countrySlug) => ({
+      name: this._getCountryDisplayName(countrySlug),
+      path: buildMapPath({ country: countrySlug }),
+    }));
   }
 
-  get relatedNearbySiteLinks(): Array<{ name: string; path: string; distanceLabel: string }> {
+  get nearestPublishedSiteLinks(): Array<{ name: string; displayName: string; path: string; isSnorkellingSite: boolean; distanceLabel: string }> {
     if (!this.geoJson || this.routeLevel !== 'site') return [];
     const selected = this._getSiteContextFeature();
     if (!selected) return [];
 
-    const currentName = selected.properties.name as string;
     const [originLng, originLat] = selected.geometry.coordinates as [number, number];
+    const isNarrow = this._isBrowser && (this._document.defaultView?.innerWidth ?? 1024) < 768;
+    const maxNearby = isNarrow ? 5 : 8;
 
-    const nearby = this.geoJson.features
-      .filter((f: any) => f.properties.featureType === 'Snorkelling Site')
-      .filter((f: any) => f.properties.name !== currentName)
+    return this.geoJson.features
+      .filter((f: any) => f !== selected)
+      .filter((f: any) => !f.showOnMap || f.showOnMap === 'Production')
+      .filter((f: any) => Array.isArray(f?.geometry?.coordinates) && f.geometry.coordinates.length >= 2)
       .map((f: any) => {
         const [lng, lat] = f.geometry.coordinates as [number, number];
         return {
           name: f.properties.name as string,
           path: buildMapPathForFeature(f.properties),
+          isSnorkellingSite: f.properties.featureType === 'Snorkelling Site',
           distanceKm: this._haversineKm(originLat, originLng, lat, lng),
         };
       })
       .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
-      .slice(0, 8);
-
-    return nearby.map((item: { name: string; path: string; distanceKm: number }) => ({
+      .slice(0, maxNearby)
+      .map((item: { name: string; path: string; isSnorkellingSite: boolean; distanceKm: number }) => ({
         name: item.name,
+        displayName: this._abbreviateNearbySiteName(item.name),
         path: item.path,
+        isSnorkellingSite: item.isSnorkellingSite,
         distanceLabel: `${item.distanceKm.toFixed(1)} km`,
       }));
-  }
-
-  get routeLastUpdatedLabel(): string | null {
-    if (!this.geoJson?.features) return null;
-
-    const getUpdatedAtMs = (feature: any): number | null => {
-      const raw = feature?.properties?.updatedAt ?? feature?.updatedAt;
-      if (!raw) return null;
-      const date = new Date(raw);
-      const time = date.getTime();
-      return Number.isNaN(time) ? null : time;
-    };
-
-    const formatLabel = (ms: number | null): string | null => {
-      if (ms == null) return null;
-      return new Intl.DateTimeFormat('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }).format(new Date(ms));
-    };
-
-    if (this.routeLevel === 'site') {
-      return formatLabel(getUpdatedAtMs(this._getSiteContextFeature()));
-    }
-
-    const { country, county } = this._resolveParams();
-    const filteredFeatures = this.geoJson.features.filter((feature: any) => {
-      if (feature.properties?.featureType !== 'Snorkelling Site') return false;
-
-      if (county) {
-        const matches = getCountyMatchSlugs(county);
-        const loc = feature.properties?.location;
-        const featureCountySlugs = [loc?.county, loc?.district, loc?.adminLevel3]
-          .filter((value: unknown): value is string => typeof value === 'string' && value.trim() !== '')
-          .map((value: string) => slugifyMapSegment(value));
-        return featureCountySlugs.some((value: string) => matches.has(value));
-      }
-
-      if (country) {
-        return getCountrySlugFromRegion(feature.properties?.location?.region as string) === country;
-      }
-
-      return false;
-    });
-
-    const latestMs = filteredFeatures.reduce((latest: number | null, feature: any) => {
-      const updatedAt = getUpdatedAtMs(feature);
-      if (updatedAt == null) return latest;
-      if (latest == null || updatedAt > latest) return updatedAt;
-      return latest;
-    }, null);
-
-    return formatLabel(latestMs);
   }
 
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
+    private _htmler: HtmlerPipe,
     private _cdr: ChangeDetectorRef,
     private _route: ActivatedRoute,
     private _location: Location,
@@ -288,6 +309,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     @Inject(DOCUMENT) private _document: Document
   ) {
     this._isBrowser = isPlatformBrowser(platformId);
+    this.isBrowser = this._isBrowser;
   }
 
   ngOnInit() {
@@ -297,37 +319,30 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (site) {
       this.routeLevel = 'site';
+      this.descriptionsLoaded = true;
       this.siteContext = {
         displayName: this._formatSlugForDisplay(site),
         countyDisplayName,
         countryDisplayName,
         parentPath: buildMapPath({ country, county })
       };
-
-      const parentLabel = countyDisplayName
-        ? `See all sites in ${countyDisplayName}`
-        : (countryDisplayName ? `See all sites in ${countryDisplayName}` : 'See all sites in Britain');
-      this.upLevelLink = {
-        path: buildMapPath({ country, county }),
-        label: parentLabel
-      };
     } else if (county) {
       this.routeLevel = 'county';
+      this.descriptionsLoaded = false;
+      void this._loadCountyDescription(county);
       const displayName = getCountyDisplayName(county);
       const alsoKnownAs = getCountyAlsoKnownAs(county);
       this.filterContext = { displayName, alsoKnownAs };
-      this.upLevelLink = {
-        path: buildMapPath({ country }),
-        label: `See all sites in ${countryDisplayName ?? 'Britain'}`
-      };
     } else if (country) {
       this.routeLevel = 'country';
+      this.descriptionsLoaded = false;
+      void this._loadCountryDescription(country);
       const displayName = MAP_COUNTRY_DISPLAY_NAMES[country] ?? country.replace(/\b\w/g, c => c.toUpperCase());
       this.filterContext = { displayName };
-      this.upLevelLink = {
-        path: '/map',
-        label: 'See all sites in Britain'
-      };
+    } else {
+      this.routeLevel = 'root';
+      this.descriptionsLoaded = false;
+      void this._loadCountryDescription('britain');
     }
   }
 
@@ -348,6 +363,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.geoJson = result;
       this.routeScopedFeatures = [...(this.geoJson.features ?? [])];
       this._buildCategoryLists();
+      this.sitesLoaded = true;
+      this._cdr.detectChanges();
 
       if (this._isBrowser) {
         this.map = await this._lazyServiceInjector.get<MapService>(() =>
@@ -361,11 +378,20 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           this.selectedFeatureIndex = typeof this.map?.selectedSymbolId === 'number' ? this.map.selectedSymbolId : null;
           this._syncBrowserPath();
           this._cdr.detectChanges();
+          this._schedulePanelPlacementRecompute();
+        });
+
+        this._viewportSub = this.map.viewportChanged.subscribe(() => {
+          this._schedulePanelPlacementRecompute();
         });
       }
       this.loadingState = 'success';
       this._applyRouteState();
       this._cdr.detectChanges();
+      this._schedulePanelPlacementRecompute();
+
+      this._resizeHandler = () => this._schedulePanelPlacementRecompute();
+      this._document.defaultView?.addEventListener('resize', this._resizeHandler);
 
     } catch (error) {
       this.loadingState = 'failed';
@@ -375,6 +401,136 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this._selectionSub?.unsubscribe();
+    this._viewportSub?.unsubscribe();
+    if (this._panelRecomputeTimer) {
+      clearTimeout(this._panelRecomputeTimer);
+      this._panelRecomputeTimer = null;
+    }
+    if (this._resizeHandler) {
+      this._document.defaultView?.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = undefined;
+    }
+  }
+
+  private _schedulePanelPlacementRecompute() {
+    if (!this._isBrowser) return;
+    if (this._panelRecomputeTimer) clearTimeout(this._panelRecomputeTimer);
+    this._panelRecomputeTimer = setTimeout(() => {
+      this._panelRecomputeTimer = null;
+      this._recomputePanelPlacement();
+      this._cdr.detectChanges();
+    }, 0);
+  }
+
+  private _recomputePanelPlacement() {
+    if (!this.currentFeature || !this.map || !this.selectedFeature) {
+      this._panelSide = 'none';
+      this.panelTopPx = null;
+      return;
+    }
+
+    const win = this._document.defaultView;
+    if (!win) return;
+
+    // Keep existing mobile bottom-sheet behavior.
+    if (win.innerWidth < 768) {
+      this._panelSide = 'right';
+      this.panelTopPx = null;
+      return;
+    }
+
+    const mapEl = this._document.getElementById('map');
+    if (!mapEl) return;
+    const containerRect = mapEl.getBoundingClientRect();
+
+    const coords = this.selectedFeature.geometry?.coordinates as [number, number] | undefined;
+    const screenPoint = coords ? this.map.projectToScreen(coords) : null;
+    if (!screenPoint) {
+      this._panelSide = 'right';
+      this.panelTopPx = 16;
+      return;
+    }
+
+    const panelWidth = 300;
+    const panelHeight = 360;
+    const horizontalInset = 16;
+    const verticalInset = 16;
+
+    const toLocalRect = (el: Element | null): { left: number; top: number; right: number; bottom: number } | null => {
+      if (!(el instanceof HTMLElement)) return null;
+      const style = win.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return null;
+      const r = el.getBoundingClientRect();
+      return {
+        left: r.left - containerRect.left,
+        top: r.top - containerRect.top,
+        right: r.right - containerRect.left,
+        bottom: r.bottom - containerRect.top,
+      };
+    };
+
+    const obstacles = [
+      toLocalRect(this._document.querySelector('.map-container .filter-dropdown')),
+      toLocalRect(this._document.querySelector('.map-container .mapboxgl-ctrl-top-right')),
+    ].filter((r): r is { left: number; top: number; right: number; bottom: number } => !!r);
+
+    const rectsIntersect = (
+      a: { left: number; top: number; right: number; bottom: number },
+      b: { left: number; top: number; right: number; bottom: number }
+    ): boolean => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+    const overlapArea = (
+      a: { left: number; top: number; right: number; bottom: number },
+      b: { left: number; top: number; right: number; bottom: number }
+    ): number => {
+      const x = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const y = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return x * y;
+    };
+
+    const scoreCandidate = (side: 'left' | 'right'): { score: number; top: number } => {
+      const left = side === 'left'
+        ? horizontalInset
+        : Math.max(horizontalInset, containerRect.width - panelWidth - horizontalInset);
+
+      let top = verticalInset;
+
+      // If candidate intersects top controls/filter, move panel below the lowest conflicting obstacle.
+      const testRect = { left, top, right: left + panelWidth, bottom: top + panelHeight };
+      const blockers = obstacles.filter((o) => rectsIntersect(testRect, o));
+      if (blockers.length) {
+        const bottom = blockers.reduce((max, o) => Math.max(max, o.bottom), 0);
+        top = bottom + 8;
+      }
+
+      const maxTop = Math.max(verticalInset, containerRect.height - panelHeight - verticalInset);
+      top = Math.min(Math.max(top, verticalInset), maxTop);
+
+      const panelRect = { left, top, right: left + panelWidth, bottom: top + panelHeight };
+      let score = 0;
+
+      for (const obstacle of obstacles) {
+        score += overlapArea(panelRect, obstacle) * 10;
+      }
+
+      // Hard-penalize covering the selected symbol.
+      const pointInside = screenPoint.x >= panelRect.left && screenPoint.x <= panelRect.right
+        && screenPoint.y >= panelRect.top && screenPoint.y <= panelRect.bottom;
+      if (pointInside) score += 1_000_000;
+
+      // Mildly prefer not to drift down unless needed.
+      score += top;
+
+      return { score, top };
+    };
+
+    const leftCandidate = scoreCandidate('left');
+    const rightCandidate = scoreCandidate('right');
+    const bestSide = leftCandidate.score <= rightCandidate.score ? 'left' : 'right';
+    const bestTop = bestSide === 'left' ? leftCandidate.top : rightCandidate.top;
+
+    this._panelSide = bestSide;
+    this.panelTopPx = bestTop;
   }
 
   private _injectMapboxCss() {
@@ -393,19 +549,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadingState = 'loading';
     this._cdr.detectChanges();
     await this.ngAfterViewInit();
-  }
-
-  scrollToMap(event?: Event) {
-    event?.preventDefault();
-    if (!this._isBrowser) return;
-
-    const mapEl = this._document.getElementById('map');
-    if (!mapEl) return;
-
-    const win = this._document.defaultView;
-    const headerHeight = parseInt(win?.getComputedStyle(this._document.documentElement).getPropertyValue('--header-height') ?? '75', 10) || 75;
-    const top = mapEl.getBoundingClientRect().top + (win?.scrollY ?? 0) - headerHeight;
-    win?.scrollTo({ top, behavior: 'smooth' });
   }
 
   private _buildCategoryLists(features?: any[]) {
@@ -488,33 +631,33 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const includeProviders = queryParams.get('includeProviders')?.toLowerCase() !== 'false';
 
-    if (site && this._isBrowser) {
-      const mapEl = this._document.getElementById('map');
-      if (mapEl) {
-        const win = this._document.defaultView;
-        const headerHeight = parseInt(win?.getComputedStyle(this._document.documentElement).getPropertyValue('--header-height') ?? '75', 10) || 75;
-        const top = mapEl.getBoundingClientRect().top + (win?.scrollY ?? 0) - headerHeight;
-        win?.scrollTo({ top, behavior: 'smooth' });
-      }
-    }
-
-    if (county) {
+    if (site) {
+      const features = this._getAllVisibleFeatures(includeProviders);
+      this.routeScopedFeatures = features;
+      this._buildCategoryLists(features);
+      this.filterEmpty = features.length === 0;
+      this.map?.updateSourceData({ ...this.geoJson, features });
+    } else if (county) {
       const displayName = getCountyDisplayName(county);
       const alsoKnownAs = getCountyAlsoKnownAs(county);
       this.filterContext = { displayName, alsoKnownAs };
-      const features = this._filterByCounty(county, includeProviders);
-      this.routeScopedFeatures = features;
-      this._buildCategoryLists(features);
-      this.filterEmpty = features.length === 0;
-      if (this.map) this.map.fitBoundsToFeatures(features);
+      const allVisibleFeatures = this._getAllVisibleFeatures(includeProviders);
+      const areaFeatures = this._filterByCounty(county, includeProviders);
+      this.routeScopedFeatures = allVisibleFeatures;
+      this._buildCategoryLists(allVisibleFeatures);
+      this.filterEmpty = areaFeatures.length === 0;
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
+      if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else if (country) {
       const displayName = MAP_COUNTRY_DISPLAY_NAMES[country] ?? country.replace(/\b\w/g, c => c.toUpperCase());
       this.filterContext = { displayName };
-      const features = this._filterByNation(country, includeProviders);
-      this.routeScopedFeatures = features;
-      this._buildCategoryLists(features);
-      this.filterEmpty = features.length === 0;
-      if (this.map) this.map.fitBoundsToFeatures(features);
+      const allVisibleFeatures = this._getAllVisibleFeatures(includeProviders);
+      const areaFeatures = this._filterByNation(country, includeProviders);
+      this.routeScopedFeatures = allVisibleFeatures;
+      this._buildCategoryLists(allVisibleFeatures);
+      this.filterEmpty = areaFeatures.length === 0;
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
+      if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else {
       this.routeScopedFeatures = [...(this.geoJson.features ?? [])];
     }
@@ -540,6 +683,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private _getFilterBaseFeatures(): any[] {
     if (!this.geoJson?.features) return [];
     return this.routeScopedFeatures.length ? this.routeScopedFeatures : this.geoJson.features;
+  }
+
+  private _getAllVisibleFeatures(includeProviders: boolean): any[] {
+    return this.geoJson.features.filter((f: any) => includeProviders || f.properties.featureType === 'Snorkelling Site');
   }
 
   private _findFeatureIndex(siteSlug: string): number {
@@ -613,7 +760,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       if (region === null) return true; // britain / uk = all sites
       return slugifyMapSegment(f.properties.location?.region as string) === region;
     });
-    this.map?.updateSourceData({ ...this.geoJson, features });
     return features;
   }
 
@@ -629,7 +775,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         return match && (includeProviders || f.properties.featureType === 'Snorkelling Site');
       }
     );
-    this.map?.updateSourceData({ ...this.geoJson, features });
     return features;
   }
 
@@ -705,8 +850,46 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
+  private _abbreviateNearbySiteName(value: string): string {
+    const maxChars = 24;
+    if (value.length <= maxChars) return value;
+
+    const shortened = value.slice(0, maxChars - 1);
+    const lastSpace = shortened.lastIndexOf(' ');
+    if (lastSpace > 8) {
+      return `${shortened.slice(0, lastSpace)}…`;
+    }
+    return `${shortened}…`;
+  }
+
   private _getCountryDisplayName(country: string): string {
     return MAP_COUNTRY_DISPLAY_NAMES[country] ?? this._formatSlugForDisplay(country);
+  }
+
+  private async _loadCountyDescription(countySlug: string): Promise<void> {
+    try {
+      const result = await this._http.getCountyDescription(countySlug);
+      this.countyDescription = (result?.description ?? '').trim();
+      this.countyDescriptionHtml = this.countyDescription ? this._htmler.transform(this.countyDescription) : '';
+    } catch {
+      this.countyDescription = '';
+      this.countyDescriptionHtml = '';
+    }
+    this.descriptionsLoaded = true;
+    this._cdr.detectChanges();
+  }
+
+  private async _loadCountryDescription(countrySlug: string): Promise<void> {
+    try {
+      const result = await this._http.getCountryDescription(countrySlug);
+      this.countryDescription = (result?.description ?? '').trim();
+      this.countryDescriptionHtml = this.countryDescription ? this._htmler.transform(this.countryDescription) : '';
+    } catch {
+      this.countryDescription = '';
+      this.countryDescriptionHtml = '';
+    }
+    this.descriptionsLoaded = true;
+    this._cdr.detectChanges();
   }
 
   

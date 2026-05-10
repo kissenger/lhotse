@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, BlogPost, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, BlogPost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -31,6 +31,46 @@ export class HttpService {
 
   async deleteSite(siteId: string) {
     const request = this._http.get<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`);
+    return await lastValueFrom(request);
+  }
+
+  async getCountiesAdmin() {
+    const request = this._http.get<Array<CountyDescriptionAdminItem>>('/api/sites/get-counties-admin/');
+    return await lastValueFrom(request);
+  }
+
+  async getCountyDescription(countySlug: string) {
+    const request = this._http.get<{ countyName?: string; countySlug: string; description: string }>(`/api/sites/get-county-description/${countySlug}`);
+    return await lastValueFrom(request);
+  }
+
+  async upsertCountyDescription(payload: CountyDescriptionUpsertPayload) {
+    const request = this._http.post<CountyDescriptionAdminItem>('/api/sites/upsert-county-description/', payload);
+    return await lastValueFrom(request);
+  }
+
+  async deleteCountyDescription(id: string) {
+    const request = this._http.delete<void>(`/api/sites/delete-county-description/${id}`);
+    return await lastValueFrom(request);
+  }
+
+  async getCountriesAdmin() {
+    const request = this._http.get<Array<CountryDescriptionAdminItem>>('/api/sites/get-countries-admin/');
+    return await lastValueFrom(request);
+  }
+
+  async getCountryDescription(countrySlug: string) {
+    const request = this._http.get<{ countryName?: string; countrySlug: string; description: string }>(`/api/sites/get-country-description/${countrySlug}`);
+    return await lastValueFrom(request);
+  }
+
+  async upsertCountryDescription(payload: CountryDescriptionUpsertPayload) {
+    const request = this._http.post<CountryDescriptionAdminItem>('/api/sites/upsert-country-description/', payload);
+    return await lastValueFrom(request);
+  }
+
+  async deleteCountryDescription(id: string) {
+    const request = this._http.delete<void>(`/api/sites/delete-country-description/${id}`);
     return await lastValueFrom(request);
   }
 

@@ -273,7 +273,7 @@
           <div class="section-heading">Tags</div>
           <div class="chip-list ro-chips" [class.source-dim]="contentSource === 'favourite'">
             @for (tag of (asGenerate?.content?.tags ?? []); track tag) {
-              <span class="chip chip-ro">{{ tag }}</span>
+              <span class="chip chip-ro pill pill--static">{{ tag }}</span>
             }
             @if (!asGenerate?.content?.tags?.length) {
               <span class="read-only-value">—</span>
@@ -282,7 +282,7 @@
           <div class="chip-editor" [class.source-dim]="contentSource === 'generated'">
             <div class="chip-list">
               @for (tag of (verifiedData.tags ?? []); track tag) {
-                <span class="chip">{{ tag }}<button type="button" [disabled]="contentSource === 'generated'" (click)="removeVerifiedTag(tag)">×</button></span>
+                <span class="chip pill pill--interactive">{{ tag }}<button type="button" [disabled]="contentSource === 'generated'" (click)="removeVerifiedTag(tag)">×</button></span>
               }
               @if (!verifiedData.tags?.length) {
                 <span class="read-only-value">— no tags</span>

@@ -107,7 +107,7 @@
         <div class="categories-editor">
           <div class="category-chips">
             @for (cat of selectedSite.properties.categories; track cat) {
-              <span class="category-chip">
+              <span class="category-chip pill pill--interactive">
                 {{ cat }}
                 <button type="button" (click)="removeCategory(cat)">&times;</button>
               </span>

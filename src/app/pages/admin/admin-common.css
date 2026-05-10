@@ -101,6 +101,47 @@
   align-items: flex-start;
 }
 
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  min-height: 1.5em;
+}
+
+.category-chip {
+  gap: 0.25em;
+  font-size: 0.875rem;
+}
+
+.category-chip button,
+.chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.category-chip button {
+  font-size: 1rem;
+  color: #555;
+}
+
+.category-chip button:hover {
+  color: #c00;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
 label, .label {
   width: 140px;
   flex-shrink: 0;

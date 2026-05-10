@@ -88,13 +88,53 @@ button {
 }
 
 .keywords > span {
-  padding: 0.25em 0.7em;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 2em;
-  background: var(--sn-colour);
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15em 0.6em;
+  font-size: 0.82rem;
+  border: 1px solid #d6dee8;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #334155;
   line-height: 1.4;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15em 0.6em;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+.pill--interactive {
+  background: #fff;
+  border-color: rgba(29, 61, 89, 0.35);
+  color: var(--sn-colour, #1D3D59);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .pill--interactive:hover {
+    background-color: rgba(29, 61, 89, 0.08);
+    border-color: var(--sn-colour, #1D3D59);
+    color: var(--sn-colour, #1D3D59);
+  }
+}
+
+.pill--interactive:active {
+  border-color: var(--sn-colour, #1D3D59);
+  color: var(--sn-colour, #1D3D59);
+}
+
+.pill--static {
+  background: #eef2f7;
+  border-color: #d6dee8;
+  color: #334155;
 }
 
 main {

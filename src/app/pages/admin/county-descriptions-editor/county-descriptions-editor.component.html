@@ -1,0 +1,139 @@
+<main>
+  <div class="static-div">
+    <div class="toolbar-row">
+      <label for="countySearch">Search:</label>
+      <input
+        id="countySearch"
+        name="countySearch"
+        type="search"
+        [(ngModel)]="search"
+        (ngModelChange)="applyFilter()"
+        placeholder="Find county or text"
+      >
+      <span class="toolbar-actions">
+        <button type="button" class="formButton" (click)="onNew()">Clear</button>
+        <button type="button" class="formButton btn-save" (click)="onSave()" [disabled]="isSaving">Save</button>
+        <button type="button" class="formButton btn-delete" (click)="onDelete()" [disabled]="isDeleting">Delete</button>
+      </span>
+      @if (feedback) {
+        <span class="status-text">{{ feedback }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="scrolling-div">
+    <h2>County Descriptions</h2>
+    <p class="help-text">Pick a county, edit the description, then Save.</p>
+
+    <div class="field-row">
+      <label for="countyName">County:</label>
+      <select id="countyName" name="countyName" [ngModel]="selectedCountyName" (ngModelChange)="onCountySelect($event)">
+        <option value="">-- Select county --</option>
+        @for (item of countyItems; track item.countySlug) {
+          <option [value]="item.countyName">{{ item.countyName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-row align-start">
+      <label for="countyDescription">Description:</label>
+      <textarea
+        id="countyDescription"
+        name="countyDescription"
+        [(ngModel)]="countyDescription"
+        rows="8"
+        placeholder="Enter county page description"
+      ></textarea>
+    </div>
+
+    <h3>Current Coverage</h3>
+    <table class="coverage-table">
+      <thead>
+        <tr>
+          <th>County</th>
+          <th>Slug</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of filteredItems; track item.countySlug) {
+          <tr>
+            <td>{{ item.countyName }}</td>
+            <td>{{ item.countySlug }}</td>
+            <td [ngClass]="item.description ? 'state-done' : 'state-empty'">
+              {{ item.description ? 'Has description' : 'No description' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <hr class="section-divider">
+
+    <h2>Country Descriptions</h2>
+    <p class="help-text">Pick a country, edit the description, then Save.</p>
+
+    <div class="toolbar-row">
+      <label for="countrySearch">Search:</label>
+      <input
+        id="countrySearch"
+        name="countrySearch"
+        type="search"
+        [(ngModel)]="countrySearch"
+        (ngModelChange)="applyCountryFilter()"
+        placeholder="Find country or text"
+      >
+      <span class="toolbar-actions">
+        <button type="button" class="formButton" (click)="onCountryNew()">Clear</button>
+        <button type="button" class="formButton btn-save" (click)="onCountrySave()" [disabled]="isCountrySaving">Save</button>
+        <button type="button" class="formButton btn-delete" (click)="onCountryDelete()" [disabled]="isCountryDeleting">Delete</button>
+      </span>
+      @if (countryFeedback) {
+        <span class="status-text">{{ countryFeedback }}</span>
+      }
+    </div>
+
+    <div class="field-row">
+      <label for="countryName">Country:</label>
+      <select id="countryName" name="countryName" [ngModel]="selectedCountryName" (ngModelChange)="onCountrySelect($event)">
+        <option value="">-- Select country --</option>
+        @for (item of countryItems; track item.countrySlug) {
+          <option [value]="item.countryName">{{ item.countryName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-row align-start">
+      <label for="countryDescription">Description:</label>
+      <textarea
+        id="countryDescription"
+        name="countryDescription"
+        [(ngModel)]="countryDescription"
+        rows="8"
+        placeholder="Enter country page description"
+      ></textarea>
+    </div>
+
+    <h3>Current Coverage</h3>
+    <table class="coverage-table">
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Slug</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of filteredCountryItems; track item.countrySlug) {
+          <tr>
+            <td>{{ item.countryName }}</td>
+            <td>{{ item.countrySlug }}</td>
+            <td [ngClass]="item.description ? 'state-done' : 'state-empty'">
+              {{ item.description ? 'Has description' : 'No description' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</main>

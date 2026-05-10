@@ -2,6 +2,11 @@
 /* ===================================== */
 /* styling used on some child components */
 /* ===================================== */
+:host ::ng-deep h1,
+:host ::ng-deep h2 {
+  text-align: center;
+}
+
 @supports not (-webkit-touch-callout: none) {
   .window {
     background-attachment: fixed;
@@ -28,8 +33,13 @@
   background: linear-gradient(180deg, #f8fcff 0%, #eef6fb 100%);
 }
 
-.map-preview-card h2 {
+:host ::ng-deep h2.faq-question {
+  text-align: left;
+}
+
+:host ::ng-deep .map-preview-card h2 {
   margin-top: 0;
+  text-align: left;
 }
 
 .map-preview-actions {

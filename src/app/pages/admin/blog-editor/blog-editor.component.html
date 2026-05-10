@@ -79,7 +79,7 @@
                     <div class="keywords-editor">
                         <div class="chip-list">
                             @for (kw of selectedPost.keywords; track $index) {
-                                <span class="chip">{{kw}}<button type="button" class="chip-remove" (click)="removeKeyword($index)" aria-label="Remove">×</button></span>
+                                <span class="chip pill pill--interactive">{{kw}}<button type="button" class="chip-remove" (click)="removeKeyword($index)" aria-label="Remove">×</button></span>
                             }
                         </div>
                         <div class="keyword-inputs">

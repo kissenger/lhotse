@@ -16,17 +16,31 @@ export class MapService {
   private _sites: any;
   // Emits whenever the selected feature changes (including clear)
   public readonly selectionChanged = new Subject<void>();
+  // Emits whenever the map viewport changes (pan/zoom/rotate)
+  public readonly viewportChanged = new Subject<void>();
 
   constructor() {}
+
+  private _clearSelectedState(emit = true) {
+    if (this.selectedFeature) {
+      this._map!.setFeatureState(this.selectedFeature, { selected: false });
+    }
+    this.selectedFeature = null;
+    if (emit) this.selectionChanged.next();
+  }
+
+  private _selectFeature(ref: any, emit = true) {
+    this.selectedFeature = ref;
+    this._map!.setFeatureState(ref, { selected: true });
+    if (emit) this.selectionChanged.next();
+  }
   
   get exists() {
     return !!this._map
   }
 
   deselectSymbol() {
-    this._map!.setFeatureState(this.selectedFeature, { selected: false });
-    this.selectedFeature = null;
-    this.selectionChanged.next();
+    this._clearSelectedState();
   }
 
   get selectedSymbolId() {
@@ -47,6 +61,12 @@ export class MapService {
       return "none"
     }
 
+  }
+
+  projectToScreen(lngLat: [number, number]): { x: number; y: number } | null {
+    if (!this._map) return null;
+    const point = this._map.project(lngLat as any);
+    return { x: point.x, y: point.y };
   }
 
   indexOfArrayMaximum(arr: Array<number> | undefined) {
@@ -247,30 +267,24 @@ export class MapService {
 
       })
 
+      const handleSymbolClick = (e: any) => {
+        const features = this._map?.queryRenderedFeatures(e.point, { layers: ['symbolLayer'] });
+        const index = this.indexOfArrayMaximum(features?.map(f => f.properties!['symbolSortOrder']));
+        const feature = features?.[index];
+        if (!feature) return;
+
+        if (this.selectedFeature?.id === feature.id) {
+          this._clearSelectedState();
+        } else {
+          this._clearSelectedState(false);
+          this._selectFeature(feature);
+        }
+      };
+
       this._map?.addInteraction('click', {
         type: 'click',
         target: { layerId: 'symbolLayer' },
-        handler: (e) => {
-          // look for multiple features under the click, and set the one with the highest sortOrder as selected
-          // this should be the one highest in the stack
-          const features = this._map?.queryRenderedFeatures(e.point, {layers: ['symbolLayer']});
-          const index = this.indexOfArrayMaximum(features?.map(f=>f.properties!['symbolSortOrder']));
-          const feature = features![index];
-
-          if (this.selectedFeature?.id === feature?.id) {
-            this.selectedFeature = null;
-            this._map!.setFeatureState(feature!, { selected: false });
-            this.selectionChanged.next();
-          } else {
-            if (this.selectedFeature) {
-              this._map!.setFeatureState(this.selectedFeature, { selected: false });
-            }
-            this.selectedFeature = feature;
-            this._map!.setFeatureState(feature!, { selected: true });
-            this.selectionChanged.next();
-          }
-        }
-
+        handler: handleSymbolClick,
       });
 
       this._map?.addInteraction('cluster-click', {
@@ -291,10 +305,8 @@ export class MapService {
       this._map?.addInteraction('map-click', {
         type: 'click',
         handler: () => {
-          if (this.selectedFeature?.id) {
-            this._map!.setFeatureState(this.selectedFeature, { selected: false });
-            this.selectedFeature = null;
-            this.selectionChanged.next();
+          if (typeof this.selectedSymbolId === 'number') {
+            this._clearSelectedState();
           }
         }
       });
@@ -330,6 +342,10 @@ export class MapService {
           this._map!.getCanvas().style.cursor = '';
         },
       });
+
+      // Keep external overlays in sync with camera moves.
+      this._map?.on('move', () => this.viewportChanged.next());
+      this._map?.on('moveend', () => this.viewportChanged.next());
     
     });
 
@@ -342,8 +358,7 @@ export class MapService {
   }
 
   clearSelection() {
-    this.selectedFeature = null;
-    this.selectionChanged.next();
+    this._clearSelectedState();
   }
 
   fitBoundsToFeatures(features: any[], selectId?: number) {
@@ -356,32 +371,22 @@ export class MapService {
       if (lat < minLat) minLat = lat;
       if (lat > maxLat) maxLat = lat;
     }
-    if (this.selectedFeature) {
-      this._map!.setFeatureState(this.selectedFeature, { selected: false });
-      this.selectedFeature = null;
-    }
+    if (this.selectedFeature) this._clearSelectedState(false);
     this._map!.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, maxZoom: 14 });
     if (selectId !== undefined) {
       this._map!.once('moveend', () => {
         const ref = { source: 'sitesSource', id: selectId };
-        this._map!.setFeatureState(ref, { selected: true });
-        this.selectedFeature = ref;
-        this.selectionChanged.next();
+        this._selectFeature(ref);
       });
     }
   }
 
   flyToAndSelect(id: number, coordinates: [number, number], zoom = 12) {
-    if (this.selectedFeature) {
-      this._map!.setFeatureState(this.selectedFeature, { selected: false });
-      this.selectedFeature = null;
-    }
-    this._map!.flyTo({ center: coordinates, zoom });
+    if (this.selectedFeature) this._clearSelectedState(false);
+    this._map!.flyTo({ center: coordinates, zoom, speed: 2.2, curve: 1.2 });
     this._map!.once('moveend', () => {
       const ref = { source: 'sitesSource', id };
-      this._map!.setFeatureState(ref, { selected: true });
-      this.selectedFeature = ref;
-      this.selectionChanged.next();
+      this._selectFeature(ref);
     });
   }
 

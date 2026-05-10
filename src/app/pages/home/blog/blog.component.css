@@ -81,27 +81,8 @@ app-blog-card + app-blog-card {
 }
 
 .chip {
-  display: inline-block;
-  padding: 0.25em 0.7em;
   font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 2em;
-  background: white;
-  color: #888;
-  cursor: pointer;
-  transition: all 0.15s ease;
   line-height: 1.4;
-}
-
-@media (hover: hover) {
-  .chip:hover {
-    border-color: #888;
-    color: #333;
-  }
-}
-.chip:active {
-  border-color: #888;
-  color: #333;
 }
 
 .chip.active {

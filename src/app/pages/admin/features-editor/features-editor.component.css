@@ -67,38 +67,6 @@ input[type="checkbox"] {
   flex-grow: 1;
 }
 
-.category-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3em;
-  min-height: 1.5em;
-}
-
-.category-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  background: #e8f0fe;
-  border: 1px solid #aac;
-  border-radius: 3px;
-  padding: 1px 6px;
-  font-size: 0.875rem;
-}
-
-.category-chip button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0;
-  color: #555;
-}
-
-.category-chip button:hover {
-  color: #c00;
-}
-
 .formButton {
   width: 100px;
   margin: 6px;

@@ -1,6 +1,8 @@
 import express from 'express';
 import FeatureModel from '../schema/feature';
 import { OrganisationModel } from '../schema/organisations';
+import CountyDescriptionModel from '../schema/county-description';
+import CountryDescriptionModel from '../schema/country-description';
 import { verifyToken } from './server-auth';
 import { buildMapPath, getCountrySlugFromRegion, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
 import 'dotenv/config';
@@ -440,6 +442,34 @@ map.get('/api/sites/get-districts/', async (_req, res) => {
   }
 });
 
+map.get('/api/sites/get-county-description/:countySlug', async (req, res) => {
+  try {
+    const countySlug = normaliseCountySegment(req.params.countySlug);
+    if (!countySlug) {
+      res.status(400).json({ error: 'invalid countySlug' });
+      return;
+    }
+
+    const doc = await CountyDescriptionModel.findOne(
+      { countySlug },
+      { countyName: 1, countySlug: 1, description: 1 }
+    ).lean();
+
+    if (!doc) {
+      res.status(200).json({ countySlug, description: '' });
+      return;
+    }
+
+    res.status(200).json({
+      countyName: (doc as any).countyName,
+      countySlug: (doc as any).countySlug,
+      description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* Admin CRUD endpoints */
 
 map.get('/api/sites/get-all-sites-admin/', verifyToken, async (_req, res) => {
@@ -481,6 +511,207 @@ map.get('/api/sites/delete-site/:_id', verifyToken, async (req, res) => {
     await FeatureModel.findByIdAndDelete(req.params._id);
     const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(201).json(result);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.get('/api/sites/get-counties-admin/', verifyToken, async (_req, res) => {
+  try {
+    const sites = await FeatureModel.find(
+      { showOnMap: 'Production', 'properties.featureType': 'Snorkelling Site' },
+      { 'properties.location': 1 }
+    ).lean();
+
+    const docs = await CountyDescriptionModel.find(
+      {},
+      { countyName: 1, countySlug: 1, description: 1 }
+    ).lean();
+
+    const docsBySlug = new Map<string, any>();
+    for (const doc of docs as any[]) {
+      if (typeof doc.countySlug === 'string' && doc.countySlug) {
+        docsBySlug.set(doc.countySlug, doc);
+      }
+    }
+
+    const mergedBySlug = new Map<string, { _id?: string; countyName: string; countySlug: string; description: string }>();
+
+    for (const site of sites as any[]) {
+      const location = site.properties?.location ?? {};
+      const countyName = (location.district ?? location.county ?? location.adminLevel3 ?? '').trim();
+      if (!countyName) continue;
+      const countySlug = slugifyMapSegment(countyName);
+      if (!countySlug) continue;
+      const existing = docsBySlug.get(countySlug);
+      mergedBySlug.set(countySlug, {
+        _id: existing?._id?.toString(),
+        countyName,
+        countySlug,
+        description: typeof existing?.description === 'string' ? existing.description : '',
+      });
+    }
+
+    for (const doc of docs as any[]) {
+      const countySlug = typeof doc.countySlug === 'string' ? doc.countySlug : '';
+      if (!countySlug || mergedBySlug.has(countySlug)) continue;
+      mergedBySlug.set(countySlug, {
+        _id: doc._id?.toString(),
+        countyName: doc.countyName,
+        countySlug,
+        description: typeof doc.description === 'string' ? doc.description : '',
+      });
+    }
+
+    const result = [...mergedBySlug.values()].sort((a, b) => a.countyName.localeCompare(b.countyName));
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.post('/api/sites/upsert-county-description/', verifyToken, async (req, res) => {
+  try {
+    const countyName = String(req.body?.countyName ?? '').trim();
+    const description = String(req.body?.description ?? '');
+    if (!countyName) {
+      res.status(400).json({ error: 'countyName is required' });
+      return;
+    }
+
+    const countySlug = slugifyMapSegment(countyName);
+    if (!countySlug) {
+      res.status(400).json({ error: 'invalid countyName' });
+      return;
+    }
+
+    const saved = await CountyDescriptionModel.findOneAndUpdate(
+      { countySlug },
+      { $set: { countyName, countySlug, description } },
+      { upsert: true, new: true }
+    ).lean();
+
+    res.status(201).json(saved);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.delete('/api/sites/delete-county-description/:_id', verifyToken, async (req, res) => {
+  try {
+    await CountyDescriptionModel.findByIdAndDelete(req.params._id);
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.get('/api/sites/get-country-description/:countrySlug', async (req, res) => {
+  try {
+    const countrySlug = normaliseCountrySegment(req.params.countrySlug);
+    if (!countrySlug) {
+      res.status(400).json({ error: 'invalid countrySlug' });
+      return;
+    }
+
+    const doc = await CountryDescriptionModel.findOne(
+      { countrySlug },
+      { countryName: 1, countrySlug: 1, description: 1 }
+    ).lean();
+
+    if (!doc) {
+      res.status(200).json({ countrySlug, description: '' });
+      return;
+    }
+
+    res.status(200).json({
+      countryName: (doc as any).countryName,
+      countrySlug: (doc as any).countrySlug,
+      description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+map.get('/api/sites/get-countries-admin/', verifyToken, async (_req, res) => {
+  try {
+    const docs = await CountryDescriptionModel.find(
+      {},
+      { countryName: 1, countrySlug: 1, description: 1 }
+    ).lean();
+
+    const docsBySlug = new Map<string, any>();
+    for (const doc of docs as any[]) {
+      if (typeof (doc as any).countrySlug === 'string') {
+        docsBySlug.set((doc as any).countrySlug, doc);
+      }
+    }
+
+    // Merge static known countries with any DB records
+    const KNOWN_COUNTRIES: Record<string, string> = { britain: 'Britain', england: 'England', scotland: 'Scotland', wales: 'Wales' };
+    const mergedBySlug = new Map<string, { _id?: string; countryName: string; countrySlug: string; description: string }>();
+
+    for (const [slug, displayName] of Object.entries(KNOWN_COUNTRIES)) {
+      const existing = docsBySlug.get(slug);
+      mergedBySlug.set(slug, {
+        _id: existing?._id?.toString(),
+        countryName: displayName,
+        countrySlug: slug,
+        description: typeof existing?.description === 'string' ? existing.description : '',
+      });
+    }
+
+    // Also include any DB records not in the static list
+    for (const doc of docs as any[]) {
+      const slug = typeof (doc as any).countrySlug === 'string' ? (doc as any).countrySlug : '';
+      if (!slug || mergedBySlug.has(slug)) continue;
+      mergedBySlug.set(slug, {
+        _id: (doc as any)._id?.toString(),
+        countryName: (doc as any).countryName,
+        countrySlug: slug,
+        description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+      });
+    }
+
+    const result = [...mergedBySlug.values()].sort((a, b) => a.countryName.localeCompare(b.countryName));
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.post('/api/sites/upsert-country-description/', verifyToken, async (req, res) => {
+  try {
+    const countryName = String(req.body?.countryName ?? '').trim();
+    const description = String(req.body?.description ?? '');
+    if (!countryName) {
+      res.status(400).json({ error: 'countryName is required' });
+      return;
+    }
+
+    const countrySlug = normaliseCountrySegment(countryName.toLowerCase().replace(/\s+/g, '-'));
+    if (!countrySlug) {
+      res.status(400).json({ error: 'invalid countryName' });
+      return;
+    }
+
+    const saved = await CountryDescriptionModel.findOneAndUpdate(
+      { countrySlug },
+      { $set: { countryName, countrySlug, description } },
+      { upsert: true, new: true }
+    ).lean();
+
+    res.status(201).json(saved);
+  } catch (error: any) {
+    res.status(500).send(error);
+  }
+});
+
+map.delete('/api/sites/delete-country-description/:_id', verifyToken, async (req, res) => {
+  try {
+    await CountryDescriptionModel.findByIdAndDelete(req.params._id);
+    res.status(204).send();
   } catch (error: any) {
     res.status(500).send(error);
   }

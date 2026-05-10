@@ -401,6 +401,30 @@ export interface Feature {
     moreInfo: Array<{title?: string, icon?: string, url?: string, text?: string}>
   }
 
+export interface CountyDescriptionAdminItem {
+  _id?: string;
+  countyName: string;
+  countySlug: string;
+  description: string;
+}
+
+export interface CountyDescriptionUpsertPayload {
+  countyName: string;
+  description: string;
+}
+
+export interface CountryDescriptionAdminItem {
+  _id?: string;
+  countryName: string;
+  countrySlug: string;
+  description: string;
+}
+
+export interface CountryDescriptionUpsertPayload {
+  countryName: string;
+  description: string;
+}
+
 export class MapFeature {
   _id: string = '';
   showOnMap: 'No' | 'Development' | 'Production' = 'No';

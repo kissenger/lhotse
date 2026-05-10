@@ -9,7 +9,7 @@
       <span class="filter-label">{{ filterLabel }}</span>
       <div class="filter-chips">
         @for (kw of uniqueKeywords; track kw) {
-          <button class="chip" [class.active]="selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</button>
+          <button class="chip pill pill--interactive" [class.active]="selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</button>
         }
       </div>
       <div class="filter-actions">

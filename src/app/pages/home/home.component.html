@@ -51,6 +51,13 @@
       <div #window #windowFour id="windowFour" class="window"></div>
     </div>
 
+    <div #anchor class="anchor" id="snorkelling-map-of-britain" data-scrollspy-anchor>
+      @defer (on viewport(windowFive); prefetch on idle) {
+        <app-map></app-map>
+      }
+      <div #window #windowFive id="windowFive" class="window"></div>
+    </div>
+
     <div class="anchor" id="british-snorkelling-faqs">
       <app-faq></app-faq>
       <div #window #windowSix id="windowSix" class="window"></div>
@@ -61,23 +68,4 @@
     </div>
   }
 
-  <div #anchor class="anchor" id="snorkelling-map-of-britain" data-scrollspy-anchor>
-    @defer (on interaction(mapPreviewCta); on viewport(mapViewportTrigger); prefetch on idle) {
-      <app-map></app-map>
-    } @placeholder {
-      <section #mapViewportTrigger class="map-preview-card" aria-label="Interactive Snorkelling Map preview">
-        <h2>Interactive Snorkelling Map of Britain</h2>
-        <p>
-          Load our full interactive map to explore snorkelling sites, filter habitats,
-          and discover organisations across Britain.
-        </p>
-        <div class="map-preview-actions">
-          <button #mapPreviewCta type="button" class="map-preview-btn">Load Interactive Map</button>
-          <a routerLink="/map" class="map-preview-link">Open Full-Screen Map</a>
-        </div>
-      </section>
-    }
-    <div #window #windowFive id="windowFive" class="window"></div>
-  </div>
-  
 </main>

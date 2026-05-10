@@ -21,6 +21,7 @@ export class AdminNavbarComponent {
     { label: 'Blog',          path: '/blogeditor' },
     { label: 'Sites',         path: '/siteseditor' },
     { label: 'Map',           path: '/adminmap' },
+    { label: 'Counties',      path: '/county-descriptions' },
     { label: 'Organisations', path: '/organisations' },
     { label: 'Orders',        path: '/orders' },
   ];
