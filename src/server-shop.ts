@@ -552,7 +552,7 @@ function sendEmail(to: string, html: string, subject: string) {
   
   transporter.sendMail(message)
     .then((_info) => {
-    }).catch((err) => {
+    }).catch((_err) => {
     }
   );
 }

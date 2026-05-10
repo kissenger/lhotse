@@ -43,7 +43,7 @@ test.describe('home page (/home)', () => {
   // --- title & description ---
 
   test('title is correct', async ({ page }) => {
-    await expect(page).toHaveTitle('Snorkelology \u2014 British Snorkelling Map, Articles & Snorkelling Britain Book');
+    await expect(page).toHaveTitle('Snorkelling in Britain - Map, Articles & Book | Snorkelology');
   });
 
   test('meta description is correct', async ({ page }) => {

@@ -99,9 +99,9 @@ function orgToGeoJsonFeature(org: any, id: number) {
 map.get('/api/sites/get-sites/*', async (req, res) => {
 
   let visibility = <string>Object.values(req.params)[0];
+  const visibilityArr = visibility.split('/');
 
   try {
-    const visibilityArr = visibility.split('/');
     const [sites, orgs] = await Promise.all([
       FeatureModel.find({
         showOnMap: { $in: visibilityArr },
@@ -126,12 +126,10 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
   }
 });
 
-map.get('/api/organisations/get-organisations/*', async (req, res) => {
+map.get('/api/organisations/get-organisations/*', async (_req, res) => {
 
-  let visibility = <string>Object.values(req.params)[0];
 
   try {
-    const visibilityArr = visibility.split('/');
     const orgs = await OrganisationModel.find(await buildOrgFilter()).lean();
     const orgFeatures = orgs
       .map((org: any, i: number) => orgToGeoJsonFeature(org, i))

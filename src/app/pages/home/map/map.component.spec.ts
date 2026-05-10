@@ -42,6 +42,7 @@ function buildMap(pathParams: Record<string, string> = {}, queryParams: Record<s
     updateSourceData: jasmine.createSpy('updateSourceData'),
     clearSelection: jasmine.createSpy('clearSelection'),
     selectedFeature: null,
+    viewportChanged: { subscribe: () => ({ unsubscribe() {} }) },
   };
 
   const mockLazy = { get: jasmine.createSpy('get').and.returnValue(Promise.resolve(mockMapService)) };

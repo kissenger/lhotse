@@ -701,22 +701,20 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       const displayName = getCountyDisplayName(county);
       const alsoKnownAs = getCountyAlsoKnownAs(county);
       this.filterContext = { displayName, alsoKnownAs };
-      const allVisibleFeatures = this._getAllVisibleFeatures(includeProviders);
       const areaFeatures = this._filterByCounty(county, includeProviders);
-      this.routeScopedFeatures = allVisibleFeatures;
-      this._buildCategoryLists(allVisibleFeatures);
+      this.routeScopedFeatures = areaFeatures;
+      this._buildCategoryLists(areaFeatures);
       this.filterEmpty = areaFeatures.length === 0;
-      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
+      this.map?.updateSourceData({ ...this.geoJson, features: areaFeatures });
       if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else if (country) {
       const displayName = MAP_COUNTRY_DISPLAY_NAMES[country] ?? country.replace(/\b\w/g, c => c.toUpperCase());
       this.filterContext = { displayName };
-      const allVisibleFeatures = this._getAllVisibleFeatures(includeProviders);
       const areaFeatures = this._filterByNation(country, includeProviders);
-      this.routeScopedFeatures = allVisibleFeatures;
-      this._buildCategoryLists(allVisibleFeatures);
+      this.routeScopedFeatures = areaFeatures;
+      this._buildCategoryLists(areaFeatures);
       this.filterEmpty = areaFeatures.length === 0;
-      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
+      this.map?.updateSourceData({ ...this.geoJson, features: areaFeatures });
       if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else {
       this.routeScopedFeatures = [...(this.geoJson.features ?? [])];
