@@ -32,14 +32,56 @@
           <!-- <h3 class="map-cta-title">Snorkelology Interactive Snorkelling Map of Britain</h3> -->
           <p class="map-cta-body">
             Have you visited our interactive snorkelling map of Britain yet? 
+          </p>
           <div class="map-cta-link-group">
-            <a class="map-cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
+            <a class="anchor-pill map-cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
           </div>
         </aside>
 
         <p class="map-site-static map-route-para2">
           Duck-dive into the map to explore {{siteContext.countyDisplayName}}'s coastline and discover other snorkelling spots and organisations nearby.
           Whether you're looking for the best places to snorkel in Britain, searching for snorkelling sites near you, or seeking guided snorkelling experiences, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
+        </p>
+
+      </div>
+    } @else if (organisationContext) {
+      <h2 class="section-heading">{{organisationContext.displayName}}</h2>
+      <div class="map-route-flow map-route-flow-mobile-order">
+        @if (nearestPublishedOrganisationLinks.length) {
+          <aside class="map-route-links map-route-card map-route-card-country map-route-wrap-box map-nearby-sites-box map-route-primary-box" aria-label="Nearest snorkelling sites and organisations">
+            <h3>Nearest snorkelling sites and organisations</h3>
+            <ul class="map-inline-link-list">
+              @for (item of nearestPublishedOrganisationLinks; track item.path) {
+                <li>
+                  <span
+                    class="route-link-dot"
+                    [class.route-link-dot-site]="item.isSnorkellingSite"
+                    [class.route-link-dot-org]="!item.isSnorkellingSite"
+                    aria-hidden="true"></span>
+                  <a [href]="item.path" class="filter-clear-link" [title]="item.name">{{item.displayName}}</a>
+                  <span class="route-link-meta"> ({{item.distanceLabel}})</span>
+                </li>
+              }
+            </ul>
+          </aside>
+        }
+        <p class="map-site-intro map-route-para1">
+          {{organisationContext.displayName}} is a snorkelling organisation in 
+          {{organisationContext.countyDisplayName}}, {{organisationContext.countryDisplayName}}.
+        </p>
+
+        <aside class="map-cta-box map-cta-flow" aria-label="Featured snorkelling guide">
+          <p class="map-cta-body">
+            Have you visited our interactive snorkelling map of Britain yet? 
+          </p>
+          <div class="map-cta-link-group">
+            <a class="anchor-pill map-cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
+          </div>
+        </aside>
+
+        <p class="map-site-static map-route-para2">
+          Duck-dive into the map to explore {{organisationContext.countyDisplayName}}'s coastline and discover other snorkelling organisations and sites nearby.
+          Whether you're looking for guided snorkelling experiences, instructors, or rental shops, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
         </p>
 
       </div>
@@ -138,7 +180,7 @@
             Don't leave home without checking our beginner's guide to British snorkelling! Packed with essential tips it's your go-to resource for an unforgettable adventure.
           </p>
           <div class="map-cta-link-group">
-            <a class="map-cta-link-btn" href="/blog/beginners-guide-to-snorkelling">Read the beginner guide</a>
+            <a class="anchor-pill map-cta-link-btn" href="/blog/beginners-guide-to-snorkelling">Read the beginner guide</a>
           </div>
         </aside>
         
@@ -229,7 +271,7 @@
                 </button>
               </div>
               <p class="map-feature-location">{{feature.location.locality ?? feature.location.place}}@if (feature.location.district){, {{feature.location.district}}}</p>
-              <h3>{{feature.name}}</h3>
+              <h3 class="map-feature-name">{{feature.name}}</h3>
 
               @if (feature.categories?.length) {
                 <ul class="map-feature-tags" aria-label="Feature categories">
@@ -241,13 +283,10 @@
 
               <p class="map-feature-description">
                 {{feature.description}}
+                @if (feature.aiGenerated || feature.verified === false) {
+                  <a class="anchor-pill ai-content-notice map-cta-link-btn" routerLink="/ai-transparency">About this content</a>
+                }
               </p>
-
-              @if (feature.aiGenerated || feature.verified === false) {
-                <div class="ai-content-notice-row">
-                  <a class="ai-content-notice pill pill--interactive" routerLink="/ai-transparency">About this content</a>
-                </div>
-              }
 
               @if (feature.featureType == 'Snorkelling Site') {
                 <p class="map-feature-caveat">

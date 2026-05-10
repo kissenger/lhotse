@@ -58,8 +58,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public countryDescription: string = '';
   public countryDescriptionHtml: string = '';
   public siteContext: { displayName: string; countyDisplayName?: string; countryDisplayName?: string; parentPath: string } | null = null;
+  public organisationContext: { displayName: string; countyDisplayName?: string; countryDisplayName?: string; parentPath: string } | null = null;
   public upLevelLink: { path: string; label: string } | null = null;
-  public routeLevel: 'root' | 'country' | 'county' | 'site' = 'root';
+  public routeLevel: 'root' | 'country' | 'county' | 'site' | 'organisation' = 'root';
   public filterEmpty: boolean = false;
   public routeScopedFeatures: any[] = [];
   public panelTopPx: number | null = 16;
@@ -298,6 +299,39 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       }));
   }
 
+  get nearestPublishedOrganisationLinks(): Array<{ name: string; displayName: string; path: string; isSnorkellingSite: boolean; distanceLabel: string }> {
+    if (!this.geoJson || this.routeLevel !== 'organisation') return [];
+    const selected = this._getOrganisationContextFeature();
+    if (!selected) return [];
+
+    const [originLng, originLat] = selected.geometry.coordinates as [number, number];
+    const isNarrow = this._isBrowser && (this._document.defaultView?.innerWidth ?? 1024) < 768;
+    const maxNearby = isNarrow ? 5 : 8;
+
+    return this.geoJson.features
+      .filter((f: any) => f !== selected)
+      .filter((f: any) => !f.showOnMap || f.showOnMap === 'Production')
+      .filter((f: any) => Array.isArray(f?.geometry?.coordinates) && f.geometry.coordinates.length >= 2)
+      .map((f: any) => {
+        const [lng, lat] = f.geometry.coordinates as [number, number];
+        return {
+          name: f.properties.name as string,
+          path: buildMapPathForFeature(f.properties),
+          isSnorkellingSite: f.properties.featureType === 'Snorkelling Site',
+          distanceKm: this._haversineKm(originLat, originLng, lat, lng),
+        };
+      })
+      .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
+      .slice(0, maxNearby)
+      .map((item: { name: string; path: string; isSnorkellingSite: boolean; distanceKm: number }) => ({
+        name: item.name,
+        displayName: this._abbreviateNearbySiteName(item.name),
+        path: item.path,
+        isSnorkellingSite: item.isSnorkellingSite,
+        distanceLabel: `${item.distanceKm.toFixed(1)} km`,
+      }));
+  }
+
   constructor(
     private _lazyServiceInjector: LazyServiceInjector,    
     private _http: HttpService,
@@ -360,7 +394,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this._http.getSites(visibility),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
       ]);
-      this.geoJson = result;
+      
+      // getSites already includes organisations merged in
+      this.geoJson = result as any;
       this.routeScopedFeatures = [...(this.geoJson.features ?? [])];
       this._buildCategoryLists();
       this.sitesLoaded = true;
@@ -637,6 +673,30 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this._buildCategoryLists(features);
       this.filterEmpty = features.length === 0;
       this.map?.updateSourceData({ ...this.geoJson, features });
+      
+      // Detect if it's a site or organisation and set context
+      const featureIdx = this._findFeatureIndex(site);
+      if (featureIdx >= 0) {
+        const feature = this.geoJson.features[featureIdx];
+        const countryDisplayName = country ? this._getCountryDisplayName(country) : undefined;
+        const countyDisplayName = county ? getCountyDisplayName(county) : undefined;
+        const baseContext = {
+          displayName: this._formatSlugForDisplay(site),
+          countyDisplayName,
+          countryDisplayName,
+          parentPath: buildMapPath({ country, county })
+        };
+        
+        if (feature.properties.featureType === 'Snorkelling Site') {
+          this.routeLevel = 'site';
+          this.siteContext = baseContext;
+          this.organisationContext = null;
+        } else {
+          this.routeLevel = 'organisation';
+          this.organisationContext = baseContext;
+          this.siteContext = null;
+        }
+      }
     } else if (county) {
       const displayName = getCountyDisplayName(county);
       const alsoKnownAs = getCountyAlsoKnownAs(county);
@@ -739,6 +799,21 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const { country, county } = this._resolveParams();
     const idx = this._findFeatureIndexByRoute(site, country, county);
     return idx >= 0 ? this.geoJson.features[idx] ?? null : null;
+  }
+
+  private _getOrganisationContextFeature(): any | null {
+    if (!this.geoJson?.features || this.routeLevel !== 'organisation') return null;
+
+    const selected = this.selectedFeature;
+    if (selected?.properties.featureType !== 'Snorkelling Site') return selected;
+
+    const { site } = this._resolveParams();
+    if (!site) return null;
+
+    const { country, county } = this._resolveParams();
+    const idx = this._findFeatureIndexByRoute(site, country, county);
+    const feature = idx >= 0 ? this.geoJson.features[idx] ?? null : null;
+    return feature?.properties.featureType !== 'Snorkelling Site' ? feature : null;
   }
 
   // Resolves path params first, then falls back to the legacy query-param scheme.

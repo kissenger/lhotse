@@ -126,6 +126,23 @@ map.get('/api/sites/get-sites/*', async (req, res) => {
   }
 });
 
+map.get('/api/organisations/get-organisations/*', async (req, res) => {
+
+  let visibility = <string>Object.values(req.params)[0];
+
+  try {
+    const visibilityArr = visibility.split('/');
+    const orgs = await OrganisationModel.find(await buildOrgFilter()).lean();
+    const orgFeatures = orgs
+      .map((org: any, i: number) => orgToGeoJsonFeature(org, i))
+      .filter(Boolean);
+    res.status(201).json({ type: 'FeatureCollection', features: orgFeatures });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 function toPostalAddress(location: any) {
   if (!location || typeof location !== 'object') {
     return undefined;
@@ -193,6 +210,7 @@ function toSiteSeoPlace(site: any) {
 function toOrganisationSeoPlace(org: any) {
   const d = org.discover ?? {};
   const fav = org.favourite ?? {};
+  const gc = org.generate?.content ?? {};
   const coords: number[] = d.location?.coordinates ?? [0, 0];
   const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
   const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
@@ -202,11 +220,20 @@ function toOrganisationSeoPlace(org: any) {
   const region = reverseGeo.region?.name as string | undefined;
   const countrySlug = getCountrySlugFromRegion(region);
   const countySlug = getCountySlugFromLocation({ district });
-  const siteSlug = normaliseSiteSegment(d.title);
+  
+  // Use same name priority as orgToGeoJsonFeature: fav.name -> gc.name -> d.title
+  const firstNonEmpty = (...vals: unknown[]): string => {
+    for (const v of vals) {
+      if (typeof v === 'string' && v.trim() !== '') return v.trim();
+    }
+    return '';
+  };
+  const orgName = firstNonEmpty(fav.name, gc.name, d.title);
+  const siteSlug = normaliseSiteSegment(orgName);
 
   return {
     '@type': 'SportsActivityLocation',
-    name: d.title,
+    name: orgName,
     description: category ? `${category}${d.city ? ' in ' + d.city : ''}${descriptionText ? '. ' + descriptionText : ''}` : descriptionText,
     keywords: tags.length ? tags.join(', ') : undefined,
     address: toPostalAddress({ locality: d.city, postcode: d.postalCode, country: d.countryCode }),
@@ -219,7 +246,7 @@ function toOrganisationSeoPlace(org: any) {
     countrySlug,
     countySlug,
     siteSlug,
-    path: buildMapPath({ country: countrySlug, county: countySlug, siteName: d.title }),
+    path: buildMapPath({ country: countrySlug, county: countySlug, siteName: orgName }),
     district,
     image: d.imageUrl || undefined,
   };
@@ -243,7 +270,7 @@ async function getPlacesForSeoWithRouteMeta() {
     ).lean(),
     OrganisationModel.find(
       { ...(await buildOrgFilter()), _id: { $exists: true } },
-      { discover: 1, favourite: 1, reverse_geo: 1 }
+      { discover: 1, favourite: 1, reverse_geo: 1, generate: 1 }
     ).lean(),
   ]);
 

@@ -247,6 +247,22 @@ a:visited {
   color: var(--text-colour-link);
 }
 
+/* Use this on anchors that should behave like pills/buttons rather than inline links. */
+a.anchor-pill,
+a.anchor-pill:visited,
+a.anchor-pill:active {
+  border-bottom: none;
+  padding-bottom: 0;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a.anchor-pill:hover {
+    border-bottom: none;
+    text-decoration: none;
+  }
+}
+
 .anchor::before {
   content: "";
   display: block;
