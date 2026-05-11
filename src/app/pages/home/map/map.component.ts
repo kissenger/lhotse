@@ -63,6 +63,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public routeLevel: 'root' | 'country' | 'county' | 'site' | 'organisation' = 'root';
   public filterEmpty: boolean = false;
   public routeScopedFeatures: any[] = [];
+  private _includeProviders = true;
   public panelTopPx: number | null = 16;
   private _panelSide: 'left' | 'right' | 'none' = 'none';
   private _panelRecomputeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -244,6 +245,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       const countySlug = getCountySlugFromLocation(feature.properties?.location);
       if (!countySlug) continue;
       if (countySlug === 'isles-of-scilly') continue; // Skip, only show as part of Cornwall
+      if (countySlug === 'moray') continue; // Skip, only show as part of Aberdeenshire
       if (!countiesBySlug.has(countySlug)) {
         countiesBySlug.set(countySlug, getCountyDisplayName(countySlug));
       }
@@ -666,13 +668,15 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!site && !county && !country) return;
 
     const includeProviders = queryParams.get('includeProviders')?.toLowerCase() !== 'false';
+    this._includeProviders = includeProviders;
+    const allVisibleFeatures = this._getAllVisibleFeatures(includeProviders);
 
     if (site) {
       const features = this._getAllVisibleFeatures(includeProviders);
       this.routeScopedFeatures = features;
-      this._buildCategoryLists(features);
+      this._buildCategoryLists(allVisibleFeatures);
       this.filterEmpty = features.length === 0;
-      this.map?.updateSourceData({ ...this.geoJson, features });
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
       
       // Detect if it's a site or organisation and set context
       const featureIdx = this._findFeatureIndex(site);
@@ -703,21 +707,23 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filterContext = { displayName, alsoKnownAs };
       const areaFeatures = this._filterByCounty(county, includeProviders);
       this.routeScopedFeatures = areaFeatures;
-      this._buildCategoryLists(areaFeatures);
+      this._buildCategoryLists(allVisibleFeatures);
       this.filterEmpty = areaFeatures.length === 0;
-      this.map?.updateSourceData({ ...this.geoJson, features: areaFeatures });
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
       if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else if (country) {
       const displayName = MAP_COUNTRY_DISPLAY_NAMES[country] ?? country.replace(/\b\w/g, c => c.toUpperCase());
       this.filterContext = { displayName };
       const areaFeatures = this._filterByNation(country, includeProviders);
       this.routeScopedFeatures = areaFeatures;
-      this._buildCategoryLists(areaFeatures);
+      this._buildCategoryLists(allVisibleFeatures);
       this.filterEmpty = areaFeatures.length === 0;
-      this.map?.updateSourceData({ ...this.geoJson, features: areaFeatures });
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
       if (this.map && areaFeatures.length) this.map.fitBoundsToFeatures(areaFeatures);
     } else {
-      this.routeScopedFeatures = [...(this.geoJson.features ?? [])];
+      this.routeScopedFeatures = [...allVisibleFeatures];
+      this._buildCategoryLists(allVisibleFeatures);
+      this.map?.updateSourceData({ ...this.geoJson, features: allVisibleFeatures });
     }
 
     if (site) {
@@ -740,7 +746,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _getFilterBaseFeatures(): any[] {
     if (!this.geoJson?.features) return [];
-    return this.routeScopedFeatures.length ? this.routeScopedFeatures : this.geoJson.features;
+    return this._getAllVisibleFeatures(this._includeProviders);
   }
 
   private _getAllVisibleFeatures(includeProviders: boolean): any[] {
@@ -902,7 +908,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       const [lng, lat] = f.geometry.coordinates;
       return this._haversineKm(originLat, originLng, lat, lng) <= radiusKm;
     });
-    this.map?.updateSourceData({ ...this.geoJson, features });
     return features;
   }
 

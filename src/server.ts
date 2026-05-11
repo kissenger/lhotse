@@ -1009,6 +1009,11 @@ async function getSiteSeoPayload(country: string | null, county: string | null, 
 
 const COUNTY_EXTRA_KEYWORDS: Record<string, string[]> = {
   'isles-of-scilly': ['Scillies', 'Scilly Isles'],
+  'north-ayrshire': ['Ayrshire'],
+  'south-ayrshire': ['Ayrshire'],
+  ayrshire: ['North Ayrshire', 'South Ayrshire'],
+  moray: ['Aberdeenshire'],
+  aberdeenshire: ['Moray'],
   'highland': ['Highlands', 'Scottish Highlands'],
   'na-h-eileanan-siar': ['Outer Hebrides', 'Western Isles'],
   'east-riding-of-yorkshire': ['East Yorkshire'],

@@ -86,6 +86,22 @@ describe('MapComponent', () => {
     expect(comp.siteContext?.countryDisplayName).toBe('England');
   });
 
+  it('normalises moray route path to Aberdeenshire & Moray display name', () => {
+    const { comp } = buildMap({ country: 'scotland', county: 'moray', siteName: 'lossiemouth-east-beach' });
+    comp.ngOnInit();
+    expect(comp.siteContext?.displayName).toBe('Lossiemouth East Beach');
+    expect(comp.siteContext?.countyDisplayName).toBe('Aberdeenshire & Moray');
+    expect(comp.siteContext?.countryDisplayName).toBe('Scotland');
+  });
+
+  it('normalises north-ayrshire route path to Ayrshire display name', () => {
+    const { comp } = buildMap({ country: 'scotland', county: 'north-ayrshire', siteName: 'saltcoats-harbour' });
+    comp.ngOnInit();
+    expect(comp.siteContext?.displayName).toBe('Saltcoats Harbour');
+    expect(comp.siteContext?.countyDisplayName).toBe('Ayrshire');
+    expect(comp.siteContext?.countryDisplayName).toBe('Scotland');
+  });
+
   it('displays loaded feature data', async () => {
     const { comp, mockHttp } = buildMap();
     mockHttp.getSites.and.returnValue(Promise.resolve({
@@ -103,15 +119,14 @@ describe('MapComponent', () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(3); // Site A, Site B, Provider Kent
-    expect(filtered.features.every((f: any) => f.properties.location.adminLevel3 === 'Kent')).toBeTrue();
+    expect(filtered.features.length).toBe(4); // All map points remain visible on county route
   });
 
   it('county filter excludes providers when includeProviders=false', async () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' }, { includeProviders: 'false' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(2); // Site A, Site B only
+    expect(filtered.features.length).toBe(3); // All snorkelling sites remain visible
     expect(filtered.features.every((f: any) => f.properties.featureType === 'Snorkelling Site')).toBeTrue();
   });
 
@@ -128,7 +143,7 @@ describe('MapComponent', () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(3);
+    expect(filtered.features.length).toBe(4);
   });
 
   it('county filter matches on county field when present, ignoring adminLevel3', async () => {
@@ -140,23 +155,47 @@ describe('MapComponent', () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'cornwall' }, {}, [...ALL_FEATURES, scilly]);
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(1);
-    expect(filtered.features[0].properties.name).toBe('Scilly Site');
+    expect(filtered.features.length).toBe(5); // Route focuses Cornwall, but all points stay visible
+    expect(filtered.features.some((f: any) => f.properties.name === 'Scilly Site')).toBeTrue();
+  });
+
+  it('county filter for Aberdeenshire includes Moray sites', async () => {
+    const moraySite = {
+      type: 'Feature', id: 5,
+      geometry: { coordinates: [-3.31, 57.65] },
+      properties: { name: 'Moray Site', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'Moray', region: 'Scotland' } }
+    };
+    const { comp, mockMapService } = buildMap({ country: 'scotland', county: 'aberdeenshire' }, {}, [...ALL_FEATURES, moraySite]);
+    await comp.ngAfterViewInit();
+    const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
+    expect(filtered.features.some((f: any) => f.properties.name === 'Moray Site')).toBeTrue();
+  });
+
+  it('county filter for Ayrshire includes South Ayrshire sites', async () => {
+    const southAyrshireSite = {
+      type: 'Feature', id: 6,
+      geometry: { coordinates: [-4.63, 55.46] },
+      properties: { name: 'South Ayrshire Site', featureType: 'Snorkelling Site', categories: [], location: { adminLevel3: 'South Ayrshire', region: 'Scotland' } }
+    };
+    const { comp, mockMapService } = buildMap({ country: 'scotland', county: 'ayrshire' }, {}, [...ALL_FEATURES, southAyrshireSite]);
+    await comp.ngAfterViewInit();
+    const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
+    expect(filtered.features.some((f: any) => f.properties.name === 'South Ayrshire Site')).toBeTrue();
   });
 
   it('county filter falls back to adminLevel3 when county field is empty', async () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    // Fixtures have no county field set, so fallback to adminLevel3 applies
-    expect(filtered.features.length).toBe(3);
+    expect(filtered.features.length).toBe(4);
   });
 
   it('county filter returns empty when no match', async () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'cornwall' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(0);
+    expect(filtered.features.length).toBe(4);
+    expect(comp.filterEmpty).toBeTrue();
   });
 
   // --- ?site ---
@@ -185,19 +224,18 @@ describe('MapComponent', () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10km' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    // Site A, Site B (~4.8km), Provider Kent (~1.8km) within 10km; Site C (~261km) excluded
-    expect(filtered.features.length).toBe(3);
+    expect(filtered.features.length).toBe(4); // All points visible; bounds focus nearby subset
     expect(filtered.features.some((f: any) => f.properties.name === 'Site A')).toBeTrue();
     expect(filtered.features.some((f: any) => f.properties.name === 'Site B')).toBeTrue();
     expect(filtered.features.some((f: any) => f.properties.name === 'Provider Kent')).toBeTrue();
-    expect(filtered.features.some((f: any) => f.properties.name === 'Site C')).toBeFalse();
+    expect(filtered.features.some((f: any) => f.properties.name === 'Site C')).toBeTrue();
   });
 
   it('sitesWithin excludes providers when includeProviders=false', async () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10km', includeProviders: 'false' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(2); // Site A, Site B only
+    expect(filtered.features.length).toBe(3); // All snorkelling sites visible
     expect(filtered.features.some((f: any) => f.properties.name === 'Provider Kent')).toBeFalse();
   });
 
@@ -215,7 +253,7 @@ describe('MapComponent', () => {
     const { comp, mockMapService } = buildMap({ country: 'england', county: 'kent', siteName: 'site-a' }, { sitesWithin: '10' });
     await comp.ngAfterViewInit();
     const filtered = mockMapService.updateSourceData.calls.mostRecent().args[0];
-    expect(filtered.features.length).toBe(3); // Site A, Site B (~4.8km), Provider Kent (~1.8km)
+    expect(filtered.features.length).toBe(4);
   });
 
   it('does not filter when sitesWithin site name is unknown', async () => {

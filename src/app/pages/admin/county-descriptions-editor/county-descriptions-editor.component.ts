@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
+import { getCountyDisplayName, normaliseCountySegment, slugifyMapSegment } from '@shared/map-paths';
 import { CountyDescriptionAdminItem, CountryDescriptionAdminItem } from '@shared/types';
 
 @Component({
@@ -43,8 +44,42 @@ export class CountyDescriptionsEditorComponent implements OnInit {
 
   async load() {
     this.feedback = '';
-    this.countyItems = await this._http.getCountiesAdmin();
+    this.countyItems = this._mergeCanonicalCountyItems(await this._http.getCountiesAdmin());
     this.applyFilter();
+  }
+
+  private _mergeCanonicalCountyItems(items: CountyDescriptionAdminItem[]): CountyDescriptionAdminItem[] {
+    const merged = new Map<string, CountyDescriptionAdminItem>();
+
+    for (const item of items) {
+      const fallbackSlug = slugifyMapSegment(item.countyName ?? '');
+      const sourceSlug = item.countySlug || fallbackSlug;
+      const canonicalSlug = normaliseCountySegment(sourceSlug) ?? sourceSlug;
+      if (!canonicalSlug) continue;
+
+      const current = merged.get(canonicalSlug);
+      const description = (item.description ?? '').trim();
+
+      if (!current) {
+        merged.set(canonicalSlug, {
+          _id: item._id,
+          countySlug: canonicalSlug,
+          countyName: getCountyDisplayName(canonicalSlug),
+          description: item.description ?? '',
+        });
+        continue;
+      }
+
+      if (!current._id && item._id) {
+        current._id = item._id;
+      }
+
+      if (!current.description?.trim() && description) {
+        current.description = item.description ?? '';
+      }
+    }
+
+    return [...merged.values()].sort((a, b) => a.countyName.localeCompare(b.countyName));
   }
 
   applyFilter() {

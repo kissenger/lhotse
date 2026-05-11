@@ -4,7 +4,7 @@ import { OrganisationModel } from '../schema/organisations';
 import CountyDescriptionModel from '../schema/county-description';
 import CountryDescriptionModel from '../schema/country-description';
 import { verifyToken } from './server-auth';
-import { buildMapPath, getCountrySlugFromRegion, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
+import { buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountyMatchSlugs, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseCountySlug, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
 import 'dotenv/config';
 
 const AI_SCORE_THRESHOLD_DEFAULT = 70;
@@ -475,8 +475,10 @@ map.get('/api/sites/get-county-description/:countySlug', async (req, res) => {
       return;
     }
 
+    // Get all related slugs (canonical + aliases) to handle backwards compatibility
+    const matchSlugs = Array.from(getCountyMatchSlugs(countySlug));
     const doc = await CountyDescriptionModel.findOne(
-      { countySlug },
+      { countySlug: { $in: matchSlugs } },
       { countyName: 1, countySlug: 1, description: 1 }
     ).lean();
 
@@ -485,11 +487,13 @@ map.get('/api/sites/get-county-description/:countySlug', async (req, res) => {
       return;
     }
 
-    res.status(200).json({
+    // Ensure the returned slug is canonical
+    const canonicalDoc = {
       countyName: (doc as any).countyName,
-      countySlug: (doc as any).countySlug,
+      countySlug: countySlug,
       description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
-    });
+    };
+    res.status(200).json(canonicalDoc);
   } catch (error: any) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -560,29 +564,40 @@ map.get('/api/sites/get-counties-admin/', verifyToken, async (_req, res) => {
       }
     }
 
+    const docsByCanonicalSlug = new Map<string, any>();
+    for (const doc of docs as any[]) {
+      const rawSlug = typeof doc.countySlug === 'string' && doc.countySlug
+        ? doc.countySlug
+        : slugifyMapSegment(String(doc.countyName ?? '').trim());
+      const canonicalSlug = normaliseCountySegment(rawSlug) ?? rawSlug;
+      if (!canonicalSlug) continue;
+      if (!docsByCanonicalSlug.has(canonicalSlug)) {
+        docsByCanonicalSlug.set(canonicalSlug, doc);
+      }
+    }
+
     const mergedBySlug = new Map<string, { _id?: string; countyName: string; countySlug: string; description: string }>();
 
     for (const site of sites as any[]) {
       const location = site.properties?.location ?? {};
-      const countyName = (location.district ?? location.county ?? location.adminLevel3 ?? '').trim();
-      if (!countyName) continue;
-      const countySlug = slugifyMapSegment(countyName);
+      const countySlug = getCountySlugFromLocation(location);
       if (!countySlug) continue;
-      const existing = docsBySlug.get(countySlug);
+      const existing = docsByCanonicalSlug.get(countySlug) ?? docsBySlug.get(countySlug);
       mergedBySlug.set(countySlug, {
         _id: existing?._id?.toString(),
-        countyName,
+        countyName: getCountyDisplayName(countySlug),
         countySlug,
         description: typeof existing?.description === 'string' ? existing.description : '',
       });
     }
 
     for (const doc of docs as any[]) {
-      const countySlug = typeof doc.countySlug === 'string' ? doc.countySlug : '';
+      const rawSlug = typeof doc.countySlug === 'string' ? doc.countySlug : '';
+      const countySlug = normaliseCountySegment(rawSlug) ?? rawSlug;
       if (!countySlug || mergedBySlug.has(countySlug)) continue;
       mergedBySlug.set(countySlug, {
         _id: doc._id?.toString(),
-        countyName: doc.countyName,
+        countyName: getCountyDisplayName(countySlug),
         countySlug,
         description: typeof doc.description === 'string' ? doc.description : '',
       });
@@ -604,11 +619,14 @@ map.post('/api/sites/upsert-county-description/', verifyToken, async (req, res) 
       return;
     }
 
-    const countySlug = slugifyMapSegment(countyName);
+    let countySlug = slugifyMapSegment(countyName);
     if (!countySlug) {
       res.status(400).json({ error: 'invalid countyName' });
       return;
     }
+
+    // Normalize to canonical form (e.g., "orkney-islands" -> "orkney")
+    countySlug = normaliseCountySlug(countySlug) ?? countySlug;
 
     const saved = await CountyDescriptionModel.findOneAndUpdate(
       { countySlug },

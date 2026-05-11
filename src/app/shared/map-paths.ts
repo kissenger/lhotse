@@ -17,6 +17,11 @@ export const MAP_COUNTRY_REGION_MAP: Record<string, string | null> = {
 export const MAP_COUNTY_ALT_NAMES: Record<string, string[]> = {
   'isles-of-scilly': ['Scillies', 'Scilly Isles'],
   cornwall: ['Scillies', 'Scilly Isles'],
+  'north-ayrshire': ['Ayrshire'],
+  'south-ayrshire': ['Ayrshire'],
+  ayrshire: ['North Ayrshire', 'South Ayrshire'],
+  moray: ['Aberdeenshire'],
+  aberdeenshire: ['Moray'],
   highland: ['Scottish Highlands'],
   highlands: ['Scottish Highlands'],
   'na-h-eileanan-siar': ['Outer Hebrides', 'Western Isles'],
@@ -32,6 +37,8 @@ export const MAP_COUNTY_ALT_NAMES: Record<string, string[]> = {
 
 export const MAP_COUNTY_DISPLAY_ALIASES: Record<string, string> = {
   cornwall: 'Cornwall & the Isles of Scilly',
+  ayrshire: 'Ayrshire',
+  aberdeenshire: 'Aberdeenshire & Moray',
   highlands: 'The Highlands',
   orkney: 'Orkney Islands',
   anglesey: 'Isle of Anglesey',
@@ -50,6 +57,8 @@ export const MAP_COUNTY_DISPLAY_ALIASES: Record<string, string> = {
 
 const MAP_COUNTY_ALIAS_GROUPS: Record<string, string[]> = {
   cornwall: ['isles-of-scilly'],
+  ayrshire: ['north-ayrshire', 'south-ayrshire'],
+  aberdeenshire: ['moray', 'aberdeenshire-and-moray'],
   highlands: ['highland'],
   orkney: ['orkney-islands'],
   anglesey: ['isle-of-anglesey'],
