@@ -315,6 +315,13 @@ a.anchor-pill:active {
   -webkit-user-select: text;
 }
 
+/* Draft blog previews should allow selecting/copying content across the full page. */
+.preview-blog-page,
+.preview-blog-page * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* ===================================================
                   Feed padding
  to replicate bootstrap container padding outside of container

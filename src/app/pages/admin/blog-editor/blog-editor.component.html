@@ -17,6 +17,7 @@
                 </form>
                 <div class="toolbar-actions">
                     @if (isDirty) { <span class="unsaved-badge">Unsaved changes</span> }
+                    <button type="button" class="formButton btn-help" (click)="showMarkdownHelp = true">Formatting help</button>
                     <button type="button" class="formButton btn-new" (click)="onNewPost()">New post</button>
                     <button type="button" class="formButton btn-save" (click)="onSave()">Save</button>
                     <button type="button" class="formButton btn-delete" (click)="onYesDelete(false)">Delete</button>
@@ -229,28 +230,27 @@
             </form>
         </div>
 
-        <!-- Floating markdown help button -->
-        <button type="button" class="md-help-btn" (click)="showMarkdownHelp = true" title="Markdown syntax help">?</button>
-
         @if (showMarkdownHelp) {
           <div class="md-help-backdrop" (click)="showMarkdownHelp = false">
-            <div class="md-help-modal" (click)="$event.stopPropagation()">
+                        <div class="md-help-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="formatting-help-title">
               <div class="md-help-header">
-                <h3>Markdown syntax</h3>
-                <button type="button" class="md-help-close" (click)="showMarkdownHelp = false">✕</button>
+                                <h3 id="formatting-help-title">Blog formatting help</h3>
+                                <button type="button" class="md-help-close" (click)="showMarkdownHelp = false" aria-label="Close formatting help">✕</button>
               </div>
+                            <p class="md-help-intro">This editor uses the custom formatting tokens from <code>htmler.pipe</code>, not full Markdown. Use these in intro, conclusion, and section content fields.</p>
               <table class="md-help-table">
                 <thead><tr><th>Syntax</th><th>Output</th></tr></thead>
                 <tbody>
-                  <tr><td><code>[link:text,url]</code></td><td>Hyperlink</td></tr>
-                  <tr><td><code>[link:BSAC,https://bsac.com]</code></td><td>External link (opens in new tab)</td></tr>
-                  <tr><td><code>[link:About,/about]</code></td><td>Internal link</td></tr>
-                  <tr><td><code>[list:item1;item2;item3]</code></td><td>Unordered list</td></tr>
-                  <tr><td><code>[blockquote:text]</code></td><td>Block quote</td></tr>
-                  <tr><td><code>[table:H1|H2;R1C1|R1C2;R2C1|R2C2]</code></td><td>Table (first row = header, | separates cells)</td></tr>
-                  <tr><td>Blank line between text</td><td>New paragraph</td></tr>
+                                    <tr><td><code>[link:BSAC,https://bsac.com]</code></td><td>External link, opens in a new tab</td></tr>
+                                    <tr><td><code>[link:Map,/map]</code></td><td>Internal link</td></tr>
+                                    <tr><td><code>[list:Mask and fins;Weight belt;Surface marker]</code></td><td>Unordered list. Separate items with semicolons.</td></tr>
+                                    <tr><td><code>[blockquote:Snorkelling is best at slack water.]</code></td><td>Block quote callout</td></tr>
+                                    <tr><td><code>[table:Season|Water temp;Spring|8-12C;Summer|14-18C]</code></td><td>Table. First row becomes the header; use <code>|</code> for columns and <code>;</code> for rows.</td></tr>
+                                    <tr><td><code>One line of text
+Another line of text</code></td><td>Each line becomes its own paragraph.</td></tr>
                 </tbody>
               </table>
+                            <p class="md-help-note">These tokens must stay on a single line. Standard Markdown like <code>**bold**</code> or <code># headings</code> is not parsed here.</p>
             </div>
           </div>
         }

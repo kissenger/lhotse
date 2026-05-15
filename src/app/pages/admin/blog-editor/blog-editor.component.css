@@ -44,6 +44,16 @@
     color: white;
 }
 
+.btn-help {
+    border: 1px solid #7a8a99;
+    background-color: #f3f6f8;
+    color: #304556;
+}
+
+.btn-help:hover {
+    background-color: #e4ebf0;
+}
+
 .slug-value {
     font-family: monospace;
     color: #555;
@@ -337,29 +347,6 @@ button:hover {
     cursor: pointer;
 }
 
-/* === Markdown help === */
-.md-help-btn {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--sn-colour, #1D3D59);
-    color: white;
-    border: none;
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    line-height: 1;
-}
-
-.md-help-btn:hover {
-    background-color: #2a5580;
-}
-
 .md-help-backdrop {
     position: fixed;
     inset: 0;
@@ -374,9 +361,21 @@ button:hover {
     background: white;
     border-radius: 8px;
     padding: 1.5rem;
-    max-width: 540px;
+    max-width: 680px;
     width: calc(100% - 2rem);
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.md-help-intro,
+.md-help-note {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #405261;
+}
+
+.md-help-note {
+    margin: 1rem 0 0;
 }
 
 .md-help-header {
@@ -436,5 +435,6 @@ button:hover {
     background: #f0f4f8;
     padding: 0.1em 0.3em;
     border-radius: 3px;
+    white-space: pre-wrap;
 }
 

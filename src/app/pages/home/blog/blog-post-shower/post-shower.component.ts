@@ -34,6 +34,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   likeCount: number = 0;
   hasLiked: boolean = false;
   isPreview: boolean = false;
+  isAdminHost: boolean = false;
   private readonly _isBrowser: boolean;
   private _routeSubs: Subscription | undefined;
 
@@ -82,6 +83,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     }
 
     this.isPreview = this._route.snapshot.queryParamMap.has('preview');
+  this.isAdminHost = window.location.hostname.startsWith('admin.');
     this._routeSubs = this._route.params
       .pipe(
         tap(() => {

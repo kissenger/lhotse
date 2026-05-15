@@ -34,6 +34,10 @@ a.anchor {
   align-items: center;
 }
 
+.draft-preview-banner--admin-offset {
+  margin-top: var(--admin-navbar-height);
+}
+
 
 .draft-preview-banner a {
   color: #856404;
