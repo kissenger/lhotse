@@ -55,6 +55,7 @@ function scheduleSeoCacheRefresh(): void {
  */
 app.use((req, res, next) => {
   if (req.hostname === 'admin.snorkelology.co.uk') {
+    res.locals['isAdminSubdomainRequest'] = true;
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     // Prevent proxy/edge caches from storing admin responses.
     res.setHeader('Cache-Control', 'private, no-store, no-cache, max-age=0, must-revalidate');
@@ -185,6 +186,14 @@ const BLOG_SLUG_REDIRECTS: Record<string, string> = {
 
 app.use(async (req, res, next) => {
   if (req.method !== 'GET' || !req.path.startsWith('/blog/')) {
+    next();
+    return;
+  }
+
+  const isAdminPreviewRequest =
+    Boolean(res.locals['isAdminSubdomainRequest']) &&
+    Object.prototype.hasOwnProperty.call(req.query ?? {}, 'preview');
+  if (isAdminPreviewRequest) {
     next();
     return;
   }
