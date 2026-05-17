@@ -12,6 +12,7 @@ import { Pipe, PipeTransform } from '@angular/core';
         - Search for link string in each paragraph, and insert relevant <a> tags
         - Link string in the form [link:text,link], eg [link:BSAC,https:www.bsac.com]
         - List in the form [list:item1, including commas;item2;item3]
+  - Bold in the form **bold** (also tolerates **bold*)
 */
 
 export class HtmlerPipe implements PipeTransform {
@@ -28,12 +29,19 @@ export class HtmlerPipe implements PipeTransform {
     }
 
     transform(rawString: string): string {
-        let outputString = this.insertLinks(rawString);
+        let outputString = this.insertBold(rawString);
+        outputString = this.insertLinks(outputString);
         outputString = this.insertBlockQuotes(outputString);
         outputString = this.insertUnorderedList(outputString);
         outputString = this.insertTable(outputString);
         outputString = this.insertParagraphs(outputString);
         return outputString;
+    }
+
+    insertBold(input: string): string {
+      return input
+        .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*\*([^*\n]+?)\*(?!\*)/g, '<strong>$1</strong>');
     }
 
     insertLinks(input: string): string {
