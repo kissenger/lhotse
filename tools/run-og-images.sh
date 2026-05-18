@@ -52,11 +52,17 @@ fi
 # Change to project root
 cd "$PROJECT_ROOT"
 
-# Load environment file if it exists
-if [ -f ".env" ]; then
+# Load environment file. Match existing run-* scripts by default,
+# while allowing ENV_FILE override and project-local fallback.
+ENV_FILE="${ENV_FILE:-/home/gort1975/snorkelology/.env}"
+if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_ROOT/.env" ]; then
+  ENV_FILE="$PROJECT_ROOT/.env"
+fi
+
+if [ -f "$ENV_FILE" ]; then
   set -a
-  # shellcheck disable=SC1091
-  . ./.env
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
   set +a
 fi
 
