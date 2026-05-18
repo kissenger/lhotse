@@ -72,6 +72,7 @@ run_check "run-mongo-connectivity.sh"  || HAS_FAILURE=1
 run_check "run-paypal-test.sh"         || HAS_FAILURE=1
 run_check "run-url-check.sh"           || HAS_FAILURE=1
 run_check "run-seo-check.sh"           || HAS_FAILURE=1
+run_check "run-og-images.sh"           || HAS_FAILURE=1
 # run_check "run-performance.sh"         || HAS_FAILURE=1
 run_check "run-generate-sitemap.sh"    || HAS_FAILURE=1
 run_check "run-mongo-backup.sh"        || HAS_FAILURE=1
