@@ -4,7 +4,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { PLATFORM_ID } from '@angular/core';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { BlogPost } from '@shared/types';
 
 function makeArticle(overrides: Partial<BlogPost> = {}): BlogPost {
@@ -26,8 +26,10 @@ function makeArticle(overrides: Partial<BlogPost> = {}): BlogPost {
 
 function buildComp(platform = 'browser') {
   const params$ = new Subject<any>();
+  const queryParamMap$ = new BehaviorSubject<any>({ has: () => false });
   const mockRoute = {
     params: params$.asObservable(),
+    queryParamMap: queryParamMap$.asObservable(),
     snapshot: {
       params: { slug: 'test-slug' },
       queryParamMap: { has: () => false }

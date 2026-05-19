@@ -166,39 +166,6 @@ export class BlogEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
-  private _extractYouTubeVideoId(value: string): string {
-    const input = (value || '').trim();
-    if (!input) return '';
-
-    // Support direct IDs already stored in older posts.
-    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
-
-    try {
-      const url = new URL(input);
-      const host = url.hostname.toLowerCase().replace(/^www\./, '');
-
-      if (host === 'youtu.be') {
-        const id = url.pathname.split('/').filter(Boolean)[0] || '';
-        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-      }
-
-      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
-        if (url.pathname === '/watch') {
-          const id = url.searchParams.get('v') || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
-          const id = url.pathname.split('/').filter(Boolean)[1] || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-      }
-    } catch {
-      return '';
-    }
-
-    return '';
-  }
-
   private _inferOrientationFromVideoInput(value: string): 'landscape' | 'portrait' | null {
     const input = (value || '').trim();
     if (!input) return null;

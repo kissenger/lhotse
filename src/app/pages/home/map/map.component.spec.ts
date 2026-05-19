@@ -58,7 +58,13 @@ function buildMap(pathParams: Record<string, string> = {}, queryParams: Record<s
       { provide: LazyServiceInjector, useValue: mockLazy },
       { provide: HttpService, useValue: mockHttp },
       { provide: ActivatedRoute, useValue: mockRoute },
-      { provide: Location, useValue: { replaceState: jasmine.createSpy('replaceState') } },
+      {
+        provide: Location,
+        useValue: {
+          path: jasmine.createSpy('path').and.returnValue('/map'),
+          replaceState: jasmine.createSpy('replaceState')
+        }
+      },
     ]
   });
 
