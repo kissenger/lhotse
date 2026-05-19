@@ -63,6 +63,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public routeLevel: 'root' | 'country' | 'county' | 'site' | 'organisation' = 'root';
   public filterEmpty: boolean = false;
   public routeScopedFeatures: any[] = [];
+  public isMapRoutePage = false;
   private _includeProviders = true;
   public panelTopPx: number | null = 16;
   private _panelSide: 'left' | 'right' | 'none' = 'none';
@@ -349,6 +350,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.isMapRoutePage = this._location.path().startsWith('/map');
+
     const { county, country, site } = this._resolveParams();
     const countryDisplayName = country ? this._getCountryDisplayName(country) : undefined;
     const countyDisplayName = county ? getCountyDisplayName(county) : undefined;

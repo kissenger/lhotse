@@ -76,6 +76,11 @@ export class BlogEditorComponent implements OnInit {
     return hasMedia && !hasAlt;
   }
 
+  isYouTubeShortsUrl(value: string): boolean {
+    const input = (value || '').trim();
+    return input.includes('/shorts/');
+  }
+
   makeSlug() {
     this.selectedPost.slug = this._kebaber.transform(this.selectedPost.title);
     return this.selectedPost.slug;
@@ -161,6 +166,68 @@ export class BlogEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
+  private _extractYouTubeVideoId(value: string): string {
+    const input = (value || '').trim();
+    if (!input) return '';
+
+    // Support direct IDs already stored in older posts.
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+
+    try {
+      const url = new URL(input);
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+
+      if (host === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+      }
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+        if (url.pathname === '/watch') {
+          const id = url.searchParams.get('v') || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+          const id = url.pathname.split('/').filter(Boolean)[1] || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+      }
+    } catch {
+      return '';
+    }
+
+    return '';
+  }
+
+  private _inferOrientationFromVideoInput(value: string): 'landscape' | 'portrait' | null {
+    const input = (value || '').trim();
+    if (!input) return null;
+    if (input.includes('/shorts/')) return 'portrait';
+    return null;
+  }
+
+  onVideoUrlChange(section: { videoUrl?: string; videoOrientation?: 'landscape' | 'portrait' }): void {
+    const inferredOrientation = this._inferOrientationFromVideoInput(section.videoUrl || '');
+    if (inferredOrientation) {
+      section.videoOrientation = inferredOrientation;
+    }
+    this.isDirty = true;
+  }
+
+  private _normaliseSectionVideosBeforeSave() {
+    this.selectedPost.sections = this.selectedPost.sections.map((section) => {
+      if (!section.videoUrl) return section;
+
+      const inferredOrientation = this._inferOrientationFromVideoInput(section.videoUrl);
+
+      return {
+        ...section,
+        videoUrl: section.videoUrl.trim(),
+        videoOrientation: section.videoOrientation || inferredOrientation || 'landscape'
+      };
+    });
+  }
+
   addQA() {
     this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: "", imgCredit: ""});
     this.isDirty = true;
@@ -204,6 +271,7 @@ export class BlogEditorComponent implements OnInit {
 
   async onSave() {
     try {
+      this._normaliseSectionVideosBeforeSave();
       const slug = this.selectedPost.slug;
       const result = await this._http.upsertPost(this.selectedPost);
       this.refreshPostList(result);

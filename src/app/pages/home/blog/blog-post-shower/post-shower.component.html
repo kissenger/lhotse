@@ -52,9 +52,10 @@
         </header>
       </div>
     </div>
-    <p class="image-credit">{{post.imgAlt}} · © {{post.imgCredit||'Emma and Gordon Taylor'}}</p>
 
     <div class="dynamic-container article-body">
+
+      <p class="image-credit">{{post.imgAlt}} · © {{post.imgCredit||'Emma and Gordon Taylor'}}</p>
 
       @if (!isPreview) {
         <nav class="article-nav-compact" aria-label="Article navigation">
@@ -121,7 +122,7 @@
                 </div>
                 <p class="image-credit">{{section.imgAlt}} · © {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
               } @else if (!!section.videoUrl) {
-                <div class="youtube-container">
+                <div class="youtube-container" [class.youtube-container--portrait]="section.videoOrientation === 'portrait'">
                   <iframe
                     [src]="section.videoUrl"
                     title="YouTube video player"

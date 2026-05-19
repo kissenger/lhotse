@@ -15,6 +15,7 @@ const blogSchema = new mongoose.Schema({
     imgFname: {type: String},
     imgAlt: {type: String},
     videoUrl: {type: String},
+    videoOrientation: {type: String},
     imgCredit: {type: String},
     sectionType: {type: String},
     ctaLinks: {type: [{

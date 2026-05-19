@@ -20,6 +20,37 @@ import 'dotenv/config';
 
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const SKIP_SEO_DB_LOOKUPS = process.env['SKIP_SEO_DB_LOOKUPS'] === 'true';
+
+  function extractYouTubeVideoId(value: string): string {
+    const input = (value || '').trim();
+    if (!input) return '';
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+
+    try {
+      const url = new URL(input);
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+
+      if (host === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+      }
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+        if (url.pathname === '/watch') {
+          const id = url.searchParams.get('v') || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+          const id = url.pathname.split('/').filter(Boolean)[1] || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+      }
+    } catch {
+      return '';
+    }
+
+    return '';
+  }
 const app = express();
 app.use(compression());
 const angularApp = new AngularNodeAppEngine();
@@ -190,10 +221,14 @@ app.use(async (req, res, next) => {
     return;
   }
 
+  const host = (req.hostname || '').toLowerCase();
+  const isLocalPreviewRequest =
+    (host === 'localhost' || host === '127.0.0.1' || host === '::1') &&
+    Object.prototype.hasOwnProperty.call(req.query ?? {}, 'preview');
   const isAdminPreviewRequest =
     Boolean(res.locals['isAdminSubdomainRequest']) &&
     Object.prototype.hasOwnProperty.call(req.query ?? {}, 'preview');
-  if (isAdminPreviewRequest) {
+  if (isAdminPreviewRequest || isLocalPreviewRequest) {
     next();
     return;
   }
@@ -1387,18 +1422,54 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
         }
       };
 
-  const videoSchemas = (post.sections || [])
-    .filter((section: any) => !!section.videoUrl)
-    .map((section: any) => ({
+  const extractYouTubeVideoId = (value: string): string => {
+    const input = (value || '').trim();
+    if (!input) return '';
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+
+    try {
+      const url = new URL(input);
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+
+      if (host === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+      }
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+        if (url.pathname === '/watch') {
+          const id = url.searchParams.get('v') || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+          const id = url.pathname.split('/').filter(Boolean)[1] || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+      }
+    } catch {
+      return '';
+    }
+
+    return '';
+  };
+
+  const videoSchemas = (post.sections || []).flatMap((section: any) => {
+    if (!section.videoUrl) return [];
+
+    const videoId = extractYouTubeVideoId(section.videoUrl);
+    if (!videoId) return [];
+
+    return [{
       '@context': 'https://schema.org',
       '@type': 'VideoObject',
       name: section.title || post.title,
       description: (section.content || description).replace(/<[^>]*>/g, '').slice(0, 300).trim(),
-      thumbnailUrl: `https://img.youtube.com/vi/${section.videoUrl}/maxresdefault.jpg`,
+      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
       uploadDate: publishedIso,
-      embedUrl: `https://www.youtube.com/embed/${section.videoUrl}`,
-      contentUrl: `https://www.youtube.com/watch?v=${section.videoUrl}`,
-    }));
+      embedUrl: `https://www.youtube.com/embed/${videoId}`,
+      contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
+    }];
+  });
 
   // Fix 6: emit keywords as article:tag meta properties
   const keywordTags = schemaKeywords.map((kw: string) => ({

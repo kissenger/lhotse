@@ -4,7 +4,19 @@
 /* ===================================== */
 :host ::ng-deep h1,
 :host ::ng-deep h2 {
+  text-align: left;
+}
+
+:host ::ng-deep .section-heading {
   text-align: center;
+}
+
+:host ::ng-deep app-about h1 {
+  text-align: center;
+}
+
+main {
+  margin-top: var(--header-height);
 }
 
 @supports not (-webkit-touch-callout: none) {

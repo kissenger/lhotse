@@ -1,4 +1,4 @@
-  <div class="dynamic-container">
+  <div class="dynamic-container" [class.map-route-page-offset]="isMapRoutePage">
 
     @if (descriptionsLoaded && sitesLoaded) {
 
@@ -28,19 +28,19 @@
           {{siteContext.countyDisplayName}}, {{siteContext.countryDisplayName}}.
         </p>
 
-        <aside class="map-cta-box map-cta-flow" aria-label="Featured snorkelling guide">
-          <!-- <h3 class="map-cta-title">Snorkelology Interactive Snorkelling Map of Britain</h3> -->
-          <p class="map-cta-body">
+        <aside class="cta-box" aria-label="Featured snorkelling guide">
+          <!-- <h3 class="cta-box-title">Snorkelology Interactive Snorkelling Map of Britain</h3> -->
+          <p class="cta-box-body">
             Have you visited our interactive snorkelling map of Britain yet? 
           </p>
-          <div class="map-cta-link-group">
-            <a class="anchor-pill map-cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
+          <div class="cta-link-group">
+            <a class="anchor-pill cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
           </div>
         </aside>
 
         <p class="map-site-static map-route-para2">
           Duck-dive into the map to explore {{siteContext.countyDisplayName}}'s coastline and discover other snorkelling spots and organisations nearby.
-          Whether you're looking for the best places to snorkel in Britain, searching for snorkelling sites near you, or seeking guided snorkelling experiences, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
+          Use the nearby links and filters to compare options, check local context, and plan your next session.
         </p>
 
       </div>
@@ -70,18 +70,18 @@
           {{organisationContext.countyDisplayName}}, {{organisationContext.countryDisplayName}}.
         </p>
 
-        <aside class="map-cta-box map-cta-flow" aria-label="Featured snorkelling guide">
-          <p class="map-cta-body">
+        <aside class="cta-box" aria-label="Featured snorkelling guide">
+          <p class="cta-box-body">
             Have you visited our interactive snorkelling map of Britain yet? 
           </p>
-          <div class="map-cta-link-group">
-            <a class="anchor-pill map-cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
+          <div class="cta-link-group">
+            <a class="anchor-pill cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
           </div>
         </aside>
 
         <p class="map-site-static map-route-para2">
           Duck-dive into the map to explore {{organisationContext.countyDisplayName}}'s coastline and discover other snorkelling organisations and sites nearby.
-          Whether you're looking for guided snorkelling experiences, instructors, or rental shops, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
+          Use the nearby links to quickly find instructors, guided sessions, rental providers, and related sites.
         </p>
 
       </div>
@@ -119,10 +119,8 @@
           </div>
           
           <p class="map-route-para2">
-            Whether you're looking for the best places to snorkel in Britain, searching for
-            snorkelling sites in {{filterContext.displayName}}, or seeking guided snorkelling experiences,
-            the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations
-            online.
+            Use the site list above to jump straight to detailed pages, compare habitats, and pick a route that
+            matches your confidence and conditions.
           </p>
         </div>
       } @else {
@@ -156,7 +154,7 @@
           </div>
 
           <p class="map-route-para2">
-            Whether you're looking for the best places to snorkel in Britain, searching for snorkelling sites in {{filterContext.displayName}}, or seeking guided snorkelling experiences, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
+            Choose a county hotspot above to explore local sites, compare conditions, and plan a realistic day trip.
           </p>
         </div>
       }
@@ -174,18 +172,18 @@
           </p>
         }
         
-        <aside class="map-cta-box map-cta-flow" aria-label="Featured snorkelling guide">
-          <h3 class="map-cta-title">Planning Your First UK Snorkel Trip?</h3>
-          <p class="map-cta-body">
+        <aside class="cta-box" aria-label="Featured snorkelling guide">
+          <h3 class="cta-box-title">Planning Your First UK Snorkel Trip?</h3>
+          <p class="cta-box-body">
             Don't leave home without checking our beginner's guide to British snorkelling! Packed with essential tips it's your go-to resource for an unforgettable adventure.
           </p>
-          <div class="map-cta-link-group">
-            <a class="anchor-pill map-cta-link-btn" href="/blog/beginners-guide-to-snorkelling">Read the beginner guide</a>
+          <div class="cta-link-group">
+            <a class="anchor-pill cta-link-btn" href="/blog/beginners-guide-to-snorkelling">Read the beginner guide</a>
           </div>
         </aside>
         
         <p>
-          Whether you're looking for the best places to snorkel in Britain, searching for snorkelling sites near you, or seeking guided snorkelling experiences, the Snorkelology snorkel map of Britain is the most comprehensive guide to British snorkelling locations online.
+          Use the category filters to narrow sites and organisations, then open pins to get practical details and follow-up links.
         </p>
       </div>
     }
@@ -197,7 +195,7 @@
     <div class="map-container" [class.map-container-pending]="loadingState !== 'success'">
     <div id="map"></div>
 
-      @if (loadingState === 'success') {
+      @if (loadingState === 'success' && (snorkellingCategories.length > 0 || otherCategories.length > 0)) {
         <div class="filter-dropdown">
           @if (snorkellingCategories.length > 0) {
           <div class="filter-group">
@@ -284,7 +282,7 @@
               <p class="map-feature-description">
                 {{feature.description}}
                 @if (feature.aiGenerated || feature.verified === false) {
-                  <a class="anchor-pill ai-content-notice map-cta-link-btn" routerLink="/ai-transparency">About this content</a>
+                  <a class="anchor-pill ai-content-notice cta-link-btn" routerLink="/ai-transparency">About this content</a>
                 }
               </p>
 

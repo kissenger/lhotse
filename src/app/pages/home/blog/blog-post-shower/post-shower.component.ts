@@ -1,7 +1,7 @@
 ﻿import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subscription, switchMap, tap } from 'rxjs';
+import { Subscription, combineLatest, switchMap, tap } from 'rxjs';
 import { BlogPost } from '@shared/types';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
@@ -76,23 +76,60 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     return { ...postResult, ...slugResult };
   }
 
+  private _extractYouTubeVideoId(value: string): string {
+    const input = (value || '').trim();
+    if (!input) return '';
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+
+    try {
+      const url = new URL(input);
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+
+      if (host === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+      }
+
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+        if (url.pathname === '/watch') {
+          const id = url.searchParams.get('v') || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+          const id = url.pathname.split('/').filter(Boolean)[1] || '';
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+        }
+      }
+    } catch {
+      return '';
+    }
+
+    return '';
+  }
+
+  private _buildYouTubeEmbedUrl(value: string): string {
+    const id = this._extractYouTubeVideoId(value);
+    if (!id) return '';
+    return `https://www.youtube-nocookie.com/embed/${id}?controls=0&mute=1&autoplay=1&loop=1&playlist=${id}`;
+  }
+
   ngOnInit() {
     // Do not block SSR on API calls for blog body content; render quickly and hydrate on client.
     if (!this._isBrowser) {
       return;
     }
 
-    this.isPreview = this._route.snapshot.queryParamMap.has('preview');
-  this.isAdminHost = window.location.hostname.startsWith('admin.');
-    this._routeSubs = this._route.params
+    this.isAdminHost = window.location.hostname.startsWith('admin.');
+    this._routeSubs = combineLatest([this._route.params, this._route.queryParamMap])
       .pipe(
-        tap(() => {
+        tap(([_, queryParamMap]) => {
+          this.isPreview = queryParamMap.has('preview');
           this.isReadyToLoad = false;
           this.contentVisible = false;
           this.loadingState = 'loading';
           this._cdr.detectChanges();
         }),
-        switchMap(async (params: { [key: string]: string }) => {
+        switchMap(async ([params]: [{ [key: string]: string }, any]) => {
           const slug = params['slug'];
           return this._fetchPost(slug);
         })
@@ -115,7 +152,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             imgFname: s.imgFname ?? '',
             imgAlt: s.imgAlt ?? '',
             imgCredit: s.imgCredit ?? '',
-            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : '',
+            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this._buildYouTubeEmbedUrl(s.videoUrl)) : '',
+            videoOrientation: s.videoOrientation ?? 'landscape',
             sectionType: s.sectionType,
             ctaLinks: s.ctaLinks
           }));
@@ -149,6 +187,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   onRetry() {
+    this.isPreview = this._route.snapshot.queryParamMap.has('preview');
     this.loadingState = 'loading';
     this.isReadyToLoad = false;
     this.contentVisible = false;
@@ -167,7 +206,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         imgFname: s.imgFname ?? '',
         imgAlt: s.imgAlt ?? '',
         imgCredit: s.imgCredit ?? '',
-        videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${s.videoUrl}?controls=0&mute=1&autoplay=1&loop=1&playlist=${s.videoUrl}`) : ''
+        videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this._buildYouTubeEmbedUrl(s.videoUrl)) : '',
+        videoOrientation: s.videoOrientation ?? 'landscape'
       }));
       this.nextSlug = result.nextSlug ?? '';
       this.lastSlug = result.lastSlug ?? '';

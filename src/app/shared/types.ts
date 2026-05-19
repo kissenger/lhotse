@@ -321,6 +321,7 @@ export interface BlogSection {
   imgFname: string;
   imgAlt: string;
   videoUrl: string;
+  videoOrientation?: 'landscape' | 'portrait';
   imgCredit: string;
   sectionType?: 'cta';
   ctaLinks?: Array<{ label: string; url: string }>;
@@ -343,6 +344,7 @@ export class BlogPost {
     imgFname: '', 
     imgAlt: '', 
     videoUrl: '',
+    videoOrientation: 'landscape',
     imgCredit: ''
   }];
   conclusion: string = '';

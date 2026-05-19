@@ -101,7 +101,7 @@ app-blog-card + app-blog-card {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: #666;
   cursor: pointer;
   text-decoration: underline;

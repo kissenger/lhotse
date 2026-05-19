@@ -24,6 +24,8 @@
 
   /* UIcard sizing */
   --line-height: 1.7;
+  --reading-measure: 72ch;
+  --container-width: min(72ch, calc(100% - 2rem));
   /* --insta-box-lines: 8; */
 }
 
@@ -31,21 +33,9 @@
                   Global styling
  ===================================================*/
 
- * {
-  /* -webkit-touch-callout: none; */
-
-  /* Dont allow user to select text */
-    -webkit-user-select: none;
-     -khtml-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
-}
-
 input, textarea, select {
   outline-width: 0px;
-  /* Re-enable text selection for form inputs — global user-select:none on *
-     breaks iOS Safari keyboard / text selection in inputs */
+  /* Keep text selection enabled in form controls for accessibility and UX. */
   -webkit-user-select: text;
           user-select: text;
 }
@@ -68,7 +58,7 @@ body {
   width: 100%;
   margin: 0px;
   padding: 0;
-  font-size: 1.3rem;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
 }
 
 button {
@@ -263,6 +253,113 @@ a.anchor-pill:active {
   }
 }
 
+/* Shared CTA styles used across blog and map surfaces. */
+.cta-box {
+  border: 1px solid rgba(29, 61, 89, 0.28);
+  border-top: 4px solid var(--sn-colour, #1D3D59);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f7fbff 0%, #eef5fb 100%);
+  box-shadow: 0 10px 26px rgba(12, 36, 56, 0.14);
+  width: min(86%, 62ch);
+  max-width: 62ch;
+  box-sizing: border-box;
+  margin: 3.5rem auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cta-box-title {
+  /* margin: 0 0 2rem; */
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--sn-colour, #1D3D59);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.cta-box-body {
+  margin: 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.cta-box-title + .cta-box-body {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cta-link-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 2.35rem;
+  gap: 0.5rem;
+  /* margin-top: 2rem; */
+}
+
+.cta-link-btn {
+  display: inline-grid;
+  place-items: center;
+  gap: 0;
+  height: 2.35rem;
+  padding: 0 1.25em;
+  border-radius: 2em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: none;
+  padding-bottom: 0;
+  color: #fff;
+  background: var(--sn-colour, #1D3D59);
+  box-shadow: 0 6px 16px rgba(29, 61, 89, 0.28);
+  font-size: 0.92rem;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  cursor: pointer;
+}
+
+.cta-link-btn:visited,
+.cta-link-btn:active {
+  color: #fff;
+  border-bottom: none;
+  padding-bottom: 0;
+  background: var(--sn-colour, #1D3D59);
+}
+
+.cta-link-btn:hover {
+  color: #fff;
+  background: var(--sn-colour, #1D3D59);
+  border-bottom: none;
+  padding-bottom: 0;
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 9px 18px rgba(29, 61, 89, 0.35);
+}
+
+.ai-content-notice.cta-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: baseline;
+  margin-left: 0.4rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  gap: 0;
+  padding: 0.15em 0.6em;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.ai-content-notice.cta-link-btn::before {
+  content: none;
+}
+
 .anchor::before {
   content: "";
   display: block;
@@ -349,18 +446,14 @@ a.anchor-pill:active {
 
 @media (max-width: 575px) {
   html { font-size: 14px; }
-  :root{ --container-width: calc(100% - 2em); }
 }
 @media (min-width: 576px) and (max-width: 767px) {
   html { font-size: 14px; }
-  :root{ --container-width: 540px; }
 }
 @media (min-width: 768px) and (max-width: 991px) {
   html { font-size: 16px; }
-  :root{ --container-width: 720px; }
 }
 @media (min-width: 992px) {
   html { font-size: 16px; }
-  :root{ --container-width: 960px; }
 }
 

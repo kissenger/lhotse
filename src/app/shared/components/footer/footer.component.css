@@ -17,7 +17,8 @@ footer {
   background-color: var(--sn-colour);
   color: var(--text-colour-header);
   z-index: 20;
-  font-size: smaller;
+  font-size: 0.9rem;
+  line-height: 1.5;
   width: 100%;
 }
 

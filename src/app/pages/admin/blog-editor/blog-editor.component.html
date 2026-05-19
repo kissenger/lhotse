@@ -175,7 +175,22 @@
 
                             <div class="field-row">
                                 <label for="videoUrl{{si}}">Video URL:</label>
-                                <input type="text" id="videoUrl{{si}}" name="videoUrl{{si}}" [(ngModel)]="section.videoUrl">
+                                <div class="input-stack">
+                                    <input type="text" id="videoUrl{{si}}" name="videoUrl{{si}}"
+                                        placeholder="Paste a full YouTube or Shorts URL"
+                                        [(ngModel)]="section.videoUrl"
+                                        (ngModelChange)="onVideoUrlChange(section)">
+                                    <small class="field-help">You can paste a full watch URL, a shorts URL, or a legacy video id. Shorts will default to portrait.</small>
+                                </div>
+                            </div>
+
+                            <div class="field-row">
+                                <label for="videoOrientation{{si}}">Orientation:</label>
+                                <select id="videoOrientation{{si}}" name="videoOrientation{{si}}" [(ngModel)]="section.videoOrientation">
+                                    <option value="">Auto-detect from URL</option>
+                                    <option value="landscape">Landscape</option>
+                                    <option value="portrait">Portrait</option>
+                                </select>
                             </div>
                         } @else {
                             <div class="cta-editor-hint">Renders as a branded callout box with link buttons — use for internal cross-links.</div>
