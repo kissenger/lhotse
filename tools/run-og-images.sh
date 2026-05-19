@@ -7,7 +7,7 @@
 #   ./tools/run-og-images.sh
 #
 # Environment variables:
-#   MONGODB_URI: Connection string to MongoDB (required)
+#   MONGO_URI: Connection string to MongoDB (required)
 #   OG_ARTICLES_DIR: Path to articles directory (optional)
 #   OG_LOGO_PATH: Path to logo file (optional)
 #   OG_LOGO_WIDTH_RATIO: Logo width ratio (default: 0.16)
@@ -67,12 +67,12 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 # Check if MongoDB URI is set
-if [ -z "${MONGODB_URI:-}" ]; then
-  error_exit "MONGODB_URI environment variable is not set"
+if [ -z "${MONGO_URI:-}" ]; then
+  error_exit "MONGO_URI environment variable is not set"
 fi
 
 # Export variables for the script
-export MONGODB_URI
+export MONGO_URI
 export OG_ARTICLES_DIR="${OG_ARTICLES_DIR:-}"
 export OG_LOGO_PATH="${OG_LOGO_PATH:-}"
 export OG_LOGO_WIDTH_RATIO="${OG_LOGO_WIDTH_RATIO:-0.16}"

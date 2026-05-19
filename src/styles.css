@@ -271,7 +271,7 @@ a.anchor-pill:active {
 }
 
 .cta-box-title {
-  /* margin: 0 0 2rem; */
+  margin: 0;
   font-size: 1.45rem;
   font-weight: 700;
   color: var(--sn-colour, #1D3D59);

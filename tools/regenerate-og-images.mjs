@@ -9,7 +9,7 @@
  *   node tools/regenerate-og-images.mjs
  * 
  * Environment variables:
- *   - MONGODB_URI: Connection string to MongoDB (required)
+ *   - MONGO_URI: Connection string to MongoDB (required)
  *   - OG_ARTICLES_DIR: Path to articles directory (optional, will auto-detect)
  *   - OG_LOGO_PATH: Path to logo file (optional, will auto-detect)
  *   - OG_LOGO_WIDTH_RATIO: Logo width as ratio of OG width (default: 0.16)
@@ -190,9 +190,9 @@ async function generateBlogOgImage(slug, imgFname, articlesDir, logoPath) {
 }
 
 async function main() {
-  const mongoUri = process.env.MONGODB_URI;
+  const mongoUri = process.env.MONGO_URI;
   if (!mongoUri) {
-    console.error('Error: MONGODB_URI environment variable not set');
+    console.error('Error: MONGO_URI environment variable not set');
     process.exit(1);
   }
 
