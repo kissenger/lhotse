@@ -210,7 +210,9 @@ app.use(async (req, res, next) => {
 
   const slug = decodeURIComponent(segments[1] ?? '').trim().toLowerCase();
   if (!slug) {
-    res.status(404).send('Not found');
+    res.status(404);
+    req.url = '/404';
+    next();
     return;
   }
 
@@ -242,7 +244,9 @@ app.use(async (req, res, next) => {
 
   const post = await getPublishedPostBySlugForSeo(slug).catch(() => null);
   if (!post) {
-    res.status(404).send('Not found');
+    res.status(404);
+    req.url = '/404';
+    next();
     return;
   }
 

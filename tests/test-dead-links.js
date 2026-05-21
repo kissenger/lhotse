@@ -12,6 +12,8 @@
 
 const BASE_URL = (process.argv[2] || process.env.BASE_URL || 'https://snorkelology.co.uk').replace(/\/$/, '');
 const BASE_HOSTNAME = new URL(BASE_URL).hostname;
+import { readFile } from 'node:fs/promises';
+import { globSync } from 'glob';
 
 const SEED_PATHS = ['/home', '/map', '/privacy-policy'];
 const UA = 'Mozilla/5.0 (compatible; LinkChecker/1.0)';
@@ -65,6 +67,33 @@ function extractAnchorHrefs(html) {
   return hrefs;
 }
 
+function classifyHref(href, internalPaths, externalUrls) {
+  let normalized = href.split('#')[0];
+  if (!normalized) return;
+
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    try {
+      const u = new URL(normalized);
+      if (u.hostname === BASE_HOSTNAME) {
+        const internalPath = `${u.pathname}${u.search}`.replace(/\/$/, '') || '/';
+        if (!internalPath.startsWith('/cdn-cgi/')) {
+          internalPaths.add(internalPath);
+        }
+      } else {
+        u.hash = '';
+        externalUrls.add(u.toString());
+      }
+    } catch {
+      // skip malformed URL
+    }
+    return;
+  }
+
+  if (normalized.startsWith('/') && !normalized.startsWith('//') && !normalized.startsWith('/cdn-cgi/')) {
+    internalPaths.add(normalized);
+  }
+}
+
 // ── Collectors ────────────────────────────────────────────────────────────────
 
 async function crawlSeedPages() {
@@ -81,21 +110,27 @@ async function crawlSeedPages() {
       continue;
     }
 
-    for (let href of extractAnchorHrefs(html)) {
-      href = href.split('#')[0];
-      if (!href) continue;
+    for (const href of extractAnchorHrefs(html)) {
+      classifyHref(href, internalPaths, externalUrls);
+    }
+  }
 
-      if (href.startsWith('http://') || href.startsWith('https://')) {
-        try {
-          const u = new URL(href);
-          if (u.hostname !== BASE_HOSTNAME) {
-            u.hash = '';
-            externalUrls.add(u.toString());
-          }
-        } catch { /* skip malformed */ }
-      } else if (href.startsWith('/') && !href.startsWith('//') && !href.startsWith('/cdn-cgi/')) {
-        internalPaths.add(href);
+  return { internalPaths, externalUrls };
+}
+
+async function collectTemplateAnchorLinks() {
+  const internalPaths = new Set();
+  const externalUrls = new Set();
+  const htmlFiles = globSync('src/app/**/*.html', { nodir: true });
+
+  for (const filePath of htmlFiles) {
+    try {
+      const html = await readFile(filePath, 'utf8');
+      for (const href of extractAnchorHrefs(html)) {
+        classifyHref(href, internalPaths, externalUrls);
       }
+    } catch {
+      // ignore unreadable template files
     }
   }
 
@@ -155,6 +190,11 @@ async function main() {
   console.log('Crawling seed pages ...');
   const { internalPaths, externalUrls } = await crawlSeedPages();
 
+  console.log('Scanning template links ...');
+  const templateLinks = await collectTemplateAnchorLinks();
+  for (const path of templateLinks.internalPaths) internalPaths.add(path);
+  for (const url of templateLinks.externalUrls) externalUrls.add(url);
+
   console.log('Fetching blog post links ...');
   const blogLinks = await collectBlogLinks();
 
@@ -163,13 +203,7 @@ async function main() {
 
   // Merge all external URLs, filtering own domain
   for (const raw of [...blogLinks, ...siteLinks]) {
-    try {
-      const u = new URL(raw);
-      if (u.hostname !== BASE_HOSTNAME) {
-        u.hash = '';
-        externalUrls.add(u.toString());
-      }
-    } catch { /* skip malformed */ }
+    classifyHref(raw, internalPaths, externalUrls);
   }
 
   // Remove seed pages — confirmed live during crawl
