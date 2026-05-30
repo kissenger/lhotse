@@ -3,6 +3,28 @@ export interface FaqItem {
   answer: string;
 }
 
+export function faqFragment(question: string): string {
+  return question
+    .toLowerCase()
+    .replace(/['"]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function faqPreviewExcerpt(answer: string, maxLength = 360): string {
+  const text = answer
+    .replace(/\[link:([^,\]]+),([^\]]+)\]/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const truncated = text.slice(0, maxLength).replace(/\s+\S*$/, '').trimEnd();
+  return `${truncated}…`;
+}
+
 export const faqItems: FaqItem[] = [
   {
     question: 'Is it too cold to snorkel in Britain?',

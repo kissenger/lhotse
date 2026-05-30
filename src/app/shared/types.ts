@@ -327,11 +327,40 @@ export interface BlogSection {
   ctaLinks?: Array<{ label: string; url: string }>;
 }
 
+export interface BlogReviewAffiliateLink {
+  label: string;
+  url: string;
+}
+
+export interface BlogReview {
+  reviewKind?: 'product' | 'book';
+  productName: string;
+  brand?: string;
+  author?: string;
+  publisher?: string;
+  isbn?: string;
+  imageFname?: string;
+  imageAlt?: string;
+  imageCredit?: string;
+  summary: string;
+  ratingValue: number;
+  ratingScale: number;
+  pros: string[];
+  cons: string[];
+  affiliateDisclosure?: string;
+  affiliateLinks?: BlogReviewAffiliateLink[];
+  priceCurrency?: string;
+  priceValue?: number | null;
+  availability?: string;
+  sku?: string;
+}
+
 export class BlogPost {
   _id: string = '';
   slug: string = '';
   title: string = 'New Post';
-  type: 'faq' | 'article' = 'faq';
+  type: 'faq' | 'article' | 'review' = 'faq';
+  blogSection: string = '';
   keywords: Array<string> = [];
   subtitle: string = '';
   imgFname: string = '';
@@ -352,6 +381,28 @@ export class BlogPost {
   updatedAt: string = '';
   publishedAt: string = '';
   author?: string;
+  review: BlogReview = {
+    reviewKind: 'product',
+    productName: '',
+    brand: '',
+    author: '',
+    publisher: '',
+    isbn: '',
+    imageFname: '',
+    imageAlt: '',
+    imageCredit: '',
+    summary: '',
+    ratingValue: 4,
+    ratingScale: 5,
+    pros: [],
+    cons: [],
+    affiliateDisclosure: '',
+    affiliateLinks: [],
+    priceCurrency: 'GBP',
+    priceValue: null,
+    availability: '',
+    sku: ''
+  };
   likes: number = 0;
   isDeleted?: boolean;
   deletedAt?: string | null;

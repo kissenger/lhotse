@@ -99,14 +99,19 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
-  it('sets activeMenuItem to undefined on unknown route', () => {
+  it('sets activeMenuItem to Articles on blog post route', () => {
     const { component } = buildHeader('/blog/some-post');
+    expect(component.activeMenuItem).toBe('Articles');
+  });
+
+  it('sets activeMenuItem to undefined on unknown route', () => {
+    const { component } = buildHeader('/privacy-policy');
     expect(component.activeMenuItem).toBeUndefined();
   });
 
   it('sets activeMenuItem from fragment on home route', () => {
-    const { component } = buildHeader('/#blog');
-    expect(component.activeMenuItem).toBe('Blog');
+    const { component } = buildHeader('/#friends-and-partners');
+    expect(component.activeMenuItem).toBe('Home');
   });
 
   it('sets activeMenuItem to Home when fragment does not match any anchor', () => {
@@ -128,15 +133,21 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
-  it('updates activeMenuItem when router navigates to /#buy-now', () => {
+  it('updates activeMenuItem when router navigates to /shop', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(3, '/#buy-now', '/#buy-now'));
+    routerEvents$.next(new NavigationEnd(3, '/shop', '/shop'));
     expect(component.activeMenuItem).toBe('Shop');
+  });
+
+  it('updates activeMenuItem when router navigates to /faqs', () => {
+    const { component, routerEvents$ } = buildHeader('/');
+    routerEvents$.next(new NavigationEnd(4, '/faqs', '/faqs'));
+    expect(component.activeMenuItem).toBe('FAQs');
   });
 
   it('clears activeMenuItem when router navigates to non-home route', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(4, '/privacy-policy', '/privacy-policy'));
+    routerEvents$.next(new NavigationEnd(5, '/privacy-policy', '/privacy-policy'));
     expect(component.activeMenuItem).toBeUndefined();
   });
 

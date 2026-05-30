@@ -5,12 +5,14 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
 import { HttpService } from '@shared/services/http.service';
-import { ScreenService } from '@shared/services/screen.service';
 import { PLATFORM_ID } from '@angular/core';
 
-function makePost(keywords: string[]): BlogPost {
+function makePost(sectionTitle = '', title = '', subtitle = ''): BlogPost {
   const p = new BlogPost();
-  p.keywords = keywords;
+  p.blogSection = sectionTitle;
+  p.title = title;
+  p.subtitle = subtitle;
+  p.slug = title.toLowerCase().replace(/\s+/g, '-');
   return p;
 }
 
@@ -27,7 +29,6 @@ describe('BlogComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } },
         { provide: HttpService, useValue: mockHttp },
-        { provide: ScreenService, useValue: { width: 0, widthDescriptor: 'small' } },
         { provide: PLATFORM_ID, useValue: 'server' }  // skip ngOnInit HTTP call
       ]
     }).compileComponents();
@@ -41,101 +42,55 @@ describe('BlogComponent', () => {
     expect(comp).toBeTruthy();
   });
 
-  // --- getUniqueKeywords ---
+  // --- grouping ---
 
-  it('getUniqueKeywords extracts unique sorted keywords from allPosts', () => {
-    comp.allPosts = [
-      makePost(['snorkelling', 'gear']),
-      makePost(['marine life', 'snorkelling'])
+  it('groups posts into configured categories in order', () => {
+    const posts = [
+      makePost('Snorkelling Sites', 'Best bay for beginners'),
+      makePost('News', 'Project update'),
+      makePost('Reviews', 'Mask review'),
+      makePost('Science and Nature', 'Sea slugs and habitat'),
+      makePost('British Snorkelling', 'How to start snorkelling')
     ];
-    comp.getUniqueKeywords();
-    expect(comp.uniqueKeywords).toEqual(['gear', 'marine life', 'snorkelling']);
+
+    const grouped = (comp as any)._groupPosts(posts);
+    expect(grouped.map((g: any) => g.slug)).toEqual([
+      'snorkelling-sites',
+      'news',
+      'product-reviews',
+      'science-and-nature',
+      'british-snorkelling'
+    ]);
+    expect(grouped[0].posts.length).toBe(1);
+    expect(grouped[1].posts.length).toBe(1);
+    expect(grouped[2].posts.length).toBe(1);
+    expect(grouped[3].posts.length).toBe(1);
+    expect(grouped[4].posts.length).toBe(1);
   });
 
-  it('getUniqueKeywords ignores empty string keywords', () => {
-    comp.allPosts = [makePost(['', 'gear'])];
-    comp.getUniqueKeywords();
-    expect(comp.uniqueKeywords).toEqual(['gear']);
+  it('keeps custom sections grouped by the exact stored title', () => {
+    const post = makePost('Snorkelling Gear', 'Weekend snorkel notes');
+    const grouped = (comp as any)._groupPosts([post]);
+    const customSection = grouped.find((section: any) => section.title === 'Snorkelling Gear');
+
+    expect(customSection).toEqual(jasmine.objectContaining({
+      title: 'Snorkelling Gear',
+      slug: 'snorkelling-gear'
+    }));
   });
 
-  it('getUniqueKeywords sets selectedKeywords to full unique list', () => {
-    comp.allPosts = [makePost(['gear', 'marine life'])];
-    comp.getUniqueKeywords();
-    expect(comp.selectedKeywords).toEqual(comp.uniqueKeywords);
+  it('contentsSections excludes empty categories', () => {
+    comp.groupedPosts = [
+      { title: 'News', slug: 'news', description: 'x', posts: [makePost('News', 'n')] },
+      { title: 'Reviews', slug: 'product-reviews', description: 'y', posts: [] }
+    ];
+    expect(comp.contentsSections.length).toBe(1);
+    expect(comp.contentsSections[0].slug).toBe('news');
   });
 
-  // --- onFilter ---
-
-  it('onFilter removes a keyword that is already selected', () => {
-    comp.allPosts = [makePost(['gear']), makePost(['marine life'])];
-    comp.uniqueKeywords = ['gear', 'marine life'];
-    comp.selectedKeywords = ['gear', 'marine life'];
-    comp.filteredPosts = comp.allPosts;
-    comp.onFilter('gear');
-    expect(comp.selectedKeywords).not.toContain('gear');
-    expect(comp.selectedKeywords).toContain('marine life');
-  });
-
-  it('onFilter adds a keyword that is not currently selected', () => {
-    comp.allPosts = [makePost(['gear']), makePost(['marine life'])];
-    comp.uniqueKeywords = ['gear', 'marine life'];
-    comp.selectedKeywords = ['marine life'];
-    comp.filteredPosts = comp.allPosts;
-    comp.onFilter('gear');
-    expect(comp.selectedKeywords).toContain('gear');
-  });
-
-  it('onFilter triggers filterBlogCards, hiding non-matching posts', () => {
-    const p1 = makePost(['gear']);
-    const p2 = makePost(['marine life']);
-    comp.allPosts = [p1, p2];
-    comp.selectedKeywords = ['gear'];
-    comp.filteredPosts = [p1, p2];
-    comp.onFilter('marine life'); // starts deselected — this adds it
-    // both keywords selected → both posts shown
-    expect(comp.filteredPosts.length).toBe(2);
-  });
-
-  // --- filterBlogCards ---
-
-  it('filterBlogCards keeps posts that have at least one selectedKeyword', () => {
-    const p1 = makePost(['gear']);
-    const p2 = makePost(['marine life']);
-    comp.allPosts = [p1, p2];
-    comp.selectedKeywords = ['gear'];
-    comp.filterBlogCards();
-    expect(comp.filteredPosts).toEqual([p1]);
-  });
-
-  it('filterBlogCards returns empty when no keywords selected', () => {
-    comp.allPosts = [makePost(['gear']), makePost(['marine life'])];
-    comp.selectedKeywords = [];
-    comp.filterBlogCards();
-    expect(comp.filteredPosts.length).toBe(0);
-  });
-
-  // --- selectAll / selectNone ---
-
-  it('selectAll restores filteredPosts to all posts', () => {
-    const p1 = makePost(['gear']);
-    const p2 = makePost(['marine life']);
-    comp.allPosts = [p1, p2];
-    comp.uniqueKeywords = ['gear', 'marine life'];
-    comp.selectedKeywords = [];
-    comp.filteredPosts = [];
-    comp.selectAll();
-    expect(comp.selectedKeywords).toEqual(['gear', 'marine life']);
-    expect(comp.filteredPosts.length).toBe(2);
-  });
-
-  it('selectNone empties filteredPosts', () => {
-    const p1 = makePost(['gear']);
-    comp.allPosts = [p1];
-    comp.uniqueKeywords = ['gear'];
-    comp.selectedKeywords = ['gear'];
-    comp.filteredPosts = [p1];
-    comp.selectNone();
-    expect(comp.selectedKeywords).toEqual([]);
-    expect(comp.filteredPosts.length).toBe(0);
+  it('resultSummary reports total article count', () => {
+    comp.loadingState = 'success';
+    comp.allPosts = [makePost('', 'A'), makePost('', 'B')];
+    expect(comp.resultSummary).toBe('2 articles in this archive');
   });
 });

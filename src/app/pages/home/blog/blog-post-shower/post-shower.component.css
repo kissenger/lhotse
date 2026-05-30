@@ -6,7 +6,9 @@ a.anchor {
 .back-to-contents {
   display: block;
   width: fit-content;
+  margin-top: 1rem;
   margin-left: auto;
+  margin-right: auto;
   margin-bottom: 1rem;
   font-size: 0.85rem;
   padding: 0.25em 0.8em;
@@ -182,6 +184,178 @@ h1 {
 
 .intro {
   margin-top: 1.5rem;
+}
+
+.review-summary-box {
+  border: 1px solid var(--border-soft, #d7e3ee);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--surface-soft, #f8fcff) 0%, var(--surface-soft-alt, #eef6fb) 100%);
+  padding: 1rem;
+  margin: 1.35rem 0 1.8rem;
+}
+
+.review-inline-image {
+  margin: -0.95rem 0 1.25rem;
+}
+
+.review-inline-image img {
+  display: block;
+  width: 100%;
+  height: 380px;
+  max-height: 52vh;
+  object-fit: cover;
+  object-position: center;
+}
+
+.review-inline-image--book img {
+  height: auto;
+  max-height: clamp(260px, 55vh, 680px);
+  object-fit: contain;
+  background: var(--surface-base, #fff);
+}
+
+.review-summary-header h2 {
+  margin: 0 0 0.2rem;
+}
+
+.review-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-muted-strong, #38556f);
+}
+
+.review-brand {
+  margin: 0;
+  color: var(--text-subtle, #5a6e81);
+}
+
+.review-meta-inline {
+  margin: 0.55rem 0 0;
+  color: var(--text-subtle, #5a6e81);
+  font-size: 0.95rem;
+  display: block;
+}
+
+.review-meta-inline span {
+  display: block;
+  margin: 0.1rem 0;
+}
+
+.review-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+}
+
+.review-score {
+  font-weight: 700;
+  color: var(--sn-colour, #1D3D59);
+}
+
+.review-stars {
+  letter-spacing: 0.06em;
+  font-size: 1.05rem;
+}
+
+.star {
+  color: #9aa9b7;
+}
+
+.star--filled {
+  color: #d58c00;
+}
+
+.review-summary-copy {
+  margin-top: 0.75rem;
+}
+
+.review-pros-cons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.8rem;
+}
+
+.review-pros-box,
+.review-cons-box {
+  border: 1px solid var(--border-tint-16, rgba(29, 61, 89, 0.16));
+  border-radius: 8px;
+  background: var(--surface-base, #fff);
+  padding: 0.7rem;
+}
+
+.review-pros-box h3,
+.review-cons-box h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+}
+
+.review-pros-box ul,
+.review-cons-box ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-pros-box li,
+.review-cons-box li {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.review-pros-box li:last-child,
+.review-cons-box li:last-child {
+  margin-bottom: 0;
+}
+
+.review-list-icon {
+  width: 1.1rem;
+  min-width: 1.1rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.review-list-icon--good {
+  color: #2e7d32;
+}
+
+.review-list-icon--bad {
+  color: #b84a4a;
+}
+
+.affiliate-disclosure {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.7rem;
+  border-left: 3px solid var(--border-tint-16, rgba(29, 61, 89, 0.16));
+  background: var(--surface-tint-4, rgba(29, 61, 89, 0.04));
+  font-size: 0.92rem;
+}
+
+.affiliate-links-row {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.affiliate-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-brand-soft, rgba(29, 61, 89, 0.32));
+  background: var(--surface-base, #fff);
+  color: var(--sn-colour, #1D3D59);
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
 .deferred-content-placeholder {

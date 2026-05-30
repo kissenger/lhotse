@@ -2,7 +2,7 @@
 
   @if (!hideAboutBookOverlay) {
   <div class="overlay about-book" [class.overlay-ready]="overlayReady">
-    <a [routerLink]="'.'" [fragment]="'snorkelling-britain'" (click)="hideOverlay('about-book')">
+    <a routerLink="/book" (click)="hideOverlay('about-book')">
       @if (widthDescriptor === "small") {
         <img  
           ngSrc = "ads/overlay-ad-portrait-new.jpg"
@@ -36,32 +36,181 @@
   </div>
 
   @defer (when deferredSectionsReady; hydrate on idle; prefetch on idle) {
-    <div #anchor class="anchor" id="blog" data-scrollspy-anchor>
-      <app-blog></app-blog>
+    <section class="anchor home-preview-section" id="blog">
+      <div class="dynamic-container">
+        <div class="home-preview-shell">
+          <div class="home-preview-header">
+            <h2>In-Depth Snorkelling Articles</h2>
+            <p>Covering British snorkelling news, science, gear advice, and field notes to inspire your next underwater adventure.</p>
+          </div>
+
+          @if (latestBlogPreviews.length > 0) {
+            <div class="home-blog-preview-list preview-divider-list">
+              @for (post of latestBlogPreviews; track post.slug) {
+                <app-blog-card [data]="post"></app-blog-card>
+              }
+            </div>
+          }
+
+          <div class="teaser-actions">
+            <a routerLink="/blog" class="teaser-link anchor-pill cta-link-btn">Browse More Articles</a>
+          </div>
+        </div>
+      </div>
       <div #window id="windowTwo" class="window"></div>  
-    </div>
+    </section>
 
-    <div #anchor class="anchor" id="snorkelling-britain" data-scrollspy-anchor>
-      <app-book></app-book>  
+    <section class="anchor home-preview-section" id="snorkelling-britain">
+      <div class="dynamic-container">
+        <div class="home-preview-shell">
+          <div class="home-preview-header">
+            <h2>Snorkelling Britain</h2>
+            <p>
+              <em>Snorkelling Britain: 100 Marine Adventures</em> by Emma and Gordon Taylor is your essential guide to British snorkelling.
+            </p>
+          </div>
+
+          <div class="book-home-synopsis">
+            <div class="book-home-synopsis-grid">
+              <figure class="book-home-image">
+                <img
+                  ngSrc="photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png"
+                  alt="Snorkelling Britain: 100 Marine Adventures book cover"
+                  width="1845"
+                  height="2192"
+                  sizes="(max-width: 767px) 56vw, 220px"
+                  loading="lazy" />
+              </figure>
+
+              <div class="book-home-copy">
+                <ul>
+                  <li>100 accessible snorkelling sites across England, Scotland and Wales.</li>
+                  <li>Detailed route-finding, access notes, and practical safety context for each location.</li>
+                  <li>Supporting chapters on gear, planning, underwater photography and marine life.</li>
+                  <li>Illustrated guide to British marine life and species identification.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <p>
+            A perfect gift for any snorkeller or open water swimmer who wants to take the next step on their marine adventures.
+          </p>
+          <div class="teaser-actions">
+            <a routerLink="/book" class="teaser-link anchor-pill cta-link-btn">Explore Snorkelling Britain</a>
+          </div>
+        </div>
+      </div>
       <div #window #windowThree id="windowThree" class="window"></div>
-    </div>
+    </section>
 
-    <div #anchor class="anchor" id="buy-now" data-scrollspy-anchor>
-      <app-shop></app-shop>
+    <section class="anchor home-preview-section" id="buy-now">
+      <div class="dynamic-container">
+        <div class="home-preview-shell">
+          <div class="home-preview-header">
+            <h2>Snorkelology Shop</h2>
+            <p>Visit our shop to buy Snorkelling Britain direct from the authors &mdash;
+              signed copies available!  We'll be expanding the shop soon to feature 
+              personally recommended snorkelling gear and accessories.</p>
+          </div>
+
+          <div class="home-shop-preview-list media-list preview-divider-list" aria-label="Shop preview">
+            @for (item of shopPreviewItems; track item.id) {
+              <a class="home-shop-preview-card home-shop-preview-card-link media-row" routerLink="/shop" [attr.aria-labelledby]="'home-shop-' + item.id + '-title'">
+              <div class="media-row-visual home-shop-preview-visual">
+                <img
+                  [ngSrc]="item.imageSrc"
+                  [alt]="item.imageAlt"
+                  width="1845"
+                  height="2192"
+                  sizes="(max-width: 500px) 45vw, 120px"
+                  loading="lazy" />
+              </div>
+              <div class="media-row-content home-shop-preview-content">
+                <h3 class="media-row-title" [id]="'home-shop-' + item.id + '-title'">{{ item.name }}</h3>
+                <p class="media-row-description">{{ item.description }}</p>
+                <div class="home-shop-preview-more"><span class="home-shop-preview-more-text">See more &rarr;</span></div>
+              </div>
+              </a>
+            }
+          </div>
+
+          <div class="teaser-actions">
+            <a routerLink="/shop" class="teaser-link anchor-pill cta-link-btn">Browse the Shop</a>
+          </div>
+        </div>
+      </div>
       <div #window #windowFour id="windowFour" class="window"></div>
-    </div>
+    </section>
 
     <div #anchor class="anchor" id="snorkelling-map-of-britain" data-scrollspy-anchor>
-      @defer (on viewport(windowFive); prefetch on idle) {
-        <app-map></app-map>
-      }
+      <section class="home-preview-section">
+        <div class="dynamic-container">
+          <div class="home-preview-shell">
+            <div class="home-preview-header">
+              <h2>Snorkelling Map of Britain</h2>
+              <p>
+                Explore our unique interactive snorkelling map of Britain, with personally curated
+                snorkelling sites and organisations to help you plan your next underwater adventure.
+              </p>
+            </div>
+
+            <div class="map-home-synopsis">
+              <div class="map-home-synopsis-grid">
+                <figure class="map-home-image" aria-label="Map image placeholder">
+                  <div class="map-home-image-placeholder">
+                    <span>Map image coming soon</span>
+                  </div>
+                </figure>
+
+                <div class="map-home-copy">
+                  <ul>
+                    <li>Personally curated map of the best snorkelling sites in Britain.</li>
+                    <li>Each site personally validated by the authors with onward links for more information.</li>
+                    <li>Discover nearby retailers, instructors and guides with our unique organisations layer.</li>
+                    <li>The perfect guide to help you plan your next British snorkelling adventure!</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="teaser-actions">
+              <a routerLink="/map" class="teaser-link anchor-pill cta-link-btn">View the Snorkelling Map of Britain</a>
+            </div>
+          </div>
+        </div>
+      </section>
       <div #window #windowFive id="windowFive" class="window"></div>
     </div>
 
-    <div class="anchor" id="british-snorkelling-faqs">
-      <app-faq></app-faq>
+    <section class="anchor home-preview-section" id="british-snorkelling-faqs">
+      <div class="dynamic-container">
+        <div class="home-preview-shell">
+          <div class="home-preview-header">
+            <h2>British Snorkelling FAQs</h2>
+            <p>
+              Find quick, practical answers to the questions people ask most before heading out around the British coastline. From water temperature and marine life to safety and site choice, these frequently asked questions bring together the essentials in one place and link you through to the full archive whenever you want to go deeper.
+            </p>
+          </div>
+
+          <div class="faq-home-list" aria-label="FAQ preview">
+            @for (faq of faqPreviewItems; track faq.question) {
+              <a class="faq-home-item" routerLink="/faqs" [fragment]="faq.fragment" [attr.aria-label]="'Read more about ' + faq.question">
+                <h3 class="faq-home-question">{{ faq.question }}</h3>
+                <div class="faq-home-answer">{{ faq.excerpt }}</div>
+                <div class="faq-home-more-row" aria-hidden="true">
+                  <span class="faq-home-more">See more &rarr;</span>
+                </div>
+              </a>
+            }
+          </div>
+
+          <div class="teaser-actions">
+            <a routerLink="/faqs" class="teaser-link anchor-pill cta-link-btn">View more FAQs</a>
+          </div>
+        </div>
+      </div>
       <div #window #windowSix id="windowSix" class="window"></div>
-    </div>
+    </section>
 
     <div #anchor class="anchor" id="friends-and-partners" data-scrollspy-anchor>
       <app-partners></app-partners>

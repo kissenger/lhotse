@@ -167,24 +167,49 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
 blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
   try {
     if (req.body._id !=='') {
+      const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
+      delete req.body.preserveUpdatedAt;
+
+      const existing = await BlogModel.findById(req.body._id, { publishedAt: 1, updatedAt: 1, blogSection: 1 }).lean();
+      if (!existing) {
+        throw new BlogError('Not Found');
+      }
+
       // Never let the client overwrite publishedAt — manage it server-side only
       const clientPublishedAt = req.body.publishedAt;
       delete req.body.publishedAt;
       delete req.body.isPublished;
       const update: any = { ...req.body };
+      let publishStateChanged = false;
+
       if (clientPublishedAt === undefined) {
         // no publish change — leave publishedAt untouched
       } else if (clientPublishedAt === '') {
         // Explicit unpublish — clear publishedAt
         update.publishedAt = null;
+        publishStateChanged = !!existing.publishedAt;
       } else if (clientPublishedAt === 'publish') {
         // Set publishedAt only when first publishing (not already set)
-        const existing = await BlogModel.findById(req.body._id, { publishedAt: 1 });
         if (existing && !existing.publishedAt) {
           update.publishedAt = new Date();
+          publishStateChanged = true;
         }
       }
-      await BlogModel.findByIdAndUpdate(req.body._id, update);
+
+      const existingSection = (existing.blogSection || '').toString().trim();
+      const incomingSection = (req.body.blogSection || '').toString().trim();
+      const sectionChanged = existingSection !== incomingSection;
+      const shouldPreserveUpdatedAt = (preserveUpdatedAt || sectionChanged) && !publishStateChanged;
+
+      if (shouldPreserveUpdatedAt && existing.updatedAt) {
+        update.updatedAt = existing.updatedAt;
+      }
+
+      await BlogModel.findByIdAndUpdate(
+        req.body._id,
+        update,
+        shouldPreserveUpdatedAt ? { timestamps: false } : undefined
+      );
     } else {
       delete req.body._id;
       delete req.body.createdAt;
@@ -258,7 +283,7 @@ async function getPublishedPostsForSeo() {
 async function getPublishedPostBySlugForSeo(slug: string) {
   const post = await BlogModel.findOne(
     { publishedAt: { $ne: null }, slug },
-    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1 }
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1, review: 1 }
   ).lean();
   return post;
 }

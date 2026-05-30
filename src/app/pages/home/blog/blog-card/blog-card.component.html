@@ -1,32 +1,46 @@
-<article class="blog-card" [routerLink]="'/blog/'+data.slug" aria-label="Read blog post: {{data.title}}">
+<a class="blog-card media-row anchor-pill" [routerLink]="'/blog/'+data.slug" aria-label="Read article: {{data.title}}">
 
-  <div class="photo">
-      <img
-        [ngSrc]="data.imgFname"
-        [alt]="data.imgAlt || 'Blog post image for ' + data.title"
-      sizes="300px"
-        fill /> 
+  <div class="photo media-row-visual">
+    <img
+      [ngSrc]="data.imgFname"
+      [alt]="data.imgAlt || 'Article image for ' + data.title"
+      sizes="(max-width: 767px) 100vw, 280px"
+      fill />
   </div>
 
-  <h2 class="title">{{data.title}}</h2>
-  <div class="author">
-    <span>By {{data.author || 'Snorkelology'}}</span>
-    @if (data.likes > 0) {
-      <div class="like-count">
-        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#1D3D59"/>
-        </svg>
-        <span>{{ data.likes }}</span>
+  <div class="card-content media-row-content">
+    <h2 class="title media-row-title">{{data.title}}</h2>
+
+    <div class="meta-row">
+      <span class="author meta-author">By {{data.author || 'Snorkelology'}}</span>
+      @if (data.publishedAt) {
+        <span class="meta-sep">·</span>
+        <span class="meta-date">{{data.publishedAt | date : 'MMM yyyy'}}</span>
+      }
+      @if (data.likes > 0) {
+        <span class="meta-sep">·</span>
+        <span class="like-count" aria-label="{{data.likes}} likes">
+          <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#1D3D59"/>
+          </svg>
+          <span>{{ data.likes }}</span>
+        </span>
+      }
+    </div>
+
+    <p class="subtitle media-row-description">{{data.subtitle}}</p>
+
+    @if (data.type === 'review' && data.review.ratingScale) {
+      <div class="review-chip" aria-label="Rating {{data.review.ratingValue}} out of {{data.review.ratingScale}}">
+        <span>★ {{ data.review.ratingValue | number : '1.1-1' }}/{{data.review.ratingScale}}</span>
       </div>
     }
-  </div>
-  <p class="subtitle">{{data.subtitle}}</p>
-  <div class="card-footer">
-    <div class="keywords">     
+
+    <div class="keywords keywords--clamped">
       @for (kw of data.keywords; track kw) {
         <span>{{kw}}</span>
       }
     </div>
   </div>
 
-</article>
+</a>

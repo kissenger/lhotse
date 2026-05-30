@@ -21,12 +21,15 @@ export class BlogEditorComponent implements OnInit {
   public isDirty: boolean = false;
 
   public uniqueKeywords: Array<string> = [];
+  public blogSectionOptions: string[] = [];
+  public newBlogSectionLabel: string = '';
   public selectedPost: BlogPost = new BlogPost;
   public askForConfirmation: boolean = false;
   public posts: Array<BlogPost> = [this.selectedPost];
   public showMarkdownHelp: boolean = false;
   public askForDiscardChanges: boolean = false;
   private _pendingNavAction: (() => void) | null = null;
+  private _selectedPostSnapshot: BlogPost | null = null;
 
   constructor(
       private _http: HttpService,
@@ -38,6 +41,93 @@ export class BlogEditorComponent implements OnInit {
     
   async ngOnInit() {
     this.getPosts();
+  }
+
+  ensureReviewModel() {
+    this._ensureBlogSection(this.selectedPost);
+    if (!this.selectedPost.review) {
+      this.selectedPost.review = {
+        reviewKind: 'product',
+        productName: '',
+        brand: '',
+        author: '',
+        publisher: '',
+        isbn: '',
+        imageFname: '',
+        imageAlt: '',
+        imageCredit: '',
+        summary: '',
+        ratingValue: 4,
+        ratingScale: 5,
+        pros: [],
+        cons: [],
+        affiliateDisclosure: '',
+        affiliateLinks: [],
+        priceCurrency: 'GBP',
+        priceValue: null,
+        availability: '',
+        sku: ''
+      };
+    }
+    this.selectedPost.review.reviewKind = this.selectedPost.review.reviewKind || 'product';
+    this.selectedPost.review.ratingScale = this.selectedPost.review.ratingScale || 5;
+    this.selectedPost.review.ratingValue = Math.min(this.selectedPost.review.ratingScale, Math.max(0, this.selectedPost.review.ratingValue || 0));
+    this.selectedPost.review.pros = this.selectedPost.review.pros || [];
+    this.selectedPost.review.cons = this.selectedPost.review.cons || [];
+    this.selectedPost.review.affiliateLinks = this.selectedPost.review.affiliateLinks || [];
+    this.selectedPost.review.author = this.selectedPost.review.author || '';
+    this.selectedPost.review.publisher = this.selectedPost.review.publisher || '';
+    this.selectedPost.review.isbn = this.selectedPost.review.isbn || '';
+    this.selectedPost.review.imageFname = this.selectedPost.review.imageFname || '';
+    this.selectedPost.review.imageAlt = this.selectedPost.review.imageAlt || '';
+    this.selectedPost.review.imageCredit = this.selectedPost.review.imageCredit || '';
+  }
+
+  get reviewLabel(): 'Product' | 'Book' {
+    return this.selectedPost.review?.reviewKind === 'book' ? 'Book' : 'Product';
+  }
+
+  get isBlogSectionMissing(): boolean {
+    return !this._cleanBlogSection(this.selectedPost.blogSection);
+  }
+
+  onTypeChange() {
+    this._ensureBlogSection(this.selectedPost);
+    if (this.selectedPost.type === 'review') {
+      this.ensureReviewModel();
+      if (this.selectedPost.review.productName === '') {
+        this.selectedPost.review.productName = this.selectedPost.title;
+      }
+      if (this.selectedPost.keywords.length === 0) {
+        this.selectedPost.keywords = this.selectedPost.review.reviewKind === 'book'
+          ? ['book review', 'snorkelling book']
+          : ['product review', 'snorkelling gear'];
+      }
+    }
+    this._refreshBlogSectionOptions();
+    this.isDirty = true;
+  }
+
+  onBlogSectionChange(value: string) {
+    this.selectedPost.blogSection = this._cleanBlogSection(value);
+    this._ensureBlogSection(this.selectedPost);
+    this.isDirty = true;
+  }
+
+  addBlogSection() {
+    const label = this._cleanBlogSection(this.newBlogSectionLabel);
+    if (!label) {
+      return;
+    }
+
+    if (!this.blogSectionOptions.includes(label)) {
+      this.blogSectionOptions.push(label);
+      this.blogSectionOptions.sort((a, b) => a.localeCompare(b));
+    }
+
+    this.selectedPost.blogSection = label;
+    this.newBlogSectionLabel = '';
+    this.isDirty = true;
   }
 
   getUniqueKeywords() {
@@ -94,12 +184,18 @@ export class BlogEditorComponent implements OnInit {
     if (this.isDirty) {
       this._pendingNavAction = () => {
         this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
+        this._ensureBlogSection(this.selectedPost);
+        this.ensureReviewModel();
+        this._captureSelectedPostSnapshot();
         this.isDirty = false;
       };
       this.askForDiscardChanges = true;
       return;
     }
     this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
+    this._ensureBlogSection(this.selectedPost);
+    this.ensureReviewModel();
+    this._captureSelectedPostSnapshot();
     this.isDirty = false;
   }
 
@@ -107,12 +203,18 @@ export class BlogEditorComponent implements OnInit {
     if (this.isDirty) {
       this._pendingNavAction = () => {
         this.selectedPost = new BlogPost();
+        this._ensureBlogSection(this.selectedPost);
+        this.ensureReviewModel();
+        this._captureSelectedPostSnapshot();
         this.isDirty = false;
       };
       this.askForDiscardChanges = true;
       return;
     }
     this.selectedPost = new BlogPost();
+    this._ensureBlogSection(this.selectedPost);
+    this.ensureReviewModel();
+    this._captureSelectedPostSnapshot();
     this.isDirty = false;
   }
 
@@ -163,6 +265,42 @@ export class BlogEditorComponent implements OnInit {
 
   removeKeyword(index: number) {
     this.selectedPost.keywords = this.selectedPost.keywords.filter((_, i) => i !== index);
+    this.isDirty = true;
+  }
+
+  addReviewListItem(type: 'pros' | 'cons', value: string, input: HTMLInputElement) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    this.ensureReviewModel();
+    const list = this.selectedPost.review[type];
+    if (!list.includes(trimmed)) {
+      list.push(trimmed);
+      this.isDirty = true;
+    }
+    input.value = '';
+  }
+
+  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons', input: HTMLInputElement) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    this.addReviewListItem(type, input.value, input);
+  }
+
+  removeReviewListItem(type: 'pros' | 'cons', index: number) {
+    this.ensureReviewModel();
+    this.selectedPost.review[type] = this.selectedPost.review[type].filter((_, i) => i !== index);
+    this.isDirty = true;
+  }
+
+  addAffiliateLink() {
+    this.ensureReviewModel();
+    this.selectedPost.review.affiliateLinks?.push({ label: '', url: '' });
+    this.isDirty = true;
+  }
+
+  removeAffiliateLink(index: number) {
+    this.ensureReviewModel();
+    this.selectedPost.review.affiliateLinks = (this.selectedPost.review.affiliateLinks || []).filter((_, i) => i !== index);
     this.isDirty = true;
   }
 
@@ -238,11 +376,44 @@ export class BlogEditorComponent implements OnInit {
 
   async onSave() {
     try {
+      this._ensureBlogSection(this.selectedPost);
+      if (!this.selectedPost.blogSection) {
+        this._toaster.show('Please select a blog section before saving.', 'warning');
+        return;
+      }
+      const preserveUpdatedAt = this._shouldPreserveUpdatedAt();
+      this.ensureReviewModel();
       this._normaliseSectionVideosBeforeSave();
+      if (this.selectedPost.type !== 'review') {
+        this.selectedPost.review = {
+          reviewKind: 'product',
+          productName: '',
+          brand: '',
+          author: '',
+          publisher: '',
+          isbn: '',
+          imageFname: '',
+          imageAlt: '',
+          imageCredit: '',
+          summary: '',
+          ratingValue: 4,
+          ratingScale: 5,
+          pros: [],
+          cons: [],
+          affiliateDisclosure: '',
+          affiliateLinks: [],
+          priceCurrency: 'GBP',
+          priceValue: null,
+          availability: '',
+          sku: ''
+        };
+      }
       const slug = this.selectedPost.slug;
-      const result = await this._http.upsertPost(this.selectedPost);
+      const result = await this._http.upsertPost(this.selectedPost, { preserveUpdatedAt });
       this.refreshPostList(result);
       this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
+      this.ensureReviewModel();
+      this._captureSelectedPostSnapshot();
       this.isDirty = false;
       this._toaster.show('Post saved successfully.', 'success');
     } catch (error: any) {
@@ -279,9 +450,76 @@ export class BlogEditorComponent implements OnInit {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
     this.selectedPost = new BlogPost;
+    this._ensureBlogSection(this.selectedPost);
+    this.ensureReviewModel();
+    this._captureSelectedPostSnapshot();
     this.posts = [this.selectedPost];
+    newData.forEach((post) => this._ensureBlogSection(post));
     this.posts.push(...newData);
     this.getUniqueKeywords();
+    this._refreshBlogSectionOptions();
     this._cdr.detectChanges();
+  }
+
+  private _refreshBlogSectionOptions() {
+    const sections = new Set<string>();
+
+    this.posts.forEach((post) => {
+      const sectionTitle = this._cleanBlogSection(post.blogSection);
+      if (sectionTitle) {
+        sections.add(sectionTitle);
+      }
+    });
+
+    this.blogSectionOptions = Array.from(sections).sort((a, b) => a.localeCompare(b));
+  }
+
+  private _ensureBlogSection(post: BlogPost) {
+    const explicit = this._cleanBlogSection(post.blogSection);
+    post.blogSection = explicit;
+  }
+
+  private _captureSelectedPostSnapshot() {
+    this._selectedPostSnapshot = this._clonePost(this.selectedPost);
+  }
+
+  private _clonePost(post: BlogPost | null): BlogPost | null {
+    if (!post) {
+      return null;
+    }
+
+    return JSON.parse(JSON.stringify(post)) as BlogPost;
+  }
+
+  private _shouldPreserveUpdatedAt(): boolean {
+    if (!this.selectedPost._id || !this._selectedPostSnapshot) {
+      return false;
+    }
+
+    const originalSection = this._cleanBlogSection(this._selectedPostSnapshot.blogSection);
+    const currentSection = this._cleanBlogSection(this.selectedPost.blogSection);
+
+    if (originalSection === currentSection) {
+      return false;
+    }
+
+    return this._getPostStateIgnoringSection(this._selectedPostSnapshot) === this._getPostStateIgnoringSection(this.selectedPost);
+  }
+
+  private _getPostStateIgnoringSection(post: BlogPost | null): string {
+    if (!post) {
+      return '';
+    }
+
+    const clone = this._clonePost(post) as any;
+    delete clone.blogSection;
+    delete clone.updatedAt;
+    delete clone.createdAt;
+
+    return JSON.stringify(clone);
+  }
+
+  private _cleanBlogSection(value?: string): string {
+    return (value || '').trim();
   }
 }

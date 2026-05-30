@@ -2,46 +2,47 @@
 
   <div class="dynamic-container">
 
-    <h2 class="section-heading">{{ pageHeading }}</h2>
-
-    <p>{{ pageDescription }}</p>
-    <div class="filter-bar">
-      <span class="filter-label">{{ filterLabel }}</span>
-      <div class="filter-chips">
-        @for (kw of uniqueKeywords; track kw) {
-          <button class="chip pill pill--interactive" [class.active]="selectedKeywords.includes(kw)" (click)="onFilter(kw)">{{kw}}</button>
+    <section class="anchor contents-section" id="contents" role="navigation" aria-label="Article contents">
+      <h2>Contents</h2>
+      <ul class="contents-list">
+        @for (section of contentsSections; track section.slug) {
+          <li>
+            <a [routerLink]="'.'" [fragment]="section.slug">{{ section.title }}</a>
+          </li>
         }
-      </div>
-      <div class="filter-actions">
-        <button class="filter-action" (click)="selectAll()">Select all</button>
-        <button class="filter-action" (click)="selectNone()">Clear all</button>
-      </div>
-    </div>
+      </ul>
+    </section>
   </div>
 
-  <div class="browser-container">
+  <div class="blog-grid-container">
 
     @if (loadingState !== 'success') {
       <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
 
     } @else {
-      <div #browser class="browser dynamic-container">
-        @for (post of filteredPosts; track post) {
-          <app-blog-card [data]="post"></app-blog-card>
-        } @empty {
-          <div class="no-results">
-            <p>No articles match the selected keywords.</p>
-            <button class="filter-action" (click)="selectAll()">Show all articles</button>
-          </div>
+      @for (section of groupedPosts; track section.slug) {
+        @if (section.posts.length > 0) {
+          <section class="category-section dynamic-container" [id]="section.slug">
+            <div class="category-header">
+              <h2 class="category-title">{{ section.title }}</h2>
+              <p class="category-meta">{{ section.posts.length }} article{{ section.posts.length === 1 ? '' : 's' }}. {{ section.description }}</p>
+            </div>
+            <div class="blog-grid">
+              @for (post of section.posts; track post.slug) {
+                <app-blog-card [data]="post"></app-blog-card>
+              }
+            </div>
+            <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
+          </section>
         }
-      </div>
-
-      <div #arrows class="arrow left">
-        <app-svg-arrow direction="left"  (click)="onClickLeft()"></app-svg-arrow>
-      </div>
-      <div #arrows class="arrow right">
-        <app-svg-arrow direction="right" (click)="onClickRight()"></app-svg-arrow>
-      </div>
+      } @empty {
+        <div class="dynamic-container">
+          <div class="no-results">
+            <h2>No articles available</h2>
+            <p>Please try again shortly.</p>
+          </div>
+        </div>
+      }
 
     }
 

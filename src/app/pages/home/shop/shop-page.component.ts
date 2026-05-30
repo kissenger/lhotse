@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
-import { MapComponent } from '@pages/home/map/map.component';
+import { ShopComponent } from '@pages/home/shop/shop.component';
 
 @Component({
   standalone: true,
-  imports: [MapComponent],
+  imports: [ShopComponent],
   template: `
     <main class="route-shell">
       <section class="route-shell-header dynamic-container">
-        <h1>Interactive Snorkelling Map of Britain</h1>
+        <h1>Snorkelology Shop</h1>
       </section>
       <section class="route-shell-content">
-        <app-map></app-map>
+        <app-shop></app-shop>
       </section>
     </main>`,
   styles: [`
@@ -36,4 +36,4 @@ import { MapComponent } from '@pages/home/map/map.component';
     }
   `]
 })
-export class MapPageComponent {}
+export class ShopPageComponent {}

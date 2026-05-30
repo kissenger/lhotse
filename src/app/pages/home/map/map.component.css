@@ -5,7 +5,7 @@
 }
 
 .dynamic-container.map-route-page-offset {
-  padding-top: calc(2.5rem + 1px);
+  padding-top: 0;
 }
 
 .filter-clear-link {

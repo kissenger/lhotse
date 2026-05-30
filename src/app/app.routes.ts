@@ -12,9 +12,15 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'blog', loadComponent: () =>
-    import('@pages/home/blog/blog.component').then((m) => m.BlogComponent)},
+    import('@pages/home/blog/blog-page.component').then((m) => m.BlogPageComponent)},
   { path: 'blog/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
+  { path: 'book', loadComponent: () =>
+    import('@pages/home/book/book-page.component').then((m) => m.BookPageComponent)},
+  { path: 'shop', loadComponent: () =>
+    import('@pages/home/shop/shop-page.component').then((m) => m.ShopPageComponent)},
+  { path: 'faqs', loadComponent: () =>
+    import('@pages/home/faq/faq-page.component').then((m) => m.FaqPageComponent)},
   { path: 'map', loadComponent: loadMapPage },
   { path: 'map/:country', loadComponent: loadMapPage },
   { path: 'map/:country/:county', loadComponent: loadMapPage },

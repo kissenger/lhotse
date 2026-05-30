@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
 import { stage } from '@shared/globals';
 
 @Component({
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, RouterLink],
   selector: 'app-book',
   templateUrl: './book.component.html',
-  styleUrls: ['../home.component.css', './book.component.css']
+  styleUrls: ['./book.component.css']
 })
 
 export class BookComponent {

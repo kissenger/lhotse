@@ -3,6 +3,37 @@
   height: auto;
 }
 
+.extra-top-margin {
+  margin-top: 2rem;
+}
+
+.main-content-grid {
+  display: grid;
+  grid-template-rows: auto;
+  grid-gap: 1.5rem;
+  grid-auto-flow: column;
+}
+
+.main-content-grid > div > ul {
+  margin-top: 0;
+}
+
+.main-content-grid > .left {
+  grid-column: 1;
+}
+
+.main-content-grid > .right {
+  grid-column: 2;
+}
+
+.content-img {
+  position: relative;
+  width: 350px;
+  height: 350px;
+  margin-top: 2rem;
+  margin-inline: auto;
+}
+
 .book-cover-img img {
   width: 100%;
   height: auto;
@@ -38,4 +69,24 @@
   padding: 0.5rem 0.9rem;
   font-size: 0.95rem;
   border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.book-bottom-cta {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .main-content-grid {
+    display: block;
+  }
+
+  .content-img {
+    width: 350px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 }

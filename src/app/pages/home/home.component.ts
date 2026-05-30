@@ -4,21 +4,20 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDest
 import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
 import { ScrollspyService } from     '@shared/services/scrollspy.service';
+import { HttpService } from          '@shared/services/http.service';
+import { BlogPost } from             '@shared/types';
+import { faqFragment, faqItems, faqPreviewExcerpt, type FaqItem } from '@shared/faq-data';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
-import { BlogComponent } from        '@pages/home/blog/blog.component';
-import { BookComponent } from        '@pages/home/book/book.component';
-import { ShopComponent } from        '@pages/home/shop/shop.component';
-import { FAQComponent } from         '@pages/home/faq/faq.component';
-import { MapComponent } from         '@pages/home/map/map.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
+import { BlogCardComponent } from    '@pages/home/blog/blog-card/blog-card.component';
 import { environment } from          '@environments/environment';
+import { shopItems } from            '@shared/globals';
 
 @Component({
   standalone: true,
   imports: [
-    SlideshowComponent, AboutUsComponent, ShopComponent, MapComponent,
-    FAQComponent, BlogComponent, PartnersComponent, BookComponent,
+    SlideshowComponent, AboutUsComponent, PartnersComponent, BlogCardComponent,
     RouterLink, NgOptimizedImage
 ],
   selector: 'app-home',
@@ -28,12 +27,22 @@ import { environment } from          '@environments/environment';
 
 export class HomeComponent implements AfterViewInit, OnDestroy {
 
+  readonly shopPreviewItems = (shopItems || []).slice(0, 2).map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    imageSrc: item.images?.[0]?.src ?? '',
+    imageAlt: item.images?.[0]?.alt ?? item.name,
+  }));
+
   @ViewChildren('window') windows!: QueryList<ElementRef>;
   @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
   public hideAboutBookOverlay = false;
   public overlayReady = false;
   public deferredSectionsReady = false;
+  public latestBlogPreviews: BlogPost[] = [];
+  public faqPreviewItems: Array<FaqItem & { fragment: string; excerpt: string }> = [];
   public widthDescriptor?: string;
   private _subs: Subscription[] = [];
   private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
@@ -58,6 +67,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     private _route: ActivatedRoute,
     private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
+    private _http: HttpService,
     private _cdr: ChangeDetectorRef,
   ) {
     this._isBrowser = isPlatformBrowser(this.platformId);
@@ -88,6 +98,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this._scheduleNonCritical(() => {
       this.deferredSectionsReady = true;
       this._cdr.detectChanges();
+      this._loadLatestBlogPreviews();
+      this._loadFaqPreviewItems();
 
       this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
         if (!this.hideAboutBookOverlay && isect.id !== 'home') {
@@ -125,6 +137,49 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       }
     }));
 
+  }
+
+  private async _loadLatestBlogPreviews() {
+    if (!this._isBrowser) {
+      return;
+    }
+
+    try {
+      const posts = await this._http.getPublishedPosts();
+      this.latestBlogPreviews = (posts as BlogPost[]).slice(0, 3);
+      this._cdr.detectChanges();
+    } catch {
+      this.latestBlogPreviews = [];
+      this._cdr.detectChanges();
+    }
+  }
+
+  private _loadFaqPreviewItems() {
+    const source = [...faqItems];
+
+    const weighted = source
+      .map((item) => ({
+        item,
+        fragment: faqFragment(item.question),
+        excerpt: faqPreviewExcerpt(item.answer, 170),
+        weight: this._faqPreviewWeight(item.answer)
+      }))
+      .sort((left, right) => {
+        if (left.weight !== right.weight) {
+          return right.weight - left.weight;
+        }
+
+        return left.item.question.localeCompare(right.item.question);
+      })
+      .slice(0, 3)
+      .map(({ item, fragment, excerpt }) => ({ ...item, fragment, excerpt }));
+
+    this.faqPreviewItems = weighted;
+    this._cdr.detectChanges();
+  }
+
+  private _faqPreviewWeight(answer: string): number {
+    return faqPreviewExcerpt(answer, 1000).length;
   }
 
   private _scheduleNonCritical(task: () => void) {
