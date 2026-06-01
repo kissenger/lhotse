@@ -2,9 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
-import { EventEmitter } from '@angular/core';
 import { Subject } from 'rxjs';
-import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { HttpService } from '@shared/services/http.service';
 
@@ -15,7 +13,6 @@ function buildHeader(routerUrl = '/') {
     events: routerEvents$.asObservable()
   };
 
-  const mockScrollSpy = { intersectionEmitter: new EventEmitter() };
   const mockScreen = { widthDescriptor: 'small' };
   const mockHttp = { logout: () => Promise.resolve() };
 
@@ -25,7 +22,6 @@ function buildHeader(routerUrl = '/') {
       { provide: ActivatedRoute, useValue: {} },
       { provide: Router, useValue: mockRouter },
       { provide: DOCUMENT, useValue: document },
-      { provide: ScrollspyService, useValue: mockScrollSpy },
       { provide: ScreenService, useValue: mockScreen },
       { provide: HttpService, useValue: mockHttp }
     ]
@@ -99,14 +95,19 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
+  it('sets activeMenuItem to Articles on article post route', () => {
+    const { component } = buildHeader('/articles/some-post');
+    expect(component.activeMenuItem).toBe('Articles');
+  });
+
   it('sets activeMenuItem to undefined on unknown route', () => {
-    const { component } = buildHeader('/blog/some-post');
+    const { component } = buildHeader('/privacy-policy');
     expect(component.activeMenuItem).toBeUndefined();
   });
 
   it('sets activeMenuItem from fragment on home route', () => {
-    const { component } = buildHeader('/#blog');
-    expect(component.activeMenuItem).toBe('Blog');
+    const { component } = buildHeader('/#friends-and-partners');
+    expect(component.activeMenuItem).toBe('Home');
   });
 
   it('sets activeMenuItem to Home when fragment does not match any anchor', () => {
@@ -128,15 +129,21 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
-  it('updates activeMenuItem when router navigates to /#buy-now', () => {
+  it('updates activeMenuItem when router navigates to /shop', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(3, '/#buy-now', '/#buy-now'));
+    routerEvents$.next(new NavigationEnd(3, '/shop', '/shop'));
     expect(component.activeMenuItem).toBe('Shop');
+  });
+
+  it('updates activeMenuItem when router navigates to /faqs', () => {
+    const { component, routerEvents$ } = buildHeader('/');
+    routerEvents$.next(new NavigationEnd(4, '/faqs', '/faqs'));
+    expect(component.activeMenuItem).toBe('FAQs');
   });
 
   it('clears activeMenuItem when router navigates to non-home route', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(4, '/privacy-policy', '/privacy-policy'));
+    routerEvents$.next(new NavigationEnd(5, '/privacy-policy', '/privacy-policy'));
     expect(component.activeMenuItem).toBeUndefined();
   });
 
@@ -166,14 +173,11 @@ describe('HeaderComponent', () => {
 
   // --- ngOnDestroy ---
 
-  it('ngOnDestroy unsubscribes both subscriptions', () => {
+  it('ngOnDestroy unsubscribes route subscription', () => {
     const { component } = buildHeader('/');
-    const scrSpy = jasmine.createSpy('scrUnsub');
     const routeSpy = jasmine.createSpy('routeUnsub');
-    component['_scrSubs'] = { unsubscribe: scrSpy } as any;
     component['_routeSubs'] = { unsubscribe: routeSpy } as any;
     component.ngOnDestroy();
-    expect(scrSpy).toHaveBeenCalled();
     expect(routeSpy).toHaveBeenCalled();
   });
 });

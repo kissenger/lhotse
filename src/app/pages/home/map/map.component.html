@@ -1,7 +1,5 @@
   <div class="dynamic-container" [class.map-route-page-offset]="isMapRoutePage">
 
-    @if (descriptionsLoaded && sitesLoaded) {
-
     @if (siteContext) {
       <h2 class="section-heading">{{siteContext.displayName}}</h2>
       <div class="map-route-flow map-route-flow-mobile-order">
@@ -162,7 +160,6 @@
         <p class="filter-empty-notice">No snorkelling sites found for this area. They may not have been added yet.</p>
       }
     } @else {
-      <h2 class="section-heading map-route-heading">Interactive Snorkelling Map of Britain</h2>
       <div class="map-route-flow">
         @if (countryDescription) {
           <div [innerHTML]="countryDescriptionHtml | sanitizer"></div>
@@ -171,25 +168,11 @@
             Discover snorkelling sites across Britain on the Snorkelology interactive map — from rocky reef coastlines to sheltered coves and kelp forests, with GPS coordinates, habitat tags, and site descriptions for each entry.
           </p>
         }
-        
-        <aside class="cta-box" aria-label="Featured snorkelling guide">
-          <h3 class="cta-box-title">Planning Your First UK Snorkel Trip?</h3>
-          <p class="cta-box-body">
-            Don't leave home without checking our beginner's guide to British snorkelling! Packed with essential tips it's your go-to resource for an unforgettable adventure.
-          </p>
-          <div class="cta-link-group">
-            <a class="anchor-pill cta-link-btn" href="/blog/beginners-guide-to-snorkelling-in-britain">Read the beginner guide</a>
-          </div>
-        </aside>
-        
+
         <p>
           Use the category filters to narrow sites and organisations, then open pins to get practical details and follow-up links.
         </p>
       </div>
-    }
-
-    } @else {
-      <app-loader loadingState="loading"></app-loader>
     }
 
     <div class="map-container" [class.map-container-pending]="loadingState !== 'success'">

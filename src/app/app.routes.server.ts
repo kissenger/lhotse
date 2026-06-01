@@ -14,15 +14,35 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
+    path: 'affiliate-disclosure',
+    renderMode: RenderMode.Server
+  },
+  {
     path: 'ai-transparency',
     renderMode: RenderMode.Server
   },
   {
-    path: 'blog',
+    path: 'articles',
     renderMode: RenderMode.Server
   },
   {
-    path: 'blog/:slug',
+    path: 'articles/section/:sectionSlug',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'articles/:slug',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'snorkelling-britain',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'shop',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'faqs',
     renderMode: RenderMode.Server
   },
   {

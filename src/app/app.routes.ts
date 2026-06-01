@@ -11,10 +11,18 @@ const loadMapPage = () => import('@pages/home/map/map-page.component').then((m) 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
-  { path: 'blog', loadComponent: () =>
-    import('@pages/home/blog/blog.component').then((m) => m.BlogComponent)},
-  { path: 'blog/:slug', loadComponent: () =>
+  { path: 'articles', loadComponent: () =>
+    import('@pages/home/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+  { path: 'articles/section/:sectionSlug', loadComponent: () =>
+    import('@pages/home/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+  { path: 'articles/:slug', loadComponent: () =>
     import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
+  { path: 'snorkelling-britain', loadComponent: () =>
+    import('@pages/home/book/book-page.component').then((m) => m.BookPageComponent)},
+  { path: 'shop', loadComponent: () =>
+    import('@pages/home/shop/shop-page.component').then((m) => m.ShopPageComponent)},
+  { path: 'faqs', loadComponent: () =>
+    import('@pages/home/faq/faq-page.component').then((m) => m.FaqPageComponent)},
   { path: 'map', loadComponent: loadMapPage },
   { path: 'map/:country', loadComponent: loadMapPage },
   { path: 'map/:country/:county', loadComponent: loadMapPage },
@@ -39,6 +47,8 @@ export const routes: Routes = [
     import('@pages/admin/auth/login/login.component').then((m) => m.LoginComponent), canActivate: [AdminSubdomainGuard], data: { noPreload: true }},
   { path: 'privacy-policy', loadComponent: () =>
     import('@pages/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent)},
+  { path: 'affiliate-disclosure', loadComponent: () =>
+    import('@pages/affiliate-disclosure/affiliate-disclosure.component').then((m) => m.AffiliateDisclosureComponent)},
   { path: 'ai-transparency', loadComponent: () =>
     import('@pages/ai-transparency/ai-transparency.component').then((m) => m.AiTransparencyComponent)},
   { path: '**', component: PageNotFoundComponent}

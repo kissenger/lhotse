@@ -2,7 +2,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import ShopModel from '@schema/shop';
 import nodemailer from 'nodemailer';
-import { ShopError } from 'src/server';
+import { ShopError } from './server';
 import { getConfirmationEmailBody } from 'src/server-shop-conf-email';
 import { getPostedEmailBody } from 'src/server-shop-posted-email';
 import { verifyToken } from './server-auth'
@@ -65,6 +65,10 @@ function extractErrorMessage(error: any, fallback: string): string {
   }
 
   return fallback;
+}
+
+function appendTimestampedNote(existingNotes: string, note: string): string {
+  return `${existingNotes ? `${existingNotes}\n` : ''}${(new Date()).toISOString()}: ${note}`;
 }
 
 /*****************************************************************
@@ -309,17 +313,13 @@ shop.post('/api/shop/add-note', verifyToken, async (req, res) => {
   res.status(201).json({respose: 'success'});
 });
 
-function addNote(orderNumber: string, newNote: string) {
-  return new Promise( async (res,_rej) => {
-    let orderSummary = await getOrderSummary(orderNumber);
-    let response = await logShopEvent(orderNumber, {
-      '$set': {
-        'orderSummary.notes': `${orderSummary.notes ? orderSummary.notes + '\n' : ''}${(new Date).toISOString()}: ${newNote}`
-      }
-    });
-    res(response);
-  })
-
+async function addNote(orderNumber: string, newNote: string) {
+  const orderSummary = await getOrderSummary(orderNumber);
+  return logShopEvent(orderNumber, {
+    '$set': {
+      'orderSummary.notes': appendTimestampedNote(orderSummary?.notes ?? '', newNote)
+    }
+  });
 }
 
 
@@ -340,36 +340,39 @@ const VALID_ORDER_STATUSES = new Set([
   'returned', 'refunded', 'postedEmailSent', 'orderCancelled', 'invoiced', 'invoicePaid'
 ]);
 
+function sendInvalidOrderStatus(res: express.Response): void {
+  res.status(400).json({ error: 'ShopError', message: 'Invalid order status field' });
+}
+
+async function applyOrderStatusMutation(orderNumber: string, status: string, mode: 'set' | 'unset'): Promise<void> {
+  const field = `orderSummary.timeStamps.${status}`;
+  const update = mode === 'set'
+    ? { '$set': { [field]: Date.now() } }
+    : { '$unset': { [field]: '' } };
+
+  await logShopEvent(orderNumber, update);
+}
+
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
 shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
   const status = req.body.set;
   if (!VALID_ORDER_STATUSES.has(status)) {
-    res.status(400).json({ error: 'ShopError', message: 'Invalid order status field' });
+    sendInvalidOrderStatus(res);
     return;
   }
-  let setField = `orderSummary.timeStamps.${status}`;
-  await logShopEvent(req.body.orderNumber, {
-    '$set': {
-      [setField]: Date.now()
-    }
-  });
+  await applyOrderStatusMutation(req.body.orderNumber, status, 'set');
   res.status(201).json({respose: 'success'});
 })
 
 shop.post('/api/shop/unset-order-status', verifyToken, async (req, res) => {
   const status = req.body.unset;
   if (!VALID_ORDER_STATUSES.has(status)) {
-    res.status(400).json({ error: 'ShopError', message: 'Invalid order status field' });
+    sendInvalidOrderStatus(res);
     return;
   }
-  let unsetField = `orderSummary.timeStamps.${status}`;
-  await logShopEvent(req.body.orderNumber, {
-    '$unset': {
-      [unsetField]: ""
-    }
-  });
+  await applyOrderStatusMutation(req.body.orderNumber, status, 'unset');
   res.status(201).json({respose: 'success'});
 });
 
@@ -387,12 +390,12 @@ shop.post('/api/shop/upsert-manual-order', verifyToken, async (req, res) => {
       orderCompleted: Date.now()
     };
     order.orderNumber = newOrderNumber();
-    order.notes = `${(new Date).toISOString()}: ${order.notes}`;
+    order.notes = appendTimestampedNote('', order.notes);
   } else {
     // not a new order
     let os = await getOrderSummary(order.orderNumber);
     if (order.notes !== '') {
-      order.notes = `${os.notes !== '' ? os.notes + '\n' : ''}${(new Date).toISOString()}: ${order.notes}`;
+      order.notes = appendTimestampedNote(os?.notes ?? '', order.notes);
     } else {
       order.notes = os.notes;
     }

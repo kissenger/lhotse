@@ -31,6 +31,8 @@ import { FacebookSvgComponent } from '@shared/svg/facebook/facebook.component';
 import { CloseIconSvgComponent } from '@shared/svg/closeIcon/closeIcon.component';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
+import { appendStylesheetLinkOnce } from '@shared/utils/dom-inject';
+import { hasCoordinatePair, isNonEmptyString } from '@shared/utils/value-guards';
 
 @Component({
   standalone: true,
@@ -131,27 +133,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get filteredSnorkelCount(): number {
-    if (!this.geoJson) return 0;
-    const enabledCats = new Set(this.snorkellingCategories.filter(c => c.enabled).map(c => c.name));
-    return this._getFilterBaseFeatures().filter((f: any) => {
-      if (f.properties.featureType !== 'Snorkelling Site') return false;
-      if (!this.snorkellingSitesEnabled) return false;
-      const cats: string[] = f.properties.categories ?? [];
-      if (cats.length === 0) return true;
-      return cats.some((c: string) => enabledCats.has(c));
-    }).length;
+    return this._getFilteredCount(true, this.snorkellingSitesEnabled, this.snorkellingCategories);
   }
 
   get filteredOrgCount(): number {
-    if (!this.geoJson) return 0;
-    const enabledCats = new Set(this.otherCategories.filter(c => c.enabled).map(c => c.name));
-    return this._getFilterBaseFeatures().filter((f: any) => {
-      if (f.properties.featureType === 'Snorkelling Site') return false;
-      if (!this.otherSitesEnabled) return false;
-      const cats: string[] = f.properties.categories ?? [];
-      if (cats.length === 0) return true;
-      return cats.some((c: string) => enabledCats.has(c));
-    }).length;
+    return this._getFilteredCount(false, this.otherSitesEnabled, this.otherCategories);
   }
 
   get countyFeaturedLinks(): Array<{ name: string; path: string; locality?: string }> {
@@ -163,10 +149,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.geoJson.features
       .filter((f: any) => {
         if (f.properties.featureType !== 'Snorkelling Site') return false;
-        const loc = f.properties.location;
-        const featureCountySlugs = [loc?.county, loc?.district, loc?.adminLevel3]
-          .filter((value: unknown): value is string => typeof value === 'string' && value.trim() !== '')
-          .map((value: string) => slugifyMapSegment(value));
+        const featureCountySlugs = this._getFeatureCountySlugs(f.properties.location);
         return featureCountySlugs.some((value: string) => matches.has(value));
       })
       .slice(0, 10)
@@ -186,10 +169,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.geoJson.features
       .filter((f: any) => {
         if (f.properties.featureType !== 'Snorkelling Site') return false;
-        const loc = f.properties.location;
-        const featureCountySlugs = [loc?.county, loc?.district, loc?.adminLevel3]
-          .filter((value: unknown): value is string => typeof value === 'string' && value.trim() !== '')
-          .map((value: string) => slugifyMapSegment(value));
+        const featureCountySlugs = this._getFeatureCountySlugs(f.properties.location);
         return featureCountySlugs.some((value: string) => matches.has(value));
       })
       .sort((a: any, b: any) => (a.properties.name as string).localeCompare(b.properties.name as string))
@@ -271,68 +251,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get nearestPublishedSiteLinks(): Array<{ name: string; displayName: string; path: string; isSnorkellingSite: boolean; distanceLabel: string }> {
     if (!this.geoJson || this.routeLevel !== 'site') return [];
-    const selected = this._getSiteContextFeature();
-    if (!selected) return [];
-
-    const [originLng, originLat] = selected.geometry.coordinates as [number, number];
-    const isNarrow = this._isBrowser && (this._document.defaultView?.innerWidth ?? 1024) < 768;
-    const maxNearby = isNarrow ? 5 : 8;
-
-    return this.geoJson.features
-      .filter((f: any) => f !== selected)
-      .filter((f: any) => !f.showOnMap || f.showOnMap === 'Production')
-      .filter((f: any) => Array.isArray(f?.geometry?.coordinates) && f.geometry.coordinates.length >= 2)
-      .map((f: any) => {
-        const [lng, lat] = f.geometry.coordinates as [number, number];
-        return {
-          name: f.properties.name as string,
-          path: buildMapPathForFeature(f.properties),
-          isSnorkellingSite: f.properties.featureType === 'Snorkelling Site',
-          distanceKm: this._haversineKm(originLat, originLng, lat, lng),
-        };
-      })
-      .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
-      .slice(0, maxNearby)
-      .map((item: { name: string; path: string; isSnorkellingSite: boolean; distanceKm: number }) => ({
-        name: item.name,
-        displayName: this._abbreviateNearbySiteName(item.name),
-        path: item.path,
-        isSnorkellingSite: item.isSnorkellingSite,
-        distanceLabel: `${item.distanceKm.toFixed(1)} km`,
-      }));
+    return this._getNearestPublishedLinks(this._getSiteContextFeature());
   }
 
   get nearestPublishedOrganisationLinks(): Array<{ name: string; displayName: string; path: string; isSnorkellingSite: boolean; distanceLabel: string }> {
     if (!this.geoJson || this.routeLevel !== 'organisation') return [];
-    const selected = this._getOrganisationContextFeature();
-    if (!selected) return [];
-
-    const [originLng, originLat] = selected.geometry.coordinates as [number, number];
-    const isNarrow = this._isBrowser && (this._document.defaultView?.innerWidth ?? 1024) < 768;
-    const maxNearby = isNarrow ? 5 : 8;
-
-    return this.geoJson.features
-      .filter((f: any) => f !== selected)
-      .filter((f: any) => !f.showOnMap || f.showOnMap === 'Production')
-      .filter((f: any) => Array.isArray(f?.geometry?.coordinates) && f.geometry.coordinates.length >= 2)
-      .map((f: any) => {
-        const [lng, lat] = f.geometry.coordinates as [number, number];
-        return {
-          name: f.properties.name as string,
-          path: buildMapPathForFeature(f.properties),
-          isSnorkellingSite: f.properties.featureType === 'Snorkelling Site',
-          distanceKm: this._haversineKm(originLat, originLng, lat, lng),
-        };
-      })
-      .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
-      .slice(0, maxNearby)
-      .map((item: { name: string; path: string; isSnorkellingSite: boolean; distanceKm: number }) => ({
-        name: item.name,
-        displayName: this._abbreviateNearbySiteName(item.name),
-        path: item.path,
-        isSnorkellingSite: item.isSnorkellingSite,
-        distanceLabel: `${item.distanceKm.toFixed(1)} km`,
-      }));
+    return this._getNearestPublishedLinks(this._getOrganisationContextFeature());
   }
 
   constructor(
@@ -575,15 +499,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _injectMapboxCss() {
-    const id = 'mapbox-gl-css';
-    if (this._document.getElementById(id)) return;
-    const link = this._document.createElement('link');
-    link.id = id;
-    link.rel = 'stylesheet';
-    link.href = MAPBOX_CSS_URL;
-    link.crossOrigin = 'anonymous';
-    link.referrerPolicy = 'strict-origin-when-cross-origin';
-    this._document.head.appendChild(link);
+    appendStylesheetLinkOnce(this._document, 'mapbox-gl-css', MAPBOX_CSS_URL);
   }
 
   async onRetry() {
@@ -752,6 +668,53 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return this._getAllVisibleFeatures(this._includeProviders);
   }
 
+  private _getFilteredCount(
+    snorkellingType: boolean,
+    groupEnabled: boolean,
+    categories: Array<{ name: string; enabled: boolean }>
+  ): number {
+    if (!this.geoJson || !groupEnabled) return 0;
+    const enabledCats = new Set(categories.filter((c) => c.enabled).map((c) => c.name));
+    return this._getFilterBaseFeatures().filter((f: any) => {
+      const isSnorkelling = f.properties.featureType === 'Snorkelling Site';
+      if (snorkellingType !== isSnorkelling) return false;
+      const featureCategories: string[] = f.properties.categories ?? [];
+      if (!featureCategories.length) return true;
+      return featureCategories.some((c: string) => enabledCats.has(c));
+    }).length;
+  }
+
+  private _getNearestPublishedLinks(selectedFeature: any | null): Array<{ name: string; displayName: string; path: string; isSnorkellingSite: boolean; distanceLabel: string }> {
+    if (!selectedFeature) return [];
+
+    const [originLng, originLat] = selectedFeature.geometry.coordinates as [number, number];
+    const isNarrow = this._isBrowser && (this._document.defaultView?.innerWidth ?? 1024) < 768;
+    const maxNearby = isNarrow ? 5 : 8;
+
+    return this.geoJson.features
+      .filter((f: any) => f !== selectedFeature)
+      .filter((f: any) => !f.showOnMap || f.showOnMap === 'Production')
+      .filter((f: any) => hasCoordinatePair(f?.geometry?.coordinates))
+      .map((f: any) => {
+        const [lng, lat] = f.geometry.coordinates as [number, number];
+        return {
+          name: f.properties.name as string,
+          path: buildMapPathForFeature(f.properties),
+          isSnorkellingSite: f.properties.featureType === 'Snorkelling Site',
+          distanceKm: this._haversineKm(originLat, originLng, lat, lng),
+        };
+      })
+      .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
+      .slice(0, maxNearby)
+      .map((item: { name: string; path: string; isSnorkellingSite: boolean; distanceKm: number }) => ({
+        name: item.name,
+        displayName: this._abbreviateNearbySiteName(item.name),
+        path: item.path,
+        isSnorkellingSite: item.isSnorkellingSite,
+        distanceLabel: `${item.distanceKm.toFixed(1)} km`,
+      }));
+  }
+
   private _getAllVisibleFeatures(includeProviders: boolean): any[] {
     return this.geoJson.features.filter((f: any) => includeProviders || f.properties.featureType === 'Snorkelling Site');
   }
@@ -800,10 +763,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const selected = this.selectedFeature;
     if (selected) return selected;
 
-    const { site } = this._resolveParams();
+    const { site, country, county } = this._resolveParams();
     if (!site) return null;
 
-    const { country, county } = this._resolveParams();
     const idx = this._findFeatureIndexByRoute(site, country, county);
     return idx >= 0 ? this.geoJson.features[idx] ?? null : null;
   }
@@ -814,10 +776,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const selected = this.selectedFeature;
     if (selected?.properties.featureType !== 'Snorkelling Site') return selected;
 
-    const { site } = this._resolveParams();
+    const { site, country, county } = this._resolveParams();
     if (!site) return null;
 
-    const { country, county } = this._resolveParams();
     const idx = this._findFeatureIndexByRoute(site, country, county);
     const feature = idx >= 0 ? this.geoJson.features[idx] ?? null : null;
     return feature?.properties.featureType !== 'Snorkelling Site' ? feature : null;
@@ -849,15 +810,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const matches = getCountyMatchSlugs(county);
     const features = this.geoJson.features.filter(
       (f: any) => {
-        const loc = f.properties.location;
-        const featureCountySlugs = [loc?.county, loc?.district, loc?.adminLevel3]
-          .filter((value: unknown): value is string => typeof value === 'string' && value.trim() !== '')
-          .map((value: string) => slugifyMapSegment(value));
+        const featureCountySlugs = this._getFeatureCountySlugs(f.properties.location);
         const match = featureCountySlugs.some((value: string) => matches.has(value));
         return match && (includeProviders || f.properties.featureType === 'Snorkelling Site');
       }
     );
     return features;
+  }
+
+  private _getFeatureCountySlugs(location: any): string[] {
+    return [location?.county, location?.district, location?.adminLevel3]
+      .filter((value: unknown): value is string => isNonEmptyString(value))
+      .map((value: string) => slugifyMapSegment(value));
   }
 
   closePanel() {

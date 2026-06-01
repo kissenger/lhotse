@@ -9,18 +9,18 @@
     in Britain and protecting our coastal marine environments.
   </p>
 
-  <div class="partner-list">
+  <div class="partner-list media-list">
     @for(partner of partners; track partner.name) {
-      <a class="partner-row suppress-external-link" [href]="partner.href" target="_blank" rel="noopener noreferrer">
-        <div class="partner-logo">
+      <a class="partner-row media-row suppress-external-link" [href]="partner.href" target="_blank" rel="noopener noreferrer">
+        <div class="partner-logo media-row-visual">
           <img
             [src]="'assets/' + partner.url"
             [alt]="partner.alt"
           />
         </div>
-        <div class="partner-info">
-          <h3>{{ partner.name }}</h3>
-          <p>{{ partner.description }}</p>
+        <div class="partner-info media-row-content">
+          <h3 class="media-row-title">{{ partner.name }}</h3>
+          <p class="media-row-description">{{ partner.description }}</p>
         </div>
       </a>
     }

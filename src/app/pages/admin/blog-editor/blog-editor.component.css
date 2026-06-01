@@ -33,15 +33,8 @@
     font-size: 0.9rem;
     padding: 0.3em 0.75em;
     border: 1px solid var(--sn-colour, #1D3D59);
-    border-radius: 4px;
     text-decoration: none;
-    color: var(--sn-colour, #1D3D59);
     line-height: 1;
-}
-
-.preview-btn:hover {
-    background-color: var(--sn-colour, #1D3D59);
-    color: white;
 }
 
 .btn-help {
@@ -52,6 +45,31 @@
 
 .btn-help:hover {
     background-color: #e4ebf0;
+}
+
+.review-fieldset {
+    border: 1px solid #cfd9e2;
+    border-radius: 6px;
+    margin: 0.75rem 0 1rem;
+    padding: 0.75rem;
+    background: #f8fbff;
+}
+
+.review-fieldset legend {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--sn-colour, #1D3D59);
+    padding: 0 0.35rem;
+}
+
+.review-rating-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.review-rating-row input {
+    width: 90px;
 }
 
 .slug-value {
@@ -275,14 +293,7 @@ textarea {
 }
 
 .btn-add-cta {
-    border-color: var(--sn-colour, #1D3D59);
     background-color: #edf4f9;
-    color: var(--sn-colour, #1D3D59);
-}
-
-.btn-add-cta:hover {
-    background-color: var(--sn-colour, #1D3D59);
-    color: white;
 }
 
 /* === CTA section card === */
@@ -333,14 +344,50 @@ textarea {
     padding: 0.3em 0.8em;
     border: 1px dashed var(--sn-colour, #1D3D59);
     background: white;
-    color: var(--sn-colour, #1D3D59);
-    border-radius: 4px;
     cursor: pointer;
 }
 
+.section-add-row {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+.section-add-row input {
+    flex: 1;
+}
+
+.btn-add-inline {
+    padding: 0.35em 0.8em;
+    background: #edf4f9;
+    white-space: nowrap;
+}
+
+.preview-btn,
+.btn-add-cta,
+.btn-add-inline,
+.btn-add-cta-link {
+    border-radius: 4px;
+    color: var(--sn-colour, #1D3D59);
+}
+
+.preview-btn,
+.btn-add-cta,
+.btn-add-inline {
+    border: 1px solid var(--sn-colour, #1D3D59);
+}
+
+.preview-btn:hover,
+.btn-add-cta:hover,
+.btn-add-inline:hover,
 .btn-add-cta-link:hover {
     background: var(--sn-colour, #1D3D59);
     color: white;
+}
+
+.field-help--error {
+    color: #c0392b;
+    font-weight: 600;
 }
 
 button:hover {

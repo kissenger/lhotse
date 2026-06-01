@@ -63,6 +63,18 @@ describe('HtmlerPipe', () => {
     });
   });
 
+  describe('insertItalics', () => {
+    it('converts single-asterisk spans to <em>', () => {
+      const result = pipe.insertItalics('Use *neoprene gloves* in cold water.');
+      expect(result).toBe('Use <em>neoprene gloves</em> in cold water.');
+    });
+
+    it('does not convert double-asterisk bold markers', () => {
+      const result = pipe.insertItalics('A **strong** statement');
+      expect(result).toBe('A **strong** statement');
+    });
+  });
+
   describe('insertUnorderedList', () => {
     it('converts list syntax to <ul><li> tags', () => {
       const result = pipe.insertUnorderedList('[list:item one;item two;item three]');
@@ -117,6 +129,12 @@ describe('HtmlerPipe', () => {
       expect(result).toContain('<ul>');
       expect(result).toContain('<li>alpha</li>');
       expect(result).toContain('<p>End line</p>');
+    });
+
+    it('supports bold and italics together', () => {
+      const result = pipe.transform('**Top pick** and *highly recommended*');
+      expect(result).toContain('<strong>Top pick</strong>');
+      expect(result).toContain('<em>highly recommended</em>');
     });
   });
 });

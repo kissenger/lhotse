@@ -5,15 +5,17 @@
     <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
   </div>
 } @else if (loadingState === 'loading') {
-  <div class="spinner-container">
-    <div class="spinner"></div>
+  <div class="dynamic-container">
+    <div class="deferred-loading-block deferred-loading-block--page article-loading-block" aria-live="polite" aria-busy="true" aria-label="Loading article">
+      <div class="deferred-loading-spinner"></div>
+    </div>
   </div>
 } @else {
 @defer (when isReadyToLoad) {
 
   @if (!contentVisible) {
-    <div class="spinner-container">
-      <div class="spinner"></div>
+    <div class="deferred-loading-block deferred-loading-block--page" aria-live="polite" aria-busy="true" aria-label="Loading article media">
+      <div class="deferred-loading-spinner"></div>
     </div>
   }
 
@@ -26,7 +28,11 @@
     }
 
     <div class="article-image-container article-hero-image-container">
-      <img [ngSrc]="post.imgFname" [alt]="post.imgAlt" fill sizes="100vw" priority (load)="onHeroImageLoaded()" (error)="onHeroImageLoaded()"/>
+      @if (usePlainSrcImages) {
+        <img [src]="heroImageSrc" [alt]="post.imgAlt" loading="eager" decoding="async" (load)="onHeroImageLoaded()" (error)="onHeroImageLoaded()"/>
+      } @else {
+        <img [ngSrc]="heroImageSrc" [alt]="post.imgAlt" fill sizes="100vw" priority (load)="onHeroImageLoaded()" (error)="onHeroImageLoaded()"/>
+      }
       <div class="article-hero-overlay">
         <header class="dynamic-container article-header">
           <h1>{{post.title}}</h1>
@@ -59,27 +65,118 @@
 
       @if (!isPreview) {
         <nav class="article-nav-compact" aria-label="Article navigation">
-          <a [routerLink]="'/blog/' + lastSlug" class="nav-compact-prev suppress-external-link"><span class="nav-compact-dir">← Previous</span><span class="nav-compact-title">{{lastTitle}}</span></a>
-          <a [routerLink]="'/blog/' + nextSlug" class="nav-compact-next suppress-external-link"><span class="nav-compact-dir">Next →</span><span class="nav-compact-title">{{nextTitle}}</span></a>
+          <a [routerLink]="'/articles/' + lastSlug" class="nav-compact-prev suppress-external-link"><span class="nav-compact-dir">← Previous</span><span class="nav-compact-title">{{lastTitle}}</span></a>
+          <a [routerLink]="'/articles/' + nextSlug" class="nav-compact-next suppress-external-link"><span class="nav-compact-dir">Next →</span><span class="nav-compact-title">{{nextTitle}}</span></a>
         </nav>
       }
 
       <div class="intro" [innerHTML]="post.intro | sanitizer"></div>
 
+      @if (isReviewPost) {
+        <section class="review-summary-box" [attr.aria-label]="reviewLabel + ' review summary'">
+          <header class="review-summary-header">
+            <p class="review-kicker">{{reviewLabel}} Review</p>
+            <h2>{{post.review.productName || post.title}}</h2>
+          </header>
+
+          <div class="review-rating-row" aria-label="Rating {{post.review.ratingValue}} out of {{post.review.ratingScale}}">
+            <span class="review-score">{{post.review.ratingValue | number : '1.1-1'}} / {{post.review.ratingScale}}</span>
+            <span class="review-stars" aria-hidden="true">
+              @for (_ of reviewStarsFilledArray; track $index) {
+                <span class="star star--filled">★</span>
+              }
+              @for (_ of reviewStarsEmptyArray; track $index) {
+                <span class="star">☆</span>
+              }
+            </span>
+          </div>
+
+          @if (post.review.author || post.review.publisher || post.review.isbn || post.review.brand) {
+            <p class="review-meta-inline" aria-label="Review details">
+              @if (post.review.author) {
+                <span><strong>Author:</strong> {{post.review.author}}</span>
+              }
+              @if (post.review.publisher) {
+                <span><strong>Publisher:</strong> {{post.review.publisher}}</span>
+              }
+              @if (post.review.isbn) {
+                <span><strong>ISBN:</strong> {{post.review.isbn}}</span>
+              }
+              @if (post.review.brand) {
+                <span><strong>Brand:</strong> {{post.review.brand}}</span>
+              }
+            </p>
+          }
+
+          @if (reviewSummaryHtml) {
+            <div class="review-summary-copy" [innerHTML]="reviewSummaryHtml | sanitizer"></div>
+          }
+
+          <div class="review-pros-cons-grid">
+            @if (post.review.pros.length > 0) {
+              <section class="review-pros-box">
+                <h3>Pros</h3>
+                <ul>
+                  @for (pro of post.review.pros; track pro) {
+                    <li><span class="review-list-icon review-list-icon--good">✓</span><span>{{pro}}</span></li>
+                  }
+                </ul>
+              </section>
+            }
+
+            @if (post.review.cons.length > 0) {
+              <section class="review-cons-box">
+                <h3>Cons</h3>
+                <ul>
+                  @for (con of post.review.cons; track con) {
+                    <li><span class="review-list-icon review-list-icon--bad">✕</span><span>{{con}}</span></li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
+
+          @if (affiliateDisclosureHtml) {
+            <div class="affiliate-disclosure" [innerHTML]="affiliateDisclosureHtml | sanitizer"></div>
+          }
+
+          @if (post.review.affiliateLinks && post.review.affiliateLinks.length > 0) {
+            <div class="affiliate-links-row">
+              @for (link of post.review.affiliateLinks; track link.url) {
+                <a class="affiliate-link-btn" [href]="link.url" target="_blank" rel="nofollow sponsored noopener noreferrer">{{link.label}}</a>
+              }
+            </div>
+          }
+        </section>
+
+        @if (reviewImageSrc) {
+          <figure class="review-inline-image" [class.review-inline-image--book]="isBookReview">
+            @if (usePlainSrcImages) {
+              <img [src]="reviewImageSrc" [alt]="reviewImageAltText" loading="lazy" decoding="async" />
+            } @else {
+              <img [ngSrc]="reviewImageSrc" [alt]="reviewImageAltText" width="1200" height="900" loading="lazy" decoding="async" />
+            }
+          </figure>
+          <p class="image-credit">{{reviewImageAltText}}{{reviewImageAltText ? ' · ' : ''}}© {{reviewImageCreditText || 'Emma and Gordon Taylor'}}</p>
+        }
+      }
+
       @defer (on idle; prefetch on viewport) {
         @if (post.sections.length > 0) {
-          <section class="anchor contents-section" id="contents">
-            <h2>Contents</h2>
-            <ul class="contents-list">
-              @for(section of post.sections; track section) {
-                @if (section.sectionType !== 'cta') {
-                  <li>
-                    <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
-                  </li>
+          @if (showContents) {
+            <section class="anchor contents-section" id="contents">
+              <h2>Contents</h2>
+              <ul class="contents-list">
+                @for(section of post.sections; track section) {
+                  @if (section.sectionType !== 'cta') {
+                    <li>
+                      <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
+                    </li>
+                  }
                 }
-              }
-            </ul>
-          </section>
+              </ul>
+            </section>
+          }
 
           @for (section of post.sections; track section) {
             @if (section.sectionType === 'cta') {
@@ -104,21 +201,33 @@
                   </div>
                 }
               </aside>
+              @if (showContents) {
+                <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
+              }
             } @else {
               <a class="anchor" id="{{section.title | kebaber}}"></a>
               <h2>{{section.title}}</h2>
               <div [innerHTML]="section.content | sanitizer"></div>
               @if (!!section.imgFname) {
                 <div class="article-image-container section-image-container">
-                  <img
-                    [ngSrc]="section.imgFname"
-                    [alt]="section.imgAlt"
-                    sizes="(max-width: 820px) 100vw, 760px"
-                    fill
-                    loading="lazy"
-                    decoding="async"
-                    fetchpriority="low"
-                  />
+                  @if (usePlainSrcImages) {
+                    <img
+                      [src]="sectionImageSrc(section.imgFname)"
+                      [alt]="section.imgAlt"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  } @else {
+                    <img
+                      [ngSrc]="sectionImageSrc(section.imgFname)"
+                      [alt]="section.imgAlt"
+                      sizes="(max-width: 820px) 100vw, 760px"
+                      fill
+                      loading="lazy"
+                      decoding="async"
+                      fetchpriority="low"
+                    />
+                  }
                 </div>
                 <p class="image-credit">{{section.imgAlt}} · © {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
               } @else if (!!section.videoUrl) {
@@ -135,7 +244,9 @@
                 </div>
                 <p class="image-credit">{{section.imgAlt}}{{section.imgAlt ? ' · ' : ''}}© {{section.imgCredit||'Emma and Gordon Taylor'}}</p>
               }
-              <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
+              @if (showContents) {
+                <a class="back-to-contents" [routerLink]="'.'" [fragment]="'contents'">↑ Back to contents</a>
+              }
             }
           }
         }
@@ -155,12 +266,14 @@
 
         @if (!isPreview) {
           <nav class="article-nav-footer" aria-label="Article navigation">
-            <a [routerLink]="'/blog/' + lastSlug" class="nav-footer-prev suppress-external-link"><span class="nav-footer-dir">← Previous</span><span class="nav-footer-title">{{lastTitle}}</span></a>
-            <a [routerLink]="'/blog/' + nextSlug" class="nav-footer-next suppress-external-link"><span class="nav-footer-dir">Next →</span><span class="nav-footer-title">{{nextTitle}}</span></a>
+            <a [routerLink]="'/articles/' + lastSlug" class="nav-footer-prev suppress-external-link"><span class="nav-footer-dir">← Previous</span><span class="nav-footer-title">{{lastTitle}}</span></a>
+            <a [routerLink]="'/articles/' + nextSlug" class="nav-footer-next suppress-external-link"><span class="nav-footer-dir">Next →</span><span class="nav-footer-title">{{nextTitle}}</span></a>
           </nav>
         }
       } @placeholder {
-        <div class="deferred-content-placeholder">Loading the rest of this article...</div>
+        <div class="deferred-loading-block deferred-loading-block--inline" aria-live="polite" aria-busy="true" aria-label="Loading remaining article content">
+          <div class="deferred-loading-spinner"></div>
+        </div>
       }
 
     </div>

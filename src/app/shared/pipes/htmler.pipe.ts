@@ -13,6 +13,7 @@ import { Pipe, PipeTransform } from '@angular/core';
         - Link string in the form [link:text,link], eg [link:BSAC,https:www.bsac.com]
         - List in the form [list:item1, including commas;item2;item3]
   - Bold in the form **bold** (also tolerates **bold*)
+  - Italics in the form *italic* (single-asterisk pairs)
 */
 
 export class HtmlerPipe implements PipeTransform {
@@ -30,6 +31,7 @@ export class HtmlerPipe implements PipeTransform {
 
     transform(rawString: string): string {
         let outputString = this.insertBold(rawString);
+      outputString = this.insertItalics(outputString);
         outputString = this.insertLinks(outputString);
         outputString = this.insertBlockQuotes(outputString);
         outputString = this.insertUnorderedList(outputString);
@@ -42,6 +44,10 @@ export class HtmlerPipe implements PipeTransform {
       return input
         .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*\*([^*\n]+?)\*(?!\*)/g, '<strong>$1</strong>');
+    }
+
+    insertItalics(input: string): string {
+      return input.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
     }
 
     insertLinks(input: string): string {

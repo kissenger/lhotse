@@ -111,8 +111,9 @@ export class HttpService {
     return await lastValueFrom(request);
   }
 
-  async upsertPost(post: BlogPost) {
-    const request = this._http.post<Array<BlogPost>>(`/api/blog/upsert-post/`, post);
+  async upsertPost(post: BlogPost, options?: { preserveUpdatedAt?: boolean }) {
+    const payload = options?.preserveUpdatedAt ? { ...post, preserveUpdatedAt: true } : post;
+    const request = this._http.post<Array<BlogPost>>(`/api/blog/upsert-post/`, payload);
     return await lastValueFrom(request);
   }
   

@@ -10,8 +10,6 @@ class MockToastService {
 
 const mockActivatedRoute = {};
 const mockRouter = { url: '/', events: { pipe: () => ({ subscribe: () => {} }), subscribe: () => ({ unsubscribe: () => {} }) }, parseUrl: () => ({ fragment: null }) } as any;
-const mockScrollspy = { intersectionEmitter: { subscribe: () => ({ unsubscribe() {} }) } };
-const mockScreen = { widthDescriptor: 'large' };
 
 describe('PagesComponent', () => {
   let fixture: ComponentFixture<PagesComponent>;
@@ -22,8 +20,6 @@ describe('PagesComponent', () => {
         { provide: ToastService, useClass: MockToastService },
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: Router, useValue: mockRouter },
-        { provide: 'ScrollspyService', useValue: mockScrollspy },
-        { provide: 'ScreenService', useValue: mockScreen },
         { provide: DOCUMENT, useValue: document }
       ]
     }).compileComponents();

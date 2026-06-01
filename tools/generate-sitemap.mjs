@@ -7,6 +7,22 @@ const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/prod/browser/sitemap.xml'
 const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/prod/browser/index.csr.html';
 const STATIC_URL_PATHS = [
   {
+    path: '/articles',
+    image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
+  },
+  {
+    path: '/snorkelling-britain',
+    image: `${SITE_URL}/assets/photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png`
+  },
+  {
+    path: '/shop',
+    image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
+  },
+  {
+    path: '/faqs',
+    image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
+  },
+  {
     path: '/map',
     image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`
   }
@@ -26,6 +42,15 @@ function xmlEscape(value) {
 function normalizeLastMod(value) {
   const date = value ? new Date(value) : new Date();
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+function normalizeSectionSlug(value) {
+  return (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function asAbsoluteAssetUrl(pathOrFileName) {
@@ -121,7 +146,8 @@ async function fetchSitemapEntries() {
   return fallbackPayload.map((item) => ({
     slug: item?.slug,
     updatedAt: item?.updatedAt,
-    imgFname: null
+    imgFname: null,
+    blogSection: item?.blogSection
   }));
 }
 
@@ -182,13 +208,22 @@ async function main() {
     ...sitemapEntries
       .filter((item) => item && typeof item.slug === 'string' && item.slug.trim() !== '')
       .map((item) => ({
-        loc: `${SITE_URL}/blog/${item.slug}`,
+        loc: `${SITE_URL}/articles/${item.slug}`,
         lastmod: normalizeLastMod(item.updatedAt),
         images: (() => {
           const imageUrl = asAbsoluteAssetUrl(item.imgFname);
           return imageUrl ? [imageUrl] : [];
         })()
       })),
+    ...Array.from(new Set(
+      sitemapEntries
+        .map((item) => normalizeSectionSlug(item?.blogSection))
+        .filter((slug) => slug)
+    )).map((sectionSlug) => ({
+      loc: `${SITE_URL}/articles/section/${encodeURIComponent(sectionSlug)}`,
+      lastmod: rootLastMod,
+      images: []
+    })),
     ...districts
       .filter((item) => item && typeof item.path === 'string' && item.path.trim() !== '')
       .map((item) => ({

@@ -51,8 +51,25 @@ a[href^="http"]::after {
 
 @media (max-width: 767px) {
   .footer-row2 {
-    flex-direction: column;
-    gap: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 0;
+    row-gap: 0.2rem;
+    width: min(36rem, calc(100% - 2rem));
+  }
+
+  .footer-row2 > span:not(.footer-sep) {
+    position: relative;
+    white-space: nowrap;
+    padding-inline: 0.45rem;
+  }
+
+  .footer-row2 > span:not(.footer-sep):not(:first-child)::before {
+    content: "\00B7";
+    position: absolute;
+    left: -0.08rem;
+    color: rgba(255, 255, 255, 0.75);
   }
 
   .footer-sep {

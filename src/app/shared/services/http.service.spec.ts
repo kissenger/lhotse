@@ -50,10 +50,11 @@ describe('HttpService', () => {
 
   it('upsertPost should call backend and return data', async () => {
     const mock: any = [{ title: 'd' }];
-    const p = service.upsertPost({ title: 'd' } as any);
+    const p = service.upsertPost({ title: 'd' } as any, { preserveUpdatedAt: true });
     const expectedUrl = `/api/blog/upsert-post/`;
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ title: 'd', preserveUpdatedAt: true });
     req.flush(mock);
     const res = await p;
     expect(res).toEqual(mock);

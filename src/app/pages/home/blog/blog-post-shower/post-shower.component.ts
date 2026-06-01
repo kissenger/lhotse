@@ -35,6 +35,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   hasLiked: boolean = false;
   isPreview: boolean = false;
   isAdminHost: boolean = false;
+  reviewSummaryHtml: string = '';
+  affiliateDisclosureHtml: string = '';
   private readonly _isBrowser: boolean;
   private _routeSubs: Subscription | undefined;
 
@@ -113,6 +115,109 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     return `https://www.youtube-nocookie.com/embed/${id}?controls=0&mute=1&autoplay=1&loop=1&playlist=${id}`;
   }
 
+  private _resolveImagePath(path: string): string {
+    const rawPath = (path || '').trim();
+    if (!rawPath) return '';
+    if (/^(https?:)?\/\//i.test(rawPath) || rawPath.startsWith('data:') || rawPath.startsWith('blob:')) {
+      return rawPath;
+    }
+
+    if (!this.isPreview) {
+      return rawPath;
+    }
+
+    const normalized = rawPath.replace(/^\/+/, '').replace(/^assets\//, '');
+    return `/assets/${normalized}`;
+  }
+
+  get heroImageSrc(): string {
+    return this._resolveImagePath(this.post.imgFname || '');
+  }
+
+  sectionImageSrc(path: string): string {
+    return this._resolveImagePath(path || '');
+  }
+
+  get reviewImageSrc(): string {
+    return this._resolveImagePath(this.post.review?.imageFname || '');
+  }
+
+  get reviewImageAltText(): string {
+    const review = this.post.review as any;
+    return (review?.imageAlt || review?.imgAlt || review?.productName || this.post.title || '').trim();
+  }
+
+  get reviewImageCreditText(): string {
+    const review = this.post.review as any;
+    return (review?.imageCredit || review?.imgCredit || '').trim();
+  }
+
+  get usePlainSrcImages(): boolean {
+    if (!this._isBrowser) {
+      return false;
+    }
+    const host = window.location.hostname.toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  }
+
+  get isReviewPost(): boolean {
+    return this.post.type === 'review';
+  }
+
+  get reviewLabel(): 'Book' | 'Product' {
+    return this.post.review?.reviewKind === 'book' ? 'Book' : 'Product';
+  }
+
+  get isBookReview(): boolean {
+    return this.post.review?.reviewKind === 'book';
+  }
+
+  get reviewStarsFilled(): number {
+    const scale = this.post.review?.ratingScale || 5;
+    const value = this.post.review?.ratingValue || 0;
+    if (scale <= 0) return 0;
+    return Math.max(0, Math.min(scale, Math.round(value)));
+  }
+
+  get reviewStarsEmpty(): number {
+    const scale = this.post.review?.ratingScale || 5;
+    return Math.max(0, scale - this.reviewStarsFilled);
+  }
+
+  get reviewStarsFilledArray(): number[] {
+    return Array.from({ length: this.reviewStarsFilled }, (_, i) => i);
+  }
+
+  get reviewStarsEmptyArray(): number[] {
+    return Array.from({ length: this.reviewStarsEmpty }, (_, i) => i);
+  }
+
+  get showContents(): boolean {
+    const contentSections = (this.post.sections || []).filter((section: any) => section.sectionType !== 'cta');
+    if (contentSections.length === 0) {
+      return false;
+    }
+    if (contentSections.length === 1 && !(contentSections[0]?.title || '').trim()) {
+      return false;
+    }
+    return true;
+  }
+
+  private _normaliseReviewModel(review: any) {
+    const defaults = new BlogPost().review;
+    const model = {
+      ...defaults,
+      ...(review || {}),
+      pros: Array.isArray(review?.pros) ? review.pros.filter((x: any) => !!x) : [],
+      cons: Array.isArray(review?.cons) ? review.cons.filter((x: any) => !!x) : [],
+      affiliateLinks: Array.isArray(review?.affiliateLinks) ? review.affiliateLinks.filter((x: any) => !!x?.label && !!x?.url) : []
+    };
+
+    model.ratingScale = Math.max(1, Number(model.ratingScale || 5));
+    model.ratingValue = Math.min(model.ratingScale, Math.max(0, Number(model.ratingValue || 0)));
+    return model;
+  }
+
   ngOnInit() {
     // Do not block SSR on API calls for blog body content; render quickly and hydrate on client.
     if (!this._isBrowser) {
@@ -144,6 +249,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           }
 
           this.post = result.article;
+          this.post.review = this._normaliseReviewModel(result.article.review);
+          this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
+          this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');
           this.post.intro = this._htmler.transform(result.article.intro ?? '');
           this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
           this.post.sections = (result.article.sections ?? []).map((s: any) => ({
@@ -162,7 +270,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.nextTitle = result.nextTitle ?? '';
           this.lastTitle = result.lastTitle ?? '';
           this.isReadyToLoad = true;
-          this.contentVisible = (this.isPreview && !this.post.imgFname);
+          this.contentVisible = (this.isPreview && !this.heroImageSrc);
           this.loadingState = 'success';
           this.likeCount = this.post.likes ?? 0;
           this.hasLiked = this.likeCount > 0 && this._hasLikedInStorage(this.post.slug);
@@ -198,6 +306,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         return;
       }
       this.post = result.article;
+      this.post.review = this._normaliseReviewModel(result.article.review);
+      this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
+      this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');
       this.post.intro = this._htmler.transform(result.article.intro ?? '');
       this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
       this.post.sections = (result.article.sections ?? []).map((s: any) => ({
@@ -207,7 +318,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         imgAlt: s.imgAlt ?? '',
         imgCredit: s.imgCredit ?? '',
         videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this._buildYouTubeEmbedUrl(s.videoUrl)) : '',
-        videoOrientation: s.videoOrientation ?? 'landscape'
+        videoOrientation: s.videoOrientation ?? 'landscape',
+        sectionType: s.sectionType,
+        ctaLinks: s.ctaLinks
       }));
       this.nextSlug = result.nextSlug ?? '';
       this.lastSlug = result.lastSlug ?? '';

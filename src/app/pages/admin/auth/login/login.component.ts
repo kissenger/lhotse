@@ -4,6 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@shared/services/toast.service';
+import { errorMessage } from '@shared/utils/error-message';
 
 @Component({
   standalone: true,
@@ -36,7 +37,7 @@ export class LoginComponent {
       const redirect = (rawRedirect?.startsWith('/') && !rawRedirect.startsWith('//')) ? rawRedirect : '/dashboard';
       this._router.navigateByUrl(redirect);
     } catch (error: any) {
-      this._toaster.show(<string>error?.error?.message || 'Login failed', 'error');
+      this._toaster.show(errorMessage(error, 'Login failed'), 'error');
     } finally {
       document.body.style.cursor = 'auto';
     }

@@ -53,11 +53,160 @@
 
                 <div class="field-row">
                     <label for="type">Type:</label>
-                    <select [(ngModel)]="selectedPost.type" name="type" id="type">
+                    <select [(ngModel)]="selectedPost.type" (ngModelChange)="onTypeChange()" name="type" id="type">
                         <option value="faq">faq</option>
                         <option value="article">article</option>
+                        <option value="review">review</option>
                     </select>
                 </div>
+
+                <div class="field-row align-start">
+                    <label for="blogSection">Blog section:</label>
+                    <div class="input-stack">
+                        <select id="blogSection" name="blogSection" [class.alert]="isBlogSectionMissing" [(ngModel)]="selectedPost.blogSection" (ngModelChange)="onBlogSectionChange($event)">
+                            <option value="">Select a section</option>
+                            @for (section of blogSectionOptions; track section) {
+                                <option [value]="section">{{section}}</option>
+                            }
+                        </select>
+                        <div class="section-add-row">
+                            <input type="text" id="newBlogSection" name="newBlogSection" placeholder="Add new section name"
+                                [(ngModel)]="newBlogSectionLabel">
+                            <button type="button" class="btn-add-inline" (click)="addBlogSection()">+ Add</button>
+                        </div>
+                        <small class="field-help">This controls where the post appears on /blog.</small>
+                        @if (isBlogSectionMissing) {
+                            <small class="field-help field-help--error">Blog section is required.</small>
+                        }
+                    </div>
+                </div>
+
+                @if (selectedPost.type === 'review') {
+                    <fieldset class="review-fieldset">
+                        <legend>Review Metadata</legend>
+
+                        <div class="field-row">
+                            <label for="reviewKind">Review kind:</label>
+                            <select id="reviewKind" name="reviewKind" [(ngModel)]="selectedPost.review.reviewKind">
+                                <option value="product">product</option>
+                                <option value="book">book</option>
+                            </select>
+                        </div>
+
+                        <div class="field-row">
+                            <label for="reviewProductName">{{reviewLabel}} name:</label>
+                            <input type="text" id="reviewProductName" name="reviewProductName" [(ngModel)]="selectedPost.review.productName">
+                        </div>
+
+                        @if (reviewLabel === 'Book') {
+                            <div class="field-row">
+                                <label for="reviewAuthor">Author:</label>
+                                <input type="text" id="reviewAuthor" name="reviewAuthor" [(ngModel)]="selectedPost.review.author">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="reviewPublisher">Publisher:</label>
+                                <input type="text" id="reviewPublisher" name="reviewPublisher" [(ngModel)]="selectedPost.review.publisher">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="reviewIsbn">ISBN:</label>
+                                <input type="text" id="reviewIsbn" name="reviewIsbn" [(ngModel)]="selectedPost.review.isbn">
+                            </div>
+                        } @else {
+                            <div class="field-row">
+                                <label for="reviewBrand">Brand:</label>
+                                <input type="text" id="reviewBrand" name="reviewBrand" [(ngModel)]="selectedPost.review.brand">
+                            </div>
+                        }
+
+                        <div class="field-row align-start">
+                            <label for="reviewSummary">Review summary:</label>
+                            <textarea id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="One-paragraph verdict for readers and search snippets"></textarea>
+                        </div>
+
+                        <div class="field-row">
+                            <label for="reviewImageFname">Review image:</label>
+                            <div class="image-field">
+                                <input type="text" id="reviewImageFname" name="reviewImageFname" [(ngModel)]="selectedPost.review.imageFname" placeholder="photos/…">
+                                @if (selectedPost.review.imageFname) {
+                                    <img class="img-thumb" [src]="imgixThumb(selectedPost.review.imageFname)" [alt]="selectedPost.review.imageAlt || ''"
+                                        (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
+                                }
+                            </div>
+                        </div>
+
+                        <div class="field-row">
+                            <label for="reviewImageAlt">Review image alt:</label>
+                            <input type="text" id="reviewImageAlt" name="reviewImageAlt" [(ngModel)]="selectedPost.review.imageAlt">
+                        </div>
+
+                        <div class="field-row">
+                            <label for="reviewImageCredit">Review image credit:</label>
+                            <input type="text" id="reviewImageCredit" name="reviewImageCredit" [(ngModel)]="selectedPost.review.imageCredit">
+                        </div>
+
+                        <div class="field-row">
+                            <label for="reviewRatingValue">Rating:</label>
+                            <div class="review-rating-row">
+                                <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
+                                <span>/</span>
+                                <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
+                            </div>
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label>Pros:</label>
+                            <div class="keywords-editor">
+                                <div class="chip-list">
+                                    @for (pro of selectedPost.review.pros; track $index) {
+                                        <span class="chip pill pill--interactive">{{pro}}<button type="button" class="chip-remove" (click)="removeReviewListItem('pros', $index)" aria-label="Remove">×</button></span>
+                                    }
+                                </div>
+                                <div class="keyword-inputs">
+                                    <input #proInput type="text" class="kw-input" placeholder="Type a pro and press Enter"
+                                        (keydown)="onReviewListKeydown($event, 'pros', proInput)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label>Cons:</label>
+                            <div class="keywords-editor">
+                                <div class="chip-list">
+                                    @for (con of selectedPost.review.cons; track $index) {
+                                        <span class="chip pill pill--interactive">{{con}}<button type="button" class="chip-remove" (click)="removeReviewListItem('cons', $index)" aria-label="Remove">×</button></span>
+                                    }
+                                </div>
+                                <div class="keyword-inputs">
+                                    <input #conInput type="text" class="kw-input" placeholder="Type a con and press Enter"
+                                        (keydown)="onReviewListKeydown($event, 'cons', conInput)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label for="reviewAffiliateDisclosure">Affiliate disclosure:</label>
+                            <textarea id="reviewAffiliateDisclosure" name="reviewAffiliateDisclosure" [(ngModel)]="selectedPost.review.affiliateDisclosure" placeholder="Optional disclosure text shown before affiliate links"></textarea>
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label>Affiliate links:</label>
+                            <div class="cta-links-editor">
+                                @for (link of selectedPost.review.affiliateLinks || []; track $index; let li = $index) {
+                                    <div class="cta-link-row">
+                                        <input type="text" placeholder="Label e.g. Check latest price"
+                                            [name]="'reviewAffiliateLabel_'+li" [(ngModel)]="link.label">
+                                        <input type="text" placeholder="URL"
+                                            [name]="'reviewAffiliateUrl_'+li" [(ngModel)]="link.url">
+                                        <button type="button" class="icon-btn" (click)="removeAffiliateLink(li)" title="Remove link">✕</button>
+                                    </div>
+                                }
+                                <button type="button" class="btn-add-cta-link" (click)="addAffiliateLink()">+ Add affiliate link</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                }
 
                 <div class="field-row">
                     <label for="title">Title:</label>
@@ -216,7 +365,7 @@
                                         <div class="cta-link-row">
                                             <input type="text" placeholder="Label e.g. Visit the map"
                                                 [name]="'ctaLabel_'+si+'_'+li" [(ngModel)]="link.label">
-                                            <input type="text" placeholder="URL e.g. /map or /blog/slug"
+                                            <input type="text" placeholder="URL e.g. /map or /articles/slug"
                                                 [name]="'ctaUrl_'+si+'_'+li" [(ngModel)]="link.url">
                                             <button type="button" class="icon-btn" (click)="removeCtaLink(si, li)" title="Remove link">✕</button>
                                         </div>
@@ -247,25 +396,25 @@
 
         @if (showMarkdownHelp) {
           <div class="md-help-backdrop" (click)="showMarkdownHelp = false">
-                        <div class="md-help-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="formatting-help-title">
+                  <div class="md-help-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="formatting-help-title">
               <div class="md-help-header">
-                                <h3 id="formatting-help-title">Blog formatting help</h3>
-                                <button type="button" class="md-help-close" (click)="showMarkdownHelp = false" aria-label="Close formatting help">✕</button>
+                <h3 id="formatting-help-title">Blog formatting help</h3>
+                <button type="button" class="md-help-close" (click)="showMarkdownHelp = false" aria-label="Close formatting help">✕</button>
               </div>
-                            <p class="md-help-intro">This editor uses the custom formatting tokens from <code>htmler.pipe</code>, not full Markdown. Use these in intro, conclusion, and section content fields.</p>
+                <p class="md-help-intro">This editor uses the custom formatting tokens from <code>htmler.pipe</code>, not full Markdown. Use these in intro, conclusion, and section content fields.</p>
               <table class="md-help-table">
                 <thead><tr><th>Syntax</th><th>Output</th></tr></thead>
                 <tbody>
-                                    <tr><td><code>[link:BSAC,https://bsac.com]</code></td><td>External link, opens in a new tab</td></tr>
-                                    <tr><td><code>[link:Map,/map]</code></td><td>Internal link</td></tr>
-                                    <tr><td><code>[list:Mask and fins;Weight belt;Surface marker]</code></td><td>Unordered list. Separate items with semicolons.</td></tr>
-                                    <tr><td><code>[blockquote:Snorkelling is best at slack water.]</code></td><td>Block quote callout</td></tr>
-                                    <tr><td><code>[table:Season|Water temp;Spring|8-12C;Summer|14-18C]</code></td><td>Table. First row becomes the header; use <code>|</code> for columns and <code>;</code> for rows.</td></tr>
-                                    <tr><td><code>One line of text
-Another line of text</code></td><td>Each line becomes its own paragraph.</td></tr>
+                    <tr><td><code>[link:BSAC,https://bsac.com]</code></td><td>External link, opens in a new tab</td></tr>
+                    <tr><td><code>[link:Map,/map]</code></td><td>Internal link</td></tr>
+                    <tr><td><code>[list:Mask and fins;Weight belt;Surface marker]</code></td><td>Unordered list. Separate items with semicolons.</td></tr>
+                    <tr><td><code>[blockquote:Snorkelling is best at slack water.]</code></td><td>Block quote callout</td></tr>
+                    <tr><td><code>[table:Season|Water temp;Spring|8-12C;Summer|14-18C]</code></td><td>Table. First row becomes the header; use <code>|</code> for columns and <code>;</code> for rows.</td></tr>
+                    <tr><td><code>One line of text
+                      Another line of text</code></td><td>Each line becomes its own paragraph.</td></tr>
                 </tbody>
               </table>
-                            <p class="md-help-note">These tokens must stay on a single line. Standard Markdown like <code>**bold**</code> or <code># headings</code> is not parsed here.</p>
+                <p class="md-help-note">These tokens must stay on a single line. Standard Markdown like <code>**bold**</code> and <code>*italics*</code> is supported, but headings/lists/tables use these custom tokens.</p>
             </div>
           </div>
         }

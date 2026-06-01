@@ -1,5 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { ScrollspyService } from '@shared/services/scrollspy.service';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -16,19 +15,27 @@ import { HttpService } from '@shared/services/http.service';
 
 export class HeaderComponent implements AfterViewInit, OnDestroy {
 
+  private static readonly _HOME_PATHS = new Set(['', '/', '/home']);
+  private static readonly _MENU_ROUTE_MATCHERS: Array<{ name: string; match: (path: string) => boolean }> = [
+    { name: 'Articles', match: (path) => path === '/articles' || path.startsWith('/articles/') || path === '/blog' || path.startsWith('/blog/') },
+    { name: 'Book', match: (path) => path === '/snorkelling-britain' },
+    { name: 'Shop', match: (path) => path === '/shop' },
+    { name: 'Map', match: (path) => path === '/map' || path.startsWith('/map/') },
+    { name: 'FAQs', match: (path) => path === '/faqs' }
+  ];
+
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
   @ViewChild('brandbox') brandBox!: ElementRef;
 
-  private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
 
-  public menuItems: Array<{name: string, anchor: string, route: string}> = [
-    { name: 'Home',    anchor: 'home',                       route: '/' },
-    { name: 'Blog',    anchor: 'blog',                       route: '/' },
-    { name: 'Book',    anchor: 'snorkelling-britain',        route: '/' },
-    { name: 'Shop',    anchor: 'buy-now',                    route: '/' },
-    { name: 'Map',     anchor: 'snorkelling-map-of-britain', route: '/' },
-    { name: 'Friends', anchor: 'friends-and-partners',       route: '/' },
+  public menuItems: Array<{name: string, route: string, fragment?: string}> = [
+    { name: 'Home',    route: '/',      fragment: 'home' },
+    { name: 'Articles', route: '/articles' },
+    { name: 'Book',    route: '/snorkelling-britain' },
+    { name: 'Shop',    route: '/shop' },
+    { name: 'Map',     route: '/map' },
+    { name: 'FAQs',    route: '/faqs' },
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';
@@ -42,24 +49,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     @Inject(Router) private _router: Router,
-    private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-    private _cdr: ChangeDetectorRef,
     private _http: HttpService,
   ) {
-    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe((isect) => {
-      const activeMenuItem = this.menuItems.find((item) => item.anchor === isect.id)?.name;
-      if (activeMenuItem) {
-        this.activeMenuItem = activeMenuItem;
-        this._cdr.detectChanges();
-      }
-    });
-
     this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.syncActiveMenuItemToRoute(event.urlAfterRedirects);
         this._updateAdminRoute(event.urlAfterRedirects);
-        this._cdr.detectChanges();
     });
 
     this.syncActiveMenuItemToRoute(this._router.url);
@@ -85,11 +81,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  async onAdminNavClick(anchor: string) {
+  async onAdminNavClick(route: string, fragment?: string) {
     try { await this._http.logout(); } catch {}
     const mainHost = window.location.hostname.replace(/^admin\./, '');
     const port = window.location.port ? `:${window.location.port}` : '';
-    window.location.href = `${window.location.protocol}//${mainHost}${port}/#${anchor}`;
+    const path = route || '/';
+    const hash = fragment ? `#${fragment}` : '';
+    window.location.href = `${window.location.protocol}//${mainHost}${port}${path}${hash}`;
   }
 
   onLogoLoad() {
@@ -115,7 +113,6 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
 
   ngOnDestroy() {
-    this._scrSubs?.unsubscribe();
     this._routeSubs?.unsubscribe();
   }
 
@@ -130,11 +127,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     }
 
     const [path, fragment] = url.split('#');
-    const isHomeRoute = path === '/' || path === '/home' || path === '';
-    const isMapRoute = path === '/map' || path.startsWith('/map/');
+    const normalizedPath = path || '/';
+    const isHomeRoute = HeaderComponent._HOME_PATHS.has(normalizedPath);
 
-    if (isMapRoute) {
-      this.activeMenuItem = 'Map';
+    const matchedMenu = HeaderComponent._MENU_ROUTE_MATCHERS.find((matcher) => matcher.match(normalizedPath));
+    if (matchedMenu) {
+      this.activeMenuItem = matchedMenu.name;
       return;
     }
 
@@ -143,7 +141,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const activeMenuItem = this.menuItems.find((item) => item.anchor === fragment)?.name;
+    const activeMenuItem = this.menuItems.find((item) => item.route === '/' && item.fragment === fragment)?.name;
     this.activeMenuItem = activeMenuItem ?? 'Home';
   }
 

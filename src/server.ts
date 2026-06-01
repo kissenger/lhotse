@@ -12,7 +12,7 @@ import { auth, verifyToken } from './server-auth';
 import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
 import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
-import { injectSeoPayloadIntoHtml, type SeoPayload } from './server-seo-injection';
+import { injectSeoPayloadIntoHtml, type SeoMetaTag, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
 import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, getCountyMatchSlugs, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
@@ -27,11 +27,6 @@ const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 let mongooseConnectPromise: Promise<void> | null = null;
 
-/**
- * In-memory SEO cache.
- * Populated on server startup (pre-warm) so every request is served from RAM.
- * Refreshed by the daily RPi restart, or on demand via POST /api/refresh-seo-cache.
- */
 interface SeoCache {
   places: any[];
   routePlaces: any[];
@@ -40,6 +35,49 @@ interface SeoCache {
 let seoCache: SeoCache | null = null;
 let seoCacheRefreshPromise: Promise<void> | null = null;
 
+function normalizePath(pathname: string): string {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+}
+
+function getQuerySuffix(query: Record<string, unknown>): string {
+  const passthrough = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === 'string') {
+      passthrough.set(key, value);
+    }
+  }
+  const queryString = passthrough.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+function sendNotFound(res: express.Response): void {
+  res.status(404).send('Not found');
+}
+
+function getSectionSlugFromPath(pathname: string): string {
+  const segments = pathname.split('/').filter(Boolean);
+  return decodeURIComponent(segments[2] ?? '').trim();
+}
+
+function getSimplePageSeoPayload(
+  title: string,
+  description: string,
+  canonicalPath: string,
+  robots: 'index,follow' | 'noindex,follow' = 'noindex,follow'
+): SeoPayload {
+  return {
+    title,
+    description,
+    keywords: '',
+    canonicalPath,
+    ogType: 'website',
+    ogImage: '',
+    twitterImage: '',
+    schemas: [],
+    metaTags: [{ key: 'name', keyValue: 'robots', content: robots }]
+  };
+}
+
 function scheduleSeoCacheRefresh(): void {
   if (seoCacheRefreshPromise) return;
   seoCacheRefreshPromise = refreshSeoCache().finally(() => {
@@ -47,12 +85,6 @@ function scheduleSeoCacheRefresh(): void {
   });
 }
 
-/**
- * Admin subdomain handling:
- * - Redirect root path to /dashboard (avoids Angular SSR redirect-response falling through)
- * - Rewrite Host header so Angular's SSR host-validation passes
- * - Block search engine indexing
- */
 app.use((req, res, next) => {
   if (req.hostname === 'admin.snorkelology.co.uk') {
     res.locals['isAdminSubdomainRequest'] = true;
@@ -71,9 +103,6 @@ app.use((req, res, next) => {
   next();
 });
 
-/**
- * Security headers
- */
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -90,6 +119,7 @@ app.use((_req, res, next) => {
       "base-uri 'self'",
       "frame-ancestors 'self'",
       "script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
+      "script-src-attr 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://api.mapbox.com",
@@ -105,9 +135,6 @@ app.use((_req, res, next) => {
   next();
 });
 
-/**
- * Start of API routes
- */
 app.get('/api/ping/', (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
@@ -116,26 +143,6 @@ app.get('/api/db-backup/', verifyToken, (_req, res) => {
   res.status(201).json({hello: 'world'}); 
 })
 
-/**
- * POST /api/refresh-seo-cache
- *
- * Forces an immediate refresh of the in-memory SEO cache (map places + blog posts).
- * Intended for use by a cron job or deployment hook to invalidate the cache
- * without restarting the server.
- *
- * Usage:
- *   curl -X POST https://snorkelology.co.uk/api/refresh-seo-cache \
- *        -H "Authorization: Bearer <CACHE_REFRESH_SECRET>"
- *
- * Authentication:
- *   Requires the Authorization header value to match the CACHE_REFRESH_SECRET
- *   environment variable. If that variable is not set, the endpoint returns 404
- *   so it cannot be discovered or abused.
- *
- * Cron example (runs at 03:00 every day):
- *   0 3 * * * curl -s -X POST https://snorkelology.co.uk/api/refresh-seo-cache \
- *             -H "Authorization: Bearer $(cat /etc/seo-cache-secret)"
- */
 app.post('/api/refresh-seo-cache', async (req, res) => {
   const secret = process.env['CACHE_REFRESH_SECRET'];
   if (!secret) {
@@ -174,83 +181,59 @@ app.use(blog);
 app.use(map);
 app.use(organisations);
 
-/**
- * End of API routes
- */
-
 app.use(express.static(browserDistFolder, {maxAge: '1y',index: false,redirect: false,}),);
 
 const BLOG_SLUG_REDIRECTS: Record<string, string> = {
   'snorkelling-ipo': 'snorkelling-and-ipo',
 };
 
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    next();
+    return;
+  }
+
+  const normalizedPath = normalizePath(req.path);
+  const querySuffix = getQuerySuffix(req.query as Record<string, unknown>);
+
+  if (normalizedPath === '/blog') {
+    res.redirect(301, `/articles${querySuffix}`);
+    return;
+  }
+
+  if (normalizedPath.startsWith('/blog/section/')) {
+    const segments = normalizedPath.split('/').filter(Boolean);
+    if (segments.length === 3 && segments[2]) {
+      res.redirect(301, `/articles/section/${encodeURIComponent(decodeURIComponent(segments[2]))}${querySuffix}`);
+      return;
+    }
+  }
+
+  next();
+});
+
 app.use(async (req, res, next) => {
   if (req.method !== 'GET' || !req.path.startsWith('/blog/')) {
     next();
     return;
   }
-
-  const host = (req.hostname || '').toLowerCase();
-  const isLocalPreviewRequest =
-    (host === 'localhost' || host === '127.0.0.1' || host === '::1') &&
-    Object.prototype.hasOwnProperty.call(req.query ?? {}, 'preview');
-  const isAdminPreviewRequest =
-    Boolean(res.locals['isAdminSubdomainRequest']) &&
-    Object.prototype.hasOwnProperty.call(req.query ?? {}, 'preview');
-  if (isAdminPreviewRequest || isLocalPreviewRequest) {
-    next();
-    return;
-  }
-
   const segments = req.path.split('/').filter(Boolean);
-  if (segments.length !== 2) {
+  if (segments.length !== 2 || segments[1] === 'section') {
     next();
     return;
   }
 
   const slug = decodeURIComponent(segments[1] ?? '').trim().toLowerCase();
   if (!slug) {
-    res.status(404);
-    req.url = '/404';
     next();
     return;
   }
 
-  const redirectSlug = BLOG_SLUG_REDIRECTS[slug];
-  if (redirectSlug) {
-    const passthrough = new URLSearchParams();
-    for (const [key, value] of Object.entries(req.query)) {
-      if (typeof value === 'string') {
-        passthrough.set(key, value);
-      }
-    }
-    const query = passthrough.toString();
-    const canonicalPath = `/blog/${encodeURIComponent(redirectSlug)}`;
-    res.redirect(301, query ? `${canonicalPath}?${query}` : canonicalPath);
-    return;
-  }
+  const querySuffix = getQuerySuffix(req.query as Record<string, unknown>);
 
-  if (SKIP_SEO_DB_LOOKUPS) {
-    next();
-    return;
-  }
-
-  const { posts } = await getSeoCache();
-  const cacheMatch = posts.some((post: any) => typeof post.slug === 'string' && post.slug === slug);
-  if (cacheMatch) {
-    next();
-    return;
-  }
-
-  const post = await getPublishedPostBySlugForSeo(slug).catch(() => null);
-  if (!post) {
-    res.status(404);
-    req.url = '/404';
-    next();
-    return;
-  }
-
-  next();
+  const redirectSlug = BLOG_SLUG_REDIRECTS[slug] || slug;
+  const canonicalPath = `/articles/${encodeURIComponent(redirectSlug)}`;
+  res.redirect(301, `${canonicalPath}${querySuffix}`);
 });
 
 app.use(async (req, res, next) => {
@@ -268,21 +251,12 @@ app.use(async (req, res, next) => {
   }
 
   if (segments.length > 3) {
-    res.status(404).send('Not found');
+    sendNotFound(res);
     return;
   }
 
-  const passthrough = new URLSearchParams();
-  for (const [key, value] of Object.entries(req.query)) {
-    if (typeof value === 'string') {
-      passthrough.set(key, value);
-    }
-  }
-
-  const redirectTo = (path: string) => {
-    const query = passthrough.toString();
-    res.redirect(301, query ? `${path}?${query}` : path);
-  };
+  const querySuffix = getQuerySuffix(req.query as Record<string, unknown>);
+  const redirectTo = (path: string) => res.redirect(301, `${path}${querySuffix}`);
 
   const country = normaliseCountrySegment(segments[0]);
   if (!country) {
@@ -302,7 +276,7 @@ app.use(async (req, res, next) => {
 
   const county = normaliseCountySegment(segments[1]);
   if (!county) {
-    res.status(404).send('Not found');
+    sendNotFound(res);
     return;
   }
 
@@ -315,7 +289,7 @@ app.use(async (req, res, next) => {
   const countyMatches = getCountyMatchSlugs(county);
   const countyCountry = routePlaces.find((place: any) => countyMatches.has(place.countySlug))?.countrySlug ?? null;
   if (!countyCountry || countyCountry !== country) {
-    res.status(404).send('Not found');
+    sendNotFound(res);
     return;
   }
 
@@ -331,13 +305,13 @@ app.use(async (req, res, next) => {
 
   const siteSlug = normaliseSiteSegment(segments[2]);
   if (!siteSlug) {
-    res.status(404).send('Not found');
+    sendNotFound(res);
     return;
   }
 
   const place = findPlaceByRoute(routePlaces, country, county, siteSlug);
   if (!place?.path) {
-    res.status(404).send('Not found');
+    sendNotFound(res);
     return;
   }
 
@@ -406,19 +380,15 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
 
 export const reqHandler = createNodeRequestHandler(app);
 
-/**
- * Function to connect to mongo, and retry if unsuccesful
- * note that once connected, mongoose handles reconnection attempts
- * @returns 
- */
-async function startServer() {
-  const PORT = ENVIRONMENT === 'PRODUCTION' ? 4001 : 4000;
-  app.listen(PORT);
+async function startServer(): Promise<void> {
+  const port = Number(process.env['PORT']) || 4000;
 
-  // Warm dependencies in the background so startup does not block requests.
-  void ensureMongooseConnected()
-    .then(() => refreshSeoCache())
-    .catch(() => {});
+  app.listen(port, () => {
+    // Warm dependencies in the background so startup does not block requests.
+    void ensureMongooseConnected()
+      .then(() => refreshSeoCache())
+      .catch(() => {});
+  });
 }
 
 function wait(ms: number) {
@@ -498,7 +468,10 @@ function getPublicHtmlCacheControl(req: express.Request): string | null {
   const isPublicPath =
     path === '/' ||
     path === '/home' ||
+    path === '/articles' ||
+    path.startsWith('/articles/') ||
     path === '/privacy-policy' ||
+    path === '/affiliate-disclosure' ||
     path === '/ai-transparency' ||
     path === '/blog' ||
     path.startsWith('/blog/') ||
@@ -508,11 +481,6 @@ function getPublicHtmlCacheControl(req: express.Request): string | null {
   return isPublicPath ? PUBLIC_HTML_EDGE_CACHE_CONTROL : null;
 }
 
-/**
- * Fetches places and blog posts from the DB in parallel and stores them in the
- * in-memory SEO cache. Called once on startup (pre-warm) and optionally via
- * POST /api/refresh-seo-cache.
- */
 async function refreshSeoCache(): Promise<void> {
   if (SKIP_SEO_DB_LOOKUPS) return;
   try {
@@ -526,11 +494,6 @@ async function refreshSeoCache(): Promise<void> {
   }
 }
 
-/**
- * Returns the SEO cache, populating it first if it is empty (lazy fallback).
- * Under normal operation the cache is always pre-warmed on startup, so the
- * lazy path is only reached if the startup pre-warm itself failed.
- */
 async function getSeoCache(): Promise<SeoCache> {
   if (seoCache) return seoCache;
   scheduleSeoCacheRefresh();
@@ -582,10 +545,22 @@ async function injectSeoIntoHtml(pathname: string, query: Record<string, string>
 }
 
 async function getSeoPayload(pathname: string, _query: Record<string, string> = {}): Promise<SeoPayload | null> {
-  const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  const normalizedPath = normalizePath(pathname);
 
   if (normalizedPath === '/' || normalizedPath === '/home') {
     return getHomeSeoPayload();
+  }
+
+  if (normalizedPath === '/snorkelling-britain') {
+    return getBookSeoPayload();
+  }
+
+  if (normalizedPath === '/shop') {
+    return getShopSeoPayload();
+  }
+
+  if (normalizedPath === '/faqs') {
+    return getFaqSeoPayload();
   }
 
   if (normalizedPath === '/map' || normalizedPath.startsWith('/map/')) {
@@ -634,47 +609,42 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
   }
 
   if (normalizedPath === '/ai-transparency') {
-    return {
-      title: 'AI Transparency | Snorkelology',
-      description: 'How Snorkelology uses AI to help describe snorkelling organisations on our interactive map of Britain.',
-      keywords: '',
-      canonicalPath: '/ai-transparency',
-      ogType: 'website' as const,
-      ogImage: '',
-      twitterImage: '',
-      schemas: [],
-      metaTags: [
-        { key: 'name' as const, keyValue: 'robots', content: 'index,follow' }
-      ]
-    };
+    return getSimplePageSeoPayload(
+      'AI Transparency | Snorkelology',
+      'How Snorkelology uses AI to help describe snorkelling organisations on our interactive map of Britain.',
+      '/ai-transparency',
+      'index,follow'
+    );
   }
 
-  if (normalizedPath === '/blog') {
+  if (normalizedPath === '/articles') {
     return getBlogIndexSeoPayload();
   }
 
-  if (normalizedPath.startsWith('/blog/')) {
+  if (normalizedPath.startsWith('/articles/section/')) {
+    const sectionSlug = getSectionSlugFromPath(normalizedPath);
+    if (!sectionSlug) return null;
+    return getBlogSectionSeoPayload(sectionSlug);
+  }
+
+  if (normalizedPath.startsWith('/articles/')) {
     const slug = normalizedPath.split('/').filter(Boolean)[1];
-    if (!slug) {
+    if (!slug || slug === 'section') {
       return null;
     }
     return getBlogSeoPayload(slug);
   }
 
   if (normalizedPath === '/privacy-policy') {
-    return {
-      title: 'Privacy Policy | Snorkelology',
-      description: '',
-      keywords: '',
-      canonicalPath: '/privacy-policy',
-      ogType: 'website',
-      ogImage: '',
-      twitterImage: '',
-      schemas: [],
-      metaTags: [
-        { key: 'name', keyValue: 'robots', content: 'noindex,follow' }
-      ]
-    };
+    return getSimplePageSeoPayload('Privacy Policy | Snorkelology', '', '/privacy-policy');
+  }
+
+  if (normalizedPath === '/affiliate-disclosure') {
+    return getSimplePageSeoPayload(
+      'Affiliate Disclosure | Snorkelology',
+      'How Snorkelology uses affiliate links and how disclosures are shown across the site.',
+      '/affiliate-disclosure'
+    );
   }
 
   return null;
@@ -695,91 +665,6 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
       'https://www.youtube.com/@snorkelology',
       'https://www.facebook.com/snorkelology'
     ]
-  };
-
-  const productSchemas = (shopItems.SHOP_ITEMS || []).map((item: any) => ({
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: item.name,
-    description: item.description,
-    image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
-    sku: item.id,
-    offers: {
-      '@type': 'Offer',
-      price: item.unit_amount?.value,
-      priceCurrency: item.unit_amount?.currency_code,
-      availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      url: `${SITE_URL}/#buy-now`
-    }
-  }));
-
-  const bookSchemas = (shopItems.SHOP_ITEMS || [])
-    .filter((item: any) => item.isbn)
-    .map((item: any) => ({
-      '@context': 'https://schema.org',
-      '@type': 'Book',
-      name: item.name,
-      description: item.description,
-      image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
-      isbn: item.isbn,
-      numberOfPages: item.numberOfPages,
-      author: {
-        '@type': 'Person',
-        name: item.author
-      },
-      publisher: item.publisher ? {
-        '@type': 'Organization',
-        name: item.publisher
-      } : undefined,
-      offers: {
-        '@type': 'Offer',
-        price: item.unit_amount?.value,
-        priceCurrency: item.unit_amount?.currency_code,
-        availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-        itemCondition: 'https://schema.org/NewCondition',
-        url: `${SITE_URL}/#buy-now`
-      }
-    }));
-
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer
-      }
-    }))
-  };
-
-  const { posts: seoPosts } = await getSeoCache();
-
-  const blogSchemas = seoPosts.map((post: any) => ({
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: post.title,
-        description: post.subtitle || post.intro || post.title,
-        image: post.imgFname ? `${SITE_URL}/assets/photos/articles/${post.imgFname}` : undefined,
-        datePublished: post.createdAt,
-        dateModified: post.updatedAt || post.createdAt,
-        author: {
-          '@type': 'Person',
-          name: 'Snorkelology'
-        }
-      }));
-
-  const homepageVideoSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'VideoObject',
-    name: 'Snorkelling Britain book flick-through video',
-    description: 'A flick-through of Snorkelling Britain: 100 Marine Adventures, the guide to the best snorkelling sites around the British coastline.',
-    thumbnailUrl: 'https://img.youtube.com/vi/nglkG5wdsmY/maxresdefault.jpg',
-    uploadDate: '2025-06-01',
-    embedUrl: 'https://www.youtube.com/embed/nglkG5wdsmY',
-    contentUrl: 'https://www.youtube.com/watch?v=nglkG5wdsmY',
   };
 
   const mapImageSchema = {
@@ -820,7 +705,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
 
   // The @graph of all places is expensive (267 entries) and already present on /map.
   // Omitting it from the home page significantly reduces TBT without SEO cost.
-  const schemas = [orgSchema, ...productSchemas, ...bookSchemas, faqSchema, ...blogSchemas, mapImageSchema, mapCreativeWorkSchema, homepageVideoSchema];
+  const schemas = [orgSchema, mapImageSchema, mapCreativeWorkSchema];
 
   return {
     title: 'Snorkelling in Britain - Map, Articles & Book | Snorkelology',
@@ -836,6 +721,209 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
       { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
     ]
+  };
+}
+
+function buildDefaultMetaTags() {
+  return [
+    { key: 'name' as const, keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
+    { key: 'property' as const, keyValue: 'og:site_name', content: 'Snorkelology' },
+    { key: 'name' as const, keyValue: 'twitter:site', content: '@snorkelology' }
+  ];
+}
+
+function buildProductSchemas(offerUrlPath: string) {
+  return (shopItems.SHOP_ITEMS || []).map((item: any) => ({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: item.name,
+    description: item.description,
+    image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+    sku: item.id,
+    offers: {
+      '@type': 'Offer',
+      price: item.unit_amount?.value,
+      priceCurrency: item.unit_amount?.currency_code,
+      availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      url: `${SITE_URL}${offerUrlPath}`
+    }
+  }));
+}
+
+function buildBookSchemas(offerUrlPath: string) {
+  return (shopItems.SHOP_ITEMS || [])
+    .filter((item: any) => item.isbn)
+    .map((item: any) => ({
+      '@context': 'https://schema.org',
+      '@type': 'Book',
+      name: item.name,
+      description: item.description,
+      image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+      isbn: item.isbn,
+      numberOfPages: item.numberOfPages,
+      author: {
+        '@type': 'Person',
+        name: item.author
+      },
+      publisher: item.publisher ? {
+        '@type': 'Organization',
+        name: item.publisher
+      } : undefined,
+      offers: {
+        '@type': 'Offer',
+        price: item.unit_amount?.value,
+        priceCurrency: item.unit_amount?.currency_code,
+        availability: item.isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        url: `${SITE_URL}${offerUrlPath}`
+      }
+    }));
+}
+
+function buildFaqSchema() {
+  const faqAnswerToPlainText = (answer: string) => answer
+    .replace(/\[link:([^,\]]+),([^\]]+)\]/g, '$1')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faqAnswerToPlainText(faq.answer)
+      }
+    }))
+  };
+}
+
+function buildBookVideoSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: 'Snorkelling Britain book flick-through video',
+    description: 'A flick-through of Snorkelling Britain: 100 Marine Adventures, the guide to the best snorkelling sites around the British coastline.',
+    thumbnailUrl: 'https://img.youtube.com/vi/nglkG5wdsmY/maxresdefault.jpg',
+    uploadDate: '2025-06-01',
+    embedUrl: 'https://www.youtube.com/embed/nglkG5wdsmY',
+    contentUrl: 'https://www.youtube.com/watch?v=nglkG5wdsmY',
+  };
+}
+
+function buildBookPageFaqSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is Snorkelling Britain suitable for beginners?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Snorkelling Britain is designed for all levels and includes beginner-friendly sites, planning advice, and practical UK safety guidance.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Does the guide include England, Scotland, and Wales snorkelling sites?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. The guide includes 100 snorkelling sites across England, Scotland, and Wales, with location details, access notes, and habitat highlights.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I buy a signed copy of Snorkelling Britain?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Signed copies are available via the Snorkelology shop when stock allows.'
+        }
+      }
+    ]
+  };
+}
+
+async function getBookSeoPayload(): Promise<SeoPayload> {
+  const description = 'Discover Snorkelling Britain: 100 Marine Adventures, the guide to Britain\'s best snorkelling sites, with route-finding advice, underwater photography, safety guidance, and marine-life inspiration.';
+  const keywords = 'Snorkelling Britain book, snorkelling guide book, British snorkelling book, Emma and Gordon Taylor, Wild Things Publishing';
+  const bookOgImage = `${SITE_URL}/assets/photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png`;
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Snorkelling Britain Book', item: `${SITE_URL}/snorkelling-britain` }
+    ]
+  };
+
+  return {
+    title: 'Snorkelling Britain Book | Snorkelology',
+    description,
+    keywords,
+    canonicalPath: '/snorkelling-britain',
+    ogType: 'website',
+    ogImage: bookOgImage,
+    twitterImage: bookOgImage,
+    schemas: [breadcrumbSchema, ...buildBookSchemas('/shop'), buildBookVideoSchema(), buildBookPageFaqSchema()],
+    metaTags: buildDefaultMetaTags()
+  };
+}
+
+async function getShopSeoPayload(): Promise<SeoPayload> {
+  const description = 'Buy Snorkelling Britain and Snorkelology merchandise direct from the authors, with secure checkout, shipping options, and gift-friendly signed editions.';
+  const keywords = 'buy Snorkelling Britain, snorkelling shop, signed snorkelling book, snorkelling merchandise, snorkelology shop';
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Shop', item: `${SITE_URL}/shop` }
+    ]
+  };
+
+  return {
+    title: 'Shop Snorkelling Britain And Merch | Snorkelology',
+    description,
+    keywords,
+    canonicalPath: '/shop',
+    ogType: 'website',
+    ogImage: DEFAULT_SOCIAL_IMAGE,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
+    schemas: [breadcrumbSchema, ...buildProductSchemas('/shop')],
+    metaTags: buildDefaultMetaTags()
+  };
+}
+
+async function getFaqSeoPayload(): Promise<SeoPayload> {
+  const description = 'Answers to common British snorkelling questions, from water temperature and marine life to safety, kit, and how to start snorkelling around the UK coast.';
+  const keywords = 'British snorkelling FAQs, UK snorkelling questions, snorkelling safety UK, cold water snorkelling, marine life Britain';
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'FAQs', item: `${SITE_URL}/faqs` }
+    ]
+  };
+
+  return {
+    title: 'British Snorkelling FAQs | Snorkelology',
+    description,
+    keywords,
+    canonicalPath: '/faqs',
+    ogType: 'website',
+    ogImage: DEFAULT_SOCIAL_IMAGE,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
+    schemas: [breadcrumbSchema, buildFaqSchema()],
+    metaTags: buildDefaultMetaTags()
   };
 }
 
@@ -1291,7 +1379,7 @@ async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
     '@type': 'CollectionPage',
     name: 'British Snorkelling Articles',
     description,
-    url: `${SITE_URL}/blog`,
+    url: `${SITE_URL}/articles`,
     publisher: {
       '@type': 'Organization',
       name: 'Snorkelology',
@@ -1303,7 +1391,7 @@ async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
     title: 'British Snorkelling Articles — Snorkelology',
     description,
     keywords,
-    canonicalPath: '/blog',
+    canonicalPath: '/articles',
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
     twitterImage: DEFAULT_TWITTER_IMAGE,
@@ -1313,6 +1401,57 @@ async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
       { key: 'name', keyValue: 'twitter:site', content: '@snorkelology' }
     ]
+  };
+}
+
+async function getBlogSectionSeoPayload(sectionSlug: string): Promise<SeoPayload> {
+  const humanizeSection = (value: string) => value
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+
+  const sectionTitle = humanizeSection(sectionSlug) || 'British Snorkelling';
+  const description = `Browse ${sectionTitle} articles from Snorkelology, with practical UK snorkelling guidance, marine life insight, and field-tested advice.`;
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${SITE_URL}/articles` },
+      { '@type': 'ListItem', position: 3, name: sectionTitle, item: `${SITE_URL}/articles/section/${encodeURIComponent(sectionSlug)}` }
+    ]
+  };
+
+  const sectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${sectionTitle} Articles`,
+    description,
+    url: `${SITE_URL}/articles/section/${encodeURIComponent(sectionSlug)}`,
+    isPartOf: {
+      '@type': 'CollectionPage',
+      name: 'British Snorkelling Articles',
+      url: `${SITE_URL}/articles`
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/assets/banner/snround.webp` }
+    }
+  };
+
+  return {
+    title: `${sectionTitle} Articles | Snorkelology`,
+    description,
+    keywords: `snorkelling ${sectionTitle.toLowerCase()}, british snorkelling articles, snorkelology articles`,
+    canonicalPath: `/articles/section/${encodeURIComponent(sectionSlug)}`,
+    ogType: 'website',
+    ogImage: DEFAULT_SOCIAL_IMAGE,
+    twitterImage: DEFAULT_TWITTER_IMAGE,
+    schemas: [breadcrumbSchema, sectionSchema],
+    metaTags: buildDefaultMetaTags()
   };
 }
 
@@ -1327,7 +1466,9 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   }
 
   // Fix 1: fall back to stripped intro if subtitle is blank
-  const rawDescription = post.subtitle || post.intro || '';
+  const isReviewType = post.type === 'review';
+  const reviewModel = (post as any).review || {};
+  const rawDescription = post.subtitle || reviewModel.summary || post.intro || '';
   const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
 
   const hasGeneratedOgImage = await generatedOgImageExists(slug);
@@ -1344,25 +1485,63 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   };
 
   const isFaqType = post.type === 'faq';
+  const reviewKind = reviewModel.reviewKind === 'book' ? 'book' : 'product';
+  const isProductReview = isReviewType && !isFaqType && reviewKind === 'product';
+  const isBookReview = isReviewType && !isFaqType && reviewKind === 'book';
   const publishedIso = new Date(post.createdAt || new Date()).toISOString();
   const modifiedIso = new Date(post.updatedAt || post.createdAt || new Date()).toISOString();
   const authorName = post.author || 'Snorkelology';
-  const articleUrl = `${SITE_URL}/blog/${slug}`;
+  const articleUrl = `${SITE_URL}/articles/${slug}`;
   const seoOnlyArticleKeywords = ['snorkelling', 'british snorkelling', 'snorkelling guide'];
-  const schemaKeywords = Array.from(new Set([...(post.keywords || []), ...seoOnlyArticleKeywords]));
+  const reviewOnlyKeywords = isProductReview
+    ? ['product review', 'gear review', 'hands-on review']
+    : isBookReview
+      ? ['book review', 'reading review', 'book recommendation']
+      : [];
+  const schemaKeywords = Array.from(new Set([...(post.keywords || []), ...seoOnlyArticleKeywords, ...reviewOnlyKeywords]));
   const schemaKeywordsCsv = schemaKeywords.join(', ');
+
+  const normaliseSectionSlug = (value?: string) => (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const sectionSlug = normaliseSectionSlug((post as any).blogSection);
+  const sectionTitle = (post as any).blogSection ? String((post as any).blogSection).trim() : 'Articles';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-      { '@type': 'ListItem', position: 3, name: post.title || 'Article', item: articleUrl }
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${SITE_URL}/articles` },
+      ...(sectionSlug ? [{ '@type': 'ListItem', position: 3, name: sectionTitle, item: `${SITE_URL}/articles/section/${encodeURIComponent(sectionSlug)}` }] : []),
+      { '@type': 'ListItem', position: sectionSlug ? 4 : 3, name: post.title || 'Article', item: articleUrl }
     ]
   };
 
   // Fix 4: add url, publisher, mainEntityOfPage; Fix 7: FAQ uses 'article' ogType
+  const baseBlogPostingSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description,
+    keywords: schemaKeywordsCsv,
+    image: imageObject,
+    url: articleUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+    datePublished: publishedIso,
+    dateModified: modifiedIso,
+    author: { '@type': 'Person', name: authorName },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Snorkelology',
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/assets/banner/snround.webp` }
+    }
+  };
+
   const schema = isFaqType
     ? {
         '@context': 'https://schema.org',
@@ -1376,24 +1555,96 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
           }
         }))
       }
-    : {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: post.title,
-        description,
-        keywords: schemaKeywordsCsv,
-        image: imageObject,
-        url: articleUrl,
-        mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
-        datePublished: publishedIso,
-        dateModified: modifiedIso,
-        author: { '@type': 'Person', name: authorName },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Snorkelology',
-          logo: { '@type': 'ImageObject', url: `${SITE_URL}/assets/banner/snround.webp` }
+    : baseBlogPostingSchema;
+
+  const reviewSchemas = isProductReview
+    ? (() => {
+        const ratingScale = Math.max(1, Number(reviewModel.ratingScale || 5));
+        const ratingValue = Math.min(ratingScale, Math.max(0, Number(reviewModel.ratingValue || 0)));
+        const productName = (reviewModel.productName || post.title || '').trim();
+        const itemReviewedType = isBookReview ? 'Book' : 'Product';
+        const productSchema: Record<string, unknown> = {
+          '@context': 'https://schema.org',
+          '@type': itemReviewedType,
+          name: productName,
+          image: imageUrl,
+          brand: isProductReview && reviewModel.brand ? { '@type': 'Brand', name: reviewModel.brand } : undefined,
+          author: isBookReview && reviewModel.author ? { '@type': 'Person', name: reviewModel.author } : undefined,
+          publisher: isBookReview && reviewModel.publisher ? { '@type': 'Organization', name: reviewModel.publisher } : undefined,
+          isbn: isBookReview && reviewModel.isbn ? reviewModel.isbn : undefined,
+          sku: reviewModel.sku || undefined,
+          description: (reviewModel.summary || description || '').replace(/<[^>]*>/g, '').slice(0, 300).trim(),
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue,
+            bestRating: ratingScale,
+            worstRating: 0,
+            ratingCount: 1,
+            reviewCount: 1,
+          },
+        };
+
+        if (reviewModel.priceValue || reviewModel.availability) {
+          productSchema['offers'] = {
+            '@type': 'Offer',
+            priceCurrency: reviewModel.priceCurrency || 'GBP',
+            price: reviewModel.priceValue || undefined,
+            availability: reviewModel.availability || undefined,
+            url: reviewModel.affiliateLinks?.[0]?.url || articleUrl,
+          };
         }
-      };
+
+        const reviewSchema: Record<string, unknown> = {
+          '@context': 'https://schema.org',
+          '@type': 'Review',
+          url: articleUrl,
+          datePublished: publishedIso,
+          dateModified: modifiedIso,
+          reviewBody: (reviewModel.summary || description || '').replace(/<[^>]*>/g, '').trim(),
+          author: { '@type': 'Person', name: authorName },
+          publisher: { '@type': 'Organization', name: 'Snorkelology' },
+          itemReviewed: {
+            '@type': itemReviewedType,
+            name: productName,
+            brand: isProductReview && reviewModel.brand ? { '@type': 'Brand', name: reviewModel.brand } : undefined,
+            author: isBookReview && reviewModel.author ? { '@type': 'Person', name: reviewModel.author } : undefined,
+            publisher: isBookReview && reviewModel.publisher ? { '@type': 'Organization', name: reviewModel.publisher } : undefined,
+            isbn: isBookReview && reviewModel.isbn ? reviewModel.isbn : undefined,
+            image: imageUrl,
+          },
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue,
+            bestRating: ratingScale,
+            worstRating: 0,
+          },
+        };
+
+        if (Array.isArray(reviewModel.pros) && reviewModel.pros.length > 0) {
+          reviewSchema['positiveNotes'] = {
+            '@type': 'ItemList',
+            itemListElement: reviewModel.pros.map((text: string, index: number) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: text,
+            })),
+          };
+        }
+
+        if (Array.isArray(reviewModel.cons) && reviewModel.cons.length > 0) {
+          reviewSchema['negativeNotes'] = {
+            '@type': 'ItemList',
+            itemListElement: reviewModel.cons.map((text: string, index: number) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: text,
+            })),
+          };
+        }
+
+        return [productSchema, reviewSchema];
+      })()
+    : [];
 
   const extractYouTubeVideoId = (value: string): string => {
     const input = (value || '').trim();
@@ -1451,15 +1702,23 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     content: kw
   }));
 
+  const reviewMetaTags: SeoMetaTag[] = [];
+  if (isProductReview) {
+    reviewMetaTags.push({ key: 'property', keyValue: 'product:price:currency', content: (reviewModel.priceCurrency || 'GBP') });
+    if (reviewModel.priceValue) {
+      reviewMetaTags.push({ key: 'property', keyValue: 'product:price:amount', content: String(reviewModel.priceValue) });
+    }
+  }
+
   return {
     title: post.title || 'Snorkelology Blog',
     description,
     keywords: schemaKeywordsCsv,
-    canonicalPath: `/blog/${slug}`,
+    canonicalPath: `/articles/${slug}`,
     ogType: 'article',  // Fix 7: always 'article' for individual posts
     ogImage: imageUrl,
     twitterImage: imageUrl,  // Fix 2: use article image for Twitter
-    schemas: [breadcrumbSchema, schema, ...videoSchemas],
+    schemas: [breadcrumbSchema, schema, ...reviewSchemas, ...videoSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
@@ -1467,6 +1726,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
       { key: 'property', keyValue: 'article:published_time', content: publishedIso },
       { key: 'property', keyValue: 'article:modified_time', content: modifiedIso },
       { key: 'property', keyValue: 'article:author', content: authorName },
+      ...reviewMetaTags,
       ...keywordTags
     ]
   };

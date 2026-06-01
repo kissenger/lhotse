@@ -3,6 +3,122 @@
   height: auto;
 }
 
+.book-intro {
+  margin-bottom: 0.5rem;
+}
+
+.book-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(210px, 270px);
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 0.5rem;
+}
+
+.book-intro-followup {
+  margin-bottom: 0.75rem;
+}
+
+.book-buy-options {
+  margin: 0.5rem 0 1.4rem;
+}
+
+.book-buy-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.book-buy-option-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #d6dde1;
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  background: #f7fafb;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.book-buy-option-card:hover,
+.book-buy-option-card:focus-visible {
+  border-color: #7f9db0;
+  box-shadow: 0 4px 14px rgba(15, 35, 48, 0.12);
+  transform: translateY(-1px);
+}
+
+.book-buy-option-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.book-buy-option-label-inline {
+  display: inline-flex;
+  align-items: center;
+}
+
+.book-buy-option-affiliate-row {
+  display: block;
+  margin-top: 0.55rem;
+}
+
+.book-buy-option-affiliate-row .affiliate-pill-badge {
+  margin-left: 0;
+}
+
+.book-buy-option-detail {
+  display: block;
+  font-size: 0.92rem;
+  color: #4f5f6a;
+  line-height: 1.35;
+}
+
+.book-cover-lead {
+  width: min(270px, 100%);
+  margin: 0 0 1rem auto;
+  align-self: center;
+}
+
+.book-cover-lead img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 390px;
+  object-fit: contain;
+}
+
+.extra-top-margin {
+  margin-top: 2rem;
+}
+
+.main-content-grid {
+  display: grid;
+  grid-template-rows: auto;
+  grid-gap: 1.5rem;
+  grid-auto-flow: column;
+}
+
+.main-content-grid > div > ul {
+  margin-top: 0;
+}
+
+.main-content-grid > .left {
+  grid-column: 1;
+}
+
+.main-content-grid > .right {
+  grid-column: 2;
+}
+
+.content-img {
+  position: relative;
+  width: 290px;
+  height: 290px;
+  margin-top: 2rem;
+  margin-inline: auto;
+}
+
 .book-cover-img img {
   width: 100%;
   height: auto;
@@ -38,4 +154,97 @@
   padding: 0.5rem 0.9rem;
   font-size: 0.95rem;
   border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.book-bottom-cta {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.book-reviews {
+  margin-top: 2.2rem;
+}
+
+.book-review-source-inline {
+  display: inline-block;
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #5f6f7a;
+}
+
+.book-affiliate-learnmore {
+  margin-top: 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #5f6f7a;
+  text-align: center;
+}
+
+.book-affiliate-learnmore a {
+  color: inherit;
+}
+
+.book-reviews .cta-link-group .cta-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.book-reviews .cta-link-group .cta-link-btn .affiliate-pill-badge {
+  margin-left: 0;
+}
+
+.affiliate-pill-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.affiliate-pill-badge-box {
+  background: rgba(29, 61, 89, 0.08);
+  border-color: rgba(29, 61, 89, 0.2);
+}
+
+.book-mini-faq {
+  margin-top: 1.75rem;
+}
+
+.book-mini-faq .faq-section-heading {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .book-hero {
+    display: block;
+  }
+
+  .book-buy-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content-grid {
+    display: block;
+  }
+
+  .book-cover-lead {
+    margin: 0 auto 1rem;
+  }
+
+  .content-img {
+    width: 290px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
 }

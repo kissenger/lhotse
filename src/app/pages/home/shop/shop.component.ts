@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -10,6 +10,7 @@ import { CarouselComponent } from '@shared/components/carousel/carousel.componen
 import { ToastService } from '@shared/services/toast.service';
 import { discountCodes } from '@shared/globals';
 import { stage } from '@shared/globals';
+import { ScrollOffsetService } from '@shared/services/scroll-offset.service';
 
 
 @Component({
@@ -20,7 +21,7 @@ import { stage } from '@shared/globals';
   styleUrls: ['./shop.component.css', '../home.component.css']
 })
 
-export class ShopComponent implements AfterViewInit, OnDestroy {
+export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
   public qty: number = 0;
   public discountCodes: Array<{code: string, discount: number}> = discountCodes;
   public dirtyDiscountCode = false;
@@ -32,14 +33,13 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
   constructor(
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
+    private _scrollOffset: ScrollOffsetService,
     public shop: ShopService,
     public toaster: ToastService
-  ) {
-    this.shop.reset();
-    this.shop.basket.add(this.shop.item("0001"),0);
-    this.shop.basket.add(this.shop.item("0002"),0);
-    this.shop.basket.add(this.shop.item("0003"),0);
-    this.shop.basket.add(this.shop.item("0004"),0);
+  ) {}
+
+  ngOnInit() {
+    this.shop.initializeDefaultBasket();
   }
   
   ngAfterViewInit() {
@@ -50,7 +50,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
     // PayPal is initialized lazily on first item added (see onPlusMinus)
 
     // Show floating basket popover when order summary is scrolled out of view
-    const summaryEl = document.getElementById('order-summary');
+    const summaryEl = this._getOrderSummaryElement();
     if (summaryEl) {
       this._summaryObserver = new IntersectionObserver(([entry]) => {
         this.showBasketPopover = !entry.isIntersecting && this.shop.basket.itemQty > 0;
@@ -65,11 +65,14 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
   }
 
   scrollToSummary() {
-    const el = document.getElementById('order-summary');
+    const el = this._getOrderSummaryElement();
     if (!el) return;
-    const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 75;
-    const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - this._scrollOffset.getHeaderOffset(16);
     window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  private _getOrderSummaryElement(): HTMLElement | null {
+    return document.getElementById('order-summary');
   }
   
   private async _initPayPal() {
@@ -91,7 +94,6 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
         const that = this;
         await paypal.Buttons({
           style: {
-            // borderRadius: 0,
             shape: 'sharp',
             height: 50
           },
@@ -162,9 +164,8 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
 
         }).render("#paypal-button-container");
 
-        // E2E test hook: lets sandbox nightly tests trigger capture without the PayPal browser popup.
-        // Only installed in non-production builds so it is never present in live deployments.
-            if (environment.STAGE !== 'prod' && typeof window !== 'undefined') {
+        // E2E test hook: lets sandbox nightly tests trigger capture without the PayPal popup.
+        if (environment.STAGE !== 'prod') {
           (window as any).__e2ePaypalApprove = async (orderID: string, orderNum: string) => {
             try {
               if (orderNum) { that.shop.orderNumber = orderNum; }
@@ -208,7 +209,7 @@ export class ShopComponent implements AfterViewInit, OnDestroy {
       this._initPayPal();
     }
     // Re-evaluate popover visibility after qty change
-    const summaryEl = document.getElementById('order-summary');
+    const summaryEl = this._getOrderSummaryElement();
     if (summaryEl) {
       const rect = summaryEl.getBoundingClientRect();
       this.showBasketPopover = (rect.bottom < 0 || rect.top > window.innerHeight) && this.shop.basket.itemQty > 0;
