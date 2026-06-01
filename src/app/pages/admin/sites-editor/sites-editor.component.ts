@@ -12,6 +12,8 @@ import { mapboxToken } from '@shared/globals';
 import { normaliseResearchLink, normaliseResearchLinks } from '@shared/research-links';
 import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '@shared/services/toast.service';
+import { appendStyleOnce } from '@shared/utils/dom-inject';
+import { errorMessage } from '@shared/utils/error-message';
 
 @Component({
   selector: 'app-sites-editor',
@@ -144,20 +146,16 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   }
 
   private _injectMapboxCss() {
-    const id = 'mapbox-gl-editor-css';
     const doc = this._window!.document;
-    if (doc.getElementById(id)) return;
-    const style = doc.createElement('style');
-    style.id = id;
     // These four rules are the only ones needed for DOM markers to track with the map.
     // Injected programmatically so Angular's CSS scoping (which would break them) is bypassed.
     // The public map uses canvas-rendered symbol layers and doesn't need any of this.
-    style.textContent =
+    appendStyleOnce(doc, 'mapbox-gl-editor-css',
       '.mapboxgl-map{overflow:hidden;position:relative}' +
       '.mapboxgl-canvas-container{height:100%}' +
       '.mapboxgl-canvas{position:absolute;left:0;top:0}' +
-      '.mapboxgl-marker{position:absolute;top:0;left:0;will-change:transform}';
-    doc.head.appendChild(style);
+      '.mapboxgl-marker{position:absolute;top:0;left:0;will-change:transform}'
+    );
   }
 
   private _initMainMap() {
@@ -246,7 +244,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       const result = await this._http.getAllSitesAdmin();
       this.refreshSiteList(result);
     } catch (error: any) {
-      this._toaster.show(error?.error?.message || 'Failed to load sites', 'error');
+      this._toaster.show(errorMessage(error, 'Failed to load sites'), 'error');
     }
   }
 
@@ -592,7 +590,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       }
       this._toaster.show('Site saved successfully.', 'success');
     } catch (error: any) {
-      this._toaster.show(error?.error?.message || 'Save failed', 'error');
+      this._toaster.show(errorMessage(error, 'Save failed'), 'error');
     }
   }
 
@@ -628,7 +626,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       this.refreshSiteList(result);
       this._toaster.show('Site deleted.', 'success');
     } catch (error: any) {
-      this._toaster.show(error?.error?.message || 'Delete failed', 'error');
+      this._toaster.show(errorMessage(error, 'Delete failed'), 'error');
     }
   }
 }

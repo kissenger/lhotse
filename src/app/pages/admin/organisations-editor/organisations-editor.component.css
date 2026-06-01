@@ -454,7 +454,6 @@
 
 .btn-publish {
   background-color: #156d38;
-  color: white;
   border-color: #156d38;
 }
 
@@ -464,7 +463,6 @@
 
 .btn-unpublish {
   background-color: #6c757d;
-  color: white;
   border-color: #6c757d;
 }
 
@@ -474,9 +472,14 @@
 
 .btn-populate {
   background-color: #5a6e80;
-  color: white;
   border-color: #5a6e80;
   font-size: 0.82rem;
+}
+
+.btn-publish,
+.btn-unpublish,
+.btn-populate {
+  color: white;
 }
 
 .btn-populate:hover:not(:disabled) {

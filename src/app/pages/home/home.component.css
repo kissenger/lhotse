@@ -98,7 +98,7 @@
   width: 100%;
 }
 
-:host ::ng-deep h2.faq-question {
+:host ::ng-deep .faq-question {
   text-align: left;
 }
 .overlay {

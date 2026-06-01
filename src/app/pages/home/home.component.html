@@ -2,7 +2,7 @@
 
   @if (!hideAboutBookOverlay) {
   <div class="overlay about-book" [class.overlay-ready]="overlayReady">
-    <a routerLink="/book" (click)="hideOverlay('about-book')">
+    <a routerLink="/snorkelling-britain" (click)="hideOverlay('about-book')">
       @if (widthDescriptor === "small") {
         <img  
           ngSrc = "ads/overlay-ad-portrait-new.jpg"
@@ -29,13 +29,12 @@
   </div>
   }
 
-  <div #anchor class="anchor" id="home" data-scrollspy-anchor>
+  <div class="anchor" id="home">
     <app-slideshow></app-slideshow>
     <app-about></app-about> 
     <div #window #windowOne id="windowOne" class="window"></div>
   </div>
 
-  @defer (when deferredSectionsReady; hydrate on idle; prefetch on idle) {
     <section class="anchor home-preview-section" id="blog">
       <div class="dynamic-container">
         <div class="home-preview-shell">
@@ -44,7 +43,11 @@
             <p>Covering British snorkelling news, science, gear advice, and field notes to inspire your next underwater adventure.</p>
           </div>
 
-          @if (latestBlogPreviews.length > 0) {
+          @if (blogPreviewLoading) {
+            <div class="deferred-loading-block deferred-loading-block--inline" role="status" aria-live="polite" aria-label="Loading article previews">
+              <div class="deferred-loading-spinner" aria-hidden="true"></div>
+            </div>
+          } @else if (latestBlogPreviews.length > 0) {
             <div class="home-blog-preview-list preview-divider-list">
               @for (post of latestBlogPreviews; track post.slug) {
                 <app-blog-card [data]="post"></app-blog-card>
@@ -53,7 +56,7 @@
           }
 
           <div class="teaser-actions">
-            <a routerLink="/blog" class="teaser-link anchor-pill cta-link-btn">Browse More Articles</a>
+            <a routerLink="/articles" class="teaser-link anchor-pill cta-link-btn">Browse More Articles</a>
           </div>
         </div>
       </div>
@@ -96,7 +99,7 @@
             A perfect gift for any snorkeller or open water swimmer who wants to take the next step on their marine adventures.
           </p>
           <div class="teaser-actions">
-            <a routerLink="/book" class="teaser-link anchor-pill cta-link-btn">Explore Snorkelling Britain</a>
+            <a routerLink="/snorkelling-britain" class="teaser-link anchor-pill cta-link-btn">Explore Snorkelling Britain</a>
           </div>
         </div>
       </div>
@@ -142,7 +145,7 @@
       <div #window #windowFour id="windowFour" class="window"></div>
     </section>
 
-    <div #anchor class="anchor" id="snorkelling-map-of-britain" data-scrollspy-anchor>
+    <div class="anchor" id="snorkelling-map-of-britain">
       <section class="home-preview-section">
         <div class="dynamic-container">
           <div class="home-preview-shell">
@@ -192,17 +195,23 @@
             </p>
           </div>
 
-          <div class="faq-home-list" aria-label="FAQ preview">
-            @for (faq of faqPreviewItems; track faq.question) {
-              <a class="faq-home-item" routerLink="/faqs" [fragment]="faq.fragment" [attr.aria-label]="'Read more about ' + faq.question">
-                <h3 class="faq-home-question">{{ faq.question }}</h3>
-                <div class="faq-home-answer">{{ faq.excerpt }}</div>
-                <div class="faq-home-more-row" aria-hidden="true">
-                  <span class="faq-home-more">See more &rarr;</span>
-                </div>
-              </a>
-            }
-          </div>
+          @if (faqPreviewLoading) {
+            <div class="deferred-loading-block deferred-loading-block--inline" role="status" aria-live="polite" aria-label="Loading FAQ previews">
+              <div class="deferred-loading-spinner" aria-hidden="true"></div>
+            </div>
+          } @else {
+            <div class="faq-home-list" aria-label="FAQ preview">
+              @for (faq of faqPreviewItems; track faq.question) {
+                <a class="faq-home-item" routerLink="/faqs" [fragment]="faq.fragment" [attr.aria-label]="'Read more about ' + faq.question">
+                  <h3 class="faq-home-question">{{ faq.question }}</h3>
+                  <div class="faq-home-answer">{{ faq.excerpt }}</div>
+                  <div class="faq-home-more-row" aria-hidden="true">
+                    <span class="faq-home-more">See more &rarr;</span>
+                  </div>
+                </a>
+              }
+            </div>
+          }
 
           <div class="teaser-actions">
             <a routerLink="/faqs" class="teaser-link anchor-pill cta-link-btn">View more FAQs</a>
@@ -212,9 +221,8 @@
       <div #window #windowSix id="windowSix" class="window"></div>
     </section>
 
-    <div #anchor class="anchor" id="friends-and-partners" data-scrollspy-anchor>
+    <div class="anchor" id="friends-and-partners">
       <app-partners></app-partners>
     </div>
-  }
 
 </main>

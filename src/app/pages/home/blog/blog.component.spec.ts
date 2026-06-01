@@ -88,9 +88,4 @@ describe('BlogComponent', () => {
     expect(comp.contentsSections[0].slug).toBe('news');
   });
 
-  it('resultSummary reports total article count', () => {
-    comp.loadingState = 'success';
-    comp.allPosts = [makePost('', 'A'), makePost('', 'B')];
-    expect(comp.resultSummary).toBe('2 articles in this archive');
-  });
 });

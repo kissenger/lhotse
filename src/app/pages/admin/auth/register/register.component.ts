@@ -5,6 +5,7 @@ import { AuthUser } from '../../../../shared/types';
 import { HttpService } from '../../../../shared/services/http.service';
 import { ToastService } from '@shared/services/toast.service';
 import { Router } from '@angular/router';
+import { errorMessage } from '@shared/utils/error-message';
 
 @Component({
   standalone: true,
@@ -37,7 +38,7 @@ export class RegisterComponent {
       await this._http.register(this.user);
       this._router.navigate(['/dashboard']); 
     } catch (error: any) {
-      this._toaster.show(<string>error?.error?.message || 'Registration failed', 'error');
+      this._toaster.show(errorMessage(error, 'Registration failed'), 'error');
     } finally {
       document.body.style.cursor = 'auto';
     }

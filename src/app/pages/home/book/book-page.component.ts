@@ -1,39 +1,13 @@
 import { Component } from '@angular/core';
 import { BookComponent } from '@pages/home/book/book.component';
+import { PageShellComponent } from '@shared/components/page-shell/page-shell.component';
 
 @Component({
   standalone: true,
-  imports: [BookComponent],
+  imports: [BookComponent, PageShellComponent],
   template: `
-    <main class="route-shell">
-      <section class="route-shell-header dynamic-container">
-        <h1>Snorkelling Britain Book</h1>
-      </section>
-      <section class="route-shell-content">
-        <app-book></app-book>
-      </section>
-    </main>`,
-  styles: [`
-    .route-shell {
-      margin-top: var(--header-height);
-      padding-block: 1.25rem 2rem;
-    }
-
-    .route-shell-header {
-      margin-bottom: 0.75rem;
-    }
-
-    .route-shell-header h1 {
-      margin: 0;
-      text-align: center;
-      font-size: clamp(1.8rem, 3.8vw, 2.4rem);
-      line-height: 1.15;
-      text-wrap: balance;
-    }
-
-    .route-shell-content {
-      display: block;
-    }
-  `]
+    <app-page-shell heading="Snorkelling Britain">
+      <app-book></app-book>
+    </app-page-shell>`
 })
 export class BookPageComponent {}

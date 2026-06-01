@@ -10,6 +10,26 @@ import 'dotenv/config';
 
 const blog = express();
 
+function sendInternalServerError(res: express.Response): void {
+  res.status(500).json({ error: 'Internal server error' });
+}
+
+function sendBlogNotFoundOrInternal(res: express.Response, error: unknown): void {
+  if ((error as any)?.name === 'BlogError') {
+    res.status(404).json({ message: 'Not Found' });
+    return;
+  }
+  sendInternalServerError(res);
+}
+
+function withRawServerError(handler: (req: any, res: any) => Promise<void>) {
+  return (req: any, res: any) => {
+    void handler(req, res).catch((error: any) => {
+      res.status(500).send(error);
+    });
+  };
+}
+
 // Blog API endpoints are machine-readable responses and should never appear in search results.
 blog.use('/api/blog', (_req, res, next) => {
   res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
@@ -60,7 +80,7 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
     };
     res.status(201).json(result); 
   } catch (error: any) { 
-    res.status(500).json({ error: 'Internal server error' });
+    sendInternalServerError(res);
   }
 });
 
@@ -68,12 +88,12 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
     try {
       const result = await BlogModel.find(
         { publishedAt: { $ne: null } },
-        { slug: 1, updatedAt: 1, imgFname: 1 }
+        { slug: 1, updatedAt: 1, imgFname: 1, blogSection: 1 }
       ).sort({ "createdAt": "descending" }).lean();
 
       res.status(200).json(result);
     } catch (error: any) {
-      res.status(500).json({ error: 'Internal server error' });
+      sendInternalServerError(res);
     }
   });
 
@@ -86,7 +106,7 @@ blog.get('/api/blog/get-published-posts/', async (_req, res) => {
     const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"}).lean();
     res.status(201).json(result);
   } catch (error: any) { 
-    res.status(500).json({ error: 'Internal server error' });
+    sendInternalServerError(res);
   }
 });
 
@@ -106,11 +126,7 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
     res.status(200).json({ article });
 
   } catch (error: any) {
-    if (error?.name === 'BlogError') {
-      res.status(404).json({ message: 'Not Found' });
-      return;
-    }
-    res.status(500).json({ error: 'Internal server error' });
+    sendBlogNotFoundOrInternal(res, error);
   }
 });
 
@@ -129,11 +145,7 @@ blog.get('/api/blog/get-post-preview-by-slug/:slug', previewAuthGuard, async (re
 
     res.status(200).json({ article });
   } catch (error: any) {
-    if (error?.name === 'BlogError') {
-      res.status(404).json({ message: 'Not Found' });
-      return;
-    }
-    res.status(500).json({ error: 'Internal server error' });
+    sendBlogNotFoundOrInternal(res, error);
   }
 });
 
@@ -156,80 +168,72 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
     res.status(200).json({lastSlug, nextSlug, lastTitle, nextTitle });
     
   } catch (error: any) {
-    if (error?.name === 'BlogError') {
-      res.status(404).json({ message: 'Not Found' });
-      return;
-    }
-    res.status(500).json({ error: 'Internal server error' });
+    sendBlogNotFoundOrInternal(res, error);
   }
 });
 
-blog.post('/api/blog/upsert-post/', verifyToken, async (req, res) => {
-  try {
-    if (req.body._id !=='') {
-      const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
-      delete req.body.preserveUpdatedAt;
+blog.post('/api/blog/upsert-post/', verifyToken, withRawServerError(async (req, res) => {
+  if (req.body._id !=='') {
+    const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
+    delete req.body.preserveUpdatedAt;
 
-      const existing = await BlogModel.findById(req.body._id, { publishedAt: 1, updatedAt: 1, blogSection: 1 }).lean();
-      if (!existing) {
-        throw new BlogError('Not Found');
+    const existing = await BlogModel.findById(req.body._id, { publishedAt: 1, updatedAt: 1, blogSection: 1 }).lean();
+    if (!existing) {
+      throw new BlogError('Not Found');
+    }
+
+    // Never let the client overwrite publishedAt — manage it server-side only
+    const clientPublishedAt = req.body.publishedAt;
+    delete req.body.publishedAt;
+    delete req.body.isPublished;
+    const update: any = { ...req.body };
+    let publishStateChanged = false;
+
+    if (clientPublishedAt === undefined) {
+      // no publish change — leave publishedAt untouched
+    } else if (clientPublishedAt === '') {
+      // Explicit unpublish — clear publishedAt
+      update.publishedAt = null;
+      publishStateChanged = !!existing.publishedAt;
+    } else if (clientPublishedAt === 'publish') {
+      // Set publishedAt only when first publishing (not already set)
+      if (existing && !existing.publishedAt) {
+        update.publishedAt = new Date();
+        publishStateChanged = true;
       }
+    }
 
-      // Never let the client overwrite publishedAt — manage it server-side only
-      const clientPublishedAt = req.body.publishedAt;
-      delete req.body.publishedAt;
-      delete req.body.isPublished;
-      const update: any = { ...req.body };
-      let publishStateChanged = false;
+    const existingSection = (existing.blogSection || '').toString().trim();
+    const incomingSection = (req.body.blogSection || '').toString().trim();
+    const sectionChanged = existingSection !== incomingSection;
+    const shouldPreserveUpdatedAt = (preserveUpdatedAt || sectionChanged) && !publishStateChanged;
 
-      if (clientPublishedAt === undefined) {
-        // no publish change — leave publishedAt untouched
-      } else if (clientPublishedAt === '') {
-        // Explicit unpublish — clear publishedAt
-        update.publishedAt = null;
-        publishStateChanged = !!existing.publishedAt;
-      } else if (clientPublishedAt === 'publish') {
-        // Set publishedAt only when first publishing (not already set)
-        if (existing && !existing.publishedAt) {
-          update.publishedAt = new Date();
-          publishStateChanged = true;
-        }
-      }
+    if (shouldPreserveUpdatedAt && existing.updatedAt) {
+      update.updatedAt = existing.updatedAt;
+    }
 
-      const existingSection = (existing.blogSection || '').toString().trim();
-      const incomingSection = (req.body.blogSection || '').toString().trim();
-      const sectionChanged = existingSection !== incomingSection;
-      const shouldPreserveUpdatedAt = (preserveUpdatedAt || sectionChanged) && !publishStateChanged;
-
-      if (shouldPreserveUpdatedAt && existing.updatedAt) {
-        update.updatedAt = existing.updatedAt;
-      }
-
-      await BlogModel.findByIdAndUpdate(
-        req.body._id,
-        update,
-        shouldPreserveUpdatedAt ? { timestamps: false } : undefined
-      );
+    await BlogModel.findByIdAndUpdate(
+      req.body._id,
+      update,
+      shouldPreserveUpdatedAt ? { timestamps: false } : undefined
+    );
+  } else {
+    delete req.body._id;
+    delete req.body.createdAt;
+    req.body.isDeleted = false;
+    req.body.deletedAt = null;
+    delete req.body.isPublished;
+    if (req.body.publishedAt === 'publish') {
+      req.body.publishedAt = new Date();
     } else {
-      delete req.body._id;
-      delete req.body.createdAt;
-      req.body.isDeleted = false;
-      req.body.deletedAt = null;
-      delete req.body.isPublished;
-      if (req.body.publishedAt === 'publish') {
-        req.body.publishedAt = new Date();
-      } else {
-        delete req.body.publishedAt;
-      }
-      await BlogModel.create(req.body);
+      delete req.body.publishedAt;
     }
-
-    const result = await BlogModel.find({});
-    res.status(201).json(result);
-  } catch (error: any) {
-    res.status(500).send(error);
+    await BlogModel.create(req.body);
   }
-});
+
+  const result = await BlogModel.find({});
+  res.status(201).json(result);
+}));
 
 async function getSlugs(onlyPublishedPosts: boolean = true) {
   const result =  await BlogModel.find(
@@ -246,31 +250,23 @@ async function getSlugs(onlyPublishedPosts: boolean = true) {
   Get post specified by _id, and if successful return result of find all
   Returns: Array<BlogPost>
 */
-blog.post('/api/blog/backfill-published-at/', verifyToken, async (_req, res) => {
-  try {
-    // Set publishedAt = createdAt for all published posts that don't yet have publishedAt
-    const result = await BlogModel.updateMany(
-      { publishedAt: null },
-      [{ $set: { publishedAt: '$createdAt' } }]
-    );
-    res.status(200).json({ updated: result.modifiedCount });
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
-});
+blog.post('/api/blog/backfill-published-at/', verifyToken, withRawServerError(async (_req, res) => {
+  // Set publishedAt = createdAt for all published posts that don't yet have publishedAt
+  const result = await BlogModel.updateMany(
+    { publishedAt: null },
+    [{ $set: { publishedAt: '$createdAt' } }]
+  );
+  res.status(200).json({ updated: result.modifiedCount });
+}));
 
-blog.get('/api/blog/delete-post/:_id', verifyToken, async (req, res) => {
-  try {
-    await BlogModel.findOneAndUpdate(
-      { _id: req.params._id },
-      { isDeleted: true, deletedAt: new Date(), publishedAt: null }
-    );
-    const result = await BlogModel.find({});
-    res.status(201).json(result);
-  } catch (error: any) {
-    res.status(500).send(error);
-  }
-});
+blog.get('/api/blog/delete-post/:_id', verifyToken, withRawServerError(async (req, res) => {
+  await BlogModel.findOneAndUpdate(
+    { _id: req.params._id },
+    { isDeleted: true, deletedAt: new Date(), publishedAt: null }
+  );
+  const result = await BlogModel.find({});
+  res.status(201).json(result);
+}));
 
 async function getPublishedPostsForSeo() {
   const posts = await BlogModel.find(
@@ -283,7 +279,7 @@ async function getPublishedPostsForSeo() {
 async function getPublishedPostBySlugForSeo(slug: string) {
   const post = await BlogModel.findOne(
     { publishedAt: { $ne: null }, slug },
-    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1, review: 1 }
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1, review: 1, blogSection: 1 }
   ).lean();
   return post;
 }

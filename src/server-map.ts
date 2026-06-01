@@ -5,12 +5,23 @@ import CountyDescriptionModel from '../schema/county-description';
 import CountryDescriptionModel from '../schema/country-description';
 import { verifyToken } from './server-auth';
 import { buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountyMatchSlugs, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseCountySlug, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
+import { firstNonEmpty, hasCoordinatePair, hasNonEmptyStringArray, isNonEmptyString } from './app/shared/utils/value-guards';
 import 'dotenv/config';
 
 const AI_SCORE_THRESHOLD_DEFAULT = 70;
 const TRUTHY_FLAG_VALUES: Array<string | number | boolean> = [true, 'true', 1, '1', 'yes', 'on'];
 
 const map = express();
+
+type AsyncRoute = (req: any, res: any) => Promise<void>;
+
+function withInternalError(handler: AsyncRoute) {
+  return (req: any, res: any) => {
+    void handler(req, res).catch(() => {
+      res.status(500).json({ error: 'Internal server error' });
+    });
+  };
+}
 
 async function getOrgScoreThreshold(): Promise<number> {
   try {
@@ -45,17 +56,10 @@ function orgToGeoJsonFeature(org: any, id: number) {
   const gc = org.generate?.content ?? {};
   const rgCtx = org.reverse_geo?.properties?.context ?? {};
   const coords: number[] | undefined = d.location?.coordinates;
-  if (!coords || coords.length < 2) return null;
+  if (!hasCoordinatePair(coords)) return null;
   const [lng, lat] = coords;
-  const firstNonEmpty = (...vals: unknown[]): string => {
-    for (const v of vals) {
-      if (typeof v === 'string' && v.trim() !== '') return v.trim();
-    }
-    return '';
-  };
-  const hasNonEmptyArray = (v: unknown): v is string[] => Array.isArray(v) && v.some(x => typeof x === 'string' && x.trim() !== '');
-  const favouriteTags = hasNonEmptyArray(fav.tags) ? fav.tags : [];
-  const generatedTags = hasNonEmptyArray(gc.tags) ? gc.tags : [];
+  const favouriteTags = hasNonEmptyStringArray(fav.tags) ? fav.tags : [];
+  const generatedTags = hasNonEmptyStringArray(gc.tags) ? gc.tags : [];
 
   const website   = firstNonEmpty(favContacts.website, fav.website, sl.website, d.website);
   const facebook  = firstNonEmpty(favContacts.facebook, fav.facebook, sl.facebook);
@@ -96,49 +100,37 @@ function orgToGeoJsonFeature(org: any, id: number) {
   };
 }
 
-map.get('/api/sites/get-sites/*', async (req, res) => {
-
+map.get('/api/sites/get-sites/*', withInternalError(async (req, res) => {
   let visibility = <string>Object.values(req.params)[0];
   const visibilityArr = visibility.split('/');
+  const [sites, orgs] = await Promise.all([
+    FeatureModel.find({
+      showOnMap: { $in: visibilityArr },
+    }),
+    OrganisationModel.find(await buildOrgFilter()).lean(),
+  ]);
+  const siteFeatures = sites.map((s: any, i: number) => ({
+    type: 'Feature',
+    id: i,
+    geometry: s.location,
+    properties: {
+      ...s.properties,
+      updatedAt: s.updatedAt,
+    },
+  }));
+  const orgFeatures = orgs
+    .map((org: any, i: number) => orgToGeoJsonFeature(org, siteFeatures.length + i))
+    .filter(Boolean);
+  res.status(201).json({ type: 'FeatureCollection', features: [...siteFeatures, ...orgFeatures] });
+}));
 
-  try {
-    const [sites, orgs] = await Promise.all([
-      FeatureModel.find({
-        showOnMap: { $in: visibilityArr },
-      }),
-      OrganisationModel.find(await buildOrgFilter()).lean(),
-    ]);
-    const siteFeatures = sites.map((s: any, i: number) => ({
-      type: 'Feature',
-      id: i,
-      geometry: s.location,
-      properties: {
-        ...s.properties,
-        updatedAt: s.updatedAt,
-      },
-    }));
-    const orgFeatures = orgs
-      .map((org: any, i: number) => orgToGeoJsonFeature(org, siteFeatures.length + i))
-      .filter(Boolean);
-    res.status(201).json({ type: 'FeatureCollection', features: [...siteFeatures, ...orgFeatures] });
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-map.get('/api/organisations/get-organisations/*', async (_req, res) => {
-
-
-  try {
-    const orgs = await OrganisationModel.find(await buildOrgFilter()).lean();
-    const orgFeatures = orgs
-      .map((org: any, i: number) => orgToGeoJsonFeature(org, i))
-      .filter(Boolean);
-    res.status(201).json({ type: 'FeatureCollection', features: orgFeatures });
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+map.get('/api/organisations/get-organisations/*', withInternalError(async (_req, res) => {
+  const orgs = await OrganisationModel.find(await buildOrgFilter()).lean();
+  const orgFeatures = orgs
+    .map((org: any, i: number) => orgToGeoJsonFeature(org, i))
+    .filter(Boolean);
+  res.status(201).json({ type: 'FeatureCollection', features: orgFeatures });
+}));
 
 
 function toPostalAddress(location: any) {
@@ -165,7 +157,7 @@ function extractProviderLinks(moreInfo: any[]): { url: string | undefined; sameA
   const entries: any[] = Array.isArray(moreInfo) ? moreInfo : [];
   const urls = entries
     .map((m: any) => m?.url)
-    .filter((u: any): u is string => typeof u === 'string' && u.trim() !== '');
+    .filter((u: any): u is string => isNonEmptyString(u));
 
   if (!urls.length) return { url: undefined, sameAs: undefined };
 
@@ -211,21 +203,15 @@ function toOrganisationSeoPlace(org: any) {
   const gc = org.generate?.content ?? {};
   const coords: number[] = d.location?.coordinates ?? [0, 0];
   const tags: string[] = Array.isArray(fav.tags) ? fav.tags : [];
-  const category = (typeof fav.category === 'string' && fav.category.trim()) ? fav.category.trim() : '';
-  const descriptionText = (typeof fav.description === 'string' && fav.description.trim()) ? fav.description.trim() : '';
+  const category = firstNonEmpty(fav.category);
+  const descriptionText = firstNonEmpty(fav.description);
   const reverseGeo = org.reverse_geo?.properties?.context ?? {};
   const district = reverseGeo.district?.name as string | undefined;
   const region = reverseGeo.region?.name as string | undefined;
   const countrySlug = getCountrySlugFromRegion(region);
   const countySlug = getCountySlugFromLocation({ district });
-  
+
   // Use same name priority as orgToGeoJsonFeature: fav.name -> gc.name -> d.title
-  const firstNonEmpty = (...vals: unknown[]): string => {
-    for (const v of vals) {
-      if (typeof v === 'string' && v.trim() !== '') return v.trim();
-    }
-    return '';
-  };
   const orgName = firstNonEmpty(fav.name, gc.name, d.title);
   const siteSlug = normaliseSiteSegment(orgName);
 
@@ -413,91 +399,79 @@ async function getCountrySlugForCounty(countySlug: string) {
 
 export { map, getPlacesForSeo, getPlacesForSeoWithRouteMeta, getPlaceForSeo, getPlaceForSeoByRoute, getCountrySlugForCounty };
 
-map.get('/api/sites/get-provider-names/', async (_req, res) => {
-  try {
-    const sites = await FeatureModel.find(
-      {
-        showOnMap: { $in: ['Production', 'Development'] },
-        'properties.featureType': 'Snorkelling Site'
-      },
-      { 'properties.name': 1, 'properties.location': 1, updatedAt: 1 }
-    ).lean();
-    const result = (sites as any[])
-      .filter((site: any) => typeof site.properties?.name === 'string' && site.properties.name.trim() !== '')
-      .map((site: any) => ({
-        name: site.properties.name as string,
-        updatedAt: site.updatedAt,
-        path: buildMapPath({
-          country: getCountrySlugFromRegion(site.properties?.location?.region),
-          county: getCountySlugFromLocation(site.properties?.location),
-          siteName: site.properties.name as string,
-        })
-      }));
-    res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
+map.get('/api/sites/get-provider-names/', withInternalError(async (_req, res) => {
+  const sites = await FeatureModel.find(
+    {
+      showOnMap: { $in: ['Production', 'Development'] },
+      'properties.featureType': 'Snorkelling Site'
+    },
+    { 'properties.name': 1, 'properties.location': 1, updatedAt: 1 }
+  ).lean();
+  const result = (sites as any[])
+    .filter((site: any) => isNonEmptyString(site.properties?.name))
+    .map((site: any) => ({
+      name: site.properties.name as string,
+      updatedAt: site.updatedAt,
+      path: buildMapPath({
+        country: getCountrySlugFromRegion(site.properties?.location?.region),
+        county: getCountySlugFromLocation(site.properties?.location),
+        siteName: site.properties.name as string,
+      })
+    }));
+  res.status(200).json(result);
+}));
+
+map.get('/api/sites/get-districts/', withInternalError(async (_req, res) => {
+  const sites = await FeatureModel.find(
+    { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': 'Snorkelling Site' },
+    { 'properties.location': 1 }
+  ).lean();
+  const districts = [...new Map(
+    (sites as any[])
+      .map((site: any) => {
+        const location = site.properties?.location ?? {};
+        const countySlug = getCountySlugFromLocation(location);
+        if (!countySlug) {
+          return null;
+        }
+        const path = buildMapPath({
+          country: getCountrySlugFromRegion(location.region),
+          county: countySlug,
+        });
+        return [path, { name: location.district ?? location.county ?? location.adminLevel3, path }];
+      })
+      .filter((entry: any): entry is [string, { name: string; path: string }] => !!entry)
+  ).values()].sort((a, b) => a.path.localeCompare(b.path));
+  res.status(200).json(districts);
+}));
+
+map.get('/api/sites/get-county-description/:countySlug', withInternalError(async (req, res) => {
+  const countySlug = normaliseCountySegment(req.params.countySlug);
+  if (!countySlug) {
+    res.status(400).json({ error: 'invalid countySlug' });
+    return;
   }
-});
 
-map.get('/api/sites/get-districts/', async (_req, res) => {
-  try {
-    const sites = await FeatureModel.find(
-      { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': 'Snorkelling Site' },
-      { 'properties.location': 1 }
-    ).lean();
-    const districts = [...new Map(
-      (sites as any[])
-        .map((site: any) => {
-          const location = site.properties?.location ?? {};
-          const countySlug = getCountySlugFromLocation(location);
-          if (!countySlug) {
-            return null;
-          }
-          const path = buildMapPath({
-            country: getCountrySlugFromRegion(location.region),
-            county: countySlug,
-          });
-          return [path, { name: location.district ?? location.county ?? location.adminLevel3, path }];
-        })
-        .filter((entry: any): entry is [string, { name: string; path: string }] => !!entry)
-    ).values()].sort((a, b) => a.path.localeCompare(b.path));
-    res.status(200).json(districts);
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
+  // Get all related slugs (canonical + aliases) to handle backwards compatibility
+  const matchSlugs = Array.from(getCountyMatchSlugs(countySlug));
+  const doc = await CountyDescriptionModel.findOne(
+    { countySlug: { $in: matchSlugs } },
+    { countyName: 1, countySlug: 1, description: 1 }
+  ).lean();
+
+  if (!doc) {
+    res.status(200).json({ countySlug, description: '' });
+    return;
   }
-});
 
-map.get('/api/sites/get-county-description/:countySlug', async (req, res) => {
-  try {
-    const countySlug = normaliseCountySegment(req.params.countySlug);
-    if (!countySlug) {
-      res.status(400).json({ error: 'invalid countySlug' });
-      return;
-    }
-
-    // Get all related slugs (canonical + aliases) to handle backwards compatibility
-    const matchSlugs = Array.from(getCountyMatchSlugs(countySlug));
-    const doc = await CountyDescriptionModel.findOne(
-      { countySlug: { $in: matchSlugs } },
-      { countyName: 1, countySlug: 1, description: 1 }
-    ).lean();
-
-    if (!doc) {
-      res.status(200).json({ countySlug, description: '' });
-      return;
-    }
-
-    // Ensure the returned slug is canonical
-    const canonicalDoc = {
-      countyName: (doc as any).countyName,
-      countySlug: countySlug,
-      description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
-    };
-    res.status(200).json(canonicalDoc);
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  // Ensure the returned slug is canonical
+  const canonicalDoc = {
+    countyName: (doc as any).countyName,
+    countySlug: countySlug,
+    description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+  };
+  res.status(200).json(canonicalDoc);
+}));
 
 /* Admin CRUD endpoints */
 
@@ -649,33 +623,29 @@ map.delete('/api/sites/delete-county-description/:_id', verifyToken, async (req,
   }
 });
 
-map.get('/api/sites/get-country-description/:countrySlug', async (req, res) => {
-  try {
-    const countrySlug = normaliseCountrySegment(req.params.countrySlug);
-    if (!countrySlug) {
-      res.status(400).json({ error: 'invalid countrySlug' });
-      return;
-    }
-
-    const doc = await CountryDescriptionModel.findOne(
-      { countrySlug },
-      { countryName: 1, countrySlug: 1, description: 1 }
-    ).lean();
-
-    if (!doc) {
-      res.status(200).json({ countrySlug, description: '' });
-      return;
-    }
-
-    res.status(200).json({
-      countryName: (doc as any).countryName,
-      countrySlug: (doc as any).countrySlug,
-      description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: 'Internal server error' });
+map.get('/api/sites/get-country-description/:countrySlug', withInternalError(async (req, res) => {
+  const countrySlug = normaliseCountrySegment(req.params.countrySlug);
+  if (!countrySlug) {
+    res.status(400).json({ error: 'invalid countrySlug' });
+    return;
   }
-});
+
+  const doc = await CountryDescriptionModel.findOne(
+    { countrySlug },
+    { countryName: 1, countrySlug: 1, description: 1 }
+  ).lean();
+
+  if (!doc) {
+    res.status(200).json({ countrySlug, description: '' });
+    return;
+  }
+
+  res.status(200).json({
+    countryName: (doc as any).countryName,
+    countrySlug: (doc as any).countrySlug,
+    description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+  });
+}));
 
 map.get('/api/sites/get-countries-admin/', verifyToken, async (_req, res) => {
   try {

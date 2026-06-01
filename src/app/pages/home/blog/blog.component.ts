@@ -1,11 +1,14 @@
-import { ChangeDetectorRef, Component, HostListener, Inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { BlogPost } from '@shared/types';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { BlogCardComponent } from './blog-card/blog-card.component';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { normalizeText, normalizeToSlug } from '@shared/utils/text-normalization';
+import { ScrollOffsetService } from '@shared/services/scroll-offset.service';
 
 @Component({
   standalone: true,
@@ -15,15 +18,22 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./blog.component.css'],
 })
 
-export class BlogComponent implements OnInit {
+export class BlogComponent implements OnInit, OnDestroy {
   public groupedPosts: Array<{ title: string; slug: string; description: string; posts: BlogPost[] }> = [];
+  public allGroupedPosts: Array<{ title: string; slug: string; description: string; posts: BlogPost[] }> = [];
+  public latestPosts: Array<BlogPost> = [];
+  public selectedSectionSlug: string = '';
   public allPosts: Array<BlogPost> = [];
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
   public activeSectionSlug = '';
+  public sectionPostCounts = new Map<string, number>();
   private _activeSectionTicking = false;
+  private _routeParamSub: Subscription | null = null;
 
   // Blog page text content (DRY - defined once in component)
   public readonly pageHeading = 'British Snorkelling Articles';
+  public readonly pageLead = 'Welcome to our articles page where we share the latest news, insights and guides on British snorkelling. Whether you\'re looking for tips on the best local spots, gear reviews or stories from the water, you\'ll find it all here. Dive (or snorkel!) in and explore our growing collection of British snorkelling content.';
+  public readonly latestCount = 5;
   public readonly defaultSections: Array<{ title: string; slug: string; description: string }> = [
     { title: 'Snorkelling Sites', slug: 'snorkelling-sites', description: 'Guides to coastlines, bays and standout entry points around Britain.' },
     { title: 'News', slug: 'news', description: 'Latest snorkelology updates, launches and notable developments.' },
@@ -36,25 +46,58 @@ export class BlogComponent implements OnInit {
     return this.groupedPosts.filter((section) => section.posts.length > 0);
   }
 
-  public get resultSummary() {
-    if (this.loadingState !== 'success') {
+  public get showLatestSection(): boolean {
+    return !this.selectedSectionSlug && this.latestPosts.length > 0;
+  }
+
+  public get isSectionFilteredRoute(): boolean {
+    return !!this.selectedSectionSlug;
+  }
+
+  public get selectedSectionTitle(): string {
+    if (!this.selectedSectionSlug) {
       return '';
     }
 
-    const total = this.allPosts.length;
-    return `${total} article${total === 1 ? '' : 's'} in this archive`;
+    const section = this.allGroupedPosts.find((item) => item.slug === this.selectedSectionSlug);
+    return section?.title || this.selectedSectionSlug;
+  }
+
+  public get topicLinks() {
+    return [
+      { title: 'All Topics', slug: '', count: this.allPosts.length },
+      ...this.allGroupedPosts
+        .filter((section) => (this.sectionPostCounts.get(section.slug) || 0) > 0)
+        .map((section) => ({
+          title: section.title,
+          slug: section.slug,
+          count: this.sectionPostCounts.get(section.slug) || 0
+        }))
+    ];
   }
 
   constructor(
     private _http: HttpService,
+    private _route: ActivatedRoute,
     @Inject(PLATFORM_ID) private _platformId: any,
-    private _cdr: ChangeDetectorRef
+    private _cdr: ChangeDetectorRef,
+    private _scrollOffset: ScrollOffsetService
   ) {
   }
 
   ngOnInit() {
     if (!isPlatformBrowser(this._platformId)) return;
+    this._syncSectionFromRoute();
+    this._routeParamSub = this._route.paramMap.subscribe(() => {
+      this._syncSectionFromRoute();
+      this._rebuildViewModel();
+      this._cdr.detectChanges();
+    });
     this._loadPosts();
+  }
+
+  ngOnDestroy(): void {
+    this._routeParamSub?.unsubscribe();
   }
 
   @HostListener('window:scroll')
@@ -74,9 +117,9 @@ export class BlogComponent implements OnInit {
         this._http.getPublishedPosts(bustCache),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
       ]);
-      this.allPosts = posts as BlogPost[];
+      this.allPosts = this._sortByRecency(posts as BlogPost[]);
       this.loadingState = 'success';
-      this.groupedPosts = this._groupPosts(this.allPosts);
+      this._rebuildViewModel();
       this._syncActiveSectionFromHash();
       this._scheduleActiveSectionSync();
       this._cdr.detectChanges();
@@ -99,7 +142,7 @@ export class BlogComponent implements OnInit {
     });
 
     posts.forEach((post) => {
-      const sectionTitle = this._normaliseSectionTitle(post.blogSection);
+      const sectionTitle = normalizeText(post.blogSection);
       if (!sectionTitle) {
         return;
       }
@@ -107,7 +150,7 @@ export class BlogComponent implements OnInit {
       if (!grouped.has(sectionTitle)) {
         grouped.set(sectionTitle, {
           title: sectionTitle,
-          slug: this._normaliseSectionSlug(sectionTitle),
+          slug: normalizeToSlug(sectionTitle),
           description: 'Articles in this section.',
           posts: []
         });
@@ -145,19 +188,35 @@ export class BlogComponent implements OnInit {
     });
   }
 
-  private _normaliseSectionTitle(value?: string): string {
-    return (value || '')
-      .toString()
-      .trim();
+  private _rebuildViewModel() {
+    const grouped = this._groupPosts(this.allPosts);
+    this.allGroupedPosts = grouped;
+    this.latestPosts = this.allPosts.slice(0, this.latestCount);
+    this.sectionPostCounts = new Map(grouped.map((section) => [section.slug, section.posts.length]));
+
+    if (this.isSectionFilteredRoute) {
+      this.groupedPosts = grouped.filter((section) => section.slug === this.selectedSectionSlug);
+      return;
+    }
+
+    this.groupedPosts = grouped;
   }
 
-  private _normaliseSectionSlug(value?: string): string {
-    return (value || '')
-      .toString()
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+  private _syncSectionFromRoute() {
+    this.selectedSectionSlug = normalizeToSlug(this._route.snapshot.paramMap.get('sectionSlug') || '');
+  }
+
+  private _sortByRecency(posts: BlogPost[]): BlogPost[] {
+    return [...posts].sort((a, b) => {
+      const aTs = this._toTimestamp(a.publishedAt) || this._toTimestamp(a.updatedAt) || this._toTimestamp(a.createdAt);
+      const bTs = this._toTimestamp(b.publishedAt) || this._toTimestamp(b.updatedAt) || this._toTimestamp(b.createdAt);
+      return bTs - aTs;
+    });
+  }
+
+  private _toTimestamp(value?: string): number {
+    const stamp = Date.parse((value || '').trim());
+    return Number.isFinite(stamp) ? stamp : 0;
   }
 
   private _scheduleActiveSectionSync() {
@@ -193,7 +252,7 @@ export class BlogComponent implements OnInit {
       return;
     }
 
-    const headerOffset = 96;
+    const headerOffset = this._scrollOffset.getFragmentOffset(0);
     const visibleSection = sections
       .map((section) => ({
         slug: section.id,

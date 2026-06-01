@@ -1,5 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { ScrollspyService } from '@shared/services/scrollspy.service';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ScreenService } from '@shared/services/screen.service';
 import { filter, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -17,17 +16,23 @@ import { HttpService } from '@shared/services/http.service';
 export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   private static readonly _HOME_PATHS = new Set(['', '/', '/home']);
+  private static readonly _MENU_ROUTE_MATCHERS: Array<{ name: string; match: (path: string) => boolean }> = [
+    { name: 'Articles', match: (path) => path === '/articles' || path.startsWith('/articles/') || path === '/blog' || path.startsWith('/blog/') },
+    { name: 'Book', match: (path) => path === '/snorkelling-britain' },
+    { name: 'Shop', match: (path) => path === '/shop' },
+    { name: 'Map', match: (path) => path === '/map' || path.startsWith('/map/') },
+    { name: 'FAQs', match: (path) => path === '/faqs' }
+  ];
 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
   @ViewChild('brandbox') brandBox!: ElementRef;
 
-  private _scrSubs: Subscription | null = null;
   private _routeSubs: Subscription | null = null;
 
   public menuItems: Array<{name: string, route: string, fragment?: string}> = [
     { name: 'Home',    route: '/',      fragment: 'home' },
-    { name: 'Articles', route: '/blog' },
-    { name: 'Book',    route: '/book' },
+    { name: 'Articles', route: '/articles' },
+    { name: 'Book',    route: '/snorkelling-britain' },
     { name: 'Shop',    route: '/shop' },
     { name: 'Map',     route: '/map' },
     { name: 'FAQs',    route: '/faqs' },
@@ -44,24 +49,13 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     @Inject(Router) private _router: Router,
-    private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
-    private _cdr: ChangeDetectorRef,
     private _http: HttpService,
   ) {
-    this._scrSubs = this._scrollSpy.intersectionEmitter.subscribe((isect) => {
-      const activeMenuItem = this.menuItems.find((item) => item.fragment === isect.id)?.name;
-      if (activeMenuItem) {
-        this.activeMenuItem = activeMenuItem;
-        this._cdr.detectChanges();
-      }
-    });
-
     this._routeSubs = this._router.events.pipe(filter((e: any) => e instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.syncActiveMenuItemToRoute(event.urlAfterRedirects);
         this._updateAdminRoute(event.urlAfterRedirects);
-        this._cdr.detectChanges();
     });
 
     this.syncActiveMenuItemToRoute(this._router.url);
@@ -119,7 +113,6 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
 
   ngOnDestroy() {
-    this._scrSubs?.unsubscribe();
     this._routeSubs?.unsubscribe();
   }
 
@@ -137,28 +130,9 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     const normalizedPath = path || '/';
     const isHomeRoute = HeaderComponent._HOME_PATHS.has(normalizedPath);
 
-    if (normalizedPath === '/blog' || normalizedPath.startsWith('/blog/')) {
-      this.activeMenuItem = 'Articles';
-      return;
-    }
-
-    if (normalizedPath === '/book') {
-      this.activeMenuItem = 'Book';
-      return;
-    }
-
-    if (normalizedPath === '/shop') {
-      this.activeMenuItem = 'Shop';
-      return;
-    }
-
-    if (normalizedPath === '/map' || normalizedPath.startsWith('/map/')) {
-      this.activeMenuItem = 'Map';
-      return;
-    }
-
-    if (normalizedPath === '/faqs') {
-      this.activeMenuItem = 'FAQs';
+    const matchedMenu = HeaderComponent._MENU_ROUTE_MATCHERS.find((matcher) => matcher.match(normalizedPath));
+    if (matchedMenu) {
+      this.activeMenuItem = matchedMenu.name;
       return;
     }
 

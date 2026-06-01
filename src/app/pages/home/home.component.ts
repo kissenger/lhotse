@@ -1,18 +1,18 @@
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
-import { ScrollspyService } from     '@shared/services/scrollspy.service';
 import { HttpService } from          '@shared/services/http.service';
 import { BlogPost } from             '@shared/types';
-import { faqFragment, faqItems, faqPreviewExcerpt, type FaqItem } from '@shared/faq-data';
+import { faqFragment, faqItems, faqPreviewExcerpt, featuredFaqQuestions, type FaqItem } from '@shared/faq-data';
 import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
 import { AboutUsComponent } from     '@pages/home/about/about.component';
 import { PartnersComponent } from    '@pages/home/partners/partners.component';
 import { BlogCardComponent } from    '@pages/home/blog/blog-card/blog-card.component';
 import { environment } from          '@environments/environment';
 import { shopItems } from            '@shared/globals';
+import { IdleSchedulerService } from '@shared/services/idle-scheduler.service';
 
 @Component({
   standalone: true,
@@ -36,20 +36,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }));
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
-  @ViewChildren('anchor') anchors!: QueryList<ElementRef>;
 
   public hideAboutBookOverlay = false;
   public overlayReady = false;
-  public deferredSectionsReady = false;
+  public blogPreviewLoading = true;
+  public faqPreviewLoading = true;
   public latestBlogPreviews: BlogPost[] = [];
   public faqPreviewItems: Array<FaqItem & { fragment: string; excerpt: string }> = [];
   public widthDescriptor?: string;
   private _subs: Subscription[] = [];
-  private _fragmentScrollTimer?: ReturnType<typeof setTimeout>;
-  private _idleCallbackId?: number;
-  private _idleTimeoutId?: ReturnType<typeof setTimeout>;
+  private _cancelNonCriticalTask?: () => void;
   private readonly _isBrowser: boolean;
   private static readonly _VISITED_COOKIE = 'sn_visited';
+  private readonly _faqItemsByQuestion = new Map(faqItems.map((item) => [item.question, item] as const));
+  private readonly _overlayScrollHandler = () => {
+    if (this.hideAboutBookOverlay || window.scrollY <= 16) {
+      return;
+    }
+
+    this.hideAboutBookOverlay = true;
+    this._removeOverlayScrollListener();
+    this._cdr.detectChanges();
+  };
 
   readonly panelConfig: Record<string, { path: string }> = {
     windowOne:   { path: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall" },
@@ -60,14 +68,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     windowSix:   { path: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain" },
   }
 
-  private _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
+  private readonly _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
-    private _route: ActivatedRoute,
-    private _scrollSpy: ScrollspyService,
     private _screen: ScreenService,
     private _http: HttpService,
+    private _idleScheduler: IdleSchedulerService,
     private _cdr: ChangeDetectorRef,
   ) {
     this._isBrowser = isPlatformBrowser(this.platformId);
@@ -75,46 +82,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (this._isBrowser) {
-      // Background images are loaded lazily via windows.changes when deferred sections render.
-
-      // Hide book overlay for returning visitors (non-tracking, functional cookie)
       if (document.cookie.split(';').some(c => c.trim().startsWith(HomeComponent._VISITED_COOKIE + '='))) {
         this.hideAboutBookOverlay = true;
       } else {
         document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
+        this._bindOverlayScrollListener();
       }
-
-      // Delay fragment scroll until deferred sections have had a chance to render.
-      this._fragmentScrollTimer = setTimeout(() => {
-        const fragment = this._route.snapshot.fragment;
-        if (!fragment) {
-          return;
-        }
-        document.querySelector(`#${fragment}`)?.scrollIntoView();
-      }, 500);
     }
 
-    // Scrollspy is non-critical for first paint; initialize during idle.
-    this._scheduleNonCritical(() => {
-      this.deferredSectionsReady = true;
-      this._cdr.detectChanges();
-      this._loadLatestBlogPreviews();
-      this._loadFaqPreviewItems();
+    // Fetch dynamic preview content immediately so the home previews appear quickly.
+    this._loadLatestBlogPreviews();
+    this._loadFaqPreviewItems();
 
-      this._subs.push(this._scrollSpy.intersectionEmitter.subscribe((isect) => {
-        if (!this.hideAboutBookOverlay && isect.id !== 'home') {
-          this.hideAboutBookOverlay = true;
-          this._cdr.detectChanges();
-        }
-      }));
-
-      // Observe initial anchors and keep observing when deferred views render.
-      this._scrollSpy.observeChildren(this.anchors);
-      this._subs.push(this.anchors.changes.subscribe(() => {
-        this._scrollSpy.observeChildren(this.anchors);
-      }));
-
-      // Load all static window backgrounds together after first paint.
+    // Keep background image setup as non-critical work.
+    this._cancelNonCriticalTask = this._idleScheduler.schedule(() => {
       this.loadBackgroundImages();
     });
 
@@ -122,7 +103,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    //watch for changes as querylist will change when deferred views are loaded
+    // Watch for deferred section mounts and load newly rendered backgrounds.
     this._subs.push(this.windows.changes.subscribe(() => {
       this._loadAllWindowBackgrounds();
     }));
@@ -141,65 +122,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private async _loadLatestBlogPreviews() {
     if (!this._isBrowser) {
+      this.blogPreviewLoading = false;
       return;
     }
 
     try {
       const posts = await this._http.getPublishedPosts();
       this.latestBlogPreviews = (posts as BlogPost[]).slice(0, 3);
-      this._cdr.detectChanges();
     } catch {
       this.latestBlogPreviews = [];
-      this._cdr.detectChanges();
+    } finally {
+      this.blogPreviewLoading = false;
     }
   }
 
   private _loadFaqPreviewItems() {
-    const source = [...faqItems];
-
-    const weighted = source
+    const selected = featuredFaqQuestions
+      .map((question) => this._faqItemsByQuestion.get(question))
+      .filter((item): item is FaqItem => item !== undefined)
       .map((item) => ({
-        item,
+        ...item,
         fragment: faqFragment(item.question),
         excerpt: faqPreviewExcerpt(item.answer, 170),
-        weight: this._faqPreviewWeight(item.answer)
-      }))
-      .sort((left, right) => {
-        if (left.weight !== right.weight) {
-          return right.weight - left.weight;
-        }
+      }));
 
-        return left.item.question.localeCompare(right.item.question);
-      })
-      .slice(0, 3)
-      .map(({ item, fragment, excerpt }) => ({ ...item, fragment, excerpt }));
-
-    this.faqPreviewItems = weighted;
-    this._cdr.detectChanges();
-  }
-
-  private _faqPreviewWeight(answer: string): number {
-    return faqPreviewExcerpt(answer, 1000).length;
-  }
-
-  private _scheduleNonCritical(task: () => void) {
-    if (!this._isBrowser) {
-      return;
-    }
-
-    const requestIdle = window.requestIdleCallback?.bind(window);
-    if (requestIdle) {
-      this._idleCallbackId = requestIdle(() => {
-        this._idleCallbackId = undefined;
-        task();
-      }, { timeout: 1500 });
-      return;
-    }
-
-    this._idleTimeoutId = setTimeout(() => {
-      this._idleTimeoutId = undefined;
-      task();
-    }, 300);
+    this.faqPreviewItems = selected;
+    this.faqPreviewLoading = false;
   }
 
   private _loadAllWindowBackgrounds() {
@@ -238,24 +186,33 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   hideOverlay(overlay: string) {
     if (overlay === 'about-book') {
       this.hideAboutBookOverlay = true;
-      // Ensure overlay stays hidden on future visits
+      this._removeOverlayScrollListener();
       if (this._isBrowser) {
         document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
       }
     }
   }
 
+  private _bindOverlayScrollListener() {
+    if (!this._isBrowser || this.hideAboutBookOverlay) {
+      return;
+    }
+
+    window.addEventListener('scroll', this._overlayScrollHandler, { passive: true });
+  }
+
+  private _removeOverlayScrollListener() {
+    if (!this._isBrowser) {
+      return;
+    }
+
+    window.removeEventListener('scroll', this._overlayScrollHandler);
+  }
+
   ngOnDestroy() {
     this._subs.forEach((sub) => sub.unsubscribe());
-    if (this._isBrowser && this._idleCallbackId !== undefined && window.cancelIdleCallback) {
-      window.cancelIdleCallback(this._idleCallbackId);
-    }
-    if (this._idleTimeoutId) {
-      clearTimeout(this._idleTimeoutId);
-    }
-    if (this._fragmentScrollTimer) {
-      clearTimeout(this._fragmentScrollTimer);
-    }
+    this._removeOverlayScrollListener();
+    this._cancelNonCriticalTask?.();
   }
 
 }

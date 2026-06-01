@@ -8,6 +8,8 @@ import {shippingOptions, shopItems} from '@shared/globals';
 
 export class ShopService { 
 
+    private static readonly _DEFAULT_ITEM_IDS = ['0001', '0002', '0003', '0004'] as const;
+
     private _basket: Basket;
     private _user: User;
     private _items: Array<StockItem>;
@@ -64,6 +66,14 @@ export class ShopService {
     reset() {
         this._basket = new Basket();
         this._user = new User();
+    }
+
+    initializeDefaultBasket() {
+        this.reset();
+
+        for (const itemId of ShopService._DEFAULT_ITEM_IDS) {
+            this.basket.add(this.item(itemId), 0);
+        }
     }
 
     get order() {

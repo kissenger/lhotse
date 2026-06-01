@@ -15,7 +15,7 @@ const BASE_HOSTNAME = new URL(BASE_URL).hostname;
 import { readFile } from 'node:fs/promises';
 import { globSync } from 'glob';
 
-const SEED_PATHS = ['/home', '/map', '/privacy-policy'];
+const SEED_PATHS = ['/', '/home', '/map', '/privacy-policy'];
 const UA = 'Mozilla/5.0 (compatible; LinkChecker/1.0)';
 const TIMEOUT_MS = 15_000;
 
@@ -45,16 +45,20 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
-async function getStatus(url, method = 'HEAD') {
+async function probeUrl(url, method = 'HEAD', redirect = 'follow') {
   try {
     const res = await fetchWithTimeout(url, {
       method,
       headers: { 'User-Agent': UA },
-      redirect: 'follow',
+      redirect,
     });
-    return res.status;
+    return {
+      status: res.status,
+      location: res.headers.get('location') ?? undefined,
+      contentType: res.headers.get('content-type') ?? '',
+    };
   } catch {
-    return 'error';
+    return { status: 'error' };
   }
 }
 
@@ -118,6 +122,36 @@ async function crawlSeedPages() {
   return { internalPaths, externalUrls };
 }
 
+async function collectSitemapPaths() {
+  const internalPaths = new Set();
+
+  try {
+    const res = await fetchWithTimeout(`${BASE_URL}/sitemap.xml`, {
+      headers: { 'User-Agent': UA }
+    });
+    if (!res.ok) return internalPaths;
+
+    const xml = await res.text();
+    for (const [, rawLoc] of xml.matchAll(/<loc>([^<]+)<\/loc>/gi)) {
+      try {
+        const loc = rawLoc.trim();
+        const url = new URL(loc);
+        if (url.hostname !== BASE_HOSTNAME) continue;
+        const path = `${url.pathname}${url.search}`.replace(/\/$/, '') || '/';
+        if (!path.startsWith('/cdn-cgi/')) {
+          internalPaths.add(path);
+        }
+      } catch {
+        // skip malformed sitemap URL entries
+      }
+    }
+  } catch {
+    console.log('  [WARN] Could not fetch sitemap.xml');
+  }
+
+  return internalPaths;
+}
+
 async function collectTemplateAnchorLinks() {
   const internalPaths = new Set();
   const externalUrls = new Set();
@@ -138,48 +172,111 @@ async function collectTemplateAnchorLinks() {
 }
 
 async function collectBlogLinks() {
-  const urls = new Set();
+  const internalPaths = new Set();
+  const externalUrls = new Set();
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/api/blog/get-published-posts/`, { headers: { 'User-Agent': UA } });
-    if (!res.ok) return urls;
+    if (!res.ok) return { internalPaths, externalUrls };
     const posts = await res.json();
 
     for (const post of posts) {
+      if (post.slug) internalPaths.add(`/articles/${post.slug}`);
+      if (post.blogSection) internalPaths.add(`/articles/section/${post.blogSection}`);
+
       for (const section of post.sections ?? []) {
         for (const cta of section.ctaLinks ?? []) {
-          if (/^https?:\/\//i.test(cta.url ?? '')) urls.add(cta.url);
+          classifyHref(cta.url ?? '', internalPaths, externalUrls);
         }
-        if (/^https?:\/\//i.test(section.videoUrl ?? '')) urls.add(section.videoUrl);
-        for (const [, u] of (section.content ?? '').matchAll(/href="(https?:\/\/[^"]+)"/gi)) urls.add(u);
+        classifyHref(section.videoUrl ?? '', internalPaths, externalUrls);
+        for (const [, u] of (section.content ?? '').matchAll(/href="([^"]+)"/gi)) {
+          classifyHref(u, internalPaths, externalUrls);
+        }
       }
       for (const field of [post.intro, post.conclusion]) {
-        for (const [, u] of (field ?? '').matchAll(/href="(https?:\/\/[^"]+)"/gi)) urls.add(u);
+        for (const [, u] of (field ?? '').matchAll(/href="([^"]+)"/gi)) {
+          classifyHref(u, internalPaths, externalUrls);
+        }
       }
     }
   } catch {
     console.log('  [WARN] Could not fetch blog posts');
   }
-  return urls;
+  return { internalPaths, externalUrls };
 }
 
 async function collectSiteLinks() {
-  const urls = new Set();
+  const internalPaths = new Set();
+  const externalUrls = new Set();
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/api/sites/get-sites/Production`, { headers: { 'User-Agent': UA } });
-    if (!res.ok) return urls;
+    if (!res.ok) return { internalPaths, externalUrls };
     const data = await res.json();
 
     for (const feature of data.features ?? []) {
       const p = feature.properties ?? {};
-      if (/^https?:\/\//i.test(p.imageUrl ?? '')) urls.add(p.imageUrl);
+      classifyHref(p.imageUrl ?? '', internalPaths, externalUrls);
       for (const item of p.moreInfo ?? []) {
-        if (/^https?:\/\//i.test(item.url ?? '')) urls.add(item.url);
+        classifyHref(item.url ?? '', internalPaths, externalUrls);
       }
     }
   } catch {
     console.log('  [WARN] Could not fetch map sites');
   }
-  return urls;
+  return { internalPaths, externalUrls };
+}
+
+async function crawlInternalPagesForLinks(seedPaths) {
+  const internalPaths = new Set();
+  const externalUrls = new Set();
+  const visited = new Set();
+  const queue = [...seedPaths];
+
+  while (queue.length > 0) {
+    const path = queue.shift();
+    if (!path || visited.has(path)) continue;
+    visited.add(path);
+
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+        headers: { 'User-Agent': UA },
+        redirect: 'follow',
+      });
+
+      if (!res.ok) continue;
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!contentType.includes('text/html')) continue;
+
+      const html = await res.text();
+      for (const href of extractAnchorHrefs(html)) {
+        const before = internalPaths.size;
+        classifyHref(href, internalPaths, externalUrls);
+        if (internalPaths.size > before) {
+          const normalized = href.split('#')[0];
+          try {
+            let discoveredPath = '';
+            if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+              const u = new URL(normalized);
+              if (u.hostname === BASE_HOSTNAME) {
+                discoveredPath = `${u.pathname}${u.search}`.replace(/\/$/, '') || '/';
+              }
+            } else if (normalized.startsWith('/') && !normalized.startsWith('//') && !normalized.startsWith('/cdn-cgi/')) {
+              discoveredPath = normalized;
+            }
+
+            if (discoveredPath && !visited.has(discoveredPath)) {
+              queue.push(discoveredPath);
+            }
+          } catch {
+            // ignore malformed discovered links
+          }
+        }
+      }
+    } catch {
+      // ignore pages that fail fetch here; they are validated in internal path checks
+    }
+  }
+
+  return { internalPaths, externalUrls };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -187,27 +284,37 @@ async function collectSiteLinks() {
 async function main() {
   console.log(`Checking links against ${BASE_URL}\n`);
 
+  const internalPaths = new Set(SEED_PATHS);
+  const externalUrls = new Set();
+
   console.log('Crawling seed pages ...');
-  const { internalPaths, externalUrls } = await crawlSeedPages();
+  const seedLinks = await crawlSeedPages();
+  for (const path of seedLinks.internalPaths) internalPaths.add(path);
+  for (const url of seedLinks.externalUrls) externalUrls.add(url);
+
+  console.log('Reading sitemap routes ...');
+  const sitemapPaths = await collectSitemapPaths();
+  for (const path of sitemapPaths) internalPaths.add(path);
 
   console.log('Scanning template links ...');
   const templateLinks = await collectTemplateAnchorLinks();
   for (const path of templateLinks.internalPaths) internalPaths.add(path);
   for (const url of templateLinks.externalUrls) externalUrls.add(url);
 
+  console.log('Recursively crawling internal pages ...');
+  const recursiveLinks = await crawlInternalPagesForLinks(internalPaths);
+  for (const path of recursiveLinks.internalPaths) internalPaths.add(path);
+  for (const url of recursiveLinks.externalUrls) externalUrls.add(url);
+
   console.log('Fetching blog post links ...');
   const blogLinks = await collectBlogLinks();
+  for (const path of blogLinks.internalPaths) internalPaths.add(path);
+  for (const url of blogLinks.externalUrls) externalUrls.add(url);
 
   console.log('Fetching map site links ...');
   const siteLinks = await collectSiteLinks();
-
-  // Merge all external URLs, filtering own domain
-  for (const raw of [...blogLinks, ...siteLinks]) {
-    classifyHref(raw, internalPaths, externalUrls);
-  }
-
-  // Remove seed pages — confirmed live during crawl
-  for (const seed of SEED_PATHS) internalPaths.delete(seed);
+  for (const path of siteLinks.internalPaths) internalPaths.add(path);
+  for (const url of siteLinks.externalUrls) externalUrls.add(url);
 
   const intBroken = [];
   const extBroken = [];
@@ -215,16 +322,23 @@ async function main() {
   // ── Internal paths ─────────────────────────────────────────────────────────
   console.log(`\nChecking ${internalPaths.size} internal paths ...`);
   for (const path of internalPaths) {
-    let status = await getStatus(`${BASE_URL}${path}`, 'HEAD');
-    if (status === 404 || status === 405 || status === 'error') {
-      status = await getStatus(`${BASE_URL}${path}`, 'GET');
+    let probe = await probeUrl(`${BASE_URL}${path}`, 'HEAD', 'manual');
+    if (probe.status === 405 || probe.status === 'error') {
+      probe = await probeUrl(`${BASE_URL}${path}`, 'GET', 'manual');
     }
 
-    if (status === 404 || status === 'error') {
-      intBroken.push({ path, status });
+    const status = probe.status;
+    if (typeof status === 'number' && status >= 300 && status < 400) {
+      intBroken.push({ path, status, reason: `redirects to ${probe.location ?? 'unknown location'}` });
+      console.log(`  [FAIL] ${status} — ${path} (redirect)`);
+    } else if (status === 404 || status === 'error') {
+      intBroken.push({ path, status, reason: 'not found or request failed' });
       console.log(`  [FAIL] ${status} — ${path}`);
-    } else {
+    } else if (typeof status === 'number' && status >= 200 && status < 300) {
       console.log(`  [OK ] ${status} — ${path}`);
+    } else {
+      intBroken.push({ path, status, reason: 'non-success internal response' });
+      console.log(`  [FAIL] ${status} — ${path}`);
     }
   }
 
@@ -237,10 +351,11 @@ async function main() {
       continue;
     }
 
-    let status = await getStatus(url, 'HEAD');
-    if (status === 405 || status === 'error') {
-      status = await getStatus(url, 'GET');
+    let probe = await probeUrl(url, 'HEAD', 'follow');
+    if (probe.status === 405 || probe.status === 'error') {
+      probe = await probeUrl(url, 'GET', 'follow');
     }
+    const status = probe.status;
 
     if (isLive(status)) {
       console.log(`  [OK ] ${status} — ${url}`);
@@ -260,7 +375,9 @@ async function main() {
 
   if (intBroken.length > 0) {
     console.error('Broken internal links:');
-    for (const { path, status } of intBroken) console.error(`  [${status}] ${path}`);
+    for (const { path, status, reason } of intBroken) {
+      console.error(`  [${status}] ${path} (${reason})`);
+    }
   }
   if (extBroken.length > 0) {
     console.error('Broken external links:');

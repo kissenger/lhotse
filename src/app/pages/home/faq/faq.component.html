@@ -1,13 +1,15 @@
 
 <div class="dynamic-container">
 
-  <h2 class="section-heading">{{ pageHeading }}</h2>
-
   <p>{{ pageDescription }}</p>
 
-  @for (faq of faqs; track faq.question) {
-    <h2 class="faq-question" [id]="faqFragment(faq.question)">{{ faq.question }}</h2>
-    <p [innerHTML]="faq.answer | htmler"></p>
+  @for (section of faqSections; track section.title) {
+    <h2 class="faq-section-heading" [id]="faqFragment(section.title)">{{ section.title }}</h2>
+
+    @for (faq of section.faqs; track faq.question) {
+      <h3 class="faq-question" [id]="faqFragment(faq.question)">{{ faq.question }}</h3>
+      <div class="faq-answer" [innerHTML]="faq.answer | htmler"></div>
+    }
   }
   
 </div>

@@ -5,15 +5,17 @@
     <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
   </div>
 } @else if (loadingState === 'loading') {
-  <div class="spinner-container">
-    <div class="spinner"></div>
+  <div class="dynamic-container">
+    <div class="deferred-loading-block deferred-loading-block--page article-loading-block" aria-live="polite" aria-busy="true" aria-label="Loading article">
+      <div class="deferred-loading-spinner"></div>
+    </div>
   </div>
 } @else {
 @defer (when isReadyToLoad) {
 
   @if (!contentVisible) {
-    <div class="spinner-container">
-      <div class="spinner"></div>
+    <div class="deferred-loading-block deferred-loading-block--page" aria-live="polite" aria-busy="true" aria-label="Loading article media">
+      <div class="deferred-loading-spinner"></div>
     </div>
   }
 
@@ -63,8 +65,8 @@
 
       @if (!isPreview) {
         <nav class="article-nav-compact" aria-label="Article navigation">
-          <a [routerLink]="'/blog/' + lastSlug" class="nav-compact-prev suppress-external-link"><span class="nav-compact-dir">← Previous</span><span class="nav-compact-title">{{lastTitle}}</span></a>
-          <a [routerLink]="'/blog/' + nextSlug" class="nav-compact-next suppress-external-link"><span class="nav-compact-dir">Next →</span><span class="nav-compact-title">{{nextTitle}}</span></a>
+          <a [routerLink]="'/articles/' + lastSlug" class="nav-compact-prev suppress-external-link"><span class="nav-compact-dir">← Previous</span><span class="nav-compact-title">{{lastTitle}}</span></a>
+          <a [routerLink]="'/articles/' + nextSlug" class="nav-compact-next suppress-external-link"><span class="nav-compact-dir">Next →</span><span class="nav-compact-title">{{nextTitle}}</span></a>
         </nav>
       }
 
@@ -264,12 +266,14 @@
 
         @if (!isPreview) {
           <nav class="article-nav-footer" aria-label="Article navigation">
-            <a [routerLink]="'/blog/' + lastSlug" class="nav-footer-prev suppress-external-link"><span class="nav-footer-dir">← Previous</span><span class="nav-footer-title">{{lastTitle}}</span></a>
-            <a [routerLink]="'/blog/' + nextSlug" class="nav-footer-next suppress-external-link"><span class="nav-footer-dir">Next →</span><span class="nav-footer-title">{{nextTitle}}</span></a>
+            <a [routerLink]="'/articles/' + lastSlug" class="nav-footer-prev suppress-external-link"><span class="nav-footer-dir">← Previous</span><span class="nav-footer-title">{{lastTitle}}</span></a>
+            <a [routerLink]="'/articles/' + nextSlug" class="nav-footer-next suppress-external-link"><span class="nav-footer-dir">Next →</span><span class="nav-footer-title">{{nextTitle}}</span></a>
           </nav>
         }
       } @placeholder {
-        <div class="deferred-content-placeholder">Loading the rest of this article...</div>
+        <div class="deferred-loading-block deferred-loading-block--inline" aria-live="polite" aria-busy="true" aria-label="Loading remaining article content">
+          <div class="deferred-loading-spinner"></div>
+        </div>
       }
 
     </div>

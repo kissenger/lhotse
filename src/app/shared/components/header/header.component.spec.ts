@@ -2,9 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HeaderComponent } from './header.component';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
-import { EventEmitter } from '@angular/core';
 import { Subject } from 'rxjs';
-import { ScrollspyService } from '@shared/services/scrollspy.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { HttpService } from '@shared/services/http.service';
 
@@ -15,7 +13,6 @@ function buildHeader(routerUrl = '/') {
     events: routerEvents$.asObservable()
   };
 
-  const mockScrollSpy = { intersectionEmitter: new EventEmitter() };
   const mockScreen = { widthDescriptor: 'small' };
   const mockHttp = { logout: () => Promise.resolve() };
 
@@ -25,7 +22,6 @@ function buildHeader(routerUrl = '/') {
       { provide: ActivatedRoute, useValue: {} },
       { provide: Router, useValue: mockRouter },
       { provide: DOCUMENT, useValue: document },
-      { provide: ScrollspyService, useValue: mockScrollSpy },
       { provide: ScreenService, useValue: mockScreen },
       { provide: HttpService, useValue: mockHttp }
     ]
@@ -99,8 +95,8 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Map');
   });
 
-  it('sets activeMenuItem to Articles on blog post route', () => {
-    const { component } = buildHeader('/blog/some-post');
+  it('sets activeMenuItem to Articles on article post route', () => {
+    const { component } = buildHeader('/articles/some-post');
     expect(component.activeMenuItem).toBe('Articles');
   });
 
@@ -177,14 +173,11 @@ describe('HeaderComponent', () => {
 
   // --- ngOnDestroy ---
 
-  it('ngOnDestroy unsubscribes both subscriptions', () => {
+  it('ngOnDestroy unsubscribes route subscription', () => {
     const { component } = buildHeader('/');
-    const scrSpy = jasmine.createSpy('scrUnsub');
     const routeSpy = jasmine.createSpy('routeUnsub');
-    component['_scrSubs'] = { unsubscribe: scrSpy } as any;
     component['_routeSubs'] = { unsubscribe: routeSpy } as any;
     component.ngOnDestroy();
-    expect(scrSpy).toHaveBeenCalled();
     expect(routeSpy).toHaveBeenCalled();
   });
 });
