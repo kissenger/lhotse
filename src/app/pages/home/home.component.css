@@ -340,11 +340,30 @@
   display: grid;
   grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
   gap: 1.25rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .map-home-image {
   margin: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.map-home-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  max-height: 320px;
+  border-radius: 0;
+  object-fit: cover;
+  background: var(--surface-base);
+}
+
+:host ::ng-deep #friends-and-partners h2,
+:host ::ng-deep #friends-and-partners .section-heading {
+  text-align: left;
 }
 
 .map-home-image-placeholder {
