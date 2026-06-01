@@ -61,7 +61,7 @@ export const faqItems: FaqItem[] = [
   {
     section: 'About Snorkelology',
     question: 'Who or what is Snorkelology?',
-    answer: `Snorkelology is the brainchild or Emma and Gordon Taylor, BSAC snorkelling instructors and authors of Snorkelling Britain &mdash; the only in print snorkelling guidebook covering the whole of Britain. Emma and Gordon are passionate snorkellers and divers who have been exploring Britain's coastline for more that twenty years.
+    answer: `Snorkelology is the brainchild of Emma and Gordon Taylor, BSAC diving and snorkelling instructors, and authors of Snorkelling Britain &mdash; the only snorkelling guidebook covering the whole of Britain. Emma and Gordon are passionate snorkellers and divers who have been exploring Britain's coastline for more that twenty years.
     Snorkelology started out as a website to sell the book but has since evolved into a hub for all things British snorkelling, including articles, guides, and a unique snorkelling map of Britain.`
   },
   {
