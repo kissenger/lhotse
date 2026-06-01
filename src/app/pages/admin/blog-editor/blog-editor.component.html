@@ -130,7 +130,7 @@
                             <div class="image-field">
                                 <input type="text" id="reviewImageFname" name="reviewImageFname" [(ngModel)]="selectedPost.review.imageFname" placeholder="photos/…">
                                 @if (selectedPost.review.imageFname) {
-                                    <img class="img-thumb" [src]="imgixThumb(selectedPost.review.imageFname)" [alt]="selectedPost.review.imageAlt || ''"
+                                    <img class="img-thumb" [src]="thumbnailUrl(selectedPost.review.imageFname)" [alt]="selectedPost.review.imageAlt || ''"
                                         (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
                                 }
                             </div>
@@ -250,7 +250,7 @@
                     <div class="image-field">
                         <input type="text" id="fname" name="fname" [(ngModel)]="selectedPost.imgFname" placeholder="photos/…">
                         @if (selectedPost.imgFname) {
-                            <img class="img-thumb" [src]="imgixThumb(selectedPost.imgFname)" [alt]="selectedPost.imgAlt"
+                            <img class="img-thumb" [src]="thumbnailUrl(selectedPost.imgFname)" [alt]="selectedPost.imgAlt"
                                 (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
                         }
                     </div>
@@ -306,7 +306,7 @@
                                 <div class="image-field">
                                     <input type="text" id="fname{{si}}" name="fname{{si}}" [(ngModel)]="section.imgFname" placeholder="photos/…">
                                     @if (section.imgFname) {
-                                        <img class="img-thumb" [src]="imgixThumb(section.imgFname)" [alt]="section.imgAlt"
+                                        <img class="img-thumb" [src]="thumbnailUrl(section.imgFname)" [alt]="section.imgAlt"
                                             (error)="$any($event.target).style.display='none'" (load)="$any($event.target).style.display='block'">
                                     }
                                 </div>

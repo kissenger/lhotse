@@ -9,6 +9,7 @@ import { environment } from '@environments/environment';
 import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
 import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interceptor.service';
+import { appImageUrl } from './shared/utils/image-url';
 
 @Injectable({ providedIn: 'root' })
 export class SelectivePreloadingStrategy implements PreloadingStrategy {
@@ -38,21 +39,13 @@ export const appConfig: ApplicationConfig = {
     {
       provide: IMAGE_LOADER,
       useValue: (config: ImageLoaderConfig) => {
-        const rawSrc = config.src.trim();
-        if (/^(https?:)?\/\//i.test(rawSrc) || rawSrc.startsWith('data:') || rawSrc.startsWith('blob:')) {
-          return rawSrc;
-        }
-
-        const src = rawSrc.replace(/^\//, '');
-        if (environment.STAGE === 'dev') {
-          return `/assets/${src}`;
-        }
-        const domain = environment.IMGIX_DOMAIN.replace(/\/$/, '');
-        const base = `https://${domain}/${src}`;
-        const w = config.width ? `&w=${config.width}` : '';
-        // fm=webp: explicit WebP output supports alpha (unlike JPEG, which caused
-        // 422 when imgix had no Accept header during SSR and fell back to JPEG).
-        return `${base}?fm=webp&auto=compress&fit=max&q=40${w}`;
+        return appImageUrl(config.src, {
+          stage: environment.STAGE,
+          width: config.width,
+          format: 'webp',
+          fit: 'contain',
+          quality: 40,
+        });
       }
     },
   ]

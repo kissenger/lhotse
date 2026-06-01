@@ -81,7 +81,7 @@ export class BlogComponent implements OnInit, OnDestroy {
     private _route: ActivatedRoute,
     @Inject(PLATFORM_ID) private _platformId: any,
     private _cdr: ChangeDetectorRef,
-    private _scrollOffset: ScrollOffsetService
+    @Inject(ScrollOffsetService) private _scrollOffset: ScrollOffsetService
   ) {
   }
 

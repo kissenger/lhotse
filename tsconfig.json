@@ -8,7 +8,6 @@
       "node",
       "jasmine"
     ],
-    "baseUrl": "./",
     "paths": {
       "@environments/*": ["./src/environments/*"],
       "@assets/*": ["./src/assets/*"],

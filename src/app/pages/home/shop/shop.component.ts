@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit, Inject } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -33,7 +33,7 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
-    private _scrollOffset: ScrollOffsetService,
+    @Inject(ScrollOffsetService) private _scrollOffset: ScrollOffsetService,
     public shop: ShopService,
     public toaster: ToastService
   ) {}

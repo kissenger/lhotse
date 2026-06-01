@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { createHash } from 'node:crypto';
 import BlogModel from '../schema/blog';
 import BlogLikeModel from '../schema/blog-like';
-import { BlogError } from 'src/server';
+import { BlogError } from './server';
 import { verifyToken } from './server-auth'
 import 'dotenv/config';
 

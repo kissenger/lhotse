@@ -6,6 +6,8 @@ import { NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { ToastService } from '@shared/services/toast.service';
 import { errorMessage } from '@shared/utils/error-message';
+import { environment } from '@environments/environment';
+import { appImageUrl } from '@shared/utils/image-url';
 
 @Component({
   selector: 'app-blog-editor',
@@ -177,8 +179,15 @@ export class BlogEditorComponent implements OnInit {
     return this.selectedPost.slug;
   }
 
-  imgixThumb(fname: string): string {
-    return `/assets/${fname}`;
+  thumbnailUrl(fname: string): string {
+    return appImageUrl(fname, {
+      stage: environment.STAGE,
+      width: 120,
+      height: 120,
+      fit: 'cover',
+      format: 'webp',
+      quality: 55,
+    });
   }
 
   onFormSelect(value: string) {

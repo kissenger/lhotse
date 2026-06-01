@@ -13,6 +13,7 @@ import { BlogCardComponent } from    '@pages/home/blog/blog-card/blog-card.compo
 import { environment } from          '@environments/environment';
 import { shopItems } from            '@shared/globals';
 import { IdleSchedulerService } from '@shared/services/idle-scheduler.service';
+import { appImageUrl } from          '@shared/utils/image-url';
 
 @Component({
   standalone: true,
@@ -68,13 +69,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     windowSix:   { path: "photos/parallax/cuddling-crabs-snorkelling-scotland-britain" },
   }
 
-  private readonly _imgixBase = `https://${environment.IMGIX_DOMAIN}`;
-
   constructor(
     @Inject(PLATFORM_ID) private platformId: any,
     private _screen: ScreenService,
     private _http: HttpService,
-    private _idleScheduler: IdleSchedulerService,
+    @Inject(IdleSchedulerService) private _idleScheduler: IdleSchedulerService,
     private _cdr: ChangeDetectorRef,
   ) {
     this._isBrowser = isPlatformBrowser(this.platformId);
@@ -167,7 +166,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const dpr = Math.min(window.devicePixelRatio ?? 1, 2);
     const width = Math.round(this._screen.width * dpr);
     const height = Math.round(this._screen.height * 0.8 * dpr);
-    const url = `${this._imgixBase}${panel.path}-${orientation}.webp?w=${width}&h=${height}&fm=webp&auto=compress&fit=crop&q=40`;
+    const url = appImageUrl(`${panel.path}-${orientation}.webp`, {
+      stage: environment.STAGE,
+      width,
+      height,
+      format: 'webp',
+      fit: 'cover',
+      quality: 40,
+    });
     el.style.backgroundImage = `url('${url}')`;
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center';

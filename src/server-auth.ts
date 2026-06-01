@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import UserModel from '@schema/user';
 import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
-import { AuthError } from 'src/server';
+import { AuthError } from './server';
 import 'dotenv/config';
 
 const auth = express();

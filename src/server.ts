@@ -345,7 +345,7 @@ app.use(async (req, res, next) => {
     if (req.method === 'GET' && contentType.includes('text/html')) {
       const html = await response.text();
 
-      const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html);
+      const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html, req.hostname);
 
       const headers = new Headers(response.headers);
       const cacheControl = getPublicHtmlCacheControl(req);
@@ -449,10 +449,73 @@ export class BlogError extends Error {
   }
 }
  
-const SITE_URL = 'https://snorkelology.co.uk';
-const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/assets/snorkelology opengraph image.webp`;
-const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/assets/snorkelology logo for twitter og.webp`;
+const SITE_URL = process.env['PUBLIC_SITE_URL'] || 'https://snorkelology.co.uk';
+const FORCE_LOCAL_IMAGES = process.env['LOCAL_IMAGES'] === 'true';
 const PUBLIC_HTML_EDGE_CACHE_CONTROL = 'public, max-age=0, s-maxage=120, stale-while-revalidate=300';
+
+type SeoImageResizeOptions = {
+  width?: number;
+  height?: number;
+  quality?: number;
+  fit?: 'cover' | 'contain' | 'crop' | 'scale-down' | 'pad';
+  format?: 'auto' | 'webp' | 'avif' | 'jpeg' | 'png';
+};
+
+function normaliseAssetPath(value: string): string | null {
+  const trimmed = (value || '').trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith(`${SITE_URL}/assets/`)) {
+    return trimmed.slice(SITE_URL.length);
+  }
+  if (trimmed.startsWith('/assets/')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('assets/')) {
+    return `/${trimmed}`;
+  }
+
+  return null;
+}
+
+function cloudflareResizedImagePath(assetPath: string, options: SeoImageResizeOptions = {}): string {
+  const params = new URLSearchParams();
+  if (options.width) params.set('width', String(options.width));
+  if (options.height) params.set('height', String(options.height));
+  if (options.quality) params.set('quality', String(options.quality));
+  if (options.fit) params.set('fit', options.fit);
+  if (options.format) params.set('format', options.format);
+
+  const segment = params.toString().replace(/&/g, ',');
+  return segment ? `/cdn-cgi/image/${segment}${assetPath}` : assetPath;
+}
+
+function seoImageUrl(sourceUrl: string, options: SeoImageResizeOptions = {}): string {
+  const assetPath = normaliseAssetPath(sourceUrl);
+  if (!assetPath) {
+    return sourceUrl;
+  }
+
+  if (FORCE_LOCAL_IMAGES) {
+    return assetPath;
+  }
+
+  return `${SITE_URL}${cloudflareResizedImagePath(assetPath, options)}`;
+}
+
+function defaultSeoSocialImageUrl(assetPath: string): string {
+  return seoImageUrl(assetPath, {
+    width: 1200,
+    height: 630,
+    quality: 75,
+    fit: 'cover',
+    format: 'auto',
+  });
+}
+
+const MAP_SOCIAL_IMAGE = defaultSeoSocialImageUrl('/assets/snorkelology-unique-snorkel-map-of-britain.webp');
+const DEFAULT_SOCIAL_IMAGE = defaultSeoSocialImageUrl('/assets/snorkelology opengraph image.webp');
+const DEFAULT_TWITTER_IMAGE = defaultSeoSocialImageUrl('/assets/snorkelology logo for twitter og.webp');
 
 function getPublicHtmlCacheControl(req: express.Request): string | null {
   if (req.hostname === 'admin.snorkelology.co.uk') {
@@ -535,13 +598,49 @@ function stripCanonicalTag(html: string): string {
   return html.replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi, '');
 }
 
-async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string) {
+function isLocalHost(hostname: string | undefined): boolean {
+  const host = (hostname || '').toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
+function toLocalAssetSeoUrl(value: string): string {
+  if (!value) {
+    return value;
+  }
+
+  if (value.startsWith('/assets/')) {
+    return value;
+  }
+
+  if (value.startsWith(`${SITE_URL}/assets/`)) {
+    return value.slice(SITE_URL.length);
+  }
+
+  const resizedMatch = value.match(/^(?:https?:\/\/[^/]+)?\/cdn-cgi\/image\/[^/]+(\/assets\/.*)$/i);
+  if (resizedMatch?.[1]) {
+    return resizedMatch[1];
+  }
+
+  return value;
+}
+
+function applyLocalSeoImageUrls(payload: SeoPayload): SeoPayload {
+  return {
+    ...payload,
+    ogImage: toLocalAssetSeoUrl(payload.ogImage),
+    twitterImage: toLocalAssetSeoUrl(payload.twitterImage),
+  };
+}
+
+async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string, hostname?: string) {
   const payload = await getSeoPayload(pathname, query);
   if (!payload) {
     return stripCanonicalTag(html);
   }
 
-  return injectSeoPayloadIntoHtml(html, payload, SITE_URL);
+  const resolvedPayload = isLocalHost(hostname) ? applyLocalSeoImageUrls(payload) : payload;
+
+  return injectSeoPayloadIntoHtml(html, resolvedPayload, SITE_URL);
 }
 
 async function getSeoPayload(pathname: string, _query: Record<string, string> = {}): Promise<SeoPayload | null> {
@@ -670,11 +769,11 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   const mapImageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    url: MAP_SOCIAL_IMAGE,
     name: 'Snorkelology interactive snorkelling map of Britain',
     description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
     representativeOfPage: true,
-    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    contentUrl: MAP_SOCIAL_IMAGE,
   };
 
   const mapCreativeWorkSchema = {
@@ -683,7 +782,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
     name: 'Snorkelling Map of Britain',
     description: 'An interactive map of 100+ of the best snorkelling sites around the British coastline, with GPS coordinates, site descriptions and categories.',
     url: `${SITE_URL}/map`,
-    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    image: MAP_SOCIAL_IMAGE,
     creator: {
       '@type': 'Organization',
       name: 'Snorkelology',
@@ -738,7 +837,7 @@ function buildProductSchemas(offerUrlPath: string) {
     '@type': 'Product',
     name: item.name,
     description: item.description,
-    image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+    image: item.images?.[0]?.src ? seoImageUrl(`/assets/${item.images[0].src}`) : undefined,
     sku: item.id,
     offers: {
       '@type': 'Offer',
@@ -759,7 +858,7 @@ function buildBookSchemas(offerUrlPath: string) {
       '@type': 'Book',
       name: item.name,
       description: item.description,
-      image: item.images?.[0]?.src ? `${SITE_URL}/assets/${item.images[0].src}` : undefined,
+      image: item.images?.[0]?.src ? seoImageUrl(`/assets/${item.images[0].src}`) : undefined,
       isbn: item.isbn,
       numberOfPages: item.numberOfPages,
       author: {
@@ -851,7 +950,7 @@ function buildBookPageFaqSchema() {
 async function getBookSeoPayload(): Promise<SeoPayload> {
   const description = 'Discover Snorkelling Britain: 100 Marine Adventures, the guide to Britain\'s best snorkelling sites, with route-finding advice, underwater photography, safety guidance, and marine-life inspiration.';
   const keywords = 'Snorkelling Britain book, snorkelling guide book, British snorkelling book, Emma and Gordon Taylor, Wild Things Publishing';
-  const bookOgImage = `${SITE_URL}/assets/photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png`;
+  const bookOgImage = defaultSeoSocialImageUrl('/assets/photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png');
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -996,8 +1095,8 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
     keywords,
     canonicalPath: nationPath,
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    ogImage: MAP_SOCIAL_IMAGE,
+    twitterImage: MAP_SOCIAL_IMAGE,
     schemas: [breadcrumbSchema, nationPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -1101,8 +1200,8 @@ async function getSiteSeoPayload(country: string | null, county: string | null, 
     keywords,
     canonicalPath: sitePath,
     ogType: 'website',
-    ogImage: place.image || DEFAULT_SOCIAL_IMAGE,
-    twitterImage: place.image || DEFAULT_TWITTER_IMAGE,
+    ogImage: seoImageUrl(place.image || DEFAULT_SOCIAL_IMAGE, { width: 1200, height: 630, quality: 75, fit: 'cover', format: 'auto' }),
+    twitterImage: seoImageUrl(place.image || DEFAULT_TWITTER_IMAGE, { width: 1200, height: 630, quality: 75, fit: 'cover', format: 'auto' }),
     schemas: [breadcrumbSchema, placeSchema],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -1262,8 +1361,8 @@ async function getCountyMapSeoPayload(country: string, county: string): Promise<
     keywords,
     canonicalPath: countyPath,
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    ogImage: MAP_SOCIAL_IMAGE,
+    twitterImage: MAP_SOCIAL_IMAGE,
     schemas: [breadcrumbSchema, countyPlaceSchema, ...collectionSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -1310,7 +1409,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     name: 'Interactive Snorkelling Map of Britain — 100+ Sites',
     description,
     url: `${SITE_URL}/map`,
-    image: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    image: MAP_SOCIAL_IMAGE,
     creator: {
       '@type': 'Organization',
       name: 'Snorkelology',
@@ -1337,11 +1436,11 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
   const mapImageSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    url: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    url: MAP_SOCIAL_IMAGE,
     name: 'Snorkelology interactive snorkelling map of Britain',
     description: 'An interactive map of the best snorkelling sites around the British coastline, created by Snorkelology.',
     representativeOfPage: true,
-    contentUrl: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    contentUrl: MAP_SOCIAL_IMAGE,
   };
 
   const breadcrumbSchema = {
@@ -1359,8 +1458,8 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
     keywords,
     canonicalPath: '/map',
     ogType: 'website',
-    ogImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
-    twitterImage: `${SITE_URL}/assets/snorkelology-unique-snorkel-map-of-britain.webp`,
+    ogImage: MAP_SOCIAL_IMAGE,
+    twitterImage: MAP_SOCIAL_IMAGE,
     schemas: [breadcrumbSchema, mapCreativeWorkSchema, mapImageSchema, ...(mapSchema ? [mapSchema] : [])],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
@@ -1472,9 +1571,10 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
 
   const hasGeneratedOgImage = await generatedOgImageExists(slug);
-  const imageUrl = hasGeneratedOgImage
+  const imageUrl = seoImageUrl(hasGeneratedOgImage
     ? `${SITE_URL}/assets/photos/articles/og/${slug}-og.webp`
-    : (post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE);
+    : (post.imgFname ? `${SITE_URL}/assets/${post.imgFname}` : DEFAULT_SOCIAL_IMAGE),
+    { width: 1200, height: 630, quality: 75, fit: 'cover', format: 'auto' });
 
   // Fix 5: use ImageObject instead of plain string
   const imageObject = {

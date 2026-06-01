@@ -122,12 +122,24 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       return rawPath;
     }
 
+    const normalized = rawPath.replace(/^\/+/, '');
+
+    // Keep already-transformed Cloudflare paths untouched.
+    if (normalized.startsWith('cdn-cgi/image/')) {
+      return `/${normalized}`;
+    }
+
+    // Localhost plain <img src> needs explicit /assets paths.
+    if (this.usePlainSrcImages || this.isPreview) {
+      const withoutAssetsPrefix = normalized.replace(/^assets\//, '');
+      return `/assets/${withoutAssetsPrefix}`;
+    }
+
     if (!this.isPreview) {
       return rawPath;
     }
 
-    const normalized = rawPath.replace(/^\/+/, '').replace(/^assets\//, '');
-    return `/assets/${normalized}`;
+    return `/${normalized}`;
   }
 
   get heroImageSrc(): string {
