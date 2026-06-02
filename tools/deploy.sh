@@ -119,23 +119,19 @@ if [[ ! -f .env ]]; then
   fail ".env not found in ${REPO_ROOT}"
 fi
 
-# Export .env variables for health-check settings and any deploy-time config.
+# Export .env variables for deploy-time config.
 set -a
 # shellcheck disable=SC1091
 source .env
 set +a
 
-HEALTHCHECK_TIMEOUT_SEC="${HEALTHCHECK_TIMEOUT_SEC:-120}"
-HEALTHCHECK_INTERVAL_SEC="${HEALTHCHECK_INTERVAL_SEC:-5}"
+HEALTHCHECK_TIMEOUT_SEC="120"
+HEALTHCHECK_INTERVAL_SEC="5"
 
 if [[ "${TARGET_BRANCH}" = "beta" ]]; then
-  HEALTHCHECK_URL="${HEALTHCHECK_URL_BETA:-${HEALTHCHECK_URL:-}}"
+  HEALTHCHECK_URL="http://127.0.0.1:4001/health"
 else
-  HEALTHCHECK_URL="${HEALTHCHECK_URL_MASTER:-${HEALTHCHECK_URL:-}}"
-fi
-
-if [[ -z "${HEALTHCHECK_URL}" ]]; then
-  fail "HEALTHCHECK_URL is required (set HEALTHCHECK_URL, or HEALTHCHECK_URL_BETA / HEALTHCHECK_URL_MASTER)"
+  HEALTHCHECK_URL="http://127.0.0.1:4000/health"
 fi
 
 if ! compgen -G "${REPO_ROOT}/env/environment.*" >/dev/null; then

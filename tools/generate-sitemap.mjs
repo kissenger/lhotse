@@ -19,7 +19,7 @@ const STATIC_URL_PATHS = [
     image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
   },
   {
-    path: '/faqs',
+    path: '/faq',
     image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
   },
   {

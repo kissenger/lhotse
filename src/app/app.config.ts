@@ -12,7 +12,7 @@ import { HttpErrorInterceptor, TokenInterceptor } from './shared/services/interc
 import { appImageUrl } from './shared/utils/image-url';
 
 @Injectable({ providedIn: 'root' })
-export class SelectivePreloadingStrategy implements PreloadingStrategy {
+class SelectivePreloadingStrategy implements PreloadingStrategy {
   preload(route: Route, load: () => Observable<any>): Observable<any> {
     // Opt-in preloading only: routes preload only when explicitly flagged.
     return route.data?.['preload'] ? load() : of(null);

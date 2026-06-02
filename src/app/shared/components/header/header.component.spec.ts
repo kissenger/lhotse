@@ -135,9 +135,9 @@ describe('HeaderComponent', () => {
     expect(component.activeMenuItem).toBe('Shop');
   });
 
-  it('updates activeMenuItem when router navigates to /faqs', () => {
+  it('updates activeMenuItem when router navigates to /faq', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(4, '/faqs', '/faqs'));
+    routerEvents$.next(new NavigationEnd(4, '/faq', '/faq'));
     expect(component.activeMenuItem).toBe('FAQs');
   });
 

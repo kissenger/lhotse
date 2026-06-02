@@ -50,7 +50,7 @@ test('checkout UI triggers create and capture API calls', async ({ page }) => {
     });
   });
 
-  await page.goto('/home#buy-now');
+  await page.goto('/shop');
 
   // Dismiss overlay unconditionally (force bypasses opacity/pointer-events state).
   // The overlay starts opacity:0 so isVisible() can race with image load on WebKit.

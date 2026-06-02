@@ -28,7 +28,7 @@ async function scrollSectionToHeader(page, sectionId) {
   }, sectionId);
 }
 
-test('header underline follows the visible home section while scrolling', async ({ page }) => {
+test('header keeps Home active while scrolling home sections', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1400 });
 
   await page.route('**/api/blog/get-published-posts/**', async (route) => {
@@ -51,17 +51,17 @@ test('header underline follows the visible home section while scrolling', async 
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
   await scrollSectionToHeader(page, 'blog');
-  await expect.poll(() => getActiveMenuLabel(page)).toBe('Blog');
+  await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
   await scrollSectionToHeader(page, 'snorkelling-britain');
-  await expect.poll(() => getActiveMenuLabel(page)).toBe('Book');
+  await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
   await scrollSectionToHeader(page, 'buy-now');
-  await expect.poll(() => getActiveMenuLabel(page)).toBe('Shop');
+  await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
   await scrollSectionToHeader(page, 'snorkelling-map-of-britain');
-  await expect.poll(() => getActiveMenuLabel(page)).toBe('Map');
+  await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
   await scrollSectionToHeader(page, 'friends-and-partners');
-  await expect.poll(() => getActiveMenuLabel(page)).toBe('Friends');
+  await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 });

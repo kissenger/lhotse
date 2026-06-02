@@ -658,7 +658,7 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
     return getShopSeoPayload();
   }
 
-  if (normalizedPath === '/faqs') {
+  if (normalizedPath === '/faq' || normalizedPath === '/faqs') {
     return getFaqSeoPayload();
   }
 
@@ -1009,7 +1009,7 @@ async function getFaqSeoPayload(): Promise<SeoPayload> {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'FAQs', item: `${SITE_URL}/faqs` }
+      { '@type': 'ListItem', position: 2, name: 'FAQs', item: `${SITE_URL}/faq` }
     ]
   };
 
@@ -1017,7 +1017,7 @@ async function getFaqSeoPayload(): Promise<SeoPayload> {
     title: 'British Snorkelling FAQs | Snorkelology',
     description,
     keywords,
-    canonicalPath: '/faqs',
+    canonicalPath: '/faq',
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
     twitterImage: DEFAULT_TWITTER_IMAGE,
@@ -1642,20 +1642,22 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     }
   };
 
-  const schema = isFaqType
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: (post.sections || []).map((section: any) => ({
-          '@type': 'Question',
-          name: section.title,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: section.content || ''
-          }
-        }))
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: (post.sections || []).map((section: any) => ({
+      '@type': 'Question',
+      name: section.title,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: section.content || ''
       }
-    : baseBlogPostingSchema;
+    }))
+  };
+
+  const primarySchemas = isFaqType
+    ? [baseBlogPostingSchema, faqSchema]
+    : [baseBlogPostingSchema];
 
   const reviewSchemas = isProductReview
     ? (() => {
@@ -1818,7 +1820,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     ogType: 'article',  // Fix 7: always 'article' for individual posts
     ogImage: imageUrl,
     twitterImage: imageUrl,  // Fix 2: use article image for Twitter
-    schemas: [breadcrumbSchema, schema, ...reviewSchemas, ...videoSchemas],
+    schemas: [breadcrumbSchema, ...primarySchemas, ...reviewSchemas, ...videoSchemas],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },

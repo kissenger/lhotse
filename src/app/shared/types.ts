@@ -179,20 +179,7 @@ export interface OrderSummary {
 // Organisations directory pipeline types
 // ---------------------------------------------------------------------------
 
-export interface OrgContacts {
-  emails?: string[];
-  phones?: string[];
-  website?: string;
-  instagram?: string;
-  facebook?: string;
-  twitter?: string;
-  youtube?: string;
-  tiktok?: string;
-  other_socials?: string[];
-}
-
-// socialLinks sub-document in generate.rank (replaces flat contacts)
-export interface OrgSocialLinks {
+interface OrgSocialLinks {
   emails?: string[];
   phones?: string[];
   website?: string;
@@ -315,7 +302,7 @@ export interface OrgSettings {
 
 // ---------------------------------------------------------------------------
 
-export interface BlogSection {
+interface BlogSection {
   title: string;
   content: string;
   imgFname: string;
@@ -327,12 +314,12 @@ export interface BlogSection {
   ctaLinks?: Array<{ label: string; url: string }>;
 }
 
-export interface BlogReviewAffiliateLink {
+interface BlogReviewAffiliateLink {
   label: string;
   url: string;
 }
 
-export interface BlogReview {
+interface BlogReview {
   reviewKind?: 'product' | 'book';
   productName: string;
   brand?: string;
@@ -433,26 +420,6 @@ export type OrderStatus =
     role?: 'admin' | 'user';
   }
 
-
-export interface Feature {
-  id: string; 
-  type: 'Feature';
-  geometry:  {
-    type: 'Point',
-    coordinates: [number, number]
-  };
-  properties: FeatureProperties;
-}
-
-  export interface FeatureProperties {
-    symbolSortOrder: number;
-    region: string;
-    placeName: string;
-    name: string;
-    description: string;
-    categories: Array<string>;
-    moreInfo: Array<{title?: string, icon?: string, url?: string, text?: string}>
-  }
 
 export interface CountyDescriptionAdminItem {
   _id?: string;

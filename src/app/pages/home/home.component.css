@@ -256,8 +256,8 @@
 
 .home-shop-preview-more-text {
   font-size: 0.9rem;
-  opacity: 0.88;
-  color: var(--text-subtle);
+  opacity: 1;
+  color: var(--text-body, #1d3d59);
 }
 
 .home-tease-row {

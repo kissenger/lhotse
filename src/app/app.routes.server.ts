@@ -42,7 +42,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
-    path: 'faqs',
+    path: 'faq',
     renderMode: RenderMode.Server
   },
   {

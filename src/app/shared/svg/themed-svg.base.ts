@@ -1,6 +1,6 @@
 import { Directive, Input } from '@angular/core';
 
-export type SvgTheme = 'lightOnDark' | 'darkOnLight';
+type SvgTheme = 'lightOnDark' | 'darkOnLight';
 
 @Directive()
 export abstract class ThemedSvgBase {

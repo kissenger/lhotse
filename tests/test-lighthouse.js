@@ -3,10 +3,15 @@ import path from 'node:path';
 import process from 'node:process';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
+import { resolveBaseUrl } from './shared/resolve-base-url.js';
+
+const DEFAULT_LIGHTHOUSE_URL = resolveBaseUrl({
+  envKeys: ['TEST_APP_BASE_URL']
+});
 
 function parseArgs(argv) {
   const options = {
-    url: 'https://snorkelology.co.uk/',
+    url: `${DEFAULT_LIGHTHOUSE_URL}/`,
     runs: 3,
     categories: ['performance'],
     outDir: path.join(process.cwd(), 'test-results', 'lighthouse'),

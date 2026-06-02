@@ -21,8 +21,9 @@ export const routes: Routes = [
     import('@pages/home/book/book-page.component').then((m) => m.BookPageComponent)},
   { path: 'shop', loadComponent: () =>
     import('@pages/home/shop/shop-page.component').then((m) => m.ShopPageComponent)},
-  { path: 'faqs', loadComponent: () =>
+  { path: 'faq', loadComponent: () =>
     import('@pages/home/faq/faq-page.component').then((m) => m.FaqPageComponent)},
+  { path: 'faqs', redirectTo: 'faq', pathMatch: 'full' },
   { path: 'map', loadComponent: loadMapPage },
   { path: 'map/:country', loadComponent: loadMapPage },
   { path: 'map/:country/:county', loadComponent: loadMapPage },

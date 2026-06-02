@@ -135,7 +135,7 @@ OrganisationSchema.index({ 'generate.content.tags': 1 }, { sparse: true });
 
 // ---------------------------------------------------------------------------
 
-export const Organisation = model('Organisation', OrganisationSchema);
+const Organisation = model('Organisation', OrganisationSchema);
 
 // Named alias — keeps existing server imports (OrganisationModel) working
 export { Organisation as OrganisationModel };

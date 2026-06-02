@@ -123,7 +123,7 @@ export class ShopService {
 }
 
 
-export class User {
+class User {
 
     public name = '';
     public organisation = '';

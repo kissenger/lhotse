@@ -488,7 +488,7 @@ async function setOrderSummary(orderNumber: string) {
 /*****************************************************************
  * FUNCTION: Send data to store database
  ****************************************************************/
-export async function logShopEvent(orderNumber: string | null, orderDetails: any) {
+async function logShopEvent(orderNumber: string | null, orderDetails: any) {
   // create random order number if one doesnt exist (in the case of rejected order creation only)
   orderNumber = orderNumber ?? Math.random().toString().slice(2,9);
   return await ShopModel.findOneAndUpdate(
@@ -498,7 +498,7 @@ export async function logShopEvent(orderNumber: string | null, orderDetails: any
   );
 }
 
-export async function logShopError(orderNumber: string | null, error: Object) {
+async function logShopError(orderNumber: string | null, error: Object) {
   try {
     await logShopEvent(orderNumber, {
       "$set": {

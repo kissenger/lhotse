@@ -30,7 +30,7 @@ test.describe('map section', () => {
     );
   });
 
-  test('map container renders when scrolled into view', async ({ page }) => {
+  test('home map teaser renders when scrolled into view', async ({ page }) => {
     await page.goto('/home');
     await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
 
@@ -40,14 +40,12 @@ test.describe('map section', () => {
       await closeOverlay.evaluate((el) => el.click()).catch(() => {});
     }
 
-    // Scroll the map section into the viewport to trigger @defer.
+    // Scroll the map teaser section into the viewport.
     await page.locator('#snorkelling-map-of-britain').scrollIntoViewIfNeeded();
 
-    // The map component should render its heading.
-    await expect(page.locator('app-map h2.section-heading')).toHaveText('Interactive Snorkelling Map of Britain', { timeout: 15_000 });
-
-    // The Mapbox GL canvas should appear once the map initialises.
-    await expect(page.locator('#map canvas.mapboxgl-canvas')).toBeVisible({ timeout: 30_000 });
+    // Home now renders a static teaser with CTA to /map rather than inline app-map.
+    await expect(page.locator('#snorkelling-map-of-britain h2')).toHaveText('Snorkelling Map of Britain', { timeout: 15_000 });
+    await expect(page.locator('#snorkelling-map-of-britain a[href="/map"]')).toBeVisible();
   });
 
   test('standalone /map page renders the map component', async ({ page }) => {
@@ -56,13 +54,8 @@ test.describe('map section', () => {
     // Header must be visible (it wraps all routes).
     await expect(page.locator('header')).toBeVisible({ timeout: 10_000 });
 
-    // Map heading should render.
-    await expect(page.locator('app-map h2.section-heading')).toHaveText(
-      'Interactive Snorkelling Map of Britain',
-      { timeout: 15_000 }
-    );
-
-    // The Mapbox GL canvas should appear once the map initialises.
-    await expect(page.locator('#map canvas.mapboxgl-canvas')).toBeVisible({ timeout: 30_000 });
+    // Standalone map route renders an h1 shell heading and app-map content.
+    await expect(page.locator('.route-shell-header h1')).toHaveText('Snorkelling Map of Britain', { timeout: 15_000 });
+    await expect(page.locator('app-map #map')).toBeVisible({ timeout: 30_000 });
   });
 });

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "project": [
+    "src/**/*.{ts,js}",
+    "schema/**/*.{ts,js}",
+    "tests/**/*.{ts,js}",
+    "tools/**/*.{js,mjs}"
+  ],
+  "ignore": [
+    "src/test.ts",
+    "tools/generate-sitemap.mjs",
+    "tools/regenerate-og-images.mjs",
+    "tools/run-e2e.mjs",
+    "tools/send-test-email.mjs",
+    "src/app/pages/admin/features-editor/features-editor.component.ts",
+    "src/app/pages/admin/features-editor/unsaved-changes.guard.ts",
+    "src/app/shared/components/page-shell/page-shell.component.ts"
+  ],
+  "ignoreDependencies": [
+    "@angular/platform-browser-dynamic",
+    "@paypal/paypal-server-sdk",
+    "@types/bcrypt",
+    "@types/mapbox-gl",
+    "body-parser",
+    "sharp",
+    "@angular-devkit/architect",
+    "@angular-devkit/build-webpack",
+    "@angular-devkit/core",
+    "@eslint/js",
+    "baseline-browser-mapping",
+    "copy-webpack-plugin",
+    "source-map-explorer",
+    "tsx",
+    "vite",
+    "webpack"
+  ]
+}

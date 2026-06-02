@@ -14,7 +14,7 @@ export const MAP_COUNTRY_REGION_MAP: Record<string, string | null> = {
   uk: null,
 };
 
-export const MAP_COUNTY_ALT_NAMES: Record<string, string[]> = {
+const MAP_COUNTY_ALT_NAMES: Record<string, string[]> = {
   'isles-of-scilly': ['Scillies', 'Scilly Isles'],
   cornwall: ['Scillies', 'Scilly Isles'],
   'north-ayrshire': ['Ayrshire'],
@@ -35,7 +35,7 @@ export const MAP_COUNTY_ALT_NAMES: Record<string, string[]> = {
   orkney: ['Orkney'],
 };
 
-export const MAP_COUNTY_DISPLAY_ALIASES: Record<string, string> = {
+const MAP_COUNTY_DISPLAY_ALIASES: Record<string, string> = {
   cornwall: 'Cornwall & the Isles of Scilly',
   ayrshire: 'Ayrshire',
   aberdeenshire: 'Aberdeenshire & Moray',

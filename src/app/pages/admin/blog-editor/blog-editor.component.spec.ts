@@ -5,13 +5,17 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
 import { BlogPost } from '@shared/types';
 import { HttpService } from '@shared/services/http.service';
+import { ToastService } from '@shared/services/toast.service';
 
 describe('BlogEditorComponent', () => {
   let comp: BlogEditorComponent;
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BlogEditorComponent, HttpClientTestingModule, RouterTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } }]
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } },
+        { provide: ToastService, useValue: { show: () => {} } }
+      ]
     }).compileComponents();
     const f = TestBed.createComponent(BlogEditorComponent);
     comp = f.componentInstance;

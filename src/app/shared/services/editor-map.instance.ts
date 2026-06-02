@@ -7,7 +7,7 @@ const OUTDOORS  = 'mapbox://styles/mapbox/outdoors-v12';
 const SATELLITE = 'mapbox://styles/mapbox/satellite-streets-v12';
 const UK_CENTER: [number, number] = [-3.5, 54.5];
 
-export interface EditorMapInitOpts {
+interface EditorMapInitOpts {
   containerId: string;
   /** [lng, lat] — pass [0, 0] or omit for "no coords yet" */
   coords?: [number, number] | null;

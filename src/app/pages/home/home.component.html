@@ -206,7 +206,7 @@
           } @else {
             <div class="faq-home-list" aria-label="FAQ preview">
               @for (faq of faqPreviewItems; track faq.question) {
-                <a class="faq-home-item" routerLink="/faqs" [fragment]="faq.fragment" [attr.aria-label]="'Read more about ' + faq.question">
+                <a class="faq-home-item" routerLink="/faq" [fragment]="faq.fragment" [attr.aria-label]="'Read more about ' + faq.question">
                   <h3 class="faq-home-question">{{ faq.question }}</h3>
                   <div class="faq-home-answer">{{ faq.excerpt }}</div>
                   <div class="faq-home-more-row" aria-hidden="true">
@@ -218,7 +218,7 @@
           }
 
           <div class="teaser-actions">
-            <a routerLink="/faqs" class="teaser-link anchor-pill cta-link-btn">View more FAQs</a>
+            <a routerLink="/faq" class="teaser-link anchor-pill cta-link-btn">View more FAQs</a>
           </div>
         </div>
       </div>

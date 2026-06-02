@@ -10,17 +10,13 @@ test.describe('navigation', () => {
   test('header contains all menu items', async ({ page }) => {
     await page.goto('/home');
 
-    const expected = ['Home', 'Blog', 'Book', 'Shop', 'Map', 'Friends'];
+    const expected = ['Home', 'Articles', 'Book', 'Shop', 'Map', 'FAQs'];
     for (const name of expected) {
       await expect(page.locator('.menu').getByText(name, { exact: true })).toBeVisible();
     }
   });
 
-  test('clicking a menu item scrolls to that section', async ({ page, isMobile }) => {
-    // Mobile viewports have pointer-intercept and layout issues that prevent
-    // reliable Playwright clicks on the collapsed menu. Fragment scrolling on
-    // mobile is already verified by the deep-link test below.
-    test.skip(!!isMobile, 'covered by deep-link test on mobile');
+  test('clicking Articles navigates to the articles page', async ({ page }) => {
 
     await page.goto('/home');
     await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
@@ -31,21 +27,31 @@ test.describe('navigation', () => {
       await closeOverlay.evaluate((el) => el.click()).catch(() => {});
     }
 
-    // Wait for deferred sections to render.
+    // Wait for home sections to render before interacting with header.
     await page.waitForSelector('#blog', { timeout: 15_000 });
 
-    // Use force:true to bypass pointer-intercept issues on mobile viewports.
-    const blogMenuItem = page.locator('.menu').getByText('Blog', { exact: true });
-    await blogMenuItem.click({ force: true });
+    const articlesMenuItem = page.locator('.menu li', { hasText: 'Articles' }).first();
 
-    // The blog section should now be near the top of the viewport.
-    await page.waitForTimeout(1000); // let scroll settle
-    const blogTop = await page.locator('#blog').evaluate((el) => {
-      return el.getBoundingClientRect().top;
-    });
+    const itemAlreadyVisible = await articlesMenuItem.isVisible().catch(() => false);
+    if (!itemAlreadyVisible) {
+      const hamburger = page.locator('#hamburger');
+      if (await hamburger.isVisible().catch(() => false)) {
+        await hamburger.click({ force: true });
+      }
+    }
 
-    // Accept a generous range: the section top should be within 300px of viewport top.
-    expect(blogTop).toBeLessThan(300);
+    await expect(articlesMenuItem).toBeVisible({ timeout: 10_000 });
+    await articlesMenuItem.scrollIntoViewIfNeeded();
+    await articlesMenuItem.click({ force: true });
+
+    const navigatedAfterClick = /\/articles(?:\?.*)?$/.test(page.url());
+    if (!navigatedAfterClick) {
+      await articlesMenuItem.evaluate((el) => {
+        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      });
+    }
+
+    await expect(page).toHaveURL(/\/articles(?:\?.*)?$/);
   });
 
   test('deep link with fragment scrolls to section', async ({ page }) => {
@@ -88,9 +94,9 @@ test.describe('navigation', () => {
     // Header should still be present on the standalone map page.
     await expect(page.locator('header')).toBeVisible({ timeout: 10_000 });
 
-    // The map component heading should render.
-    await expect(page.locator('app-map h2.section-heading')).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator('app-map h2.section-heading')).toHaveText('Interactive Snorkelling Map of Britain');
+    // The standalone route heading and map container should render.
+    await expect(page.locator('.route-shell-header h1')).toHaveText('Snorkelling Map of Britain', { timeout: 15_000 });
+    await expect(page.locator('app-map #map')).toBeVisible({ timeout: 30_000 });
   });
 
   test('unknown route shows 404 page', async ({ page }) => {

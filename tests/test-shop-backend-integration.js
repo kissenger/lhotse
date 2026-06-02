@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'dotenv/config';
 
-const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:4000';
+const TEST_APP_BASE_URL = process.env.TEST_APP_BASE_URL || 'http://localhost:4000';
 const RUN_CAPTURE = process.env.PAYPAL_BACKEND_RUN_CAPTURE === 'true';
 
 function assert(condition, message) {
@@ -80,7 +80,7 @@ async function readJson(response, context) {
 }
 
 async function main() {
-  const baseUrl = APP_BASE_URL.replace(/\/$/, '');
+  const baseUrl = TEST_APP_BASE_URL.replace(/\/$/, '');
   console.log(`[shop-backend] Base URL: ${baseUrl}`);
 
   const payload = buildOrderPayload();
@@ -136,7 +136,7 @@ async function main() {
 main().catch((error) => {
   const message = String(error?.message || error);
   if (message.includes('fetch failed') || message.includes('ECONNREFUSED')) {
-    console.error(`[shop-backend] FAILURE: App server unreachable at ${APP_BASE_URL}. Is it running?`);
+    console.error(`[shop-backend] FAILURE: App server unreachable at ${TEST_APP_BASE_URL}. Is it running?`);
   }
   console.error('[shop-backend] FAILED:', message);
   process.exit(1);

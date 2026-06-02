@@ -1,7 +1,7 @@
 import type * as mapboxgl from 'mapbox-gl';
 import { MAPBOX_JS_URL } from '@shared/globals';
 
-export type MapboxRuntime = {
+type MapboxRuntime = {
   Map: typeof mapboxgl.Map;
   Marker: typeof mapboxgl.Marker;
   NavigationControl: typeof mapboxgl.NavigationControl;

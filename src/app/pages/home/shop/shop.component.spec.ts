@@ -9,7 +9,11 @@ import { ToastService } from '@shared/services/toast.service';
 
 /** Minimal basket stub mirroring the real Basket API used by ShopComponent */
 function makeBasket() {
-  const _items: Array<{ id: string; quantity: number }> = [];
+  const _items: Array<{ id: string; quantity: number }> = [
+    { id: '0001', quantity: 0 },
+    { id: '0002', quantity: 0 },
+    { id: '0003', quantity: 0 }
+  ];
   let _discountCode = '';
   let _discountPercent = 0;
   return {
@@ -22,7 +26,7 @@ function makeBasket() {
     add(item: any, qty: number) { _items.push({ id: item.id ?? item, quantity: qty }); },
     incrementQty(id: string, inc: number) {
       const item = _items.find(i => i.id === id);
-      if (item) item.quantity += inc;
+      if (item) item.quantity = Math.max(0, item.quantity + inc);
     }
   };
 }

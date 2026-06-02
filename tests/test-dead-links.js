@@ -5,15 +5,17 @@
  * Uses native fetch — no browser or Playwright required.
  *
  * Usage:
- *   node ./tests/test-dead-links.js                        # prod (default)
+ *   node ./tests/test-dead-links.js                        # localhost by default
  *   node ./tests/test-dead-links.js http://localhost:4000  # dev SSR server
- *   BASE_URL=http://localhost:4000 node ./tests/test-dead-links.js
+ *   TEST_APP_BASE_URL=http://localhost:4000 node ./tests/test-dead-links.js
+ *   TEST_APP_BASE_URL=https://snorkelology.co.uk node ./tests/test-dead-links.js # production override
  */
-
-const BASE_URL = (process.argv[2] || process.env.BASE_URL || 'https://snorkelology.co.uk').replace(/\/$/, '');
-const BASE_HOSTNAME = new URL(BASE_URL).hostname;
 import { readFile } from 'node:fs/promises';
 import { globSync } from 'glob';
+import { resolveBaseUrl } from './shared/resolve-base-url.js';
+
+const BASE_URL = resolveBaseUrl({ cliArg: process.argv[2], envKeys: ['TEST_APP_BASE_URL'] });
+const BASE_HOSTNAME = new URL(BASE_URL).hostname;
 
 const SEED_PATHS = ['/', '/home', '/map', '/privacy-policy'];
 const UA = 'Mozilla/5.0 (compatible; LinkChecker/1.0)';
@@ -71,6 +73,25 @@ function extractAnchorHrefs(html) {
   return hrefs;
 }
 
+function canonicalizeInternalPath(path) {
+  const [pathname, query = ''] = path.split('?');
+  const querySuffix = query ? `?${query}` : '';
+
+  if (pathname === '/blog') {
+    return `/articles${querySuffix}`;
+  }
+
+  if (pathname.startsWith('/blog/section/')) {
+    return `${pathname.replace('/blog/section/', '/articles/section/')}${querySuffix}`;
+  }
+
+  if (pathname.startsWith('/blog/')) {
+    return `${pathname.replace('/blog/', '/articles/')}${querySuffix}`;
+  }
+
+  return `${pathname}${querySuffix}`;
+}
+
 function classifyHref(href, internalPaths, externalUrls) {
   let normalized = href.split('#')[0];
   if (!normalized) return;
@@ -79,7 +100,7 @@ function classifyHref(href, internalPaths, externalUrls) {
     try {
       const u = new URL(normalized);
       if (u.hostname === BASE_HOSTNAME) {
-        const internalPath = `${u.pathname}${u.search}`.replace(/\/$/, '') || '/';
+        const internalPath = canonicalizeInternalPath((`${u.pathname}${u.search}`.replace(/\/$/, '') || '/'));
         if (!internalPath.startsWith('/cdn-cgi/')) {
           internalPaths.add(internalPath);
         }
@@ -94,7 +115,7 @@ function classifyHref(href, internalPaths, externalUrls) {
   }
 
   if (normalized.startsWith('/') && !normalized.startsWith('//') && !normalized.startsWith('/cdn-cgi/')) {
-    internalPaths.add(normalized);
+    internalPaths.add(canonicalizeInternalPath(normalized));
   }
 }
 
@@ -137,7 +158,7 @@ async function collectSitemapPaths() {
         const loc = rawLoc.trim();
         const url = new URL(loc);
         if (url.hostname !== BASE_HOSTNAME) continue;
-        const path = `${url.pathname}${url.search}`.replace(/\/$/, '') || '/';
+        const path = canonicalizeInternalPath((`${url.pathname}${url.search}`.replace(/\/$/, '') || '/'));
         if (!path.startsWith('/cdn-cgi/')) {
           internalPaths.add(path);
         }
@@ -257,10 +278,10 @@ async function crawlInternalPagesForLinks(seedPaths) {
             if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
               const u = new URL(normalized);
               if (u.hostname === BASE_HOSTNAME) {
-                discoveredPath = `${u.pathname}${u.search}`.replace(/\/$/, '') || '/';
+                discoveredPath = canonicalizeInternalPath((`${u.pathname}${u.search}`.replace(/\/$/, '') || '/'));
               }
             } else if (normalized.startsWith('/') && !normalized.startsWith('//') && !normalized.startsWith('/cdn-cgi/')) {
-              discoveredPath = normalized;
+              discoveredPath = canonicalizeInternalPath(normalized);
             }
 
             if (discoveredPath && !visited.has(discoveredPath)) {
@@ -323,7 +344,8 @@ async function main() {
   console.log(`\nChecking ${internalPaths.size} internal paths ...`);
   for (const path of internalPaths) {
     let probe = await probeUrl(`${BASE_URL}${path}`, 'HEAD', 'manual');
-    if (probe.status === 405 || probe.status === 'error') {
+    // Some routes only implement redirect logic on GET handlers.
+    if (probe.status === 405 || probe.status === 404 || probe.status === 'error') {
       probe = await probeUrl(`${BASE_URL}${path}`, 'GET', 'manual');
     }
 

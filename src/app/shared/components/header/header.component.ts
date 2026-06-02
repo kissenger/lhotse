@@ -21,7 +21,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     { name: 'Book', match: (path) => path === '/snorkelling-britain' },
     { name: 'Shop', match: (path) => path === '/shop' },
     { name: 'Map', match: (path) => path === '/map' || path.startsWith('/map/') },
-    { name: 'FAQs', match: (path) => path === '/faqs' }
+    { name: 'FAQs', match: (path) => path === '/faq' || path === '/faqs' }
   ];
 
   @ViewChildren('animate') animateElements!: QueryList<ElementRef>;
@@ -35,7 +35,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     { name: 'Book',    route: '/snorkelling-britain' },
     { name: 'Shop',    route: '/shop' },
     { name: 'Map',     route: '/map' },
-    { name: 'FAQs',    route: '/faqs' },
+    { name: 'FAQs',    route: '/faq' },
   ];
   public expandDropdownMenu: boolean = false;
   public activeMenuItem?: string = 'Home';

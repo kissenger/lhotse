@@ -1,4 +1,4 @@
-export type CloudflareImageOptions = {
+type CloudflareImageOptions = {
   width?: number;
   height?: number;
   quality?: number;
@@ -25,7 +25,7 @@ function toAssetPath(src: string): string {
   return withoutLeadingSlash.startsWith('assets/') ? `/${withoutLeadingSlash}` : `/assets/${withoutLeadingSlash}`;
 }
 
-export function localAssetUrl(src: string): string {
+function localAssetUrl(src: string): string {
   const trimmed = src.trim();
   if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
     return trimmed;
@@ -33,7 +33,7 @@ export function localAssetUrl(src: string): string {
   return toAssetPath(trimmed);
 }
 
-export function cloudflareAssetUrl(src: string, options: CloudflareImageOptions = {}): string {
+function cloudflareAssetUrl(src: string, options: CloudflareImageOptions = {}): string {
   const assetPath = localAssetUrl(src);
   if (/^(https?:)?\/\//i.test(assetPath) || assetPath.startsWith('data:') || assetPath.startsWith('blob:')) {
     return assetPath;

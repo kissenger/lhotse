@@ -347,4 +347,4 @@ blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
   }
 });
 
-export { blog, getSlugs, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };
+export { blog, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };
