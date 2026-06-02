@@ -13,6 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 TARGET_REPO_ROOT="${CANONICAL_REPO_ROOT}"
+ORIGIN_URL="$(git -C "${CANONICAL_REPO_ROOT}" remote get-url origin 2>/dev/null || true)"
 
 log() {
   echo "[$(date -Iseconds)] $1"
@@ -55,6 +56,10 @@ done
 
 git -C "${CANONICAL_REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${CANONICAL_REPO_ROOT} is not a git repository"
 
+if [[ -z "${ORIGIN_URL}" ]]; then
+  fail "origin remote not configured in ${CANONICAL_REPO_ROOT}"
+fi
+
 if [[ -z "${TARGET_BRANCH}" ]]; then
   TARGET_BRANCH="$(git -C "${CANONICAL_REPO_ROOT}" rev-parse --abbrev-ref HEAD)"
 fi
@@ -79,6 +84,7 @@ ensure_target_checkout() {
 
   if [[ -d "${target_root}/.git" || -f "${target_root}/.git" ]]; then
     git -C "${target_root}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${target_root} exists but is not a git checkout"
+    git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
     return 0
   fi
 
@@ -87,7 +93,7 @@ ensure_target_checkout() {
   fi
 
   log "creating branch checkout for ${branch} at ${target_root}"
-  git clone --branch "${branch}" --single-branch "${CANONICAL_REPO_ROOT}" "${target_root}"
+  git clone --branch "${branch}" --single-branch "${ORIGIN_URL}" "${target_root}"
 }
 
 sync_checkout() {
@@ -101,6 +107,7 @@ sync_checkout() {
     git -C "${target_root}" checkout "${branch}"
   else
     git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+    git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
     git -C "${target_root}" fetch origin "${branch}"
     git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"
   fi
