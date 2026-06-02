@@ -65,6 +65,23 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
 }
 
+run_angular_build() {
+  local branch="$1"
+  local node_mem_mb="$2"
+  local max_workers="$3"
+  local disable_source_map="$4"
+
+  local -a npm_cmd=(npm run "build:${branch}")
+  if [[ "${disable_source_map}" = "true" ]]; then
+    npm_cmd+=(-- --source-map=false)
+  fi
+
+  log "Build settings: NODE_OPTIONS=--max-old-space-size=${node_mem_mb}, NG_BUILD_MAX_WORKERS=${max_workers}, disableSourceMap=${disable_source_map}"
+  NODE_OPTIONS="--max-old-space-size=${node_mem_mb}" \
+    NG_BUILD_MAX_WORKERS="${max_workers}" \
+    "${npm_cmd[@]}"
+}
+
 wait_for_pm2_online() {
   local app_name="$1"
   local max_attempts="$2"
@@ -142,12 +159,7 @@ cd "${CANONICAL_REPO_ROOT}"
 
 # Reuse the git-only sync workflow to avoid duplicating branch/reset logic.
 bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}" --repo-root "${DEPLOY_ROOT}"
-
-if [[ "${DEPLOY_ROOT}" = "${CANONICAL_REPO_ROOT}" ]]; then
-  log "deploying from shared checkout at ${DEPLOY_ROOT}; set DEPLOY_ROOT_BASE or DEPLOY_ROOT_<BRANCH> to isolate branches"
-else
-  log "deploying from isolated checkout at ${DEPLOY_ROOT}"
-fi
+log "deploying from isolated checkout at ${DEPLOY_ROOT}"
 
 sync_local_deploy_files "${CANONICAL_REPO_ROOT}" "${DEPLOY_ROOT}"
 
@@ -187,9 +199,24 @@ log "Running: npm install"
 npm install
 
 log "Running: npm run build:${TARGET_BRANCH}"
-# Cap Node's heap size so esbuild (a separate OOM-killable process) has
-# enough headroom. Adjust NODE_BUILD_MEMORY_MB via .env if needed (default: 512).
-NODE_OPTIONS="--max-old-space-size=${NODE_BUILD_MEMORY_MB:-512}" npm run "build:${TARGET_BRANCH}"
+# Keep defaults conservative for low-memory servers and retry once on OOM kill.
+BUILD_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB:-512}"
+BUILD_MAX_WORKERS="${NG_BUILD_MAX_WORKERS:-2}"
+BUILD_DISABLE_SOURCE_MAP="${BUILD_DISABLE_SOURCE_MAP:-true}"
+
+if run_angular_build "${TARGET_BRANCH}" "${BUILD_NODE_MEMORY_MB}" "${BUILD_MAX_WORKERS}" "${BUILD_DISABLE_SOURCE_MAP}"; then
+  log "Build succeeded"
+else
+  BUILD_EXIT_CODE="$?"
+  if [[ "${BUILD_EXIT_CODE}" -eq 137 ]]; then
+    RETRY_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB_RETRY:-384}"
+    RETRY_MAX_WORKERS="${NG_BUILD_MAX_WORKERS_RETRY:-1}"
+    log "Build exited with 137 (likely OOM kill). Retrying once with stricter memory settings."
+    run_angular_build "${TARGET_BRANCH}" "${RETRY_NODE_MEMORY_MB}" "${RETRY_MAX_WORKERS}" "true"
+  else
+    fail "build failed with exit ${BUILD_EXIT_CODE}"
+  fi
+fi
 
 log "Running: pm2 restart snorkelology_${TARGET_BRANCH}"
 pm2 restart "snorkelology_${TARGET_BRANCH}"
