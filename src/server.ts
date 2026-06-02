@@ -54,6 +54,10 @@ function sendNotFound(res: express.Response): void {
   res.status(404).send('Not found');
 }
 
+function shouldForceNotFoundStatusFromHtml(html: string): boolean {
+  return html.includes('data-page-not-found="true"');
+}
+
 function getSectionSlugFromPath(pathname: string): string {
   const segments = pathname.split('/').filter(Boolean);
   return decodeURIComponent(segments[2] ?? '').trim();
@@ -344,6 +348,7 @@ app.use(async (req, res, next) => {
 
     if (req.method === 'GET' && contentType.includes('text/html')) {
       const html = await response.text();
+      const forceNotFoundStatus = shouldForceNotFoundStatusFromHtml(html);
 
       const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html, req.hostname);
 
@@ -355,8 +360,8 @@ app.use(async (req, res, next) => {
       headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
 
       const rewritten = new Response(withSeo, {
-        status: response.status,
-        statusText: response.statusText,
+        status: forceNotFoundStatus ? 404 : response.status,
+        statusText: forceNotFoundStatus ? 'Not Found' : response.statusText,
         headers
       });
 

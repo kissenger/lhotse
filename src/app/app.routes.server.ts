@@ -99,7 +99,6 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: '**',
-    renderMode: RenderMode.Server,
-    status: 404
+    renderMode: RenderMode.Server
   }
 ];
