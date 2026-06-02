@@ -47,7 +47,7 @@
           "configurations": {
             "prod": {
               "tsConfig": "tsconfig.json",                     
-              "outputPath": "dist/prod",              
+              "outputPath": "dist",              
               "assets": [
                 "src/assets",
                 {
@@ -89,7 +89,7 @@
 
             "beta": {      
               "tsConfig": "tsconfig.json",                
-              "outputPath": "dist/beta",
+              "outputPath": "dist",
               "assets": [
                 "src/assets",
                 {

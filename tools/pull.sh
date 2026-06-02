@@ -11,7 +11,8 @@ set -euo pipefail
 #   npm run pull:beta
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+TARGET_REPO_ROOT="${CANONICAL_REPO_ROOT}"
 
 log() {
   echo "[$(date -Iseconds)] $1"
@@ -23,48 +24,93 @@ fail() {
 }
 
 usage() {
-  echo "Usage: bash ./tools/pull.sh [beta|master]" >&2
+  echo "Usage: bash ./tools/pull.sh [beta|master] [--repo-root <path>] [--force-reset]" >&2
   exit 1
 }
 
-if [[ $# -gt 2 ]]; then
-  usage
-fi
+TARGET_BRANCH=""
 
-TARGET_BRANCH="${1:-}"
-FORCE_RESET=1
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    beta|master)
+      if [[ -n "${TARGET_BRANCH}" ]]; then
+        usage
+      fi
+      TARGET_BRANCH="$1"
+      shift
+      ;;
+    --repo-root)
+      [[ $# -ge 2 ]] || usage
+      TARGET_REPO_ROOT="$2"
+      shift 2
+      ;;
+    --force-reset)
+      shift
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
 
-if [[ $# -ge 1 && "${1}" = "--force-reset" ]]; then
-  TARGET_BRANCH=""
-fi
-
-if [[ $# -eq 2 ]]; then
-  if [[ "${2}" != "--force-reset" ]]; then
-    usage
-  fi
-  FORCE_RESET=1
-fi
-
-cd "${REPO_ROOT}"
-git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${REPO_ROOT} is not a git repository"
+git -C "${CANONICAL_REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${CANONICAL_REPO_ROOT} is not a git repository"
 
 if [[ -z "${TARGET_BRANCH}" ]]; then
-  TARGET_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+  TARGET_BRANCH="$(git -C "${CANONICAL_REPO_ROOT}" rev-parse --abbrev-ref HEAD)"
 fi
 
 if [[ "${TARGET_BRANCH}" != "beta" && "${TARGET_BRANCH}" != "master" ]]; then
   fail "target branch must be beta or master (got: ${TARGET_BRANCH})"
 fi
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  log "local changes detected; they will be discarded by default hard reset"
-fi
+ensure_target_checkout() {
+  local target_root="$1"
+  local branch="$2"
 
-log "syncing branch ${TARGET_BRANCH}"
-git fetch --all
-git checkout "${TARGET_BRANCH}"
+  if [[ "${target_root}" = "${CANONICAL_REPO_ROOT}" ]]; then
+    if [[ -n "$(git -C "${target_root}" status --porcelain)" ]]; then
+      log "local changes detected in ${target_root}; they will be discarded by hard reset"
+    fi
+    return 0
+  fi
 
-git reset --hard "origin/${TARGET_BRANCH}"
-log "hard reset to origin/${TARGET_BRANCH} complete"
+  mkdir -p "$(dirname -- "${target_root}")"
+  git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+
+  if [[ -d "${target_root}/.git" || -f "${target_root}/.git" ]]; then
+    git -C "${target_root}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${target_root} exists but is not a git checkout"
+    return 0
+  fi
+
+  if [[ -e "${target_root}" && -n "$(find "${target_root}" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    fail "target repo root ${target_root} exists and is not empty"
+  fi
+
+  log "creating branch checkout for ${branch} at ${target_root}"
+  git clone --branch "${branch}" --single-branch "${CANONICAL_REPO_ROOT}" "${target_root}"
+}
+
+sync_checkout() {
+  local target_root="$1"
+  local branch="$2"
+
+  log "syncing branch ${branch} in ${target_root}"
+
+  if [[ "${target_root}" = "${CANONICAL_REPO_ROOT}" ]]; then
+    git -C "${target_root}" fetch origin "${branch}"
+    git -C "${target_root}" checkout "${branch}"
+  else
+    git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+    git -C "${target_root}" fetch origin "${branch}"
+    git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"
+  fi
+
+  git -C "${target_root}" reset --hard "origin/${branch}"
+  git -C "${target_root}" clean -fd
+}
+
+ensure_target_checkout "${TARGET_REPO_ROOT}" "${TARGET_BRANCH}"
+sync_checkout "${TARGET_REPO_ROOT}" "${TARGET_BRANCH}"
+log "hard reset to origin/${TARGET_BRANCH} complete in ${TARGET_REPO_ROOT}"
 
 log "SUCCESS pull.sh git sync complete for ${TARGET_BRANCH}"

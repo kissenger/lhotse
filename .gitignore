@@ -13,6 +13,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/checkouts
 
 # Node
 /node_modules
@@ -53,3 +54,12 @@ node_modules
 # Server files
 ecosystem.config.cjs
 /config-backup
+
+# Dev/test only — not needed on server
+karma.conf.js
+tsconfig.spec.json
+knip.json
+eslint.config.mjs
+.browserslistrc
+deadlinks.out
+playwright-navigation-report.json

@@ -13,7 +13,33 @@ set -euo pipefail
 # - pm2 is configured in ./ecosystem.config.cjs
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+resolve_deploy_root() {
+  local branch="$1"
+  echo "${CANONICAL_REPO_ROOT}/checkouts/${branch}"
+}
+
+sync_local_deploy_files() {
+  local source_root="$1"
+  local target_root="$2"
+
+  if [[ "${source_root}" = "${target_root}" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "${source_root}/.env" ]]; then
+    fail ".env not found in ${source_root}"
+  fi
+
+  if [[ ! -d "${source_root}/env" ]]; then
+    fail "env directory not found in ${source_root}"
+  fi
+
+  cp -f "${source_root}/.env" "${target_root}/.env"
+  mkdir -p "${target_root}/env"
+  cp -f "${source_root}"/env/environment.* "${target_root}/env/"
+}
 
 log() {
   echo "[$(date -Iseconds)] $1"
@@ -101,6 +127,8 @@ fi
 require_cmd npm
 require_cmd pm2
 
+DEPLOY_ROOT="$(resolve_deploy_root "${TARGET_BRANCH}")"
+
 NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
 if [[ ! -s "${NVM_SCRIPT}" ]]; then
   fail "nvm script not found at ${NVM_SCRIPT}"
@@ -110,13 +138,23 @@ fi
 . "${NVM_SCRIPT}"
 nvm use
 
-cd "${REPO_ROOT}"
+cd "${CANONICAL_REPO_ROOT}"
 
 # Reuse the git-only sync workflow to avoid duplicating branch/reset logic.
-bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}"
+bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}" --repo-root "${DEPLOY_ROOT}"
+
+if [[ "${DEPLOY_ROOT}" = "${CANONICAL_REPO_ROOT}" ]]; then
+  log "deploying from shared checkout at ${DEPLOY_ROOT}; set DEPLOY_ROOT_BASE or DEPLOY_ROOT_<BRANCH> to isolate branches"
+else
+  log "deploying from isolated checkout at ${DEPLOY_ROOT}"
+fi
+
+sync_local_deploy_files "${CANONICAL_REPO_ROOT}" "${DEPLOY_ROOT}"
+
+cd "${DEPLOY_ROOT}"
 
 if [[ ! -f .env ]]; then
-  fail ".env not found in ${REPO_ROOT}"
+  fail ".env not found in ${DEPLOY_ROOT}"
 fi
 
 # Export .env variables for deploy-time config.
@@ -134,14 +172,14 @@ else
   HEALTHCHECK_URL="http://127.0.0.1:4000/health"
 fi
 
-if ! compgen -G "${REPO_ROOT}/env/environment.*" >/dev/null; then
-  fail "no files matched ${REPO_ROOT}/env/environment.*"
+if ! compgen -G "${DEPLOY_ROOT}/env/environment.*" >/dev/null; then
+  fail "no files matched ${DEPLOY_ROOT}/env/environment.*"
 fi
 
-mkdir -p "${REPO_ROOT}/src/environments"
-cp -v "${REPO_ROOT}"/env/environment.* "${REPO_ROOT}/src/environments/"
+mkdir -p "${DEPLOY_ROOT}/src/environments"
+cp -v "${DEPLOY_ROOT}"/env/environment.* "${DEPLOY_ROOT}/src/environments/"
 
-COMMIT_MSG="$(git -C "${REPO_ROOT}" log -1 --pretty=format:'%s')"
+COMMIT_MSG="$(git -C "${DEPLOY_ROOT}" log -1 --pretty=format:'%s')"
 echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_MSG}\033[0m"
 
 # Always use npm install for faster deployment

@@ -27,6 +27,7 @@ Core variables used by app and scripts include:
 - `MAIL_TO`/`EMAIL`
 - `REBOOT_FLAG_FILE`
 - `HEALTHCHECK_URL_BETA`, `HEALTHCHECK_URL_MASTER`
+- `DEPLOY_ROOT_BASE` or branch-specific `DEPLOY_ROOT_MASTER` / `DEPLOY_ROOT_BETA`
 
 See `.env` comments for script-specific variable ownership.
 
@@ -117,17 +118,45 @@ npm run deploy:master
 
 Deploy commands now default to hard reset behavior (`git reset --hard origin/<branch>`).
 
+Branch deploys are isolated by default:
+
+```
+~/snorkelology/                  ← canonical repo (edit/push here)
+~/snorkelology/checkouts/master  ← master deploy checkout
+~/snorkelology/checkouts/beta    ← beta deploy checkout
+```
+
 Deployment flow includes:
 
-- branch sync (`beta` or `master`)
+- branch sync (`beta` or `master`) into the configured deploy root
+- sync of local server deploy files (`.env` and `env/environment.*`) from the canonical checkout into the deploy root
 - environment file copy (`env/environment.*` -> `src/environments/`)
 - build (`build:beta` or `build:master`)
 - PM2 restart (`snorkelology_beta` or `snorkelology_master`)
 - automated health checks (PM2 online + HTTP health endpoint)
 
+Deploys always use the isolated branch checkouts under `~/snorkelology/checkouts`.
+
 ## PM2 Process Management
 
 PM2 apps are defined in `ecosystem.config.cjs`.
+
+In hardened mode, each PM2 app should point at its branch-specific server bundle. Example:
+
+```js
+apps: [
+	{
+		name: 'snorkelology_master',
+		script: '/home/your-user/snorkelology/checkouts/master/dist/prod/server/server.mjs',
+		env: { PORT: 4000 }
+	},
+	{
+		name: 'snorkelology_beta',
+		script: '/home/your-user/snorkelology/checkouts/beta/dist/beta/server/server.mjs',
+		env: { PORT: 4001 }
+	}
+]
+```
 
 Initial process start:
 
