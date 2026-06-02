@@ -17,7 +17,7 @@ CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 resolve_deploy_root() {
   local branch="$1"
-  echo "${CANONICAL_REPO_ROOT}/checkouts/${branch}"
+  echo "${CANONICAL_REPO_ROOT}/${branch}"
 }
 
 sync_local_deploy_files() {
@@ -191,8 +191,8 @@ fi
 mkdir -p "${DEPLOY_ROOT}/src/environments"
 cp -v "${DEPLOY_ROOT}"/env/environment.* "${DEPLOY_ROOT}/src/environments/"
 
-COMMIT_MSG="$(git -C "${DEPLOY_ROOT}" log -1 --pretty=format:'%s')"
-echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_MSG}\033[0m"
+COMMIT_INFO="$(git -C "${DEPLOY_ROOT}" log -1 --date=iso-strict --pretty=format:'%ad | %s')"
+echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_INFO}\033[0m"
 
 # Always use npm install for faster deployment
 log "Running: npm install"

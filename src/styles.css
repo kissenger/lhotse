@@ -622,25 +622,34 @@ a.anchor-pill.cta-link-btn:hover {
   box-shadow: 0 9px 18px rgba(29, 61, 89, 0.35);
 }
 
-.ai-content-notice.cta-link-btn {
+.ai-content-notice {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: baseline;
-  height: auto;
-  min-height: 0;
-  margin-left: 0.4rem;
+  margin-left: 0;
   margin-top: 0;
   margin-bottom: 0;
-  gap: 0;
-  padding: 0.15em 0.6em;
-  border: 1px solid transparent;
-  border-radius: 999px;
   font-size: 0.82rem;
+  font-weight: 500;
   line-height: 1.4;
 }
 
-.ai-content-notice.cta-link-btn::before {
+a.ai-content-notice,
+a.ai-content-notice:visited,
+a.ai-content-notice:active,
+a.ai-content-notice:hover {
+  color: #fff;
+  background: var(--sn-colour, #1D3D59);
+  text-decoration: none;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  padding-bottom: 0;
+}
+
+.ai-content-notice::before {
   content: none;
 }
 

@@ -28,7 +28,7 @@ test.describe('navigation', () => {
     }
 
     // Wait for home sections to render before interacting with header.
-    await page.waitForSelector('#blog', { timeout: 15_000 });
+    await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
 
     const articlesMenuItem = page.locator('.menu li', { hasText: 'Articles' }).first();
 
@@ -52,36 +52,6 @@ test.describe('navigation', () => {
     }
 
     await expect(page).toHaveURL(/\/articles(?:\?.*)?$/);
-  });
-
-  test('deep link with fragment scrolls to section', async ({ page }) => {
-    await page.goto('/home#blog');
-
-    await page.waitForSelector('#blog', { timeout: 15_000 });
-
-    // Disable smooth scrolling so any programmatic scroll is instant.
-    await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
-
-    // Angular's fragment handling can be slow — nudge the browser if it
-    // hasn't scrolled to the fragment after the initial wait.
-    await page.evaluate(() => {
-      return new Promise((resolve) => {
-        const blog = document.getElementById('blog');
-        if (!blog) throw new Error('#blog section not found');
-
-        const rect = blog.getBoundingClientRect();
-        if (rect.top > 300) {
-          blog.scrollIntoView();
-        }
-        requestAnimationFrame(() => requestAnimationFrame(resolve));
-      });
-    });
-
-    const blogTop = await page.locator('#blog').evaluate((el) => {
-      return el.getBoundingClientRect().top;
-    });
-
-    expect(blogTop).toBeLessThan(300);
   });
 
   test('/map route renders the standalone map page', async ({ page }) => {

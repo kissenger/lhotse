@@ -201,7 +201,7 @@ test.describe('PayPal sandbox nightly flow', () => {
         setTimeout(resolve, 2_000);
       }
     }));
-    await page.evaluate(() => document.getElementById('buy-now')?.scrollIntoView({ behavior: 'instant' }));
+    await page.evaluate(() => document.querySelectorAll('section.home-preview-section')[2]?.scrollIntoView({ behavior: 'instant' }));
 
     // ── 1b. Add an item to the basket — PayPal is lazy-init'd on first add ──
     // On low-resource hosts (e.g. RPi), Angular deferred blocks can take much

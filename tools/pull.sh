@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-TARGET_REPO_ROOT="${CANONICAL_REPO_ROOT}"
+TARGET_REPO_ROOT=""
 ORIGIN_URL="$(git -C "${CANONICAL_REPO_ROOT}" remote get-url origin 2>/dev/null || true)"
 
 log() {
@@ -68,16 +68,13 @@ if [[ "${TARGET_BRANCH}" != "beta" && "${TARGET_BRANCH}" != "master" ]]; then
   fail "target branch must be beta or master (got: ${TARGET_BRANCH})"
 fi
 
+if [[ -z "${TARGET_REPO_ROOT}" ]]; then
+  TARGET_REPO_ROOT="${CANONICAL_REPO_ROOT}/${TARGET_BRANCH}"
+fi
+
 ensure_target_checkout() {
   local target_root="$1"
   local branch="$2"
-
-  if [[ "${target_root}" = "${CANONICAL_REPO_ROOT}" ]]; then
-    if [[ -n "$(git -C "${target_root}" status --porcelain)" ]]; then
-      log "local changes detected in ${target_root}; they will be discarded by hard reset"
-    fi
-    return 0
-  fi
 
   mkdir -p "$(dirname -- "${target_root}")"
   git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
@@ -102,15 +99,10 @@ sync_checkout() {
 
   log "syncing branch ${branch} in ${target_root}"
 
-  if [[ "${target_root}" = "${CANONICAL_REPO_ROOT}" ]]; then
-    git -C "${target_root}" fetch origin "${branch}"
-    git -C "${target_root}" checkout "${branch}"
-  else
-    git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
-    git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
-    git -C "${target_root}" fetch origin "${branch}"
-    git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"
-  fi
+  git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+  git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
+  git -C "${target_root}" fetch origin "${branch}"
+  git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"
 
   git -C "${target_root}" reset --hard "origin/${branch}"
   git -C "${target_root}" clean -fd

@@ -40,12 +40,14 @@ test.describe('map section', () => {
       await closeOverlay.evaluate((el) => el.click()).catch(() => {});
     }
 
+    const mapTeaser = page.locator('section.home-preview-section', { has: page.getByRole('heading', { name: 'Snorkelling Map of Britain' }) });
+
     // Scroll the map teaser section into the viewport.
-    await page.locator('#snorkelling-map-of-britain').scrollIntoViewIfNeeded();
+    await mapTeaser.scrollIntoViewIfNeeded();
 
     // Home now renders a static teaser with CTA to /map rather than inline app-map.
-    await expect(page.locator('#snorkelling-map-of-britain h2')).toHaveText('Snorkelling Map of Britain', { timeout: 15_000 });
-    await expect(page.locator('#snorkelling-map-of-britain a[href="/map"]')).toBeVisible();
+    await expect(mapTeaser.getByRole('heading', { level: 2, name: 'Snorkelling Map of Britain' })).toBeVisible({ timeout: 15_000 });
+    await expect(mapTeaser.locator('a[href="/map"]')).toBeVisible();
   });
 
   test('standalone /map page renders the map component', async ({ page }) => {

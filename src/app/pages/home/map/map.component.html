@@ -26,16 +26,6 @@
           {{siteContext.countyDisplayName}}, {{siteContext.countryDisplayName}}.
         </p>
 
-        <aside class="cta-box" aria-label="Featured snorkelling guide">
-          <!-- <h3 class="cta-box-title">Snorkelology Interactive Snorkelling Map of Britain</h3> -->
-          <p class="cta-box-body">
-            Have you visited our interactive snorkelling map of Britain yet? 
-          </p>
-          <div class="cta-link-group">
-            <a class="anchor-pill cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
-          </div>
-        </aside>
-
         <p class="map-site-static map-route-para2">
           Duck-dive into the map to explore {{siteContext.countyDisplayName}}'s coastline and discover other snorkelling spots and organisations nearby.
           Use the nearby links and filters to compare options, check local context, and plan your next session.
@@ -67,15 +57,6 @@
           {{organisationContext.displayName}} is a snorkelling organisation in 
           {{organisationContext.countyDisplayName}}, {{organisationContext.countryDisplayName}}.
         </p>
-
-        <aside class="cta-box" aria-label="Featured snorkelling guide">
-          <p class="cta-box-body">
-            Have you visited our interactive snorkelling map of Britain yet? 
-          </p>
-          <div class="cta-link-group">
-            <a class="anchor-pill cta-link-btn" href="/map">Visit the Snorkelling map of Britain</a>
-          </div>
-        </aside>
 
         <p class="map-site-static map-route-para2">
           Duck-dive into the map to explore {{organisationContext.countyDisplayName}}'s coastline and discover other snorkelling organisations and sites nearby.
@@ -265,7 +246,7 @@
               <p class="map-feature-description">
                 {{feature.description}}
                 @if (feature.aiGenerated || feature.verified === false) {
-                  <a class="anchor-pill ai-content-notice cta-link-btn" routerLink="/ai-transparency">About this content</a>
+                  <a class="pill pill--static ai-content-notice" routerLink="/ai-transparency">About this content</a>
                 }
               </p>
 

@@ -1,6 +1,6 @@
 import { RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
 import { HttpService } from          '@shared/services/http.service';
@@ -38,27 +38,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
 
-  public hideAboutBookOverlay = false;
-  public overlayReady = false;
   public blogPreviewLoading = true;
   public faqPreviewLoading = true;
   public latestBlogPreviews: BlogPost[] = [];
   public faqPreviewItems: Array<FaqItem & { fragment: string; excerpt: string }> = [];
-  public widthDescriptor?: string;
   private _subs: Subscription[] = [];
   private _cancelNonCriticalTask?: () => void;
   private readonly _isBrowser: boolean;
-  private static readonly _VISITED_COOKIE = 'sn_visited';
   private readonly _faqItemsByQuestion = new Map(faqItems.map((item) => [item.question, item] as const));
-  private readonly _overlayScrollHandler = () => {
-    if (this.hideAboutBookOverlay || window.scrollY <= 16) {
-      return;
-    }
-
-    this.hideAboutBookOverlay = true;
-    this._removeOverlayScrollListener();
-    this._cdr.detectChanges();
-  };
 
   readonly panelConfig: Record<string, { path: string }> = {
     windowOne:   { path: "photos/parallax/scorpionfish-photographed-while-snorkelling-in-cornwall" },
@@ -74,20 +61,15 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     private _screen: ScreenService,
     private _http: HttpService,
     @Inject(IdleSchedulerService) private _idleScheduler: IdleSchedulerService,
-    private _cdr: ChangeDetectorRef,
   ) {
     this._isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngAfterViewInit() {
-    if (this._isBrowser) {
-      if (document.cookie.split(';').some(c => c.trim().startsWith(HomeComponent._VISITED_COOKIE + '='))) {
-        this.hideAboutBookOverlay = true;
-      } else {
-        document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
-        this._bindOverlayScrollListener();
-      }
-    }
+    // Overlay removed. Keep cookie-setting lines commented for future reuse.
+    // if (this._isBrowser) {
+    //   document.cookie = `sn_visited=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
+    // }
 
     // Fetch dynamic preview content immediately so the home previews appear quickly.
     this._loadLatestBlogPreviews();
@@ -109,9 +91,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this._loadAllWindowBackgrounds();
  
-    this.widthDescriptor = this._screen.widthDescriptor;
     this._subs.push(this._screen.resize.subscribe((hasOrientationChanged) => {
-      this.widthDescriptor = this._screen.widthDescriptor;
       if (hasOrientationChanged) {
         this.loadBackgroundImages();
       }
@@ -189,35 +169,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this._loadAllWindowBackgrounds();
   }
 
-  hideOverlay(overlay: string) {
-    if (overlay === 'about-book') {
-      this.hideAboutBookOverlay = true;
-      this._removeOverlayScrollListener();
-      if (this._isBrowser) {
-        document.cookie = `${HomeComponent._VISITED_COOKIE}=1; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
-      }
-    }
-  }
-
-  private _bindOverlayScrollListener() {
-    if (!this._isBrowser || this.hideAboutBookOverlay) {
-      return;
-    }
-
-    window.addEventListener('scroll', this._overlayScrollHandler, { passive: true });
-  }
-
-  private _removeOverlayScrollListener() {
-    if (!this._isBrowser) {
-      return;
-    }
-
-    window.removeEventListener('scroll', this._overlayScrollHandler);
-  }
-
   ngOnDestroy() {
     this._subs.forEach((sub) => sub.unsubscribe());
-    this._removeOverlayScrollListener();
     this._cancelNonCriticalTask?.();
   }
 

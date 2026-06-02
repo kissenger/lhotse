@@ -6,17 +6,17 @@ async function getActiveMenuLabel(page) {
   return (await activeItem.textContent())?.trim();
 }
 
-async function scrollSectionToHeader(page, sectionId) {
-  await page.waitForSelector(`#${sectionId}`);
+async function scrollSectionToHeader(page, selector) {
+  await page.waitForSelector(selector);
 
-  await page.evaluate((id) => {
+  await page.evaluate((targetSelector) => {
     return new Promise((resolve) => {
       const rootStyles = getComputedStyle(document.documentElement);
       const headerHeight = Number.parseFloat(rootStyles.getPropertyValue('--header-height')) || 75;
-      const target = document.getElementById(id);
+      const target = document.querySelector(targetSelector);
 
       if (!target) {
-        throw new Error(`Section not found: ${id}`);
+        throw new Error(`Section not found: ${targetSelector}`);
       }
 
       const targetTop = window.scrollY + target.getBoundingClientRect().top - headerHeight - 4;
@@ -25,7 +25,7 @@ async function scrollSectionToHeader(page, sectionId) {
       // Wait two rAF cycles so the scrollspy's rAF-based refresh has processed the new position.
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
-  }, sectionId);
+  }, selector);
 }
 
 test('header keeps Home active while scrolling home sections', async ({ page }) => {
@@ -50,18 +50,18 @@ test('header keeps Home active while scrolling home sections', async ({ page }) 
 
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
-  await scrollSectionToHeader(page, 'blog');
+  await scrollSectionToHeader(page, 'section.home-preview-section:nth-of-type(1)');
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
-  await scrollSectionToHeader(page, 'snorkelling-britain');
+  await scrollSectionToHeader(page, 'section.home-preview-section:nth-of-type(2)');
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
-  await scrollSectionToHeader(page, 'buy-now');
+  await scrollSectionToHeader(page, 'section.home-preview-section:nth-of-type(3)');
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
-  await scrollSectionToHeader(page, 'snorkelling-map-of-britain');
+  await scrollSectionToHeader(page, 'section.home-preview-section:nth-of-type(4)');
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 
-  await scrollSectionToHeader(page, 'friends-and-partners');
+  await scrollSectionToHeader(page, '.home-partners');
   await expect.poll(() => getActiveMenuLabel(page)).toBe('Home');
 });

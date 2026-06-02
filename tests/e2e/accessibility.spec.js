@@ -18,7 +18,7 @@ test.describe('accessibility', () => {
     }
 
     // Wait for deferred sections to render.
-    await page.waitForSelector('#blog', { timeout: 15_000 });
+    await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])

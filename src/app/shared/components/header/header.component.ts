@@ -29,8 +29,8 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   private _routeSubs: Subscription | null = null;
 
-  public menuItems: Array<{name: string, route: string, fragment?: string}> = [
-    { name: 'Home',    route: '/',      fragment: 'home' },
+  public menuItems: Array<{name: string, route: string}> = [
+    { name: 'Home',    route: '/' },
     { name: 'Articles', route: '/articles' },
     { name: 'Book',    route: '/snorkelling-britain' },
     { name: 'Shop',    route: '/shop' },
@@ -81,13 +81,12 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  async onAdminNavClick(route: string, fragment?: string) {
+  async onAdminNavClick(route: string) {
     try { await this._http.logout(); } catch {}
     const mainHost = window.location.hostname.replace(/^admin\./, '');
     const port = window.location.port ? `:${window.location.port}` : '';
     const path = route || '/';
-    const hash = fragment ? `#${fragment}` : '';
-    window.location.href = `${window.location.protocol}//${mainHost}${port}${path}${hash}`;
+    window.location.href = `${window.location.protocol}//${mainHost}${port}${path}`;
   }
 
   onLogoLoad() {
@@ -126,8 +125,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const [path, fragment] = url.split('#');
-    const normalizedPath = path || '/';
+    const normalizedPath = url.split('#')[0] || '/';
     const isHomeRoute = HeaderComponent._HOME_PATHS.has(normalizedPath);
 
     const matchedMenu = HeaderComponent._MENU_ROUTE_MATCHERS.find((matcher) => matcher.match(normalizedPath));
@@ -141,8 +139,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const activeMenuItem = this.menuItems.find((item) => item.route === '/' && item.fragment === fragment)?.name;
-    this.activeMenuItem = activeMenuItem ?? 'Home';
+    this.activeMenuItem = 'Home';
   }
 
 }

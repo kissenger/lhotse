@@ -51,7 +51,7 @@ export const faqItems: FaqItem[] = [
   {
     section: 'About British Snorkelling',
     question: 'What are the best snorkelling sites in Britain?',
-    answer: `The most abundant locations tend to be those with rocky seabed and healthy currents. Always check tides and currents before visiting. Our book [link:Snorkelling Britain,/#snorkelling-britain] features 100 favourite snorkelling sites in England, Scotland and Wales.`
+    answer: `The most abundant locations tend to be those with rocky seabed and healthy currents. Always check tides and currents before visiting. Our book [link:Snorkelling Britain,/snorkelling-britain] features 100 favourite snorkelling sites in England, Scotland and Wales.`
   },
   {
     section: 'About British Snorkelling',

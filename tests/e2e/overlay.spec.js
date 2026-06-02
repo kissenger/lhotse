@@ -30,14 +30,14 @@ test.describe('about-book overlay', () => {
     const overlay = page.locator('.overlay.about-book');
     await expect(overlay).toBeVisible({ timeout: 10_000 });
 
-    // Scroll the blog section up to the header.
-    await page.waitForSelector('#blog', { timeout: 15_000 });
+    // Scroll the first preview section (blog) up to the header.
+    await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
     await page.evaluate(() => {
       return new Promise((resolve) => {
         const headerHeight =
           Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 75;
-        const blog = document.getElementById('blog');
-        if (!blog) throw new Error('#blog section not found');
+        const blog = document.querySelector('section.home-preview-section');
+        if (!blog) throw new Error('blog section not found');
 
         const top = window.scrollY + blog.getBoundingClientRect().top - headerHeight - 4;
         window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
@@ -58,14 +58,14 @@ test.describe('about-book overlay', () => {
     const overlay = page.locator('.overlay.about-book');
     await expect(overlay).toBeVisible({ timeout: 10_000 });
 
-    // Jump straight to buy-now, simulating a fast scroll that skips blog entirely.
-    await page.waitForSelector('#buy-now', { timeout: 15_000 });
+    // Jump straight to the third preview section (shop), simulating a fast scroll that skips blog entirely.
+    await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
     await page.evaluate(() => {
       return new Promise((resolve) => {
         const headerHeight =
           Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 75;
-        const target = document.getElementById('buy-now');
-        if (!target) throw new Error('#buy-now section not found');
+        const target = document.querySelectorAll('section.home-preview-section')[2];
+        if (!target) throw new Error('shop section not found');
 
         const top = window.scrollY + target.getBoundingClientRect().top - headerHeight - 4;
         window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });

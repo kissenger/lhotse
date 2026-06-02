@@ -29,9 +29,8 @@
         @for (menuItem of menuItems; track menuItem) {
           <li #menuItem
               [routerLink]="isAdminRoute ? null : menuItem.route"
-              [fragment]="isAdminRoute ? undefined : menuItem.fragment"
               [ngClass]="{'active': activeMenuItem == menuItem.name}"
-              (click)="isAdminRoute && onAdminNavClick(menuItem.route, menuItem.fragment)">
+              (click)="isAdminRoute && onAdminNavClick(menuItem.route)">
             <span class="stealth-html-link">{{menuItem.name}}</span>
           </li>          
         }
