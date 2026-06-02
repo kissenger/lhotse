@@ -141,12 +141,6 @@ fi
 mkdir -p "${REPO_ROOT}/src/environments"
 cp -v "${REPO_ROOT}"/env/environment.* "${REPO_ROOT}/src/environments/"
 
-# If beta, copy any new assets to prod folder so they can be tested on beta site.
-if [[ "${TARGET_BRANCH}" = "beta" ]]; then
-  mkdir -p "${REPO_ROOT}/dist/prod/browser/assets"
-  cp -rnv "${REPO_ROOT}/src/assets/." "${REPO_ROOT}/dist/prod/browser/assets/"
-fi
-
 COMMIT_MSG="$(git -C "${REPO_ROOT}" log -1 --pretty=format:'%s')"
 echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_MSG}\033[0m"
 

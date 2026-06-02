@@ -1,11 +1,14 @@
 <a class="blog-card media-row anchor-pill" [routerLink]="'/articles/'+data.slug" aria-label="Read article: {{data.title}}">
 
   <div class="photo media-row-visual">
-    <img
-      [ngSrc]="data.imgFname"
-      [alt]="data.imgAlt || 'Article image for ' + data.title"
-      sizes="(max-width: 767px) 100vw, 280px"
-      fill />
+    @if (imageSrc) {
+      <img
+        [src]="imageSrc"
+        [alt]="data.imgAlt || 'Article image for ' + data.title"
+        loading="lazy"
+        decoding="async"
+        (error)="onImageError()" />
+    }
   </div>
 
   <div class="card-content media-row-content">
