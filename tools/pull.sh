@@ -12,6 +12,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+CANONICAL_REPO_NAME="$(basename -- "${CANONICAL_REPO_ROOT}")"
+
+if [[ "${CANONICAL_REPO_NAME}" == "beta" || "${CANONICAL_REPO_NAME}" == "master" ]]; then
+  CHECKOUT_PARENT_ROOT="$(cd -- "${CANONICAL_REPO_ROOT}/.." && pwd)"
+else
+  CHECKOUT_PARENT_ROOT="${CANONICAL_REPO_ROOT}"
+fi
+
 TARGET_REPO_ROOT=""
 ORIGIN_URL="$(git -C "${CANONICAL_REPO_ROOT}" remote get-url origin 2>/dev/null || true)"
 
@@ -69,7 +77,7 @@ if [[ "${TARGET_BRANCH}" != "beta" && "${TARGET_BRANCH}" != "master" ]]; then
 fi
 
 if [[ -z "${TARGET_REPO_ROOT}" ]]; then
-  TARGET_REPO_ROOT="${CANONICAL_REPO_ROOT}/${TARGET_BRANCH}"
+  TARGET_REPO_ROOT="${CHECKOUT_PARENT_ROOT}/${TARGET_BRANCH}"
 fi
 
 ensure_target_checkout() {

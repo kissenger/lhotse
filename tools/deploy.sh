@@ -14,10 +14,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+CANONICAL_REPO_NAME="$(basename -- "${CANONICAL_REPO_ROOT}")"
+
+if [[ "${CANONICAL_REPO_NAME}" == "beta" || "${CANONICAL_REPO_NAME}" == "master" ]]; then
+  CHECKOUT_PARENT_ROOT="$(cd -- "${CANONICAL_REPO_ROOT}/.." && pwd)"
+else
+  CHECKOUT_PARENT_ROOT="${CANONICAL_REPO_ROOT}"
+fi
 
 resolve_deploy_root() {
   local branch="$1"
-  echo "${CANONICAL_REPO_ROOT}/${branch}"
+  echo "${CHECKOUT_PARENT_ROOT}/${branch}"
 }
 
 sync_local_deploy_files() {
