@@ -1,12 +1,12 @@
 # Allow all URLs except backend and admin routes (see https://www.robotstxt.org/robotstxt.html)
 User-agent: *
 Disallow: /api/
-Allow: /api/blog/get-post-by-slug/
-Allow: /api/blog/get-last-and-next-slugs/
+Allow: /api/article/get-post-by-slug/
+Allow: /api/article/get-last-and-next-slugs/
 Disallow: /login
 Disallow: /dashboard
 Disallow: /orders
-Disallow: /blogeditor
+Disallow: /articleeditor
 Disallow: /siteseditor
 Allow: /
 Sitemap: https://snorkelology.co.uk/sitemap.xml

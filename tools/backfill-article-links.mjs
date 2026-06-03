@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import 'dotenv/config';
 
-const DEFAULT_FROM = '/blog';
+const DEFAULT_FROM = '/article';
 const DEFAULT_TO = '/article';
 const DEFAULT_COLLECTION = 'posts';
 const DEFAULT_SAMPLE_LIMIT = 10;
@@ -82,16 +82,16 @@ function parseArgs(argv) {
   }
 
   if (!options.from.startsWith('/') || !options.to.startsWith('/')) {
-    throw new Error('Both --from and --to must be root-relative paths, e.g. /blog and /article.');
+    throw new Error('Both --from and --to must be root-relative paths, e.g. /article and /article.');
   }
 
   return options;
 }
 
 function printHelp() {
-  console.log(`Usage: node ./tools/backfill-blog-links.mjs [options]
+  console.log(`Usage: node ./tools/backfill-article-links.mjs [options]
 
-Backfills internal links in blog documents by replacing /blog with /article.
+Backfills internal links in article documents by replacing /article with /article.
 
 Options:
   --apply                 Apply updates. If omitted, runs in dry-run mode.
@@ -117,7 +117,7 @@ function buildReplacer(options) {
     ? new RegExp(`((?:https?:)?\\/\\/(?:${hostPattern}))${escapedFrom}(?=\\/|\\?|#|$)`, 'gi')
     : null;
 
-  // Prefix capture prevents replacing external links like https://example.com/blog.
+  // Prefix capture prevents replacing external links like https://example.com/article.
   const relativeRegex = new RegExp(`(^|[^A-Za-z0-9_-])${escapedFrom}(?=\\/|\\?|#|$)`, 'g');
 
   return function replaceInString(input) {
@@ -132,7 +132,7 @@ function buildReplacer(options) {
 
 function collectStringUpdates(node, path, replaceInString, setOps, sampleChanges, sampleLimit) {
   if (typeof node === 'string') {
-    if (!node.includes('/blog')) {
+    if (!node.includes('/article')) {
       return;
     }
     const replaced = replaceInString(node);

@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, BlogPost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, ArticlePost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -15,7 +15,7 @@ export class HttpService {
   MAP 
   */
   async getSites(siteVisibility: Array<string>) {
-    const request =  this._http.get<Array<BlogPost>>(`/api/sites/get-sites/${siteVisibility.join("/")}`)
+    const request =  this._http.get<Array<ArticlePost>>(`/api/sites/get-sites/${siteVisibility.join("/")}`)
     return await lastValueFrom(request);
   }
 
@@ -75,12 +75,12 @@ export class HttpService {
   }
 
   /*
-  BLOG 
+  ARTICLE
   */
-  private _publishedPostsCache: Array<BlogPost> | null = null;
+  private _publishedPostsCache: Array<ArticlePost> | null = null;
 
   async getAllPosts() {
-    const request =  this._http.get<Array<BlogPost>>(`/api/blog/get-all-posts/`);
+    const request =  this._http.get<Array<ArticlePost>>(`/api/article/get-all-posts/`);
     return await lastValueFrom(request);
   }
 
@@ -88,47 +88,47 @@ export class HttpService {
     if (!bustCache && this._publishedPostsCache) {
       return this._publishedPostsCache;
     }
-    const request =  this._http.get<Array<BlogPost>>(`/api/blog/get-published-posts/`);
+    const request =  this._http.get<Array<ArticlePost>>(`/api/article/get-published-posts/`);
     this._publishedPostsCache = await lastValueFrom(request);
     return this._publishedPostsCache;
   }
 
   async getPostBySlug(slug: string, preview = false) {
     const path = preview
-      ? `/api/blog/get-post-preview-by-slug/${slug}`
-      : `/api/blog/get-post-by-slug/${slug}`;
-    const request = this._http.get<{article: BlogPost}>(path, { withCredentials: preview });
+      ? `/api/article/get-post-preview-by-slug/${slug}`
+      : `/api/article/get-post-by-slug/${slug}`;
+    const request = this._http.get<{article: ArticlePost}>(path, { withCredentials: preview });
     return await lastValueFrom(request);
   }
 
   async getLastAndNextSlugs(slug: string) {
-    const request =  this._http.get<{lastSlug: string, nextSlug: string}>(`/api/blog/get-last-and-next-slugs/${slug}`);
+    const request =  this._http.get<{lastSlug: string, nextSlug: string}>(`/api/article/get-last-and-next-slugs/${slug}`);
     return await lastValueFrom(request);
   }
 
   async getAllSlugs() {
-    const request =  this._http.get<Array<string>>(`/api/blog/get-all-slugs/`);
+    const request =  this._http.get<Array<string>>(`/api/article/get-all-slugs/`);
     return await lastValueFrom(request);
   }
 
-  async upsertPost(post: BlogPost, options?: { preserveUpdatedAt?: boolean }) {
+  async upsertPost(post: ArticlePost, options?: { preserveUpdatedAt?: boolean }) {
     const payload = options?.preserveUpdatedAt ? { ...post, preserveUpdatedAt: true } : post;
-    const request = this._http.post<Array<BlogPost>>(`/api/blog/upsert-post/`, payload);
+    const request = this._http.post<Array<ArticlePost>>(`/api/article/upsert-post/`, payload);
     return await lastValueFrom(request);
   }
   
   async deletePost(postId: string) {
-    const request =  this._http.get<Array<BlogPost>>(`/api/blog/delete-post/${postId}`);
+    const request =  this._http.get<Array<ArticlePost>>(`/api/article/delete-post/${postId}`);
     return await lastValueFrom(request);
   }
 
   async likePost(slug: string): Promise<{ likes: number, alreadyLiked: boolean }> {
-    const request = this._http.post<{ likes: number, alreadyLiked: boolean }>(`/api/blog/like/${slug}`, {});
+    const request = this._http.post<{ likes: number, alreadyLiked: boolean }>(`/api/article/like/${slug}`, {});
     return await lastValueFrom(request);
   }
 
   async getLikes(slugs: string[]): Promise<Record<string, number>> {
-    const request = this._http.post<Record<string, number>>(`/api/blog/get-likes`, { slugs });
+    const request = this._http.post<Record<string, number>>(`/api/article/get-likes`, { slugs });
     return await lastValueFrom(request);
   }
 

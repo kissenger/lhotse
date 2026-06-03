@@ -31,7 +31,7 @@ async function scrollSectionToHeader(page, selector) {
 test('header keeps Home active while scrolling home sections', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1400 });
 
-  await page.route('**/api/blog/get-published-posts/**', async (route) => {
+  await page.route('**/api/article/get-published-posts/**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

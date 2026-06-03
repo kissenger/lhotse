@@ -14,14 +14,22 @@ set -euo pipefail
 
 COMMIT_MSG="${1:-Snapshot update}"
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+USER_NAME="${USER_NAME:-$(whoami)}"
+USER_HOME="${HOME:-/home/${USER_NAME}}"
+
 # 0) Edit these first
-OPS_REPO_DIR=/home/gort1975/snorkelology/config-backup
-OPS_REMOTE=git@github.com:kissenger/lhotse.git
-OPS_BRANCH="config-backup"
-APP_DIR=/home/gort1975/snorkelology
-USER_NAME=$(whoami)
+OPS_REPO_DIR="${OPS_REPO_DIR:-${REPO_ROOT}/config-backup}"
+OPS_REMOTE="${OPS_REMOTE:-git@github.com:kissenger/lhotse.git}"
+OPS_BRANCH="${OPS_BRANCH:-config-backup}"
+APP_DIR="${APP_DIR:-${REPO_ROOT}}"
 HOST_NAME=$(hostname)
 SNAPSHOT_TS=$(date +%F-%H%M%S)
+PREV_BRANCH=""
+
+cd "$REPO_ROOT"
+PREV_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 
 # 1) Switch to target branch
 git checkout "$OPS_BRANCH"
@@ -45,9 +53,9 @@ mkdir -p etc/fail2ban/jail.d
 mkdir -p etc/logrotate.d
 mkdir -p etc/letsencrypt/renewal
 mkdir -p var/spool/cron
-mkdir -p home/gort1975/snorkelology
-mkdir -p home/gort1975/.pm2
-mkdir -p home/gort1975/.ssh
+mkdir -p "home/${USER_NAME}/snorkelology"
+mkdir -p "home/${USER_NAME}/.pm2"
+mkdir -p "home/${USER_NAME}/.ssh"
 mkdir -p firewall
 mkdir -p packages
 mkdir -p docs
@@ -59,13 +67,13 @@ sudo cp -a /etc/nginx/sites-available/default etc/nginx/sites-available/default
 sudo cp -a /etc/nginx/sites-enabled/default etc/nginx/sites-enabled/default
 
 echo "Exporting crontab..."
-crontab -l > "var/spool/cron/${USER_NAME}.cron"
+crontab -l > "var/spool/cron/${USER_NAME}.cron" || true
 
 echo "Copying PM2 ecosystem and state..."
-cp -a "$APP_DIR/ecosystem.config.cjs" home/gort1975/snorkelology/ecosystem.config.cjs
-cp -a /home/gort1975/.pm2/dump.pm2 home/gort1975/.pm2/dump.pm2 2>/dev/null || true
-pm2 status > "home/gort1975/.pm2/pm2-status-${SNAPSHOT_TS}.txt" || true
-pm2 ls > "home/gort1975/.pm2/pm2-ls-${SNAPSHOT_TS}.txt" || true
+cp -a "$APP_DIR/ecosystem.config.cjs" "home/${USER_NAME}/snorkelology/ecosystem.config.cjs" 2>/dev/null || true
+cp -a "${USER_HOME}/.pm2/dump.pm2" "home/${USER_NAME}/.pm2/dump.pm2" 2>/dev/null || true
+pm2 status > "home/${USER_NAME}/.pm2/pm2-status-${SNAPSHOT_TS}.txt" || true
+pm2 ls > "home/${USER_NAME}/.pm2/pm2-ls-${SNAPSHOT_TS}.txt" || true
 
 echo "Copying systemd units/timers/paths..."
 sudo find /etc/systemd/system -maxdepth 1 -type f \( -name "*.service" -o -name "*.timer" -o -name "*.path" \) -exec cp -a {} etc/systemd/system/ \;
@@ -73,7 +81,7 @@ sudo find /etc/systemd/system -maxdepth 1 -type f \( -name "*.service" -o -name 
 echo "Copying SSH config and authorized_keys..."
 sudo cp -a /etc/ssh/sshd_config etc/ssh/sshd_config
 sudo cp -a /etc/ssh/sshd_config.d/. etc/ssh/sshd_config.d/ 2>/dev/null || true
-cp -a "/home/${USER_NAME}/.ssh/authorized_keys" "home/gort1975/.ssh/authorized_keys" 2>/dev/null || true
+cp -a "${USER_HOME}/.ssh/authorized_keys" "home/${USER_NAME}/.ssh/authorized_keys" 2>/dev/null || true
 
 echo "Capturing firewall snapshots..."
 sudo ufw status numbered > "firewall/ufw-status-${SNAPSHOT_TS}.txt" 2>/dev/null || true
@@ -105,7 +113,9 @@ echo "Committing changes..."
 git commit -m "$COMMIT_MSG"
 echo "Pushing to remote..."
 git push origin "$OPS_BRANCH"
-echo "Returning to parent directory and master branch..."
+echo "Returning to parent directory and previous branch..."
 cd ..
-git checkout master
+if [[ -n "${PREV_BRANCH}" ]]; then
+  git checkout "${PREV_BRANCH}" || true
+fi
 

@@ -1,9 +1,9 @@
 import mongoose, {model} from 'mongoose';
 
-const blogSchema = new mongoose.Schema({
+const articleSchema = new mongoose.Schema({
   slug: {type: String, required: true},
   type: {type: String, default: 'faq'},
-  blogSection: {type: String},
+  articleSection: {type: String},
   title: {type: String, required: true},
   keywords: {type: [String], required: true},
   subtitle: {type: String, required: true},
@@ -58,16 +58,16 @@ const blogSchema = new mongoose.Schema({
 }, {timestamps: true})
 
 // Exclude soft-deleted posts from standard queries by default.
-blogSchema.pre(/^find/, function (this: any, next) {
+articleSchema.pre(/^find/, function (this: any, next) {
   this.where({ isDeleted: { $ne: true } });
   next();
 });
 
-// Support hot read paths used by blog page SSR/API lookups.
-blogSchema.index({ slug: 1 });
-blogSchema.index({ slug: 1, publishedAt: 1 });
-blogSchema.index({ publishedAt: -1, createdAt: -1 });
+// Support hot read paths used by article page SSR/API lookups.
+articleSchema.index({ slug: 1 });
+articleSchema.index({ slug: 1, publishedAt: 1 });
+articleSchema.index({ publishedAt: -1, createdAt: -1 });
 
-const BlogModel = model('post', blogSchema);
+const ArticleModel = model('post', articleSchema);
 
-export default BlogModel; 
+export default ArticleModel; 

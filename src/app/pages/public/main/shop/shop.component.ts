@@ -18,7 +18,7 @@ import { ScrollOffsetService } from '@shared/services/scroll-offset.service';
   imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, CarouselComponent],
   selector: 'app-shop',
   templateUrl: './shop.component.html',
-  styleUrls: ['./shop.component.css', '../home.component.css']
+  styleUrls: ['./shop.component.css', '../home/home.component.css']
 })
 
 export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {

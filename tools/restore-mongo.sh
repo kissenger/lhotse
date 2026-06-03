@@ -17,11 +17,11 @@ DEFAULT_LOG_FILE="${REPO_ROOT}/logs/restore-mongo.log"
 # Requires: mongorestore, tar, gzip. Optional: openssl (for .enc backups).
 #
 # RUN AS:
-# sh ./tools/restore-mongo.sh --yes --file /home/gort1975/mongo_backups/dump-20260307-112203.tar.gz --db snorkelology
+# sh ./tools/restore-mongo.sh --yes --file "$HOME/mongo_backups/dump-20260307-112203.tar.gz" --db snorkelology
 # 
 
-ENV_FILE="/home/gort1975/snorkelology/.env"
-BACKUP_ROOT="/home/gort1975/mongo_backups"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/mongo_backups}"
 
 maintenance_init "restore-mongo.sh" "${ENV_FILE}" "${DEFAULT_LOG_FILE}"
 WORK_DIR=""

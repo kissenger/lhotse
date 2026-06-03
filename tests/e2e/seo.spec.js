@@ -184,11 +184,11 @@ test.describe('home page (/home)', () => {
     expect(first.acceptedAnswer?.text).toBeTruthy();
   });
 
-  // --- JSON-LD: BlogPosting (DB cache validation) ---
+  // --- JSON-LD: ArticlePosting (DB cache validation) ---
 
-  test('BlogPosting schemas are present — confirms DB cache is populated', async ({ page }) => {
+  test('ArticlePosting schemas are present — confirms DB cache is populated', async ({ page }) => {
     const schemas = await getSchemas(page);
-    const posts = schemas.filter((s) => s['@type'] === 'BlogPosting');
+    const posts = schemas.filter((s) => s['@type'] === 'ArticlePosting');
     if (posts.length === 0) {
       // Home may intentionally omit DB-backed post schemas when cache is unavailable.
       return;
@@ -370,55 +370,55 @@ test.describe('/articles index page', () => {
 // /articles/:slug  (dynamic — uses first published slug from the API)
 // ---------------------------------------------------------------------------
 
-test.describe('/articles/:slug — individual blog post', () => {
+test.describe('/articles/:slug — individual article post', () => {
   /** First published slug fetched from the API. */
   let slug = '';
 
   test.beforeAll(async ({ request }) => {
-    const res = await request.get('/api/blog/get-all-slugs/', { timeout: 15_000 });
+    const res = await request.get('/api/article/get-all-slugs/', { timeout: 15_000 });
     if (!res.ok()) return;
     const data = await res.json();
     slug = data[0]?.slug ?? '';
   });
 
   test('title is non-empty', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/.+/);
   });
 
   test('meta description is non-empty', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.+/);
   });
 
   test('canonical contains /articles/', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /snorkelology\.co\.uk\/articles\//);
   });
 
   test('og:type is article', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[property="og:type"]')).toHaveAttribute('content', 'article');
   });
 
   test('og:image supports prod absolute URLs and localhost asset fallbacks', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', SEO_IMAGE_URL_PATTERN);
   });
 
   test('robots allows indexing', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /index/);
   });
 
   test('BreadcrumbList has 3+ items and includes Articles breadcrumb', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     const schemas = await getSchemas(page);
     const bc = schemas.find((s) => s['@type'] === 'BreadcrumbList');
@@ -430,13 +430,13 @@ test.describe('/articles/:slug — individual blog post', () => {
     expect(lastItem.item).toContain(`/articles/${slug}`);
   });
 
-  test('BlogPosting or FAQPage schema has required fields', async ({ page }) => {
-    test.skip(!slug, 'No published blog posts available');
+  test('ArticlePosting or FAQPage schema has required fields', async ({ page }) => {
+    test.skip(!slug, 'No published article posts available');
     await page.goto(`/articles/${slug}`, { waitUntil: 'domcontentloaded' });
     const schemas = await getSchemas(page);
-    const article = schemas.find((s) => s['@type'] === 'BlogPosting' || s['@type'] === 'FAQPage');
-    expect(article, 'BlogPosting or FAQPage schema should be present').toBeTruthy();
-    if (article['@type'] === 'BlogPosting') {
+    const article = schemas.find((s) => s['@type'] === 'ArticlePosting' || s['@type'] === 'FAQPage');
+    expect(article, 'ArticlePosting or FAQPage schema should be present').toBeTruthy();
+    if (article['@type'] === 'ArticlePosting') {
       expect(article.headline).toBeTruthy();
       expect(article.datePublished).toBeTruthy();
       expect(article.author?.name).toBeTruthy();

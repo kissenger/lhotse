@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Regenerate OG images for all published blog posts that don't have one.
+ * Regenerate OG images for all published article posts that don't have one.
  * 
  * This script should be run periodically (e.g., via cron or scheduled task) to ensure
- * all published blog articles have their OG images generated.
+ * all published article articles have their OG images generated.
  * 
  * Usage:
  *   node tools/regenerate-og-images.mjs
@@ -24,7 +24,7 @@ import sharp from 'sharp';
 import 'dotenv/config';
 
 // MongoDB schema definition (must match server)
-const blogSchema = new mongoose.Schema({
+const articleSchema = new mongoose.Schema({
   slug: { type: String, required: true },
   type: { type: String, default: 'faq' },
   title: { type: String, required: true },
@@ -55,12 +55,12 @@ const blogSchema = new mongoose.Schema({
   publishedAt: Date,
 }, { timestamps: true });
 
-blogSchema.pre(/^find/, function (next) {
+articleSchema.pre(/^find/, function (next) {
   this.where({ isDeleted: { $ne: true } });
   next();
 });
 
-const BlogModel = mongoose.model('post', blogSchema);
+const ArticleModel = mongoose.model('post', articleSchema);
 
 // Configuration
 const OG_WIDTH = 1200;
@@ -84,6 +84,8 @@ async function pathExists(filePath) {
 async function resolveArticlesDir() {
   const candidates = [
     process.env.OG_ARTICLES_DIR || '',
+    resolve(process.cwd(), 'dist/browser/assets/photos/articles'),
+    resolve(process.cwd(), 'dist/assets/photos/articles'),
     resolve(process.cwd(), 'dist/prod/browser/assets/photos/articles'),
     resolve(process.cwd(), 'dist/dev/browser/assets/photos/articles'),
     resolve(process.cwd(), 'dist/beta/browser/assets/photos/articles'),
@@ -102,6 +104,8 @@ async function resolveArticlesDir() {
 async function resolveLogoPath() {
   const candidates = [
     process.env.OG_LOGO_PATH || '',
+    resolve(process.cwd(), 'dist/browser/assets/banner/snround-hq.webp'),
+    resolve(process.cwd(), 'dist/assets/banner/snround-hq.webp'),
     resolve(process.cwd(), 'dist/prod/browser/assets/banner/snround-hq.webp'),
     resolve(process.cwd(), 'dist/dev/browser/assets/banner/snround-hq.webp'),
     resolve(process.cwd(), 'dist/beta/browser/assets/banner/snround-hq.webp'),
@@ -119,6 +123,7 @@ async function resolveLogoPath() {
 
 async function ogImageExists(slug, articlesDir) {
   const candidates = [
+    resolve(process.cwd(), 'dist/browser/assets/photos/articles/og', `${slug}-og.webp`),
     resolve(process.cwd(), 'dist/prod/browser/assets/photos/articles/og', `${slug}-og.webp`),
     resolve(articlesDir, 'og', `${slug}-og.webp`),
   ];
@@ -132,7 +137,7 @@ async function ogImageExists(slug, articlesDir) {
   return false;
 }
 
-async function generateBlogOgImage(slug, imgFname, articlesDir, logoPath) {
+async function generateArticleOgImage(slug, imgFname, articlesDir, logoPath) {
   if (!slug || !imgFname) {
     return false;
   }
@@ -219,7 +224,7 @@ async function main() {
 
     // Fetch all published posts
     console.log('Fetching published posts from database...');
-    const posts = await BlogModel.find(
+    const posts = await ArticleModel.find(
       { publishedAt: { $ne: null } },
       { slug: 1, title: 1, imgFname: 1 }
     ).sort({ createdAt: -1 }).lean();
@@ -244,7 +249,7 @@ async function main() {
         alreadyExists++;
       } else {
         try {
-          const success = await generateBlogOgImage(post.slug, post.imgFname, articlesDir, logoPath);
+          const success = await generateArticleOgImage(post.slug, post.imgFname, articlesDir, logoPath);
           if (success) {
             console.log(`[${post.slug}] ✓ Generated OG image`);
             generated++;

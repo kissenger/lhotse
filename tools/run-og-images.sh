@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Regenerate OG images for all published blog posts
+# Regenerate OG images for all published article posts
 # This script should be run periodically (e.g., via cron)
 #
 # Usage:
@@ -54,7 +54,7 @@ cd "$PROJECT_ROOT"
 
 # Load environment file. Match existing run-* scripts by default,
 # while allowing ENV_FILE override and project-local fallback.
-ENV_FILE="${ENV_FILE:-/home/gort1975/snorkelology/.env}"
+ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env}"
 if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_ROOT/.env" ]; then
   ENV_FILE="$PROJECT_ROOT/.env"
 fi

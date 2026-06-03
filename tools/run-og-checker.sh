@@ -18,7 +18,7 @@ fail() {
 }
 
 # Load environment file with fallback to project-local .env
-ENV_FILE="${ENV_FILE:-/home/gort1975/snorkelology/.env}"
+ENV_FILE="${ENV_FILE:-${PROJECT_ROOT}/.env}"
 if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_ROOT/.env" ]; then
   ENV_FILE="$PROJECT_ROOT/.env"
 fi
@@ -32,9 +32,10 @@ fi
 
 cd "$PROJECT_ROOT"
 
-if [ -f "/home/gort1975/.nvm/nvm.sh" ]; then
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [ -s "${NVM_SCRIPT}" ]; then
   # shellcheck disable=SC1091
-  . "/home/gort1975/.nvm/nvm.sh"
+  . "${NVM_SCRIPT}"
   nvm use || fail "nvm use failed"
 fi
 

@@ -9,7 +9,7 @@ import { ToastComponent } from '@shared/components/toast/toast.component'
   3) app.component from which we get the viewContainer, used to insert the toasts - calls init on this service
 
   Some Refs:
-    https://blog.venturemagazine.net/mastering-angular-toast-notifications-a-complete-guide-from-zero-to-hero-33c853bac36f
+    https://article.venturemagazine.net/mastering-angular-toast-notifications-a-complete-guide-from-zero-to-hero-33c853bac36f
     https://stackblitz.com/edit/angular-19-portaloutlet-toast-service-njygavfb?file=src%2Ftoast.service.ts
     https://angular.dev/errors/NG0506 <--timeouts cause unstable error, fix is in here
 */

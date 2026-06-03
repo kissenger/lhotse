@@ -22,7 +22,7 @@ const MOCK_GEOJSON = {
 
 test.describe('map section', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/blog/get-published-posts/**', (route) =>
+    await page.route('**/api/article/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
     await page.route('**/api/sites/get-sites/**', (route) =>

@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test.describe('about-book overlay', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock blog API so deferred sections render quickly.
-    await page.route('**/api/blog/get-published-posts/**', (route) =>
+    // Mock article API so deferred sections render quickly.
+    await page.route('**/api/article/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   });
@@ -21,7 +21,7 @@ test.describe('about-book overlay', () => {
     await expect(overlay).not.toBeVisible({ timeout: 5_000 });
   });
 
-  test('closes when the user scrolls to the blog section', async ({ page }) => {
+  test('closes when the user scrolls to the article section', async ({ page }) => {
     await page.goto('/home');
 
     // Disable smooth scrolling so the scroll position updates instantly.
@@ -30,16 +30,16 @@ test.describe('about-book overlay', () => {
     const overlay = page.locator('.overlay.about-book');
     await expect(overlay).toBeVisible({ timeout: 10_000 });
 
-    // Scroll the first preview section (blog) up to the header.
+    // Scroll the first preview section (article) up to the header.
     await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
     await page.evaluate(() => {
       return new Promise((resolve) => {
         const headerHeight =
           Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 75;
-        const blog = document.querySelector('section.home-preview-section');
-        if (!blog) throw new Error('blog section not found');
+        const article = document.querySelector('section.home-preview-section');
+        if (!article) throw new Error('article section not found');
 
-        const top = window.scrollY + blog.getBoundingClientRect().top - headerHeight - 4;
+        const top = window.scrollY + article.getBoundingClientRect().top - headerHeight - 4;
         window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
 
         // Wait two rAF cycles for the scrollspy to process the new position.
@@ -50,7 +50,7 @@ test.describe('about-book overlay', () => {
     await expect(overlay).not.toBeVisible({ timeout: 5_000 });
   });
 
-  test('closes when the user scrolls past blog to a later section', async ({ page }) => {
+  test('closes when the user scrolls past article to a later section', async ({ page }) => {
     await page.goto('/home');
 
     await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
@@ -58,7 +58,7 @@ test.describe('about-book overlay', () => {
     const overlay = page.locator('.overlay.about-book');
     await expect(overlay).toBeVisible({ timeout: 10_000 });
 
-    // Jump straight to the third preview section (shop), simulating a fast scroll that skips blog entirely.
+    // Jump straight to the third preview section (shop), simulating a fast scroll that skips article entirely.
     await page.waitForSelector('section.home-preview-section', { timeout: 15_000 });
     await page.evaluate(() => {
       return new Promise((resolve) => {

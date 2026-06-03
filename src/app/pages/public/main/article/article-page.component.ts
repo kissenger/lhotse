@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
-import { BlogComponent } from '@pages/public/main/blog/blog.component';
+import { ArticleComponent } from '@pages/public/main/article/article.component';
 import { PageShellComponent } from '@shared/components/page-shell/page-shell.component';
 
 @Component({
   standalone: true,
-  imports: [BlogComponent, PageShellComponent],
+  imports: [ArticleComponent, PageShellComponent],
   template: `
     <app-page-shell heading="British Snorkelling Articles">
-      <app-blog></app-blog>
+      <app-article></app-article>
     </app-page-shell>`
 })
-export class BlogPageComponent {}
+export class ArticlePageComponent {}

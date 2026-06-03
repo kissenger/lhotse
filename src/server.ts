@@ -9,12 +9,13 @@ import mongoose from 'mongoose';
 import FeatureModel from '../schema/feature';
 import { shop } from './server-shop';
 import { auth, verifyToken } from './server-auth';
-import { blog, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-blog';
+import { article, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-article';
 import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoMetaTag, type SeoPayload } from './server-seo-injection';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
+import { buildYouTubeEmbedUrl, extractYouTubeVideoId } from './app/shared/utils/youtube-url';
 import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, getCountyMatchSlugs, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
 import 'dotenv/config';
 
@@ -181,13 +182,13 @@ app.use('/api', async (_req, _res, next) => {
 });
 app.use(shop);
 app.use(auth);
-app.use(blog);
+app.use(article);
 app.use(map);
 app.use(organisations);
 
 app.use(express.static(browserDistFolder, {maxAge: '1y',index: false,redirect: false,}),);
 
-const BLOG_SLUG_REDIRECTS: Record<string, string> = {
+const ARTICLE_SLUG_REDIRECTS: Record<string, string> = {
   'snorkelling-ipo': 'snorkelling-and-ipo',
 };
 
@@ -200,12 +201,12 @@ app.use((req, res, next) => {
   const normalizedPath = normalizePath(req.path);
   const querySuffix = getQuerySuffix(req.query as Record<string, unknown>);
 
-  if (normalizedPath === '/blog') {
+  if (normalizedPath === '/article') {
     res.redirect(301, `/articles${querySuffix}`);
     return;
   }
 
-  if (normalizedPath.startsWith('/blog/section/')) {
+  if (normalizedPath.startsWith('/article/section/')) {
     const segments = normalizedPath.split('/').filter(Boolean);
     if (segments.length === 3 && segments[2]) {
       res.redirect(301, `/articles/section/${encodeURIComponent(decodeURIComponent(segments[2]))}${querySuffix}`);
@@ -217,7 +218,7 @@ app.use((req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-  if (req.method !== 'GET' || !req.path.startsWith('/blog/')) {
+  if (req.method !== 'GET' || !req.path.startsWith('/article/')) {
     next();
     return;
   }
@@ -235,7 +236,7 @@ app.use(async (req, res, next) => {
 
   const querySuffix = getQuerySuffix(req.query as Record<string, unknown>);
 
-  const redirectSlug = BLOG_SLUG_REDIRECTS[slug] || slug;
+  const redirectSlug = ARTICLE_SLUG_REDIRECTS[slug] || slug;
   const canonicalPath = `/articles/${encodeURIComponent(redirectSlug)}`;
   res.redirect(301, `${canonicalPath}${querySuffix}`);
 });
@@ -447,10 +448,10 @@ export class AuthError extends Error {
   }
 }
 
-export class BlogError extends Error {
+export class ArticleError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "BlogError"
+    this.name = "ArticleError"
   }
 }
  
@@ -541,8 +542,8 @@ function getPublicHtmlCacheControl(req: express.Request): string | null {
     path === '/privacy-policy' ||
     path === '/affiliate-disclosure' ||
     path === '/ai-transparency' ||
-    path === '/blog' ||
-    path.startsWith('/blog/') ||
+    path === '/article' ||
+    path.startsWith('/article/') ||
     path === '/map' ||
     path.startsWith('/map/');
 
@@ -722,13 +723,13 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
   }
 
   if (normalizedPath === '/articles') {
-    return getBlogIndexSeoPayload();
+    return getArticleIndexSeoPayload();
   }
 
   if (normalizedPath.startsWith('/articles/section/')) {
     const sectionSlug = getSectionSlugFromPath(normalizedPath);
     if (!sectionSlug) return null;
-    return getBlogSectionSeoPayload(sectionSlug);
+    return getArticleSectionSeoPayload(sectionSlug);
   }
 
   if (normalizedPath.startsWith('/articles/')) {
@@ -736,7 +737,7 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
     if (!slug || slug === 'section') {
       return null;
     }
-    return getBlogSeoPayload(slug);
+    return getArticleSeoPayload(slug);
   }
 
   if (normalizedPath === '/privacy-policy') {
@@ -907,6 +908,7 @@ function buildFaqSchema() {
 }
 
 function buildBookVideoSchema() {
+  const embedUrl = buildYouTubeEmbedUrl('nglkG5wdsmY');
   return {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
@@ -914,7 +916,7 @@ function buildBookVideoSchema() {
     description: 'A flick-through of Snorkelling Britain: 100 Marine Adventures, the guide to the best snorkelling sites around the British coastline.',
     thumbnailUrl: 'https://img.youtube.com/vi/nglkG5wdsmY/maxresdefault.jpg',
     uploadDate: '2025-06-01',
-    embedUrl: 'https://www.youtube.com/embed/nglkG5wdsmY',
+    embedUrl,
     contentUrl: 'https://www.youtube.com/watch?v=nglkG5wdsmY',
   };
 }
@@ -1474,11 +1476,11 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
   };
 }
 
-async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
+async function getArticleIndexSeoPayload(): Promise<SeoPayload> {
   const description = 'Browse our collection of British snorkelling articles. Tips on the best places to snorkel in the UK, marine life identification, underwater cameras, gear reviews, and practical safety advice.';
   const keywords = 'snorkelling articles, UK snorkelling, British marine life, snorkelling tips, underwater photography, snorkelling gear';
 
-  const blogListSchema = {
+  const articleListSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'British Snorkelling Articles',
@@ -1499,7 +1501,7 @@ async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,
     twitterImage: DEFAULT_TWITTER_IMAGE,
-    schemas: [blogListSchema],
+    schemas: [articleListSchema],
     metaTags: [
       { key: 'name', keyValue: 'robots', content: 'index,follow,max-image-preview:large' },
       { key: 'property', keyValue: 'og:site_name', content: 'Snorkelology' },
@@ -1508,7 +1510,7 @@ async function getBlogIndexSeoPayload(): Promise<SeoPayload> {
   };
 }
 
-async function getBlogSectionSeoPayload(sectionSlug: string): Promise<SeoPayload> {
+async function getArticleSectionSeoPayload(sectionSlug: string): Promise<SeoPayload> {
   const humanizeSection = (value: string) => value
     .split('-')
     .filter(Boolean)
@@ -1559,7 +1561,7 @@ async function getBlogSectionSeoPayload(sectionSlug: string): Promise<SeoPayload
   };
 }
 
-async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
+async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
   if (SKIP_SEO_DB_LOOKUPS) {
     return null;
   }
@@ -1613,8 +1615,8 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-  const sectionSlug = normaliseSectionSlug((post as any).blogSection);
-  const sectionTitle = (post as any).blogSection ? String((post as any).blogSection).trim() : 'Articles';
+  const sectionSlug = normaliseSectionSlug((post as any).articleSection);
+  const sectionTitle = (post as any).articleSection ? String((post as any).articleSection).trim() : 'Articles';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1628,9 +1630,9 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   };
 
   // Fix 4: add url, publisher, mainEntityOfPage; Fix 7: FAQ uses 'article' ogType
-  const baseBlogPostingSchema = {
+  const baseArticlePostingSchema = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    '@type': 'ArticlePosting',
     headline: post.title,
     description,
     keywords: schemaKeywordsCsv,
@@ -1661,8 +1663,8 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   };
 
   const primarySchemas = isFaqType
-    ? [baseBlogPostingSchema, faqSchema]
-    : [baseBlogPostingSchema];
+    ? [baseArticlePostingSchema, faqSchema]
+    : [baseArticlePostingSchema];
 
   const reviewSchemas = isProductReview
     ? (() => {
@@ -1753,37 +1755,6 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
       })()
     : [];
 
-  const extractYouTubeVideoId = (value: string): string => {
-    const input = (value || '').trim();
-    if (!input) return '';
-    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
-
-    try {
-      const url = new URL(input);
-      const host = url.hostname.toLowerCase().replace(/^www\./, '');
-
-      if (host === 'youtu.be') {
-        const id = url.pathname.split('/').filter(Boolean)[0] || '';
-        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-      }
-
-      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
-        if (url.pathname === '/watch') {
-          const id = url.searchParams.get('v') || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
-          const id = url.pathname.split('/').filter(Boolean)[1] || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-      }
-    } catch {
-      return '';
-    }
-
-    return '';
-  };
-
   const videoSchemas = (post.sections || []).flatMap((section: any) => {
     if (!section.videoUrl) return [];
 
@@ -1797,7 +1768,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
       description: (section.content || description).replace(/<[^>]*>/g, '').slice(0, 300).trim(),
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
       uploadDate: publishedIso,
-      embedUrl: `https://www.youtube.com/embed/${videoId}`,
+      embedUrl: buildYouTubeEmbedUrl(videoId),
       contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
     }];
   });
@@ -1818,7 +1789,7 @@ async function getBlogSeoPayload(slug: string): Promise<SeoPayload | null> {
   }
 
   return {
-    title: post.title || 'Snorkelology Blog',
+    title: post.title || 'Snorkelology Article',
     description,
     keywords: schemaKeywordsCsv,
     canonicalPath: `/articles/${slug}`,

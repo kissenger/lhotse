@@ -198,7 +198,7 @@ button {
   color: var(--text-chip);
 }
 
-/* Shared media-row list layout used by partners and blog list surfaces. */
+/* Shared media-row list layout used by partners and article list surfaces. */
 .media-list {
   margin-top: 1em;
 }
@@ -288,7 +288,7 @@ button {
   border-bottom-style: solid;
 }
 
-/* Shared preview divider list used by the home blog preview only. */
+/* Shared preview divider list used by the home article preview only. */
 .preview-divider-list {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
@@ -527,7 +527,7 @@ a.anchor-pill:active {
   }
 }
 
-/* Shared CTA styles used across blog and map surfaces. */
+/* Shared CTA styles used across article and map surfaces. */
 .cta-box {
   border: 1px solid rgba(29, 61, 89, 0.28);
   border-top: 4px solid var(--sn-colour, #1D3D59);
@@ -705,9 +705,9 @@ a.ai-content-notice:hover {
   -webkit-user-select: text;
 }
 
-/* Draft blog previews should allow selecting/copying content across the full page. */
-.preview-blog-page,
-.preview-blog-page * {
+/* Draft article previews should allow selecting/copying content across the full page. */
+.preview-article-page,
+.preview-article-page * {
   user-select: text;
   -webkit-user-select: text;
 }

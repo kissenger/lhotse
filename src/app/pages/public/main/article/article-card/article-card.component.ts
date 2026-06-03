@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { RouterLink } from '@angular/router';
 import { appImageUrl } from '@shared/utils/image-url';
 import { environment } from '@environments/environment';
@@ -8,13 +8,13 @@ import { environment } from '@environments/environment';
 @Component({
   standalone: true,
   imports: [RouterLink, DatePipe, DecimalPipe],
-  selector: 'app-blog-card',
-  templateUrl: './blog-card.component.html',
-  styleUrls: ['./blog-card.component.css'],
+  selector: 'app-article-card',
+  templateUrl: './article-card.component.html',
+  styleUrls: ['./article-card.component.css'],
 })
 
-export class BlogCardComponent implements OnChanges {
-  @Input() public data: BlogPost = new BlogPost;
+export class ArticleCardComponent implements OnChanges {
+  @Input() public data: ArticlePost = new ArticlePost;
 
   private _useLocalImageFallback = false;
 

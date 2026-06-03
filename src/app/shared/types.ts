@@ -302,7 +302,7 @@ export interface OrgSettings {
 
 // ---------------------------------------------------------------------------
 
-interface BlogSection {
+interface ArticleSection {
   title: string;
   content: string;
   imgFname: string;
@@ -314,12 +314,12 @@ interface BlogSection {
   ctaLinks?: Array<{ label: string; url: string }>;
 }
 
-interface BlogReviewAffiliateLink {
+interface ArticleReviewAffiliateLink {
   label: string;
   url: string;
 }
 
-interface BlogReview {
+interface ArticleReview {
   reviewKind?: 'product' | 'book';
   productName: string;
   brand?: string;
@@ -335,26 +335,26 @@ interface BlogReview {
   pros: string[];
   cons: string[];
   affiliateDisclosure?: string;
-  affiliateLinks?: BlogReviewAffiliateLink[];
+  affiliateLinks?: ArticleReviewAffiliateLink[];
   priceCurrency?: string;
   priceValue?: number | null;
   availability?: string;
   sku?: string;
 }
 
-export class BlogPost {
+export class ArticlePost {
   _id: string = '';
   slug: string = '';
   title: string = 'New Post';
   type: 'faq' | 'article' | 'review' = 'faq';
-  blogSection: string = '';
+  articleSection: string = '';
   keywords: Array<string> = [];
   subtitle: string = '';
   imgFname: string = '';
   imgAlt: string = '';
   imgCredit: string = '';
   intro: string = '';
-  sections: Array<BlogSection> = [{
+  sections: Array<ArticleSection> = [{
     title: '', 
     content: '', 
     imgFname: '', 
@@ -368,7 +368,7 @@ export class BlogPost {
   updatedAt: string = '';
   publishedAt: string = '';
   author?: string;
-  review: BlogReview = {
+  review: ArticleReview = {
     reviewKind: 'product',
     productName: '',
     brand: '',

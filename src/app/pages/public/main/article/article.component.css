@@ -1,15 +1,15 @@
-.blog-grid-container {
+.article-grid-container {
   position: relative;
   min-height: 420px;
   height: fit-content;
 }
 
-.blog-loader-inline {
+.article-loader-inline {
   position: relative;
   min-height: 220px;
 }
 
-.blog-not-available {
+.article-not-available {
   height: 100%;
   width: 100%;
   background-color: #e5e5e5;
@@ -18,7 +18,7 @@
 }
 
 
-.blog-grid {
+.article-grid {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
@@ -26,12 +26,12 @@
   padding-top: 0.1rem;
 }
 
-app-blog-card {
+app-article-card {
   padding: 0;
   display: block;
 }
 
-.blog-lead {
+.article-lead {
   max-width: 70ch;
   margin: 0 auto 1rem;
   text-wrap: pretty;

@@ -47,14 +47,14 @@
             <p>Covering British snorkelling news, science, gear advice, and field notes to inspire your next underwater adventure.</p>
           </div>
 
-          @if (blogPreviewLoading) {
+          @if (articlePreviewLoading) {
             <div class="deferred-loading-block deferred-loading-block--inline" role="status" aria-live="polite" aria-label="Loading article previews">
               <div class="deferred-loading-spinner" aria-hidden="true"></div>
             </div>
-          } @else if (latestBlogPreviews.length > 0) {
-            <div class="home-blog-preview-list preview-divider-list">
-              @for (post of latestBlogPreviews; track post.slug) {
-                <app-blog-card [data]="post"></app-blog-card>
+          } @else if (latestArticlePreviews.length > 0) {
+            <div class="home-article-preview-list preview-divider-list">
+              @for (post of latestArticlePreviews; track post.slug) {
+                <app-article-card [data]="post"></app-article-card>
               }
             </div>
           }
@@ -94,13 +94,13 @@
                   <li>100 accessible snorkelling sites across England, Scotland and Wales.</li>
                   <li>Detailed route-finding, access notes, and practical safety context for each location.</li>
                   <li>Supporting chapters on gear, planning, underwater photography and marine life.</li>
-                  <li>Illustrated guide to British marine life and species identification.</li>
+                  <li>Illustrated guide to British marine life focussing on likely snorkelling finds.</li>
                 </ul>
               </div>
             </div>
           </div>
           <p>
-            A perfect gift for any snorkeller or open water swimmer who wants to take the next step on their marine adventures.
+            The perfect gift for the snorkeller or open water swimmer in your life!
           </p>
           <div class="teaser-actions">
             <a routerLink="/snorkelling-britain" class="teaser-link anchor-pill cta-link-btn">Explore Snorkelling Britain</a>
@@ -115,9 +115,7 @@
         <div class="home-preview-shell">
           <div class="home-preview-header">
             <h2>Snorkelology Shop</h2>
-            <p>Visit our shop to buy Snorkelling Britain direct from the authors &mdash;
-              signed copies available!  We'll be expanding the shop soon to feature 
-              personally recommended snorkelling gear and accessories.</p>
+            <p>Visit our shop to buy Snorkelling Britain direct from the authors.</p>
           </div>
 
           <div class="home-shop-preview-list media-list preview-divider-list" aria-label="Shop preview">
@@ -156,8 +154,9 @@
             <div class="home-preview-header">
               <h2>Snorkelling Map of Britain</h2>
               <p>
-                Explore our unique interactive snorkelling map of Britain, with personally curated
-                snorkelling sites and organisations to help you plan your next underwater adventure.
+                Explore our unique interactive snorkelling map of Britain, with personally curated and validated information on the best
+                snorkelling sites in Britain along with a growing database of snorkelling clubs
+                and organisations to help you with your next underwater adventure.
               </p>
             </div>
 

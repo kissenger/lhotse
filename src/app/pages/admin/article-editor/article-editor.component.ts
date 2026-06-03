@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
 import { NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
@@ -10,29 +10,29 @@ import { environment } from '@environments/environment';
 import { appImageUrl } from '@shared/utils/image-url';
 
 @Component({
-  selector: 'app-blog-editor',
+  selector: 'app-article-editor',
   standalone: true,
   imports: [NgClass, FormsModule],  
   providers: [KebaberPipe], 
-  templateUrl: './blog-editor.component.html',
-  styleUrl: './blog-editor.component.css'
+  templateUrl: './article-editor.component.html',
+  styleUrl: './article-editor.component.css'
 })
 
-export class BlogEditorComponent implements OnInit {
+export class ArticleEditorComponent implements OnInit {
 
   public baseURL: string = `/articles/`;
   public isDirty: boolean = false;
 
   public uniqueKeywords: Array<string> = [];
-  public blogSectionOptions: string[] = [];
-  public newBlogSectionLabel: string = '';
-  public selectedPost: BlogPost = new BlogPost;
+  public articleSectionOptions: string[] = [];
+  public newArticleSectionLabel: string = '';
+  public selectedPost: ArticlePost = new ArticlePost;
   public askForConfirmation: boolean = false;
-  public posts: Array<BlogPost> = [this.selectedPost];
+  public posts: Array<ArticlePost> = [this.selectedPost];
   public showMarkdownHelp: boolean = false;
   public askForDiscardChanges: boolean = false;
   private _pendingNavAction: (() => void) | null = null;
-  private _selectedPostSnapshot: BlogPost | null = null;
+  private _selectedPostSnapshot: ArticlePost | null = null;
 
   constructor(
       private _http: HttpService,
@@ -47,7 +47,7 @@ export class BlogEditorComponent implements OnInit {
   }
 
   ensureReviewModel() {
-    this._ensureBlogSection(this.selectedPost);
+    this._ensureArticleSection(this.selectedPost);
     if (!this.selectedPost.review) {
       this.selectedPost.review = {
         reviewKind: 'product',
@@ -90,12 +90,12 @@ export class BlogEditorComponent implements OnInit {
     return this.selectedPost.review?.reviewKind === 'book' ? 'Book' : 'Product';
   }
 
-  get isBlogSectionMissing(): boolean {
-    return !this._cleanBlogSection(this.selectedPost.blogSection);
+  get isArticleSectionMissing(): boolean {
+    return !this._cleanArticleSection(this.selectedPost.articleSection);
   }
 
   onTypeChange() {
-    this._ensureBlogSection(this.selectedPost);
+    this._ensureArticleSection(this.selectedPost);
     if (this.selectedPost.type === 'review') {
       this.ensureReviewModel();
       if (this.selectedPost.review.productName === '') {
@@ -107,29 +107,29 @@ export class BlogEditorComponent implements OnInit {
           : ['product review', 'snorkelling gear'];
       }
     }
-    this._refreshBlogSectionOptions();
+    this._refreshArticleSectionOptions();
     this.isDirty = true;
   }
 
-  onBlogSectionChange(value: string) {
-    this.selectedPost.blogSection = this._cleanBlogSection(value);
-    this._ensureBlogSection(this.selectedPost);
+  onArticleSectionChange(value: string) {
+    this.selectedPost.articleSection = this._cleanArticleSection(value);
+    this._ensureArticleSection(this.selectedPost);
     this.isDirty = true;
   }
 
-  addBlogSection() {
-    const label = this._cleanBlogSection(this.newBlogSectionLabel);
+  addArticleSection() {
+    const label = this._cleanArticleSection(this.newArticleSectionLabel);
     if (!label) {
       return;
     }
 
-    if (!this.blogSectionOptions.includes(label)) {
-      this.blogSectionOptions.push(label);
-      this.blogSectionOptions.sort((a, b) => a.localeCompare(b));
+    if (!this.articleSectionOptions.includes(label)) {
+      this.articleSectionOptions.push(label);
+      this.articleSectionOptions.sort((a, b) => a.localeCompare(b));
     }
 
-    this.selectedPost.blogSection = label;
-    this.newBlogSectionLabel = '';
+    this.selectedPost.articleSection = label;
+    this.newArticleSectionLabel = '';
     this.isDirty = true;
   }
 
@@ -193,8 +193,8 @@ export class BlogEditorComponent implements OnInit {
   onFormSelect(value: string) {
     if (this.isDirty) {
       this._pendingNavAction = () => {
-        this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
-        this._ensureBlogSection(this.selectedPost);
+        this.selectedPost = this.posts.find( (p) => p.slug === value) as ArticlePost;
+        this._ensureArticleSection(this.selectedPost);
         this.ensureReviewModel();
         this._captureSelectedPostSnapshot();
         this.isDirty = false;
@@ -202,8 +202,8 @@ export class BlogEditorComponent implements OnInit {
       this.askForDiscardChanges = true;
       return;
     }
-    this.selectedPost = this.posts.find( (p) => p.slug === value) as BlogPost;
-    this._ensureBlogSection(this.selectedPost);
+    this.selectedPost = this.posts.find( (p) => p.slug === value) as ArticlePost;
+    this._ensureArticleSection(this.selectedPost);
     this.ensureReviewModel();
     this._captureSelectedPostSnapshot();
     this.isDirty = false;
@@ -212,8 +212,8 @@ export class BlogEditorComponent implements OnInit {
   onNewPost() {
     if (this.isDirty) {
       this._pendingNavAction = () => {
-        this.selectedPost = new BlogPost();
-        this._ensureBlogSection(this.selectedPost);
+        this.selectedPost = new ArticlePost();
+        this._ensureArticleSection(this.selectedPost);
         this.ensureReviewModel();
         this._captureSelectedPostSnapshot();
         this.isDirty = false;
@@ -221,8 +221,8 @@ export class BlogEditorComponent implements OnInit {
       this.askForDiscardChanges = true;
       return;
     }
-    this.selectedPost = new BlogPost();
-    this._ensureBlogSection(this.selectedPost);
+    this.selectedPost = new ArticlePost();
+    this._ensureArticleSection(this.selectedPost);
     this.ensureReviewModel();
     this._captureSelectedPostSnapshot();
     this.isDirty = false;
@@ -386,9 +386,9 @@ export class BlogEditorComponent implements OnInit {
 
   async onSave() {
     try {
-      this._ensureBlogSection(this.selectedPost);
-      if (!this.selectedPost.blogSection) {
-        this._toaster.show('Please select a blog section before saving.', 'warning');
+      this._ensureArticleSection(this.selectedPost);
+      if (!this.selectedPost.articleSection) {
+        this._toaster.show('Please select a article section before saving.', 'warning');
         return;
       }
       const preserveUpdatedAt = this._shouldPreserveUpdatedAt();
@@ -421,7 +421,7 @@ export class BlogEditorComponent implements OnInit {
       const slug = this.selectedPost.slug;
       const result = await this._http.upsertPost(this.selectedPost, { preserveUpdatedAt });
       this.refreshPostList(result);
-      this.selectedPost = this.posts.find(p => p.slug == slug) as BlogPost;
+      this.selectedPost = this.posts.find(p => p.slug == slug) as ArticlePost;
       this.ensureReviewModel();
       this._captureSelectedPostSnapshot();
       this.isDirty = false;
@@ -452,53 +452,53 @@ export class BlogEditorComponent implements OnInit {
     this.askForConfirmation = false;
   }
 
-  refreshPostList(newData: Array<BlogPost>) {
+  refreshPostList(newData: Array<ArticlePost>) {
     newData.sort((a, b) => {
       const aPublished = !!a.publishedAt;
       const bPublished = !!b.publishedAt;
       if (aPublished !== bPublished) return aPublished ? 1 : -1;
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
-    this.selectedPost = new BlogPost;
-    this._ensureBlogSection(this.selectedPost);
+    this.selectedPost = new ArticlePost;
+    this._ensureArticleSection(this.selectedPost);
     this.ensureReviewModel();
     this._captureSelectedPostSnapshot();
     this.posts = [this.selectedPost];
-    newData.forEach((post) => this._ensureBlogSection(post));
+    newData.forEach((post) => this._ensureArticleSection(post));
     this.posts.push(...newData);
     this.getUniqueKeywords();
-    this._refreshBlogSectionOptions();
+    this._refreshArticleSectionOptions();
     this._cdr.detectChanges();
   }
 
-  private _refreshBlogSectionOptions() {
+  private _refreshArticleSectionOptions() {
     const sections = new Set<string>();
 
     this.posts.forEach((post) => {
-      const sectionTitle = this._cleanBlogSection(post.blogSection);
+      const sectionTitle = this._cleanArticleSection(post.articleSection);
       if (sectionTitle) {
         sections.add(sectionTitle);
       }
     });
 
-    this.blogSectionOptions = Array.from(sections).sort((a, b) => a.localeCompare(b));
+    this.articleSectionOptions = Array.from(sections).sort((a, b) => a.localeCompare(b));
   }
 
-  private _ensureBlogSection(post: BlogPost) {
-    const explicit = this._cleanBlogSection(post.blogSection);
-    post.blogSection = explicit;
+  private _ensureArticleSection(post: ArticlePost) {
+    const explicit = this._cleanArticleSection(post.articleSection);
+    post.articleSection = explicit;
   }
 
   private _captureSelectedPostSnapshot() {
     this._selectedPostSnapshot = this._clonePost(this.selectedPost);
   }
 
-  private _clonePost(post: BlogPost | null): BlogPost | null {
+  private _clonePost(post: ArticlePost | null): ArticlePost | null {
     if (!post) {
       return null;
     }
 
-    return JSON.parse(JSON.stringify(post)) as BlogPost;
+    return JSON.parse(JSON.stringify(post)) as ArticlePost;
   }
 
   private _shouldPreserveUpdatedAt(): boolean {
@@ -506,8 +506,8 @@ export class BlogEditorComponent implements OnInit {
       return false;
     }
 
-    const originalSection = this._cleanBlogSection(this._selectedPostSnapshot.blogSection);
-    const currentSection = this._cleanBlogSection(this.selectedPost.blogSection);
+    const originalSection = this._cleanArticleSection(this._selectedPostSnapshot.articleSection);
+    const currentSection = this._cleanArticleSection(this.selectedPost.articleSection);
 
     if (originalSection === currentSection) {
       return false;
@@ -516,20 +516,20 @@ export class BlogEditorComponent implements OnInit {
     return this._getPostStateIgnoringSection(this._selectedPostSnapshot) === this._getPostStateIgnoringSection(this.selectedPost);
   }
 
-  private _getPostStateIgnoringSection(post: BlogPost | null): string {
+  private _getPostStateIgnoringSection(post: ArticlePost | null): string {
     if (!post) {
       return '';
     }
 
     const clone = this._clonePost(post) as any;
-    delete clone.blogSection;
+    delete clone.articleSection;
     delete clone.updatedAt;
     delete clone.createdAt;
 
     return JSON.stringify(clone);
   }
 
-  private _cleanBlogSection(value?: string): string {
+  private _cleanArticleSection(value?: string): string {
     return (value || '').trim();
   }
 }

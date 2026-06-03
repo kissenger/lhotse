@@ -1,54 +1,54 @@
 import { TestBed } from '@angular/core/testing';
-import { BlogEditorComponent } from './blog-editor.component';
+import { ArticleEditorComponent } from './article-editor.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { HttpService } from '@shared/services/http.service';
 import { ToastService } from '@shared/services/toast.service';
 
-describe('BlogEditorComponent', () => {
-  let comp: BlogEditorComponent;
+describe('ArticleEditorComponent', () => {
+  let comp: ArticleEditorComponent;
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BlogEditorComponent, HttpClientTestingModule, RouterTestingModule],
+      imports: [ArticleEditorComponent, HttpClientTestingModule, RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } },
         { provide: ToastService, useValue: { show: () => {} } }
       ]
     }).compileComponents();
-    const f = TestBed.createComponent(BlogEditorComponent);
+    const f = TestBed.createComponent(ArticleEditorComponent);
     comp = f.componentInstance;
   });
 
-  it('creates blog-editor component', () => {
+  it('creates article-editor component', () => {
     expect(comp).toBeTruthy();
   });
 
-  it('derives blog section options only from existing posts', () => {
+  it('derives article section options only from existing posts', () => {
     comp.refreshPostList([]);
-    expect(comp.blogSectionOptions).toEqual([]);
+    expect(comp.articleSectionOptions).toEqual([]);
 
-    const post = new BlogPost();
-    post.blogSection = 'Science and Nature';
+    const post = new ArticlePost();
+    post.articleSection = 'Science and Nature';
     comp.refreshPostList([post]);
 
-    expect(comp.blogSectionOptions).toEqual([
+    expect(comp.articleSectionOptions).toEqual([
       'Science and Nature'
     ]);
   });
 
-  it('stores new blog sections exactly as entered', () => {
-    comp.newBlogSectionLabel = 'Snorkelling Gear';
+  it('stores new article sections exactly as entered', () => {
+    comp.newArticleSectionLabel = 'Snorkelling Gear';
 
-    comp.addBlogSection();
+    comp.addArticleSection();
 
-    expect(comp.selectedPost.blogSection).toBe('Snorkelling Gear');
-    expect(comp.blogSectionOptions).toEqual(['Snorkelling Gear']);
+    expect(comp.selectedPost.articleSection).toBe('Snorkelling Gear');
+    expect(comp.articleSectionOptions).toEqual(['Snorkelling Gear']);
   });
 
   it('sends preserveUpdatedAt for section-only saves', async () => {
-    const existingPost = new BlogPost();
+    const existingPost = new ArticlePost();
     existingPost._id = '1';
     existingPost.slug = 'existing-post';
     existingPost.title = 'Existing Post';
@@ -57,20 +57,20 @@ describe('BlogEditorComponent', () => {
     existingPost.imgFname = 'photos/example.jpg';
     existingPost.imgAlt = 'Alt';
     existingPost.conclusion = 'Conclusion';
-    existingPost.blogSection = 'News';
+    existingPost.articleSection = 'News';
     existingPost.createdAt = '2026-01-01T00:00:00.000Z';
     existingPost.updatedAt = '2026-01-02T00:00:00.000Z';
 
     comp.refreshPostList([existingPost]);
     comp.onFormSelect(existingPost.slug);
-    comp.selectedPost.blogSection = 'Snorkelling Gear';
+    comp.selectedPost.articleSection = 'Snorkelling Gear';
 
     const upsertSpy = spyOn(TestBed.inject(HttpService), 'upsertPost').and.returnValue(Promise.resolve([
-      { ...existingPost, blogSection: 'Snorkelling Gear' } as BlogPost
+      { ...existingPost, articleSection: 'Snorkelling Gear' } as ArticlePost
     ]));
 
     await comp.onSave();
 
-    expect(upsertSpy).toHaveBeenCalledWith(jasmine.objectContaining({ blogSection: 'Snorkelling Gear' }), { preserveUpdatedAt: true });
+    expect(upsertSpy).toHaveBeenCalledWith(jasmine.objectContaining({ articleSection: 'Snorkelling Gear' }), { preserveUpdatedAt: true });
   });
 });

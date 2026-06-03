@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Mongo-backed API connectivity', () => {
-  test('blog endpoint responds successfully', async ({ request }) => {
-    const blogResponse = await request.get('/api/blog/get-published-posts/');
-    const blogBody = await blogResponse.text();
+  test('article endpoint responds successfully', async ({ request }) => {
+    const articleResponse = await request.get('/api/article/get-published-posts/');
+    const articleBody = await articleResponse.text();
     expect(
-      blogResponse.ok(),
-      `Blog endpoint should return a successful status. Received HTTP ${blogResponse.status()} with body: ${blogBody}`
+      articleResponse.ok(),
+      `Article endpoint should return a successful status. Received HTTP ${articleResponse.status()} with body: ${articleBody}`
     ).toBeTruthy();
-    expect(blogResponse.status(), 'Blog endpoint should return HTTP 201').toBe(201);
+    expect(articleResponse.status(), 'Article endpoint should return HTTP 201').toBe(201);
 
-    const blogPayload = JSON.parse(blogBody);
-    expect(Array.isArray(blogPayload), 'Blog payload should be an array').toBeTruthy();
+    const articlePayload = JSON.parse(articleBody);
+    expect(Array.isArray(articlePayload), 'Article payload should be an array').toBeTruthy();
   });
 
   test('map endpoint responds successfully', async ({ request }) => {

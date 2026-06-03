@@ -12,11 +12,11 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'articles', loadComponent: () =>
-    import('@pages/public/main/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+    import('@pages/public/main/article/article-page.component').then((m) => m.ArticlePageComponent)},
   { path: 'articles/section/:sectionSlug', loadComponent: () =>
-    import('@pages/public/main/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+    import('@pages/public/main/article/article-page.component').then((m) => m.ArticlePageComponent)},
   { path: 'articles/:slug', loadComponent: () =>
-    import('@pages/public/main/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
+    import('@pages/public/main/article/article-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
   { path: 'snorkelling-britain', loadComponent: () =>
     import('@pages/public/main/book/book-page.component').then((m) => m.BookPageComponent)},
   { path: 'shop', loadComponent: () =>
@@ -34,8 +34,8 @@ export const routes: Routes = [
     import('@pages/admin/orders/orders.component').then((m) => m.OrdersComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'orders/manual/:orderNumber', loadComponent: () =>
     import('@pages/admin/orders/manual-order/manual-order.component').then((m) => m.ManualOrderComponent), canActivate: [AuthGuard], data: { noPreload: true }},
-  { path: 'blogeditor', loadComponent: () =>
-    import('@pages/admin/blog-editor/blog-editor.component').then((m) => m.BlogEditorComponent), canActivate: [AuthGuard], data: { noPreload: true }},
+  { path: 'articleeditor', loadComponent: () =>
+    import('@pages/admin/article-editor/article-editor.component').then((m) => m.ArticleEditorComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'siteseditor', loadComponent: () =>
     import('@pages/admin/sites-editor/sites-editor.component').then((m) => m.SitesEditorComponent), canActivate: [AuthGuard], canDeactivate: [unsavedChangesGuard], data: { noPreload: true }},
   { path: 'adminmap', loadComponent: () =>

@@ -159,8 +159,8 @@ describe('HeaderComponent', () => {
     expect(component.isAdminRoute).toBe(true);
   });
 
-  it('isAdminRoute is true on blogeditor route', () => {
-    const { component } = buildHeader('/blogeditor');
+  it('isAdminRoute is true on articleeditor route', () => {
+    const { component } = buildHeader('/articleeditor');
     expect(component.isAdminRoute).toBe(true);
   });
 

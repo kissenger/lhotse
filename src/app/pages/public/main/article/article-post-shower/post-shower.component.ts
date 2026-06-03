@@ -1,8 +1,8 @@
-﻿import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, combineLatest, switchMap, tap } from 'rxjs';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
@@ -10,6 +10,7 @@ import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { stage } from '@shared/globals';
 import { DomSanitizer } from '@angular/platform-browser';
+import { buildYouTubeEmbedUrl } from '@shared/utils/youtube-url';
 
 @Component({
   selector: 'app-post-shower',
@@ -21,7 +22,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 
 export class PostShowerComponent implements OnDestroy, OnInit {
-  post: BlogPost;
+  post: ArticlePost;
   isReadyToLoad: boolean;
   contentVisible: boolean;
   loadingState: 'loading' | 'failed' | 'success' = 'loading';
@@ -49,7 +50,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     private _cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) platformId: object
   ) {
-    this.post = new BlogPost();
+    this.post = new ArticlePost();
     this.isReadyToLoad = false;
     this.contentVisible = false;
     this.nextSlug = '';
@@ -76,43 +77,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
     ]);
     return { ...postResult, ...slugResult };
-  }
-
-  private _extractYouTubeVideoId(value: string): string {
-    const input = (value || '').trim();
-    if (!input) return '';
-    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
-
-    try {
-      const url = new URL(input);
-      const host = url.hostname.toLowerCase().replace(/^www\./, '');
-
-      if (host === 'youtu.be') {
-        const id = url.pathname.split('/').filter(Boolean)[0] || '';
-        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-      }
-
-      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
-        if (url.pathname === '/watch') {
-          const id = url.searchParams.get('v') || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-        if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
-          const id = url.pathname.split('/').filter(Boolean)[1] || '';
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
-        }
-      }
-    } catch {
-      return '';
-    }
-
-    return '';
-  }
-
-  private _buildYouTubeEmbedUrl(value: string): string {
-    const id = this._extractYouTubeVideoId(value);
-    if (!id) return '';
-    return `https://www.youtube-nocookie.com/embed/${id}?controls=0&mute=1&autoplay=1&loop=1&playlist=${id}`;
   }
 
   private _resolveImagePath(path: string): string {
@@ -216,7 +180,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   private _normaliseReviewModel(review: any) {
-    const defaults = new BlogPost().review;
+    const defaults = new ArticlePost().review;
     const model = {
       ...defaults,
       ...(review || {}),
@@ -231,7 +195,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    // Do not block SSR on API calls for blog body content; render quickly and hydrate on client.
+    // Do not block SSR on API calls for article body content; render quickly and hydrate on client.
     if (!this._isBrowser) {
       return;
     }
@@ -272,7 +236,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             imgFname: s.imgFname ?? '',
             imgAlt: s.imgAlt ?? '',
             imgCredit: s.imgCredit ?? '',
-            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this._buildYouTubeEmbedUrl(s.videoUrl)) : '',
+            videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(buildYouTubeEmbedUrl(s.videoUrl)) : '',
             videoOrientation: s.videoOrientation ?? 'landscape',
             sectionType: s.sectionType,
             ctaLinks: s.ctaLinks
@@ -329,7 +293,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         imgFname: s.imgFname ?? '',
         imgAlt: s.imgAlt ?? '',
         imgCredit: s.imgCredit ?? '',
-        videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this._buildYouTubeEmbedUrl(s.videoUrl)) : '',
+        videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(buildYouTubeEmbedUrl(s.videoUrl)) : '',
         videoOrientation: s.videoOrientation ?? 'landscape',
         sectionType: s.sectionType,
         ctaLinks: s.ctaLinks

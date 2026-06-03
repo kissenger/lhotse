@@ -10,6 +10,44 @@ export function faqFragment(question: string): string {
   return normalizeToSlug(question);
 }
 
+function decodeHtmlEntities(input: string): string {
+  const namedEntityMap: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+    nbsp: ' ',
+    mdash: '—',
+    ndash: '–',
+    hellip: '…'
+  };
+
+  return input.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (_match, entity) => {
+    if (entity.startsWith('#x') || entity.startsWith('#X')) {
+      const codePoint = Number.parseInt(entity.slice(2), 16);
+      if (Number.isNaN(codePoint)) return _match;
+      try {
+        return String.fromCodePoint(codePoint);
+      } catch {
+        return _match;
+      }
+    }
+
+    if (entity.startsWith('#')) {
+      const codePoint = Number.parseInt(entity.slice(1), 10);
+      if (Number.isNaN(codePoint)) return _match;
+      try {
+        return String.fromCodePoint(codePoint);
+      } catch {
+        return _match;
+      }
+    }
+
+    return namedEntityMap[entity] ?? _match;
+  });
+}
+
 export const featuredFaqQuestions: string[] = [
   'Who or what is Snorkelology?',
   'Is it too cold to snorkel in Britain?',
@@ -19,14 +57,19 @@ export const featuredFaqQuestions: string[] = [
 export function faqPreviewExcerpt(answer: string, maxLength = 360): string {
   const text = answer
     .replace(/\[link:([^,\]]+),([^\]]+)\]/g, '$1')
+    .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (text.length <= maxLength) {
-    return text;
+  const decoded = decodeHtmlEntities(text)
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (decoded.length <= maxLength) {
+    return decoded;
   }
 
-  const truncated = text.slice(0, maxLength).replace(/\s+\S*$/, '').trimEnd();
+  const truncated = decoded.slice(0, maxLength).replace(/\s+\S*$/, '').trimEnd();
   return `${truncated}…`;
 }
 

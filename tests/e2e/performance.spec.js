@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('performance budgets', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/blog/get-published-posts/**', (route) =>
+    await page.route('**/api/article/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   });

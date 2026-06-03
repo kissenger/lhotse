@@ -19,11 +19,11 @@
     </div>
   }
 
-  <main [class.content-visible]="contentVisible" [class.preview-blog-page]="isPreview">
+  <main [class.content-visible]="contentVisible" [class.preview-article-page]="isPreview">
     @if (isPreview) {
       <div class="draft-preview-banner" [class.draft-preview-banner--admin-offset]="isAdminHost">
         Draft preview — this post is not publicly visible
-        <a href="/blogeditor">Back to editor</a>
+        <a href="/articleeditor">Back to editor</a>
       </div>
     }
 

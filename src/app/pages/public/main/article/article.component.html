@@ -1,8 +1,8 @@
 <!-- @defer { -->
 
-  <div class="blog-grid-container">
+  <div class="article-grid-container">
     <div class="dynamic-container">
-      <p class="blog-lead">{{ pageLead }}</p>
+      <p class="article-lead">{{ pageLead }}</p>
     </div>
 
     @if (loadingState === 'loading') {
@@ -12,7 +12,7 @@
         </div>
       </div>
     } @else if (loadingState === 'failed') {
-      <div class="dynamic-container blog-loader-inline">
+      <div class="dynamic-container article-loader-inline">
         <app-loader [loadingState]="loadingState" (retry)="onRetry()"></app-loader>
       </div>
     } @else {
@@ -42,9 +42,9 @@
             <h2 class="category-title">Latest Articles</h2>
             <p class="category-meta">Newest guides and updates from Snorkelology.</p>
           </div>
-          <div class="blog-grid">
+          <div class="article-grid">
             @for (post of latestPosts; track post.slug) {
-              <app-blog-card [data]="post"></app-blog-card>
+              <app-article-card [data]="post"></app-article-card>
             }
           </div>
         </section>
@@ -57,9 +57,9 @@
               <h2 class="category-title">{{ section.title }}</h2>
               <p class="category-meta">{{ sectionPostCounts.get(section.slug) || section.posts.length }} article{{ (sectionPostCounts.get(section.slug) || section.posts.length) === 1 ? '' : 's' }}. {{ section.description }}</p>
             </div>
-            <div class="blog-grid">
+            <div class="article-grid">
               @for (post of section.posts; track post.slug) {
-                <app-blog-card [data]="post"></app-blog-card>
+                <app-article-card [data]="post"></app-article-card>
               }
             </div>
           </section>

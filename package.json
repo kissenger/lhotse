@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "lhotse",
   "version": "0.0.0",
   "type": "module",
@@ -31,8 +31,8 @@
     "test:ui:performance": "playwright test tests/e2e/performance.spec.js",
     "test:lighthouse": "node ./tests/test-lighthouse.js --url=http://localhost:4000/",
     "test:lighthouse:prod": "node ./tests/test-lighthouse.js --url=https://snorkelology.co.uk/",
-    "backfill:blog-links": "node ./tools/backfill-blog-links.mjs",
-    "backfill:blog-links:apply": "node ./tools/backfill-blog-links.mjs --apply",
+    "backfill:article-links": "node ./tools/backfill-article-links.mjs",
+    "backfill:article-links:apply": "node ./tools/backfill-article-links.mjs --apply",
     "test:all": "node ./tests/test-all.js",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"
@@ -108,3 +108,4 @@
     "webpack": "^5.105.3"
   }
 }
+

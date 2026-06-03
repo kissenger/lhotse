@@ -4,11 +4,11 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, Q
 import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
 import { HttpService } from          '@shared/services/http.service';
-import { BlogPost } from             '@shared/types';
+import { ArticlePost } from             '@shared/types';
 import { faqFragment, faqItems, faqPreviewExcerpt, featuredFaqQuestions, type FaqItem } from '@shared/faq-data';
 import { SlideshowComponent } from   '@pages/public/main/home/slideshow/slideshow.component';
 import { PartnersComponent } from    '@pages/public/main/home/partners/partners.component';
-import { BlogCardComponent } from    '@pages/public/main/blog/blog-card/blog-card.component';
+import { ArticleCardComponent } from    '@pages/public/main/article/article-card/article-card.component';
 import { environment } from          '@environments/environment';
 import { shopItems } from            '@shared/globals';
 import { IdleSchedulerService } from '@shared/services/idle-scheduler.service';
@@ -17,7 +17,7 @@ import { appImageUrl } from          '@shared/utils/image-url';
 @Component({
   standalone: true,
   imports: [
-    SlideshowComponent, PartnersComponent, BlogCardComponent,
+    SlideshowComponent, PartnersComponent, ArticleCardComponent,
     RouterLink, NgOptimizedImage
 ],
   selector: 'app-home',
@@ -37,9 +37,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('window') windows!: QueryList<ElementRef>;
 
-  public blogPreviewLoading = true;
+  public articlePreviewLoading = true;
   public faqPreviewLoading = true;
-  public latestBlogPreviews: BlogPost[] = [];
+  public latestArticlePreviews: ArticlePost[] = [];
   public faqPreviewItems: Array<FaqItem & { fragment: string; excerpt: string }> = [];
   private _subs: Subscription[] = [];
   private _cancelNonCriticalTask?: () => void;
@@ -71,7 +71,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     // }
 
     // Fetch dynamic preview content immediately so the home previews appear quickly.
-    this._loadLatestBlogPreviews();
+    this._loadLatestArticlePreviews();
     this._loadFaqPreviewItems();
 
     // Keep background image setup as non-critical work.
@@ -98,19 +98,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  private async _loadLatestBlogPreviews() {
+  private async _loadLatestArticlePreviews() {
     if (!this._isBrowser) {
-      this.blogPreviewLoading = false;
+      this.articlePreviewLoading = false;
       return;
     }
 
     try {
       const posts = await this._http.getPublishedPosts();
-      this.latestBlogPreviews = (posts as BlogPost[]).slice(0, 3);
+      this.latestArticlePreviews = (posts as ArticlePost[]).slice(0, 3);
     } catch {
-      this.latestBlogPreviews = [];
+      this.latestArticlePreviews = [];
     } finally {
-      this.blogPreviewLoading = false;
+      this.articlePreviewLoading = false;
     }
   }
 

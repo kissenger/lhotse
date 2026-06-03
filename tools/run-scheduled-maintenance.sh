@@ -7,26 +7,36 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+
 # import .env file
-set -a
-# shellcheck disable=SC1090
-source "/home/gort1975/snorkelology/.env"
-set +a
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
 
 # read .env variables
-LOG_FILE="${LOG_FILE}"
-SCRIPT_PATH="/home/gort1975/snorkelology/tools/run-nightly-maintenance.sh"
-SCRIPT_DIR="/home/gort1975/snorkelology/tools"
+LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/scheduled-maintenance.log}"
 HAS_FAILURE=0
 ERROR_LINES=""
-MAIL_TO="${MAIL_TO}"
-REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE}"
+MAIL_TO="${MAIL_TO:-}"
+REBOOT_FLAG_FILE="${REBOOT_FLAG_FILE:-${REPO_ROOT}/.scheduled-reboot.flag}"
+
+mkdir -p "$(dirname -- "${LOG_FILE}")"
 
 # move to working directory
-cd "/home/gort1975/snorkelology/"
+cd "${REPO_ROOT}"
 
-. "/home/gort1975/.nvm/nvm.sh"
-nvm use
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [[ -s "${NVM_SCRIPT}" ]]; then
+  # shellcheck disable=SC1090
+  . "${NVM_SCRIPT}"
+  nvm use >/dev/null || true
+fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -43,6 +53,10 @@ printSuccess() {
 }
 
 sendEmail() {
+  if [[ -z "${MAIL_TO}" ]]; then
+    echo "$(date -Iseconds) FAILURE MAIL_TO is not set, skipping failure email" | tee -a "${LOG_FILE}" >&2
+    return 1
+  fi
   if ! echo -e "Subject: Server Scheduled Maintenance Error\n\n${ERROR_LINES}" | msmtp -a default "${MAIL_TO}"; then
     echo "$(date -Iseconds) FAILURE Unable to send failure email via msmtp" | tee -a "${LOG_FILE}" >&2
   fi

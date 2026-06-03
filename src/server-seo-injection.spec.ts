@@ -71,9 +71,9 @@ describe('server-seo-injection', () => {
 
   it('normalizes canonical path without leading slash', () => {
     const html = '<html><head><title>Old</title></head><body></body></html>';
-    const result = injectSeoPayloadIntoHtml(html, { ...payload, canonicalPath: 'blog/post' }, siteUrl);
-    expect(result).toContain('<meta property="og:url" content="https://snorkelology.co.uk/blog/post">');
-    expect(result).toContain('<link rel="canonical" href="https://snorkelology.co.uk/blog/post">');
+    const result = injectSeoPayloadIntoHtml(html, { ...payload, canonicalPath: 'article/post' }, siteUrl);
+    expect(result).toContain('<meta property="og:url" content="https://snorkelology.co.uk/article/post">');
+    expect(result).toContain('<link rel="canonical" href="https://snorkelology.co.uk/article/post">');
   });
 
   it('injects metaTags (robots noindex) from payload', () => {
@@ -218,12 +218,12 @@ describe('server-seo-injection', () => {
     expect(result).toContain('"uploadDate":"2025-06-01"');
   });
 
-  it('injects CollectionPage schema for blog index', () => {
-    const blogListSchema = {
+  it('injects CollectionPage schema for article index', () => {
+    const articleListSchema = {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: 'British Snorkelling Articles',
-      url: `${siteUrl}/blog`,
+      url: `${siteUrl}/article`,
       publisher: {
         '@type': 'Organization',
         name: 'Snorkelology',
@@ -231,10 +231,10 @@ describe('server-seo-injection', () => {
       }
     };
     const html = '<html><head><title>Old</title></head><body></body></html>';
-    const result = injectSeoPayloadIntoHtml(html, { ...payload, schemas: [blogListSchema] }, siteUrl);
+    const result = injectSeoPayloadIntoHtml(html, { ...payload, schemas: [articleListSchema] }, siteUrl);
     expect(result).toContain('"@type":"CollectionPage"');
     expect(result).toContain('"@type":"Organization"');
-    expect(result).toContain(`"url":"${siteUrl}/blog"`);
+    expect(result).toContain(`"url":"${siteUrl}/article"`);
   });
 
   it('map page payload uses map-specific ogImage, not default social image', () => {

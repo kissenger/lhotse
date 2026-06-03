@@ -37,7 +37,7 @@
 
         <div class="scrolling-div">
 
-            <form #blogForm="ngForm" (input)="isDirty = true" (change)="isDirty = true">
+            <form #articleForm="ngForm" (input)="isDirty = true" (change)="isDirty = true">
 
                 <div class="field-row">
                     <span class="label">Slug:</span>
@@ -61,22 +61,22 @@
                 </div>
 
                 <div class="field-row align-start">
-                    <label for="blogSection">Blog section:</label>
+                    <label for="articleSection">Article section:</label>
                     <div class="input-stack">
-                        <select id="blogSection" name="blogSection" [class.alert]="isBlogSectionMissing" [(ngModel)]="selectedPost.blogSection" (ngModelChange)="onBlogSectionChange($event)">
+                        <select id="articleSection" name="articleSection" [class.alert]="isArticleSectionMissing" [(ngModel)]="selectedPost.articleSection" (ngModelChange)="onArticleSectionChange($event)">
                             <option value="">Select a section</option>
-                            @for (section of blogSectionOptions; track section) {
+                            @for (section of articleSectionOptions; track section) {
                                 <option [value]="section">{{section}}</option>
                             }
                         </select>
                         <div class="section-add-row">
-                            <input type="text" id="newBlogSection" name="newBlogSection" placeholder="Add new section name"
-                                [(ngModel)]="newBlogSectionLabel">
-                            <button type="button" class="btn-add-inline" (click)="addBlogSection()">+ Add</button>
+                            <input type="text" id="newArticleSection" name="newArticleSection" placeholder="Add new section name"
+                                [(ngModel)]="newArticleSectionLabel">
+                            <button type="button" class="btn-add-inline" (click)="addArticleSection()">+ Add</button>
                         </div>
-                        <small class="field-help">This controls where the post appears on /blog.</small>
-                        @if (isBlogSectionMissing) {
-                            <small class="field-help field-help--error">Blog section is required.</small>
+                        <small class="field-help">This controls where the post appears on /article.</small>
+                        @if (isArticleSectionMissing) {
+                            <small class="field-help field-help--error">Article section is required.</small>
                         }
                     </div>
                 </div>
@@ -398,7 +398,7 @@
           <div class="md-help-backdrop" (click)="showMarkdownHelp = false">
                   <div class="md-help-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="formatting-help-title">
               <div class="md-help-header">
-                <h3 id="formatting-help-title">Blog formatting help</h3>
+                <h3 id="formatting-help-title">Article formatting help</h3>
                 <button type="button" class="md-help-close" (click)="showMarkdownHelp = false" aria-label="Close formatting help">✕</button>
               </div>
                 <p class="md-help-intro">This editor uses the custom formatting tokens from <code>htmler.pipe</code>, not full Markdown. Use these in intro, conclusion, and section content fields.</p>

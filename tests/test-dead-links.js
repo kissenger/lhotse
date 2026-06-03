@@ -77,16 +77,16 @@ function canonicalizeInternalPath(path) {
   const [pathname, query = ''] = path.split('?');
   const querySuffix = query ? `?${query}` : '';
 
-  if (pathname === '/blog') {
+  if (pathname === '/article') {
     return `/articles${querySuffix}`;
   }
 
-  if (pathname.startsWith('/blog/section/')) {
-    return `${pathname.replace('/blog/section/', '/articles/section/')}${querySuffix}`;
+  if (pathname.startsWith('/article/section/')) {
+    return `${pathname.replace('/article/section/', '/articles/section/')}${querySuffix}`;
   }
 
-  if (pathname.startsWith('/blog/')) {
-    return `${pathname.replace('/blog/', '/articles/')}${querySuffix}`;
+  if (pathname.startsWith('/article/')) {
+    return `${pathname.replace('/article/', '/articles/')}${querySuffix}`;
   }
 
   return `${pathname}${querySuffix}`;
@@ -192,17 +192,17 @@ async function collectTemplateAnchorLinks() {
   return { internalPaths, externalUrls };
 }
 
-async function collectBlogLinks() {
+async function collectArticleLinks() {
   const internalPaths = new Set();
   const externalUrls = new Set();
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}/api/blog/get-published-posts/`, { headers: { 'User-Agent': UA } });
+    const res = await fetchWithTimeout(`${BASE_URL}/api/article/get-published-posts/`, { headers: { 'User-Agent': UA } });
     if (!res.ok) return { internalPaths, externalUrls };
     const posts = await res.json();
 
     for (const post of posts) {
       if (post.slug) internalPaths.add(`/articles/${post.slug}`);
-      if (post.blogSection) internalPaths.add(`/articles/section/${post.blogSection}`);
+      if (post.articleSection) internalPaths.add(`/articles/section/${post.articleSection}`);
 
       for (const section of post.sections ?? []) {
         for (const cta of section.ctaLinks ?? []) {
@@ -220,7 +220,7 @@ async function collectBlogLinks() {
       }
     }
   } catch {
-    console.log('  [WARN] Could not fetch blog posts');
+    console.log('  [WARN] Could not fetch article posts');
   }
   return { internalPaths, externalUrls };
 }
@@ -327,10 +327,10 @@ async function main() {
   for (const path of recursiveLinks.internalPaths) internalPaths.add(path);
   for (const url of recursiveLinks.externalUrls) externalUrls.add(url);
 
-  console.log('Fetching blog post links ...');
-  const blogLinks = await collectBlogLinks();
-  for (const path of blogLinks.internalPaths) internalPaths.add(path);
-  for (const url of blogLinks.externalUrls) externalUrls.add(url);
+  console.log('Fetching article post links ...');
+  const articleLinks = await collectArticleLinks();
+  for (const path of articleLinks.internalPaths) internalPaths.add(path);
+  for (const url of articleLinks.externalUrls) externalUrls.add(url);
 
   console.log('Fetching map site links ...');
   const siteLinks = await collectSiteLinks();

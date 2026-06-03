@@ -1,10 +1,11 @@
 import { mkdir, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
+const REPO_ROOT = process.cwd();
 const SITE_URL = 'https://snorkelology.co.uk';
-const API_BASE_URL = 'http://127.0.0.1:4001';
-const SITEMAP_PATH = '/home/gort1975/snorkelology/dist/prod/browser/sitemap.xml';
-const BUILD_MARKER_PATH = '/home/gort1975/snorkelology/dist/prod/browser/index.csr.html';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://127.0.0.1:4001';
+const SITEMAP_PATH = process.env.SITEMAP_PATH || resolve(REPO_ROOT, 'dist/browser/sitemap.xml');
+const BUILD_MARKER_PATH = process.env.BUILD_MARKER_PATH || resolve(REPO_ROOT, 'dist/browser/index.csr.html');
 const STATIC_URL_PATHS = [
   {
     path: '/articles',
@@ -71,15 +72,29 @@ function asAbsoluteAssetUrl(pathOrFileName) {
 }
 
 async function resolveRootLastMod() {
+  const markerCandidates = [
+    BUILD_MARKER_PATH,
+    resolve(REPO_ROOT, 'dist/browser/index.html'),
+    resolve(REPO_ROOT, 'dist/index.csr.html'),
+  ];
+
+  const attempted = [];
   try {
-    const markerStats = await stat(resolve(BUILD_MARKER_PATH));
-    const mtimeIso = markerStats?.mtime?.toISOString?.();
-    if (!mtimeIso) {
-      throw new Error(`Build marker mtime missing for ${BUILD_MARKER_PATH}`);
+    for (const markerPath of markerCandidates) {
+      attempted.push(markerPath);
+      try {
+        const markerStats = await stat(resolve(markerPath));
+        const mtimeIso = markerStats?.mtime?.toISOString?.();
+        if (mtimeIso) {
+          return normalizeLastMod(mtimeIso);
+        }
+      } catch {
+        // Try next marker path.
+      }
     }
-    return normalizeLastMod(mtimeIso);
+    throw new Error('no build marker candidates were readable');
   } catch (error) {
-    throw new Error(`Unable to determine build date from ${BUILD_MARKER_PATH}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Unable to determine build date from marker paths: ${attempted.join(', ')} (${error instanceof Error ? error.message : String(error)})`);
   }
 }
 
@@ -119,7 +134,7 @@ async function fetchJson(url) {
 }
 
 async function fetchSitemapEntries() {
-  const entriesUrl = `${API_BASE_URL}/api/blog/get-sitemap-entries/`;
+  const entriesUrl = `${API_BASE_URL}/api/article/get-sitemap-entries/`;
   const response = await fetchJson(entriesUrl);
 
   if (response.ok) {
@@ -130,7 +145,7 @@ async function fetchSitemapEntries() {
     return payload;
   }
 
-  const fallbackUrl = `${API_BASE_URL}/api/blog/get-all-slugs/`;
+  const fallbackUrl = `${API_BASE_URL}/api/article/get-all-slugs/`;
   const fallbackResponse = await fetchJson(fallbackUrl);
 
   if (!fallbackResponse.ok) {
@@ -147,7 +162,7 @@ async function fetchSitemapEntries() {
     slug: item?.slug,
     updatedAt: item?.updatedAt,
     imgFname: null,
-    blogSection: item?.blogSection
+    articleSection: item?.articleSection
   }));
 }
 
@@ -217,7 +232,7 @@ async function main() {
       })),
     ...Array.from(new Set(
       sitemapEntries
-        .map((item) => normalizeSectionSlug(item?.blogSection))
+        .map((item) => normalizeSectionSlug(item?.articleSection))
         .filter((slug) => slug)
     )).map((sectionSlug) => ({
       loc: `${SITE_URL}/articles/section/${encodeURIComponent(sectionSlug)}`,

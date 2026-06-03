@@ -54,7 +54,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
-    path: 'blogeditor',
+    path: 'articleeditor',
     renderMode: RenderMode.Client
   },
   {

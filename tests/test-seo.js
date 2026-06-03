@@ -170,19 +170,19 @@ async function discoverDynamicRoutes() {
   const routes = new Set(CORE_RUNTIME_ROUTES);
 
   try {
-    const postsRes = await fetchWithTimeout(`${BASE_URL}/api/blog/get-published-posts/`);
+    const postsRes = await fetchWithTimeout(`${BASE_URL}/api/article/get-published-posts/`);
     if (!postsRes.ok) {
-      warn('runtime:discover', `/api/blog/get-published-posts/ returned ${postsRes.status}`);
+      warn('runtime:discover', `/api/article/get-published-posts/ returned ${postsRes.status}`);
     } else {
       const posts = await postsRes.json();
       for (const post of posts.slice(0, 5)) {
         if (post?.slug) routes.add(`/articles/${post.slug}`);
-        if (post?.blogSection) routes.add(`/articles/section/${post.blogSection}`);
+        if (post?.articleSection) routes.add(`/articles/section/${post.articleSection}`);
       }
       ok('runtime:discover', `discovered ${Math.min(posts.length, 5)} article routes`);
     }
   } catch (error) {
-    warn('runtime:discover', `unable to fetch blog routes: ${error.message}`);
+    warn('runtime:discover', `unable to fetch article routes: ${error.message}`);
   }
 
   try {
@@ -203,9 +203,9 @@ async function discoverDynamicRoutes() {
   return [...routes];
 }
 
-async function checkLegacyBlogRedirects() {
-  console.log('\n== Legacy blog redirect checks ==');
-  const legacyPaths = ['/blog', '/blog/section/snorkelling-gear', '/blog/the-british-snorkelling-wetsuit-guide-how-to-stay-warm-in-uk-waters'];
+async function checkLegacyArticleRedirects() {
+  console.log('\n== Legacy article redirect checks ==');
+  const legacyPaths = ['/article', '/article/section/snorkelling-gear', '/article/the-british-snorkelling-wetsuit-guide-how-to-stay-warm-in-uk-waters'];
 
   for (const legacyPath of legacyPaths) {
     const scope = `redirect:${legacyPath}`;
@@ -317,10 +317,10 @@ function checkRuntimeSeoForRoute(route, finalUrl, html) {
   }
 
   if (finalPath.startsWith('/articles/') && !finalPath.startsWith('/articles/section/')) {
-    const hasBlogPosting = hasSchemaType(schemas, 'BlogPosting');
+    const hasArticlePosting = hasSchemaType(schemas, 'ArticlePosting');
     const hasFaqPage = hasSchemaType(schemas, 'FAQPage');
-    if (!hasBlogPosting && !hasFaqPage) {
-      fail(scope, 'article page should include BlogPosting or FAQPage schema');
+    if (!hasArticlePosting && !hasFaqPage) {
+      fail(scope, 'article page should include ArticlePosting or FAQPage schema');
     }
     if (!hasSchemaType(schemas, 'BreadcrumbList')) fail(scope, 'article page should include BreadcrumbList schema');
   }
@@ -380,7 +380,7 @@ function printSummaryAndExit() {
 async function main() {
   console.log(`Running comprehensive SEO checks against ${BASE_URL}`);
   checkStaticTemplates();
-  await checkLegacyBlogRedirects();
+  await checkLegacyArticleRedirects();
   await checkRuntimePages();
   printSummaryAndExit();
 }

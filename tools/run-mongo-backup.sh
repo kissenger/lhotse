@@ -7,28 +7,42 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+
 # import .env file
-set -a
-# shellcheck disable=SC1090
-source "/home/gort1975/snorkelology/.env"
-set +a
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
 
 # read .env variables
 TIMESTAMP="$(date -Iseconds)"
-LOG_FILE="${LOG_FILE}"
-DB_NAMES="snorkelology"
-RETENTION_DAYS="30"
+LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/mongo-backup.log}"
+DB_NAMES="${DB_NAMES:-snorkelology}"
+RETENTION_DAYS="${RETENTION_DAYS:-30}"
 MONGO_URI="${MONGO_URI:-}"
-BACKUP_ROOT="/home/gort1975/mongo_backups"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/mongo_backups}"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"
 ARCHIVE_PATH="${BACKUP_ROOT}/dump-${TIMESTAMP}.tar.gz"
 LOCK_FILE="${BACKUP_ROOT}/.backup.lock"
 
-# move to working directory
-cd "/home/gort1975/snorkelology/"
+mkdir -p "$(dirname -- "${LOG_FILE}")"
 
-. "/home/gort1975/.nvm/nvm.sh"
-nvm use
+# move to working directory
+cd "${REPO_ROOT}"
+
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [[ -s "${NVM_SCRIPT}" ]]; then
+  # shellcheck disable=SC1090
+  . "${NVM_SCRIPT}"
+  nvm use >/dev/null || true
+fi
+
+MONGODUMP_BIN="${MONGODUMP_BIN:-$(command -v mongodump || true)}"
 
 # print working status
 echo "${TIMESTAMP} Starting mongo backup"
@@ -40,6 +54,10 @@ printErrorAndExit() {
 
 if [[ -z "${MONGO_URI}" ]]; then
   printErrorAndExit "FAILURE Error reading .env file"
+fi
+
+if [[ -z "${MONGODUMP_BIN}" ]]; then
+  printErrorAndExit "FAILURE mongodump command not found"
 fi
 
 mkdir -p "${BACKUP_ROOT}"
@@ -57,7 +75,7 @@ if [[ -n "${DB_NAMES}" ]]; then
   for db in "${DBS[@]}"; do
     db_trimmed="$(echo "${db}" | xargs)"
     [[ -z "${db_trimmed}" ]] && continue
-    /usr/local/bin/mongodump --uri="${MONGO_URI}" --db="${db_trimmed}" --out="${WORK_DIR}"
+    "${MONGODUMP_BIN}" --uri="${MONGO_URI}" --db="${db_trimmed}" --out="${WORK_DIR}"
   done
 fi
 

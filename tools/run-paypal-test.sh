@@ -7,21 +7,33 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+
 # import .env file
-set -a
-# shellcheck disable=SC1090
-source "/home/gort1975/snorkelology/.env"
-set +a
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
 
 # read .env variables
-LOG_FILE="${LOG_FILE}"
+LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/paypal-test.log}"
 PAYPAL_NIGHTLY_BASE_URL="${PAYPAL_NIGHTLY_BASE_URL:-http://127.0.0.1:4001}"
 
-# move to working directory
-cd "/home/gort1975/snorkelology/"
+mkdir -p "$(dirname -- "${LOG_FILE}")"
 
-. "/home/gort1975/.nvm/nvm.sh"
-nvm use
+# move to working directory
+cd "${REPO_ROOT}"
+
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [[ -s "${NVM_SCRIPT}" ]]; then
+  # shellcheck disable=SC1090
+  . "${NVM_SCRIPT}"
+  nvm use >/dev/null || true
+fi
 
 # print working status
 echo "$(date -Iseconds) Starting paypal checks"  

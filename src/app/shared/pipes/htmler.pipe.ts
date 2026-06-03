@@ -7,7 +7,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 
 /*
-    Converts a paragraph of text into html for insertion into blog div:
+    Converts a paragraph of text into html for insertion into article div:
         - Splits by end of line char and wraps each in <p> tags
         - Search for link string in each paragraph, and insert relevant <a> tags
         - Link string in the form [link:text,link], eg [link:BSAC,https:www.bsac.com]

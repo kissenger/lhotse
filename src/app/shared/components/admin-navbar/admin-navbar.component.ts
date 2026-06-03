@@ -18,7 +18,7 @@ export class AdminNavbarComponent {
 
   readonly links = [
     { label: 'Dashboard',     path: '/dashboard' },
-    { label: 'Blog',          path: '/blogeditor' },
+    { label: 'Article',          path: '/articleeditor' },
     { label: 'Sites',         path: '/siteseditor' },
     { label: 'Map',           path: '/adminmap' },
     { label: 'Counties',      path: '/county-descriptions' },

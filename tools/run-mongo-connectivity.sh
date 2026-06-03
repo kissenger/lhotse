@@ -7,21 +7,33 @@ fi
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env}"
+
 # import .env file
-set -a
-# shellcheck disable=SC1090
-source "/home/gort1975/snorkelology/.env"
-set +a
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
 
 # read .env variables
-LOG_FILE="${LOG_FILE}"
+LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/mongo-connectivity.log}"
 MONGO_CONNECTIVITY_BASE_URL="${MONGO_CONNECTIVITY_BASE_URL:-${PLAYWRIGHT_BASE_URL:-http://127.0.0.1:4001}}"
 
-# move to working directory
-cd "/home/gort1975/snorkelology/"
+mkdir -p "$(dirname -- "${LOG_FILE}")"
 
-. "/home/gort1975/.nvm/nvm.sh"
-nvm use
+# move to working directory
+cd "${REPO_ROOT}"
+
+NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [[ -s "${NVM_SCRIPT}" ]]; then
+  # shellcheck disable=SC1090
+  . "${NVM_SCRIPT}"
+  nvm use >/dev/null || true
+fi
 
 # print working status
 echo "$(date -Iseconds) Starting MongoDB connectivity checks"  
@@ -64,9 +76,9 @@ async function fetchJson(path, expectedStatus) {
 }
 
 (async () => {
-  const blogPayload = await fetchJson('/api/blog/get-published-posts/', 201);
-  if (!Array.isArray(blogPayload)) {
-    throw new Error('Blog endpoint payload is not an array');
+  const articlePayload = await fetchJson('/api/article/get-published-posts/', 201);
+  if (!Array.isArray(articlePayload)) {
+    throw new Error('Article endpoint payload is not an array');
   }
 
   const mapPayload = await fetchJson('/api/sites/get-sites/Production', 201);
@@ -75,7 +87,7 @@ async function fetchJson(path, expectedStatus) {
   }
 
   console.log(`Checked ${baseUrl}`);
-  console.log(`Blog endpoint OK (${blogPayload.length} records)`);
+  console.log(`Article endpoint OK (${articlePayload.length} records)`);
   console.log(`Map endpoint OK (${mapPayload.features.length} features)`);
 })();
 NODE

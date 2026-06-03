@@ -1,23 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-import { BlogComponent } from './blog.component';
+import { ArticleComponent } from './article.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { HttpService } from '@shared/services/http.service';
 import { PLATFORM_ID } from '@angular/core';
 
-function makePost(sectionTitle = '', title = '', subtitle = ''): BlogPost {
-  const p = new BlogPost();
-  p.blogSection = sectionTitle;
+function makePost(sectionTitle = '', title = '', subtitle = ''): ArticlePost {
+  const p = new ArticlePost();
+  p.articleSection = sectionTitle;
   p.title = title;
   p.subtitle = subtitle;
   p.slug = title.toLowerCase().replace(/\s+/g, '-');
   return p;
 }
 
-describe('BlogComponent', () => {
-  let comp: BlogComponent;
+describe('ArticleComponent', () => {
+  let comp: ArticleComponent;
   let mockHttp: jasmine.SpyObj<Pick<HttpService, 'getPublishedPosts'>>;
 
   beforeEach(async () => {
@@ -25,20 +25,20 @@ describe('BlogComponent', () => {
     mockHttp.getPublishedPosts.and.returnValue(Promise.resolve([]));
 
     await TestBed.configureTestingModule({
-      imports: [BlogComponent, HttpClientTestingModule, RouterTestingModule],
+      imports: [ArticleComponent, HttpClientTestingModule, RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } },
         { provide: HttpService, useValue: mockHttp },
         { provide: PLATFORM_ID, useValue: 'server' }  // skip ngOnInit HTTP call
       ]
     }).compileComponents();
-    const f = TestBed.createComponent(BlogComponent);
+    const f = TestBed.createComponent(ArticleComponent);
     comp = f.componentInstance;
   });
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('creates blog component', () => {
+  it('creates article component', () => {
     expect(comp).toBeTruthy();
   });
 

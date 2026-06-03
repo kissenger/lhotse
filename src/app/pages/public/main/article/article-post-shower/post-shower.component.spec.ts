@@ -5,10 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 
-function makeArticle(overrides: Partial<BlogPost> = {}): BlogPost {
-  const p = new BlogPost();
+function makeArticle(overrides: Partial<ArticlePost> = {}): ArticlePost {
+  const p = new ArticlePost();
   Object.assign(p, {
     slug: 'test-slug',
     title: 'Test Post',
@@ -40,7 +40,7 @@ function buildComp(platform = 'browser') {
     getLastAndNextSlugs: jasmine.createSpy('getLastAndNextSlugs').and.returnValue(Promise.resolve({ nextSlug: 'next', lastSlug: 'last', nextTitle: 'Next', lastTitle: 'Last' })),
     likePost: jasmine.createSpy('likePost').and.returnValue(Promise.resolve({ likes: 6 }))
   };
-  const mockRouter = { url: '/blog/test-slug', navigateByUrl: jasmine.createSpy('navigateByUrl') };
+  const mockRouter = { url: '/article/test-slug', navigateByUrl: jasmine.createSpy('navigateByUrl') };
 
   TestBed.configureTestingModule({
     imports: [PostShowerComponent, HttpClientTestingModule],

@@ -17,7 +17,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
 
   private static readonly _HOME_PATHS = new Set(['', '/', '/home']);
   private static readonly _MENU_ROUTE_MATCHERS: Array<{ name: string; match: (path: string) => boolean }> = [
-    { name: 'Articles', match: (path) => path === '/articles' || path.startsWith('/articles/') || path === '/blog' || path.startsWith('/blog/') },
+    { name: 'Articles', match: (path) => path === '/articles' || path.startsWith('/articles/') || path === '/article' || path.startsWith('/article/') },
     { name: 'Book', match: (path) => path === '/snorkelling-britain' },
     { name: 'Shop', match: (path) => path === '/shop' },
     { name: 'Map', match: (path) => path === '/map' || path.startsWith('/map/') },
@@ -44,7 +44,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
   public isAdminRoute = false;
 
   private static readonly _ADMIN_PATHS = new Set([
-    'dashboard', 'blogeditor', 'siteseditor', 'adminmap', 'orders', 'login', 'organisations',
+    'dashboard', 'articleeditor', 'siteseditor', 'adminmap', 'orders', 'login', 'organisations',
   ]);
 
   constructor(

@@ -4,10 +4,10 @@ This folder contains maintenance and utility scripts for the Snorkelology app.
 
 ## File Purposes
 
-- `backfill-blog-og-images.mjs`: Backfills Open Graph image fields for blog content.
+- `backfill-article-links.mjs`: Backfills legacy article links in Mongo content.
 - `deploy.sh`: Server deploy workflow for beta/master branches, including build, restart, and health checks.
-- `dump-jsonld-home.js`: Dumps generated JSON-LD data for home page SEO.
 - `generate-sitemap.mjs`: Generates XML sitemap for the built site.
+- `maintenance-common.sh`: Shared logging/error helpers for maintenance scripts.
 - `pull.sh`: Git-only sync workflow for beta/master branches.
 - `README.md`: This documentation file.
 - `restore-mongo.sh`: Safely restores MongoDB backups to a target database.
@@ -42,11 +42,11 @@ bash tools/startup-reboot-check.sh
 ## Cron Examples
 
 - Nightly maintenance:  
-  `15 2 * * * cd /home/gort1975/snorkelology && bash tools/run-scheduled-maintenance.sh`
+  `15 2 * * * cd ~/snorkelology/master && bash tools/run-scheduled-maintenance.sh`
 - Startup reboot check:  
-  `@reboot cd /home/gort1975/snorkelology && bash tools/startup-reboot-check.sh`
+  `@reboot cd ~/snorkelology/master && bash tools/startup-reboot-check.sh`
 - Hourly URL check:  
-  `0 * * * * cd /home/gort1975/snorkelology && bash tools/run-hourly-url-check.sh`
+  `0 * * * * cd ~/snorkelology/master && bash tools/run-hourly-url-check.sh`
 
 ## Notes
 

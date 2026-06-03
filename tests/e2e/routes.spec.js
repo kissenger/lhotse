@@ -7,7 +7,7 @@ const EMPTY_GEOJSON = {
 
 test.describe('route smoke tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/blog/get-published-posts/**', (route) =>
+    await page.route('**/api/article/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
     await page.route('**/api/sites/get-sites/**', (route) =>
@@ -19,7 +19,7 @@ test.describe('route smoke tests', () => {
     await page.goto('/articles');
 
     await expect(page.locator('.route-shell-header h1')).toHaveText('British Snorkelling Articles', { timeout: 15_000 });
-    await expect(page.locator('app-blog')).toBeVisible();
+    await expect(page.locator('app-article')).toBeVisible();
   });
 
   test('/map renders the map page shell', async ({ page }) => {

@@ -65,14 +65,14 @@ async function collectSiteLinks(request) {
 }
 
 /**
- * Fetch all published blog posts via the API and extract every external URL
+ * Fetch all published article posts via the API and extract every external URL
  * from ctaLinks, videoUrls and inline href attributes within HTML content fields.
- * This avoids the need to navigate to every blog post URL in the browser.
+ * This avoids the need to navigate to every article post URL in the browser.
  */
-async function collectBlogPostLinks(request) {
+async function collectArticlePostLinks(request) {
   let posts;
   try {
-    const res = await request.get('/api/blog/get-published-posts/', { timeout: 15_000 });
+    const res = await request.get('/api/article/get-published-posts/', { timeout: 15_000 });
     if (!res.ok()) return [];
     posts = await res.json();
   } catch {
@@ -111,8 +111,8 @@ test.describe.serial('dead links', () => {
     // Link existence is browser-independent — run in one project only.
     test.skip(browserName !== 'chromium', 'single-browser check');
     test.setTimeout(180_000);
-    // Mock the blog API so this test stays fast and deterministic.
-    await page.route('**/api/blog/get-published-posts/**', (route) =>
+    // Mock the article API so this test stays fast and deterministic.
+    await page.route('**/api/article/get-published-posts/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
 
@@ -167,9 +167,9 @@ test.describe.serial('dead links', () => {
       }
     }
 
-    // ── Collect links from every published blog post via the API ────────────
-    const blogLinks = await collectBlogPostLinks(request);
-    for (const rawUrl of blogLinks) {
+    // ── Collect links from every published article post via the API ────────────
+    const articleLinks = await collectArticlePostLinks(request);
+    for (const rawUrl of articleLinks) {
       try {
         const url = new URL(rawUrl);
         if (url.hostname === base.hostname) continue;

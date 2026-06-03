@@ -2,20 +2,20 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'node:crypto';
-import BlogModel from '../schema/blog';
-import BlogLikeModel from '../schema/blog-like';
-import { BlogError } from './server';
+import ArticleModel from '../schema/article';
+import ArticleLikeModel from '../schema/article-like';
+import { ArticleError } from './server';
 import { verifyToken } from './server-auth'
 import 'dotenv/config';
 
-const blog = express();
+const article = express();
 
 function sendInternalServerError(res: express.Response): void {
   res.status(500).json({ error: 'Internal server error' });
 }
 
-function sendBlogNotFoundOrInternal(res: express.Response, error: unknown): void {
-  if ((error as any)?.name === 'BlogError') {
+function sendArticleNotFoundOrInternal(res: express.Response, error: unknown): void {
+  if ((error as any)?.name === 'ArticleError') {
     res.status(404).json({ message: 'Not Found' });
     return;
   }
@@ -30,8 +30,8 @@ function withRawServerError(handler: (req: any, res: any) => Promise<void>) {
   };
 }
 
-// Blog API endpoints are machine-readable responses and should never appear in search results.
-blog.use('/api/blog', (_req, res, next) => {
+// Article API endpoints are machine-readable responses and should never appear in search results.
+article.use('/api/article', (_req, res, next) => {
   res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
   next();
 });
@@ -58,11 +58,11 @@ const likeRateLimit = rateLimit({
 
 /* 
   Get all data for all posts
-  Returns: Array<BlogPost>
+  Returns: Array<ArticlePost>
 */
-blog.get('/api/blog/get-all-posts/', verifyToken, async (_req, res) => {
+article.get('/api/article/get-all-posts/', verifyToken, async (_req, res) => {
   try {
-    const result = await BlogModel
+    const result = await ArticleModel
       .find({})
       .sort({"createdAt": "descending"})
       .lean();
@@ -72,11 +72,11 @@ blog.get('/api/blog/get-all-posts/', verifyToken, async (_req, res) => {
   }
 });
 
-blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
+article.get('/api/article/get-all-slugs/', async (_req, res) => {
   try {
     const result =  await getSlugs(false);
     if (!result || result.length === 0) {
-      throw new BlogError('Error fetching slugs');
+      throw new ArticleError('Error fetching slugs');
     };
     res.status(201).json(result); 
   } catch (error: any) { 
@@ -84,11 +84,11 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
   }
 });
 
-  blog.get('/api/blog/get-sitemap-entries/', async (_req, res) => {
+  article.get('/api/article/get-sitemap-entries/', async (_req, res) => {
     try {
-      const result = await BlogModel.find(
+      const result = await ArticleModel.find(
         { publishedAt: { $ne: null } },
-        { slug: 1, updatedAt: 1, imgFname: 1, blogSection: 1 }
+        { slug: 1, updatedAt: 1, imgFname: 1, articleSection: 1 }
       ).sort({ "createdAt": "descending" }).lean();
 
       res.status(200).json(result);
@@ -99,11 +99,11 @@ blog.get('/api/blog/get-all-slugs/', async (_req, res) => {
 
 /* 
   Get all data for all posts
-  Returns: Array<BlogPost>
+  Returns: Array<ArticlePost>
 */
-blog.get('/api/blog/get-published-posts/', async (_req, res) => {
+article.get('/api/article/get-published-posts/', async (_req, res) => {
   try {
-    const result = await BlogModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"}).lean();
+    const result = await ArticleModel.find({ publishedAt: { $ne: null } }).sort({"publishedAt": "descending"}).lean();
     res.status(201).json(result);
   } catch (error: any) { 
     sendInternalServerError(res);
@@ -112,21 +112,21 @@ blog.get('/api/blog/get-published-posts/', async (_req, res) => {
 
 /* 
   Get post from provided slug
-  Returns: BlogPost
+  Returns: ArticlePost
 */
-blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
+article.get('/api/article/get-post-by-slug/:slug', async (req, res) => {
 
   try {
     const slug = req.params['slug'];
-    const article = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }).lean();
+    const article = await ArticleModel.findOne({ slug, publishedAt: { $ne: null } }).lean();
     if (!article) {
-      throw new BlogError('Not Found');
+      throw new ArticleError('Not Found');
     }
 
     res.status(200).json({ article });
 
   } catch (error: any) {
-    sendBlogNotFoundOrInternal(res, error);
+    sendArticleNotFoundOrInternal(res, error);
   }
 });
 
@@ -135,21 +135,21 @@ blog.get('/api/blog/get-post-by-slug/:slug', async (req, res) => {
   - Includes unpublished posts
   - Requires auth unless request is local (localhost)
 */
-blog.get('/api/blog/get-post-preview-by-slug/:slug', previewAuthGuard, async (req, res) => {
+article.get('/api/article/get-post-preview-by-slug/:slug', previewAuthGuard, async (req, res) => {
   try {
     const slug = req.params['slug'];
-    const article = await BlogModel.findOne({ slug }).lean();
+    const article = await ArticleModel.findOne({ slug }).lean();
     if (!article) {
-      throw new BlogError('Not Found');
+      throw new ArticleError('Not Found');
     }
 
     res.status(200).json({ article });
   } catch (error: any) {
-    sendBlogNotFoundOrInternal(res, error);
+    sendArticleNotFoundOrInternal(res, error);
   }
 });
 
-blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
+article.get('/api/article/get-last-and-next-slugs/:slug', async (req, res) => {
 
   try {
 
@@ -157,7 +157,7 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
     const index = listOfSlugs.map(r => r.slug).indexOf(req.params['slug']);
 
     if (index < 0 || listOfSlugs.length === 0) {
-      throw new BlogError('Error finding next or last slug');
+      throw new ArticleError('Error finding next or last slug');
     }
 
     const lastSlug = listOfSlugs[(index - 1 + listOfSlugs.length) % listOfSlugs.length].slug;
@@ -168,18 +168,18 @@ blog.get('/api/blog/get-last-and-next-slugs/:slug', async (req, res) => {
     res.status(200).json({lastSlug, nextSlug, lastTitle, nextTitle });
     
   } catch (error: any) {
-    sendBlogNotFoundOrInternal(res, error);
+    sendArticleNotFoundOrInternal(res, error);
   }
 });
 
-blog.post('/api/blog/upsert-post/', verifyToken, withRawServerError(async (req, res) => {
+article.post('/api/article/upsert-post/', verifyToken, withRawServerError(async (req, res) => {
   if (req.body._id !=='') {
     const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
     delete req.body.preserveUpdatedAt;
 
-    const existing = await BlogModel.findById(req.body._id, { publishedAt: 1, updatedAt: 1, blogSection: 1 }).lean();
+    const existing = await ArticleModel.findById(req.body._id, { publishedAt: 1, updatedAt: 1, articleSection: 1 }).lean();
     if (!existing) {
-      throw new BlogError('Not Found');
+      throw new ArticleError('Not Found');
     }
 
     // Never let the client overwrite publishedAt — manage it server-side only
@@ -203,8 +203,8 @@ blog.post('/api/blog/upsert-post/', verifyToken, withRawServerError(async (req, 
       }
     }
 
-    const existingSection = (existing.blogSection || '').toString().trim();
-    const incomingSection = (req.body.blogSection || '').toString().trim();
+    const existingSection = (existing.articleSection || '').toString().trim();
+    const incomingSection = (req.body.articleSection || '').toString().trim();
     const sectionChanged = existingSection !== incomingSection;
     const shouldPreserveUpdatedAt = (preserveUpdatedAt || sectionChanged) && !publishStateChanged;
 
@@ -212,7 +212,7 @@ blog.post('/api/blog/upsert-post/', verifyToken, withRawServerError(async (req, 
       update.updatedAt = existing.updatedAt;
     }
 
-    await BlogModel.findByIdAndUpdate(
+    await ArticleModel.findByIdAndUpdate(
       req.body._id,
       update,
       shouldPreserveUpdatedAt ? { timestamps: false } : undefined
@@ -228,48 +228,48 @@ blog.post('/api/blog/upsert-post/', verifyToken, withRawServerError(async (req, 
     } else {
       delete req.body.publishedAt;
     }
-    await BlogModel.create(req.body);
+    await ArticleModel.create(req.body);
   }
 
-  const result = await BlogModel.find({});
+  const result = await ArticleModel.find({});
   res.status(201).json(result);
 }));
 
 async function getSlugs(onlyPublishedPosts: boolean = true) {
-  const result =  await BlogModel.find(
+  const result =  await ArticleModel.find(
     onlyPublishedPosts ? { publishedAt: { $ne: null } } : {}, 
     {slug: 1, title: 1, updatedAt: 1}).sort({"createdAt": "descending"}
   ).lean();
   if (!result || result.length === 0) {
-    throw new BlogError('Not Found');
+    throw new ArticleError('Not Found');
   };
   return result;
 };
 
 /* 
   Get post specified by _id, and if successful return result of find all
-  Returns: Array<BlogPost>
+  Returns: Array<ArticlePost>
 */
-blog.post('/api/blog/backfill-published-at/', verifyToken, withRawServerError(async (_req, res) => {
+article.post('/api/article/backfill-published-at/', verifyToken, withRawServerError(async (_req, res) => {
   // Set publishedAt = createdAt for all published posts that don't yet have publishedAt
-  const result = await BlogModel.updateMany(
+  const result = await ArticleModel.updateMany(
     { publishedAt: null },
     [{ $set: { publishedAt: '$createdAt' } }]
   );
   res.status(200).json({ updated: result.modifiedCount });
 }));
 
-blog.get('/api/blog/delete-post/:_id', verifyToken, withRawServerError(async (req, res) => {
-  await BlogModel.findOneAndUpdate(
+article.get('/api/article/delete-post/:_id', verifyToken, withRawServerError(async (req, res) => {
+  await ArticleModel.findOneAndUpdate(
     { _id: req.params._id },
     { isDeleted: true, deletedAt: new Date(), publishedAt: null }
   );
-  const result = await BlogModel.find({});
+  const result = await ArticleModel.find({});
   res.status(201).json(result);
 }));
 
 async function getPublishedPostsForSeo() {
-  const posts = await BlogModel.find(
+  const posts = await ArticleModel.find(
     { publishedAt: { $ne: null } },
     { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1 }
   ).sort({ "createdAt": "descending" }).lean();
@@ -277,9 +277,9 @@ async function getPublishedPostsForSeo() {
 }
 
 async function getPublishedPostBySlugForSeo(slug: string) {
-  const post = await BlogModel.findOne(
+  const post = await ArticleModel.findOne(
     { publishedAt: { $ne: null }, slug },
-    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1, review: 1, blogSection: 1 }
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, keywords: 1, sections: 1, type: 1, slug: 1, author: 1, review: 1, articleSection: 1 }
   ).lean();
   return post;
 }
@@ -287,14 +287,14 @@ async function getPublishedPostBySlugForSeo(slug: string) {
 /*****************************************************************
  * ROUTE: Get like counts for multiple slugs
  ****************************************************************/
-blog.post('/api/blog/get-likes', async (req, res) => {
+article.post('/api/article/get-likes', async (req, res) => {
   try {
     const slugs: string[] = req.body.slugs;
     if (!Array.isArray(slugs) || slugs.length > 50) {
       res.status(400).json({ error: 'slugs must be an array of up to 50 items' });
       return;
     }
-    const posts = await BlogModel.find(
+    const posts = await ArticleModel.find(
       { slug: { $in: slugs }, publishedAt: { $ne: null } },
       { slug: 1, likes: 1 }
     ).lean();
@@ -309,9 +309,9 @@ blog.post('/api/blog/get-likes', async (req, res) => {
 });
 
 /*****************************************************************
- * ROUTE: Like a blog post
+ * ROUTE: Like a article post
  ****************************************************************/
-blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
+article.post('/api/article/like/:slug', likeRateLimit, async (req, res) => {
   try {
     const slug = req.params['slug'];
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
@@ -320,17 +320,17 @@ blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
 
     // Attempt to insert — unique index will reject duplicates
     try {
-      await BlogLikeModel.create({ hash, slug });
+      await ArticleLikeModel.create({ hash, slug });
     } catch (dupErr: any) {
       if (dupErr?.code === 11000) {
-        const post = await BlogModel.findOne({ slug, publishedAt: { $ne: null } }, { likes: 1 }).lean();
+        const post = await ArticleModel.findOne({ slug, publishedAt: { $ne: null } }, { likes: 1 }).lean();
         res.json({ likes: post?.likes ?? 0, alreadyLiked: true });
         return;
       }
       throw dupErr;
     }
 
-    const post = await BlogModel.findOneAndUpdate(
+    const post = await ArticleModel.findOneAndUpdate(
       { slug, publishedAt: { $ne: null } },
       { $inc: { likes: 1 } },
       { new: true, projection: { likes: 1 } }
@@ -347,4 +347,4 @@ blog.post('/api/blog/like/:slug', likeRateLimit, async (req, res) => {
   }
 });
 
-export { blog, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };
+export { article, getPublishedPostsForSeo, getPublishedPostBySlugForSeo };

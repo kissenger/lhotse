@@ -1,27 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { BlogCardComponent } from './blog-card.component';
+import { ArticleCardComponent } from './article-card.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
-import { BlogPost } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 
-describe('BlogCardComponent', () => {
-  let comp: BlogCardComponent;
+describe('ArticleCardComponent', () => {
+  let comp: ArticleCardComponent;
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BlogCardComponent, HttpClientTestingModule, RouterTestingModule],
+      imports: [ArticleCardComponent, HttpClientTestingModule, RouterTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: {} }, paramMap: { get: () => null } } }]
     }).compileComponents();
-    const f = TestBed.createComponent(BlogCardComponent);
+    const f = TestBed.createComponent(ArticleCardComponent);
     comp = f.componentInstance;
   });
 
-  it('creates blog card', () => {
+  it('creates article card', () => {
     expect(comp).toBeTruthy();
   });
 
   it('falls back to a local asset path after an image error', () => {
-    const post = new BlogPost();
+    const post = new ArticlePost();
     post.imgFname = 'photos/example.jpg';
 
     comp.data = post;
