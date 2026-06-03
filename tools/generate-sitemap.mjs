@@ -8,6 +8,10 @@ const SITEMAP_PATH = process.env.SITEMAP_PATH || resolve(REPO_ROOT, 'dist/browse
 const BUILD_MARKER_PATH = process.env.BUILD_MARKER_PATH || resolve(REPO_ROOT, 'dist/browser/index.csr.html');
 const STATIC_URL_PATHS = [
   {
+    path: '/home',
+    image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
+  },
+  {
     path: '/articles',
     image: `${SITE_URL}/assets/snorkelology opengraph image.webp`
   },

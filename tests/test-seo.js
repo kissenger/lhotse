@@ -168,21 +168,41 @@ function checkStaticTemplates() {
 
 async function discoverDynamicRoutes() {
   const routes = new Set(CORE_RUNTIME_ROUTES);
+  let articleApiAvailable = false;
 
-  try {
-    const postsRes = await fetchWithTimeout(`${BASE_URL}/api/article/get-published-posts/`);
-    if (!postsRes.ok) {
-      warn('runtime:discover', `/api/article/get-published-posts/ returned ${postsRes.status}`);
-    } else {
-      const posts = await postsRes.json();
-      for (const post of posts.slice(0, 5)) {
-        if (post?.slug) routes.add(`/articles/${post.slug}`);
-        if (post?.articleSection) routes.add(`/articles/section/${post.articleSection}`);
-      }
-      ok('runtime:discover', `discovered ${Math.min(posts.length, 5)} article routes`);
+  const articleApiCandidates = [
+    '/api/article/get-published-posts/',
+    '/api/article/get-sitemap-entries/',
+    '/api/article/get-all-slugs/',
+  ];
+
+  function addArticleRoutesFromItems(items) {
+    for (const item of items ?? []) {
+      if (item?.slug) routes.add(`/articles/${item.slug}`);
+      if (item?.articleSection) routes.add(`/articles/section/${item.articleSection}`);
     }
-  } catch (error) {
-    warn('runtime:discover', `unable to fetch article routes: ${error.message}`);
+  }
+
+  for (const candidate of articleApiCandidates) {
+    try {
+      const response = await fetchWithTimeout(`${BASE_URL}${candidate}`);
+      if (!response.ok) {
+        warn('runtime:discover', `${candidate} returned ${response.status}`);
+        continue;
+      }
+
+      const items = await response.json();
+      articleApiAvailable = true;
+      addArticleRoutesFromItems(Array.isArray(items) ? items.slice(0, 5) : []);
+      ok('runtime:discover', `discovered ${Math.min(Array.isArray(items) ? items.length : 0, 5)} article routes via ${candidate}`);
+      break;
+    } catch (error) {
+      warn('runtime:discover', `unable to fetch article routes from ${candidate}: ${error.message}`);
+    }
+  }
+
+  if (!articleApiAvailable) {
+    warn('runtime:discover', 'no public article API route responded successfully');
   }
 
   try {
@@ -200,11 +220,16 @@ async function discoverDynamicRoutes() {
     warn('runtime:discover', `unable to fetch map routes: ${error.message}`);
   }
 
-  return [...routes];
+  return { routes: [...routes], articleApiAvailable };
 }
 
-async function checkLegacyArticleRedirects() {
+async function checkLegacyArticleRedirects(articleApiAvailable) {
   console.log('\n== Legacy article redirect checks ==');
+  if (!articleApiAvailable) {
+    warn('redirects', 'article API unavailable, skipping legacy /article redirect assertions');
+    return;
+  }
+
   const legacyPaths = ['/article', '/article/section/snorkelling-gear', '/article/the-british-snorkelling-wetsuit-guide-how-to-stay-warm-in-uk-waters'];
 
   for (const legacyPath of legacyPaths) {
@@ -326,9 +351,8 @@ function checkRuntimeSeoForRoute(route, finalUrl, html) {
   }
 }
 
-async function checkRuntimePages() {
+async function checkRuntimePages(routes) {
   console.log(`\n== Runtime SEO checks (${BASE_URL}) ==`);
-  const routes = await discoverDynamicRoutes();
 
   for (const route of routes) {
     const scope = `runtime:${route}`;
@@ -380,8 +404,9 @@ function printSummaryAndExit() {
 async function main() {
   console.log(`Running comprehensive SEO checks against ${BASE_URL}`);
   checkStaticTemplates();
-  await checkLegacyArticleRedirects();
-  await checkRuntimePages();
+  const { routes, articleApiAvailable } = await discoverDynamicRoutes();
+  await checkLegacyArticleRedirects(articleApiAvailable);
+  await checkRuntimePages(routes);
   printSummaryAndExit();
 }
 

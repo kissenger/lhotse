@@ -39,7 +39,7 @@ fi
 echo "$(date -Iseconds) Starting paypal checks"  
 
 # run checks
-if ! output="$(PLAYWRIGHT_BASE_URL="${PAYPAL_NIGHTLY_BASE_URL}" npm run test:paypal:sandbox -- --config ./playwright.config.ts --project=chromium --workers=1 --retries=1 2>&1)"; then
+if ! output="$(PLAYWRIGHT_BASE_URL="${PAYPAL_NIGHTLY_BASE_URL}" ./node_modules/.bin/playwright test tests/e2e/paypal-sandbox-nightly.spec.js --config ./playwright.config.ts --project=chromium --workers=1 --retries=1 2>&1)"; then
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) ${output}"  
   fi

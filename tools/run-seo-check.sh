@@ -37,7 +37,7 @@ fi
 # print working status
 echo "$(date -Iseconds) Starting SEO checks"  
 
-if ! output="$(npm run test:seo 2>&1)"; then
+if ! output="$(node ./tests/test-seo.js 2>&1)"; then
   if [[ -n "${output}" ]]; then
     echo "$(date -Iseconds) FAILURE node output:"  
     echo "${output}" | sed 's/^/    /'  

@@ -10,8 +10,7 @@
  *   TEST_APP_BASE_URL=http://localhost:4000 node ./tests/test-dead-links.js
  *   TEST_APP_BASE_URL=https://snorkelology.co.uk node ./tests/test-dead-links.js # production override
  */
-import { readFile } from 'node:fs/promises';
-import { globSync } from 'glob';
+import { glob, readFile } from 'node:fs/promises';
 import { resolveBaseUrl } from './shared/resolve-base-url.js';
 
 const BASE_URL = resolveBaseUrl({ cliArg: process.argv[2], envKeys: ['TEST_APP_BASE_URL'] });
@@ -176,9 +175,9 @@ async function collectSitemapPaths() {
 async function collectTemplateAnchorLinks() {
   const internalPaths = new Set();
   const externalUrls = new Set();
-  const htmlFiles = globSync('src/app/**/*.html', { nodir: true });
+  const htmlFiles = glob('src/app/**/*.html', { withFileTypes: false });
 
-  for (const filePath of htmlFiles) {
+  for await (const filePath of htmlFiles) {
     try {
       const html = await readFile(filePath, 'utf8');
       for (const href of extractAnchorHrefs(html)) {
@@ -374,7 +373,7 @@ async function main() {
     }
 
     let probe = await probeUrl(url, 'HEAD', 'follow');
-    if (probe.status === 405 || probe.status === 'error') {
+    if (!isLive(probe.status)) {
       probe = await probeUrl(url, 'GET', 'follow');
     }
     const status = probe.status;
