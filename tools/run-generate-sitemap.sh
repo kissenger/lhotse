@@ -48,4 +48,8 @@ if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node ./tools/gen
   exit 1
 fi
 
+if [[ -n "${output}" ]]; then
+  echo "${output}" | sed 's/^/    /'
+fi
+
 echo "$(date -Iseconds) Sitemap generation completed OK"  

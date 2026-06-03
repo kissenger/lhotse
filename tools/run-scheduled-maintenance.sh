@@ -49,7 +49,7 @@ printError() {
 }
 
 printSuccess() {
-  echo -e "$(date -Iseconds) ${1}" | tee -a "${LOG_FILE}"
+  echo -e "$(date -Iseconds) ${1}" >> "${LOG_FILE}"
 }
 
 sendEmail() {
@@ -72,10 +72,14 @@ run_check() {
     return 1
   fi
 
-  # Sub-script output goes to terminal only — not to the log file
-  if bash "${script}"; then
-    echo -e "${GREEN}$(date -Iseconds) [PASS] ${name}${NC}" | tee -a "${LOG_FILE}"
+  # Keep maintenance quiet on success; show child output only if the step fails.
+  local output=""
+  if output="$(MAINTENANCE_SILENT=1 bash "${script}" 2>&1)"; then
+    echo -e "$(date -Iseconds) [PASS] ${name}" >> "${LOG_FILE}"
   else
+    if [[ -n "${output}" ]]; then
+      echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
+    fi
     echo -e "${RED}$(date -Iseconds) [FAIL] ${name}${NC}" | tee -a "${LOG_FILE}" >&2
     ERROR_LINES+="$(date -Iseconds) [FAIL] ${name}\n"
     return 1
