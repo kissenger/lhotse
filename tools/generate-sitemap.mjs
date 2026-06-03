@@ -278,6 +278,7 @@ async function main() {
   const outputPath = await writeSitemapAtomically(xml);
 
   console.log(`[sitemap] Wrote ${dedupedEntries.length} URLs to ${outputPath}`);
+  console.log(`[sitemap] Output path: ${outputPath}`);
 }
 
 main().catch((error) => {

@@ -206,7 +206,20 @@ app.use((req, res, next) => {
     return;
   }
 
+  if (normalizedPath === '/blog') {
+    res.redirect(301, `/articles${querySuffix}`);
+    return;
+  }
+
   if (normalizedPath.startsWith('/article/section/')) {
+    const segments = normalizedPath.split('/').filter(Boolean);
+    if (segments.length === 3 && segments[2]) {
+      res.redirect(301, `/articles/section/${encodeURIComponent(decodeURIComponent(segments[2]))}${querySuffix}`);
+      return;
+    }
+  }
+
+  if (normalizedPath.startsWith('/blog/section/')) {
     const segments = normalizedPath.split('/').filter(Boolean);
     if (segments.length === 3 && segments[2]) {
       res.redirect(301, `/articles/section/${encodeURIComponent(decodeURIComponent(segments[2]))}${querySuffix}`);
@@ -219,8 +232,10 @@ app.use((req, res, next) => {
 
 app.use(async (req, res, next) => {
   if (req.method !== 'GET' || !req.path.startsWith('/article/')) {
-    next();
-    return;
+    if (req.method !== 'GET' || !req.path.startsWith('/blog/')) {
+      next();
+      return;
+    }
   }
   const segments = req.path.split('/').filter(Boolean);
   if (segments.length !== 2 || segments[1] === 'section') {

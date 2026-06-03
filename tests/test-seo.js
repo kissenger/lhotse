@@ -16,6 +16,11 @@ const STATIC_FILES = [
 const CORE_RUNTIME_ROUTES = ['/', '/home', '/articles', '/map', '/privacy-policy', '/affiliate-disclosure', '/ai-transparency'];
 const LIGHTWEIGHT_POLICY_PAGES = new Set(['/privacy-policy', '/affiliate-disclosure', '/ai-transparency']);
 const DESCRIPTION_OPTIONAL_PAGES = new Set(['/privacy-policy']);
+const ARTICLE_API_CANDIDATES = [
+  '/api/article/get-sitemap-entries/',
+  '/api/article/get-published-posts/',
+  '/api/article/get-all-slugs/',
+];
 
 const failures = [];
 const warnings = [];
@@ -170,12 +175,6 @@ async function discoverDynamicRoutes() {
   const routes = new Set(CORE_RUNTIME_ROUTES);
   let articleApiAvailable = false;
 
-  const articleApiCandidates = [
-    '/api/article/get-published-posts/',
-    '/api/article/get-sitemap-entries/',
-    '/api/article/get-all-slugs/',
-  ];
-
   function addArticleRoutesFromItems(items) {
     for (const item of items ?? []) {
       if (item?.slug) routes.add(`/articles/${item.slug}`);
@@ -183,7 +182,7 @@ async function discoverDynamicRoutes() {
     }
   }
 
-  for (const candidate of articleApiCandidates) {
+  for (const candidate of ARTICLE_API_CANDIDATES) {
     try {
       const response = await fetchWithTimeout(`${BASE_URL}${candidate}`);
       if (!response.ok) {
@@ -223,19 +222,15 @@ async function discoverDynamicRoutes() {
   return { routes: [...routes], articleApiAvailable };
 }
 
-async function checkLegacyArticleRedirects(articleApiAvailable) {
-  console.log('\n== Legacy article redirect checks ==');
-  if (!articleApiAvailable) {
-    warn('redirects', 'article API unavailable, skipping legacy /article redirect assertions');
-    return;
-  }
+async function checkBlogRedirects() {
+  console.log('\n== Blog redirect checks ==');
 
-  const legacyPaths = ['/article', '/article/section/snorkelling-gear', '/article/the-british-snorkelling-wetsuit-guide-how-to-stay-warm-in-uk-waters'];
+  const blogPaths = ['/blog', '/blog/section/snorkelling-gear', '/blog/the-british-snorkelling-wetsuit-guide-how-to-stay-warm-in-uk-waters'];
 
-  for (const legacyPath of legacyPaths) {
-    const scope = `redirect:${legacyPath}`;
+  for (const blogPath of blogPaths) {
+    const scope = `redirect:${blogPath}`;
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}${legacyPath}`, { redirect: 'manual' });
+      const res = await fetchWithTimeout(`${BASE_URL}${blogPath}`, { redirect: 'manual' });
       const location = res.headers.get('location') || '';
       if (res.status < 300 || res.status > 399) {
         fail(scope, `expected 3xx redirect, got ${res.status}`);
@@ -377,6 +372,16 @@ async function checkRuntimePages(routes) {
   }
 }
 
+async function checkArticleAndMapRouteFamilies() {
+  const { routes, articleApiAvailable } = await discoverDynamicRoutes();
+
+  if (!articleApiAvailable) {
+    warn('runtime:discover', 'article routes were not discovered from a public API response');
+  }
+
+  await checkRuntimePages(routes);
+}
+
 function printSummaryAndExit() {
   console.log('\n========================================');
   console.log('SEO CHECK SUMMARY');
@@ -404,9 +409,8 @@ function printSummaryAndExit() {
 async function main() {
   console.log(`Running comprehensive SEO checks against ${BASE_URL}`);
   checkStaticTemplates();
-  const { routes, articleApiAvailable } = await discoverDynamicRoutes();
-  await checkLegacyArticleRedirects(articleApiAvailable);
-  await checkRuntimePages(routes);
+  await checkBlogRedirects();
+  await checkArticleAndMapRouteFamilies();
   printSummaryAndExit();
 }
 
