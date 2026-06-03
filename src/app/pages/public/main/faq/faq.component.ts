@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FaqItem, faqFragment, faqItems } from '../../../shared/faq-data';
+import { FaqItem, faqFragment, faqItems } from '@shared/faq-data';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 
 type FaqSection = FaqItem['section'];
@@ -8,7 +8,7 @@ type FaqSection = FaqItem['section'];
   standalone: true,
   selector: 'app-faq',
   templateUrl: './faq.component.html',
-  styleUrls: ['../home.component.css'],
+  styleUrls: ['../home/home.component.css'],
   imports: [HtmlerPipe]
 })
 export class FAQComponent {

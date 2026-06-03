@@ -11,11 +11,11 @@
   text-align: center;
 }
 
-:host ::ng-deep app-about h1 {
+:host ::ng-deep .home-about h1 {
   text-align: center;
 }
 
-:host ::ng-deep app-about .content-img {
+:host ::ng-deep .home-about .content-img {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -24,17 +24,17 @@
   margin-inline: auto;
 }
 
-:host ::ng-deep app-about .about-hero-image {
+:host ::ng-deep .home-about .about-hero-image {
   max-width: 100%;
 }
 
-:host ::ng-deep app-about .content-img img {
+:host ::ng-deep .home-about .content-img img {
   border-radius: 0;
   object-fit: cover;
 }
 
 @media (max-width: 768px) {
-  :host ::ng-deep app-about .content-img {
+  :host ::ng-deep .home-about .content-img {
     width: 100%;
     aspect-ratio: 16 / 9;
     margin-top: 1.25rem;

@@ -501,9 +501,3 @@ export class MapFeature {
   updatedAt: string = '';
 }
 
-// JSON-LD schema helpers used by SEOService.
-export type SchemaOrganization = Record<string, unknown>;
-export type SchemaBlogPosting = Record<string, unknown>;
-export type SchemaProduct = Record<string, unknown>;
-export type SchemaFAQPage = Record<string, unknown>;
-export type SchemaBreadcrumb = Record<string, unknown>;

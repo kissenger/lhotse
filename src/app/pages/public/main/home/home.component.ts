@@ -6,10 +6,9 @@ import { ScreenService } from        '@shared/services/screen.service';
 import { HttpService } from          '@shared/services/http.service';
 import { BlogPost } from             '@shared/types';
 import { faqFragment, faqItems, faqPreviewExcerpt, featuredFaqQuestions, type FaqItem } from '@shared/faq-data';
-import { SlideshowComponent } from   '@pages/home/slideshow/slideshow.component';
-import { AboutUsComponent } from     '@pages/home/about/about.component';
-import { PartnersComponent } from    '@pages/home/partners/partners.component';
-import { BlogCardComponent } from    '@pages/home/blog/blog-card/blog-card.component';
+import { SlideshowComponent } from   '@pages/public/main/home/slideshow/slideshow.component';
+import { PartnersComponent } from    '@pages/public/main/home/partners/partners.component';
+import { BlogCardComponent } from    '@pages/public/main/blog/blog-card/blog-card.component';
 import { environment } from          '@environments/environment';
 import { shopItems } from            '@shared/globals';
 import { IdleSchedulerService } from '@shared/services/idle-scheduler.service';
@@ -18,7 +17,7 @@ import { appImageUrl } from          '@shared/utils/image-url';
 @Component({
   standalone: true,
   imports: [
-    SlideshowComponent, AboutUsComponent, PartnersComponent, BlogCardComponent,
+    SlideshowComponent, PartnersComponent, BlogCardComponent,
     RouterLink, NgOptimizedImage
 ],
   selector: 'app-home',

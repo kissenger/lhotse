@@ -2,27 +2,27 @@ import { Routes } from '@angular/router';
 import { unsavedChangesGuard } from '@pages/admin/sites-editor/unsaved-changes.guard';
 import { organisationsUnsavedChangesGuard } from '@pages/admin/organisations-editor/organisations-unsaved-changes.guard';
 import { PageNotFoundComponent } from '@shared/components/page-not-found/page-not-found.component';
-import { HomeComponent } from '@pages/home/home.component';
+import { HomeComponent } from '@pages/public/main/home/home.component';
 import { AuthGuard } from './auth.guard';
 import { AdminSubdomainGuard } from './admin-subdomain.guard';
 
-const loadMapPage = () => import('@pages/home/map/map-page.component').then((m) => m.MapPageComponent);
+const loadMapPage = () => import('@pages/public/main/map/map-page.component').then((m) => m.MapPageComponent);
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomeComponent },
   { path: 'home', component: HomeComponent },
   { path: 'articles', loadComponent: () =>
-    import('@pages/home/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+    import('@pages/public/main/blog/blog-page.component').then((m) => m.BlogPageComponent)},
   { path: 'articles/section/:sectionSlug', loadComponent: () =>
-    import('@pages/home/blog/blog-page.component').then((m) => m.BlogPageComponent)},
+    import('@pages/public/main/blog/blog-page.component').then((m) => m.BlogPageComponent)},
   { path: 'articles/:slug', loadComponent: () =>
-    import('@pages/home/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
+    import('@pages/public/main/blog/blog-post-shower/post-shower.component').then((m) => m.PostShowerComponent)},
   { path: 'snorkelling-britain', loadComponent: () =>
-    import('@pages/home/book/book-page.component').then((m) => m.BookPageComponent)},
+    import('@pages/public/main/book/book-page.component').then((m) => m.BookPageComponent)},
   { path: 'shop', loadComponent: () =>
-    import('@pages/home/shop/shop-page.component').then((m) => m.ShopPageComponent)},
+    import('@pages/public/main/shop/shop-page.component').then((m) => m.ShopPageComponent)},
   { path: 'faq', loadComponent: () =>
-    import('@pages/home/faq/faq-page.component').then((m) => m.FaqPageComponent)},
+    import('@pages/public/main/faq/faq-page.component').then((m) => m.FaqPageComponent)},
   { path: 'faqs', redirectTo: 'faq', pathMatch: 'full' },
   { path: 'map', loadComponent: loadMapPage },
   { path: 'map/:country', loadComponent: loadMapPage },
@@ -47,11 +47,11 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () =>
     import('@pages/admin/auth/login/login.component').then((m) => m.LoginComponent), canActivate: [AdminSubdomainGuard], data: { noPreload: true }},
   { path: 'privacy-policy', loadComponent: () =>
-    import('@pages/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent)},
+    import('@pages/public/legal/privacy-policy/privacy-policy.component').then((m) => m.PrivacyPolicyComponent)},
   { path: 'affiliate-disclosure', loadComponent: () =>
-    import('@pages/affiliate-disclosure/affiliate-disclosure.component').then((m) => m.AffiliateDisclosureComponent)},
+    import('@pages/public/legal/affiliate-disclosure/affiliate-disclosure.component').then((m) => m.AffiliateDisclosureComponent)},
   { path: 'ai-transparency', loadComponent: () =>
-    import('@pages/ai-transparency/ai-transparency.component').then((m) => m.AiTransparencyComponent)},
+    import('@pages/public/legal/ai-transparency/ai-transparency.component').then((m) => m.AiTransparencyComponent)},
   { path: '**', component: PageNotFoundComponent}
 
 ];
