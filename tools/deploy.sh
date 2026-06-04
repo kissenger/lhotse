@@ -154,7 +154,7 @@ nvm use
 bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}"
 log "deploying from isolated checkout at ${DEPLOY_ROOT}"
 
-sync_local_deploy_files "${SCRIPT_DIR}/.." "${DEPLOY_ROOT}"
+sync_local_deploy_files "${SNORKELOLOGY_ROOT}" "${DEPLOY_ROOT}"
 
 cd "${DEPLOY_ROOT}"
 
