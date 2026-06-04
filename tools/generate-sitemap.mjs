@@ -1,7 +1,10 @@
+#!/usr/bin/env node
 import { mkdir, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = process.cwd();
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = process.env.REPO_ROOT || resolve(SCRIPT_DIR, '..');
 const SITE_URL = 'https://snorkelology.co.uk';
 const API_BASE_URL = process.env.API_BASE_URL || 'http://127.0.0.1:4001';
 const SITEMAP_PATH = process.env.SITEMAP_PATH || resolve(REPO_ROOT, 'dist/browser/sitemap.xml');
@@ -58,21 +61,40 @@ function normalizeSectionSlug(value) {
     .replace(/^-+|-+$/g, '');
 }
 
+function toSafeUrl(urlValue) {
+  if (!urlValue || typeof urlValue !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(urlValue);
+    const encodedPathname = parsed.pathname
+      .split('/')
+      .map((segment) => encodeURIComponent(decodeURIComponent(segment)))
+      .join('/');
+
+    parsed.pathname = encodedPathname;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function asAbsoluteAssetUrl(pathOrFileName) {
   if (!pathOrFileName || typeof pathOrFileName !== 'string') {
     return null;
   }
 
   if (/^https?:\/\//i.test(pathOrFileName)) {
-    return pathOrFileName;
+    return toSafeUrl(pathOrFileName);
   }
 
   const normalized = pathOrFileName.replace(/^\/+/, '');
   if (normalized.startsWith('assets/')) {
-    return `${SITE_URL}/${normalized}`;
+    return toSafeUrl(`${SITE_URL}/${normalized}`);
   }
 
-  return `${SITE_URL}/assets/${normalized}`;
+  return toSafeUrl(`${SITE_URL}/assets/${normalized}`);
 }
 
 async function resolveRootLastMod() {
@@ -272,7 +294,26 @@ async function main() {
       }))
   ];
 
-  const dedupedEntries = [...new Map(entries.map((entry) => [entry.loc, entry])).values()];
+  const normalizedEntries = entries
+    .map((entry) => {
+      const safeLoc = toSafeUrl(entry.loc);
+      if (!safeLoc) {
+        return null;
+      }
+
+      const safeImages = Array.isArray(entry.images)
+        ? entry.images.map((imageUrl) => toSafeUrl(imageUrl)).filter(Boolean)
+        : [];
+
+      return {
+        ...entry,
+        loc: safeLoc,
+        images: safeImages
+      };
+    })
+    .filter(Boolean);
+
+  const dedupedEntries = [...new Map(normalizedEntries.map((entry) => [entry.loc, entry])).values()];
 
   const xml = toSitemapXml(dedupedEntries);
   const outputPath = await writeSitemapAtomically(xml);

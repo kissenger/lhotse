@@ -211,6 +211,16 @@ app.use((req, res, next) => {
     return;
   }
 
+  if (normalizedPath === '/home') {
+    res.redirect(301, `/${querySuffix}`);
+    return;
+  }
+
+  if (normalizedPath === '/faqs') {
+    res.redirect(301, `/faq${querySuffix}`);
+    return;
+  }
+
   if (normalizedPath.startsWith('/article/section/')) {
     const segments = normalizedPath.split('/').filter(Boolean);
     if (segments.length === 3 && segments[2]) {
@@ -730,8 +740,8 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
 
   if (normalizedPath === '/ai-transparency') {
     return getSimplePageSeoPayload(
-      'AI Transparency | Snorkelology',
-      'How Snorkelology uses AI to help describe snorkelling organisations on our interactive map of Britain.',
+      'AI Transparency Policy | Snorkelology',
+      'Learn where AI assists Snorkelology content workflows, what is human-reviewed, and how editorial responsibility is maintained.',
       '/ai-transparency',
       'index,follow'
     );
@@ -762,7 +772,7 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
   if (normalizedPath === '/affiliate-disclosure') {
     return getSimplePageSeoPayload(
       'Affiliate Disclosure | Snorkelology',
-      'How Snorkelology uses affiliate links and how disclosures are shown across the site.',
+      'Read how Snorkelology uses affiliate links, how recommendations stay editorially independent, and where disclosures appear across the site.',
       '/affiliate-disclosure'
     );
   }
@@ -771,8 +781,8 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
 }
 
 async function getHomeSeoPayload(): Promise<SeoPayload> {
-  const description = 'Snorkelology \u2014 your guide to the best snorkelling in Britain. Explore our interactive snorkelling map, browse articles on marine life, gear and safety, and buy Snorkelling Britain: 100 Marine Adventures.';
-  const keywords = 'snorkel, snorkeling, snorkelling, snorkelling britain, british snorkelling, snorkelling book, buy snorkelling britain, UK snorkelling sites, underwater photography, sealife, marinelife, snorkelling map, map';
+  const description = 'Plan better UK snorkelling trips with Snorkelology: explore our interactive Britain map, read practical guides on safety, gear and marine life, and discover Snorkelling Britain: 100 Marine Adventures.';
+  const keywords = 'snorkelling in britain, UK snorkelling map, best snorkelling sites UK, british snorkelling guides, snorkelling britain book';
   const orgSchema = {
     '@context': 'http://schema.org',
     '@type': 'Organization',
@@ -828,7 +838,7 @@ async function getHomeSeoPayload(): Promise<SeoPayload> {
   const schemas = [orgSchema, mapImageSchema, mapCreativeWorkSchema];
 
   return {
-    title: 'Snorkelling in Britain - Map, Articles & Book | Snorkelology',
+    title: 'Snorkelling in Britain: Map, Guides & Book | Snorkelology',
     description,
     keywords,
     canonicalPath: '/',
@@ -970,8 +980,8 @@ function buildBookPageFaqSchema() {
 }
 
 async function getBookSeoPayload(): Promise<SeoPayload> {
-  const description = 'Discover Snorkelling Britain: 100 Marine Adventures, the guide to Britain\'s best snorkelling sites, with route-finding advice, underwater photography, safety guidance, and marine-life inspiration.';
-  const keywords = 'Snorkelling Britain book, snorkelling guide book, British snorkelling book, Emma and Gordon Taylor, Wild Things Publishing';
+  const description = 'Explore Snorkelling Britain: 100 Marine Adventures, a practical guide to the UK\'s best snorkelling locations with route advice, safety notes, marine-life context, and underwater photography inspiration.';
+  const keywords = 'snorkelling britain book, UK snorkelling guide book, british snorkelling book, signed snorkelling book';
   const bookOgImage = defaultSeoSocialImageUrl('/assets/photos/shop/snorkelling-britain-100-marine-adventures-book-cover.png');
 
   const breadcrumbSchema = {
@@ -984,7 +994,7 @@ async function getBookSeoPayload(): Promise<SeoPayload> {
   };
 
   return {
-    title: 'Snorkelling Britain Book | Snorkelology',
+    title: 'Snorkelling Britain Book: 100 Marine Adventures | Snorkelology',
     description,
     keywords,
     canonicalPath: '/snorkelling-britain',
@@ -997,8 +1007,8 @@ async function getBookSeoPayload(): Promise<SeoPayload> {
 }
 
 async function getShopSeoPayload(): Promise<SeoPayload> {
-  const description = 'Buy Snorkelling Britain and Snorkelology merchandise direct from the authors, with secure checkout, shipping options, and gift-friendly signed editions.';
-  const keywords = 'buy Snorkelling Britain, snorkelling shop, signed snorkelling book, snorkelling merchandise, snorkelology shop';
+  const description = 'Buy Snorkelling Britain and official Snorkelology merchandise with secure checkout, signed-copy options, and UK-friendly shipping from the authors.';
+  const keywords = 'buy snorkelling britain, snorkelling gifts UK, signed snorkelling book, snorkelology shop';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1010,7 +1020,7 @@ async function getShopSeoPayload(): Promise<SeoPayload> {
   };
 
   return {
-    title: 'Shop Snorkelling Britain And Merch | Snorkelology',
+    title: 'Buy Snorkelling Britain & Official Merch | Snorkelology Shop',
     description,
     keywords,
     canonicalPath: '/shop',
@@ -1023,8 +1033,8 @@ async function getShopSeoPayload(): Promise<SeoPayload> {
 }
 
 async function getFaqSeoPayload(): Promise<SeoPayload> {
-  const description = 'Answers to common British snorkelling questions, from water temperature and marine life to safety, kit, and how to start snorkelling around the UK coast.';
-  const keywords = 'British snorkelling FAQs, UK snorkelling questions, snorkelling safety UK, cold water snorkelling, marine life Britain';
+  const description = 'Get practical answers to common UK snorkelling questions on safety, kit, cold-water conditions, marine life, and how to start snorkelling around Britain.';
+  const keywords = 'snorkelling FAQ UK, cold water snorkelling advice, snorkelling safety UK, marine life britain';
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1036,7 +1046,7 @@ async function getFaqSeoPayload(): Promise<SeoPayload> {
   };
 
   return {
-    title: 'British Snorkelling FAQs | Snorkelology',
+    title: 'UK Snorkelling FAQ: Safety, Kit, Marine Life | Snorkelology',
     description,
     keywords,
     canonicalPath: '/faq',
@@ -1051,23 +1061,23 @@ async function getFaqSeoPayload(): Promise<SeoPayload> {
 const NATION_SEO_CONFIG: Record<string, { displayName: string; description: string }> = {
   'england': {
     displayName: 'England',
-    description: 'Find the best snorkelling sites in England on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+    description: 'Explore the best snorkelling locations across England on our interactive snorkelling map..',
   },
   'scotland': {
     displayName: 'Scotland',
-    description: 'Find the best snorkelling sites in Scotland on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+    description: 'Explore the best snorkelling locations across Scotland on our interactive snorkelling map..',
   },
   'wales': {
     displayName: 'Wales',
-    description: 'Find the best snorkelling sites in Wales on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+    description: 'Explore the best snorkelling locations across Wales on our interactive snorkelling map..',
   },
   'britain': {
     displayName: 'Britain',
-    description: 'Discover 100+ snorkelling sites across Britain on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+    description: 'Discover the best snorkelling locations across Britain on our interactive snorkelling map..',
   },
   'uk': {
     displayName: 'the UK',
-    description: 'Discover 100+ snorkelling sites across the UK on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.',
+    description: 'Discover the best snorkelling locations across the UK on our interactive snorkelling map..',
   },
 };
 
@@ -1075,8 +1085,8 @@ async function getNationMapSeoPayload(nation: string): Promise<SeoPayload> {
   const { displayName, description } = NATION_SEO_CONFIG[nation];
   const nationPath = buildMapPath({ country: nation });
 
-  const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
-  const keywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, best snorkelling ${displayName}, snorkelling map ${displayName}`;
+  const title = `Best Snorkelling Sites in ${displayName} | Snorkelology Map`;
+  const keywords = `snorkelling ${displayName}, best snorkelling sites ${displayName}, where to snorkel in ${displayName}, snorkelling map ${displayName}`;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1145,8 +1155,8 @@ async function getSiteSeoPayload(country: string | null, county: string | null, 
   const locationHint = place.district ? ` in ${place.district}` : '';
   const description = place.description
     || (isProvider
-      ? `Snorkelling organisation${locationHint}: ${siteName}. Find guided snorkelling, courses, and snorkel hire on the Snorkelology map of Britain.`
-      : `Snorkelling site${locationHint}: ${siteName}. Explore this location on the Snorkelology interactive map of Britain.`);
+      ? `Plan snorkelling with ${siteName}${locationHint}: compare courses, guided trips, and snorkel-hire options from this provider profile.`
+      : `Use this guide to snorkelling at ${siteName}${locationHint}, including route context from the Snorkelology interactive UK map.`);
 
   const locationKw = place.district ? ` ${place.district}` : '';
   const providerKeywords = isProvider ? [
@@ -1216,8 +1226,8 @@ async function getSiteSeoPayload(country: string | null, county: string | null, 
 
   return {
     title: isProvider
-      ? `${siteName} | Snorkelling Organisation | Snorkelology`
-      : `${siteName} | Snorkelling Site | Snorkelology`,
+      ? `${siteName} | Snorkelling Courses, Guided Trips & Hire | Snorkelology`
+      : `${siteName} Snorkelling Guide${place.countySlug ? ` (${getCountyDisplayName(place.countySlug)})` : ''} | Snorkelology`,
     description,
     keywords,
     canonicalPath: sitePath,
@@ -1256,7 +1266,7 @@ type MapSiteListEntry = {
 async function getMapSiteListEntries(filters: { country?: string; county?: string; limit: number }): Promise<MapSiteListEntry[]> {
   const sites = await FeatureModel.find(
     {
-      showOnMap: { $in: ['Production', 'Development'] },
+      showOnMap: 'Production',
       'properties.featureType': 'Snorkelling Site'
     },
     { location: 1, properties: 1 }
@@ -1338,8 +1348,8 @@ async function getCountyMapSeoPayload(country: string, county: string): Promise<
   const countyPath = buildMapPath({ country: canonicalCountry, county });
   const extraKeywords = COUNTY_EXTRA_KEYWORDS[county] ?? [];
 
-  const title = `Snorkelling Sites in ${displayName} | Snorkelology`;
-  const description = `Find the best snorkelling sites in ${displayName} on our interactive map. GPS coordinates, habitat types, site descriptions and links to find out more.`;
+  const title = `Snorkelling in ${displayName}: Best Sites & Conditions | Snorkelology`;
+  const description = `Find the best snorkelling spots in ${displayName} with mapped locations, descriptions, GPS coordinates, and how to find out more information.`;
   const baseKeywords = `snorkelling ${displayName}, snorkelling sites ${displayName}, where to snorkel in ${displayName}, snorkelling map ${displayName}, best snorkelling ${displayName}`;
   const keywords = extraKeywords.length
     ? `${baseKeywords}, ${extraKeywords.map(k => `snorkelling ${k}`).join(', ')}`
@@ -1395,7 +1405,7 @@ async function getCountyMapSeoPayload(country: string, county: string): Promise<
 }
 
 async function getMapSeoPayload(): Promise<SeoPayload> {
-  const description = 'Discover 100+ snorkelling sites across Britain on an interactive map. Explore coastal rock pools, kelp forests, sheltered bays, and offshore reefs in England, Scotland, and Wales. Find snorkelling organisations, get GPS coordinates, and filter by habitat type to find your perfect spot.';
+  const description = 'Explore the best British snorkelling spots on our interactive snorkelling map.';
   const keywords = [
     // Core intent
     'snorkelling map of britain', 'interactive snorkelling map UK', 'british snorkelling map',
@@ -1475,7 +1485,7 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
   };
 
   return {
-    title: 'Interactive Snorkelling Map of Britain — 100+ Sites | Snorkelology',
+    title: 'Interactive UK Snorkelling Map (100+ Sites) | Snorkelology',
     description,
     keywords,
     canonicalPath: '/map',
@@ -1492,8 +1502,8 @@ async function getMapSeoPayload(): Promise<SeoPayload> {
 }
 
 async function getArticleIndexSeoPayload(): Promise<SeoPayload> {
-  const description = 'Browse our collection of British snorkelling articles. Tips on the best places to snorkel in the UK, marine life identification, underwater cameras, gear reviews, and practical safety advice.';
-  const keywords = 'snorkelling articles, UK snorkelling, British marine life, snorkelling tips, underwater photography, snorkelling gear';
+  const description = 'Read in-depth British snorkelling articles covering stories, reviews, safety, gear choices, marine-life and more.';
+  const keywords = 'British snorkelling articles, UK snorkelling articles, snorkelling safety UK, snorkelling gear guides, marine life Britain';
 
   const articleListSchema = {
     '@context': 'https://schema.org',
@@ -1509,7 +1519,7 @@ async function getArticleIndexSeoPayload(): Promise<SeoPayload> {
   };
 
   return {
-    title: 'British Snorkelling Articles — Snorkelology',
+    title: 'UK Snorkelling Articles: Safety, Gear, Marine Life | Snorkelology',
     description,
     keywords,
     canonicalPath: '/articles',
@@ -1533,7 +1543,7 @@ async function getArticleSectionSeoPayload(sectionSlug: string): Promise<SeoPayl
     .join(' ');
 
   const sectionTitle = humanizeSection(sectionSlug) || 'British Snorkelling';
-  const description = `Browse ${sectionTitle} articles from Snorkelology, with practical UK snorkelling guidance, marine life insight, and field-tested advice.`;
+  const description = `Explore ${sectionTitle} snorkelling articles with practical UK guidance, marine-life context, and field-tested trip planning advice.`;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -1566,7 +1576,7 @@ async function getArticleSectionSeoPayload(sectionSlug: string): Promise<SeoPayl
   return {
     title: `${sectionTitle} Articles | Snorkelology`,
     description,
-    keywords: `snorkelling ${sectionTitle.toLowerCase()}, british snorkelling articles, snorkelology articles`,
+    keywords: `${sectionTitle.toLowerCase()} snorkelling, UK snorkelling ${sectionTitle.toLowerCase()}, snorkelology articles`,
     canonicalPath: `/articles/section/${encodeURIComponent(sectionSlug)}`,
     ogType: 'website',
     ogImage: DEFAULT_SOCIAL_IMAGE,

@@ -162,6 +162,9 @@ if [[ ! -f .env ]]; then
   fail ".env not found in ${DEPLOY_ROOT}"
 fi
 
+# Ensure .env substitutions that reference REPO_ROOT resolve in this checkout.
+REPO_ROOT="${DEPLOY_ROOT}"
+
 # Export .env variables for deploy-time config.
 set -a
 # shellcheck disable=SC1091

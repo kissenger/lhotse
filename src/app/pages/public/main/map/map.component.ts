@@ -23,7 +23,6 @@ import { InstagramSvgComponent } from '@shared/svg/instagram/instagram.component
 import { YoutubeSvgComponent } from '@shared/svg/youtube/youtube.component';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { LazyServiceInjector } from '@shared/services/lazyloader.service';
-import { environment } from '@environments/environment';
 import { MAPBOX_CSS_URL } from '@shared/globals';
 import { WebsiteSvgComponent } from '@shared/svg/website/website.component';
 import { PhoneSvgComponent } from '@shared/svg/phone/phone.component';
@@ -318,7 +317,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   
     try {
-      const visibility = environment.STAGE === 'prod' ? ['Production'] : ['Production', 'Development']
+      const visibility = ['Production'];
       const result = await Promise.race([
         this._http.getSites(visibility),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))

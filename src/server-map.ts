@@ -101,11 +101,9 @@ function orgToGeoJsonFeature(org: any, id: number) {
 }
 
 map.get('/api/sites/get-sites/*', withInternalError(async (req, res) => {
-  let visibility = <string>Object.values(req.params)[0];
-  const visibilityArr = visibility.split('/');
   const [sites, orgs] = await Promise.all([
     FeatureModel.find({
-      showOnMap: { $in: visibilityArr },
+      showOnMap: 'Production',
     }),
     OrganisationModel.find(await buildOrgFilter()).lean(),
   ]);
@@ -234,7 +232,7 @@ async function getPlacesForSeo() {
 async function getPlacesForSeoWithRouteMeta() {
   const [sites, orgs] = await Promise.all([
     FeatureModel.find(
-      { showOnMap: { $in: ['Production', 'Development'] } },
+      { showOnMap: 'Production' },
       { location: 1, properties: 1 }
     ).lean(),
     OrganisationModel.find(
@@ -254,7 +252,7 @@ export { map, getPlacesForSeo, getPlacesForSeoWithRouteMeta };
 map.get('/api/sites/get-provider-names/', withInternalError(async (_req, res) => {
   const sites = await FeatureModel.find(
     {
-      showOnMap: { $in: ['Production', 'Development'] },
+      showOnMap: 'Production',
       'properties.featureType': 'Snorkelling Site'
     },
     { 'properties.name': 1, 'properties.location': 1, updatedAt: 1 }
@@ -275,7 +273,7 @@ map.get('/api/sites/get-provider-names/', withInternalError(async (_req, res) =>
 
 map.get('/api/sites/get-districts/', withInternalError(async (_req, res) => {
   const sites = await FeatureModel.find(
-    { showOnMap: { $in: ['Production', 'Development'] }, 'properties.featureType': 'Snorkelling Site' },
+    { showOnMap: 'Production', 'properties.featureType': 'Snorkelling Site' },
     { 'properties.location': 1 }
   ).lean();
   const districts = [...new Map(
