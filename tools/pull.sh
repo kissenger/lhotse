@@ -10,18 +10,8 @@ set -euo pipefail
 #   npm run pull -- beta
 #   npm run pull:beta
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-CANONICAL_REPO_NAME="$(basename -- "${CANONICAL_REPO_ROOT}")"
-
-if [[ "${CANONICAL_REPO_NAME}" == "beta" || "${CANONICAL_REPO_NAME}" == "master" ]]; then
-  CHECKOUT_PARENT_ROOT="$(cd -- "${CANONICAL_REPO_ROOT}/.." && pwd)"
-else
-  CHECKOUT_PARENT_ROOT="${CANONICAL_REPO_ROOT}"
-fi
-
+SNORKELOLOGY_ROOT="${HOME}/snorkelology"
 TARGET_REPO_ROOT=""
-ORIGIN_URL="$(git -C "${CANONICAL_REPO_ROOT}" remote get-url origin 2>/dev/null || true)"
 
 log() {
   echo "[$(date -Iseconds)] $1"
@@ -42,9 +32,6 @@ TARGET_BRANCH=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     beta|master)
-      if [[ -n "${TARGET_BRANCH}" ]]; then
-        usage
-      fi
       TARGET_BRANCH="$1"
       shift
       ;;
@@ -62,22 +49,18 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-git -C "${CANONICAL_REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${CANONICAL_REPO_ROOT} is not a git repository"
-
-if [[ -z "${ORIGIN_URL}" ]]; then
-  fail "origin remote not configured in ${CANONICAL_REPO_ROOT}"
-fi
-
 if [[ -z "${TARGET_BRANCH}" ]]; then
-  TARGET_BRANCH="$(git -C "${CANONICAL_REPO_ROOT}" rev-parse --abbrev-ref HEAD)"
-fi
-
-if [[ "${TARGET_BRANCH}" != "beta" && "${TARGET_BRANCH}" != "master" ]]; then
-  fail "target branch must be beta or master (got: ${TARGET_BRANCH})"
+  fail "branch argument required: beta or master"
 fi
 
 if [[ -z "${TARGET_REPO_ROOT}" ]]; then
-  TARGET_REPO_ROOT="${CHECKOUT_PARENT_ROOT}/${TARGET_BRANCH}"
+  TARGET_REPO_ROOT="${SNORKELOLOGY_ROOT}/${TARGET_BRANCH}"
+fi
+
+ORIGIN_URL="$(git -C "${TARGET_REPO_ROOT}" remote get-url origin 2>/dev/null || true)"
+
+if [[ -z "${ORIGIN_URL}" ]]; then
+  fail "origin remote not configured in ${TARGET_REPO_ROOT}; ensure ${TARGET_REPO_ROOT} is a git checkout"
 fi
 
 ensure_target_checkout() {
@@ -85,7 +68,7 @@ ensure_target_checkout() {
   local branch="$2"
 
   mkdir -p "$(dirname -- "${target_root}")"
-  git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+  git -C "${target_root}" fetch origin "${branch}" 2>/dev/null || true
 
   if [[ -d "${target_root}/.git" || -f "${target_root}/.git" ]]; then
     git -C "${target_root}" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "${target_root} exists but is not a git checkout"
@@ -107,7 +90,7 @@ sync_checkout() {
 
   log "syncing branch ${branch} in ${target_root}"
 
-  git -C "${CANONICAL_REPO_ROOT}" fetch origin "${branch}"
+  git -C "${target_root}" fetch origin "${branch}"
   git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
   git -C "${target_root}" fetch origin "${branch}"
   git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"

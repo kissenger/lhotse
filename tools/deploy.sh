@@ -13,19 +13,7 @@ set -euo pipefail
 # - pm2 is configured in ./ecosystem.config.cjs
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-CANONICAL_REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-CANONICAL_REPO_NAME="$(basename -- "${CANONICAL_REPO_ROOT}")"
-
-if [[ "${CANONICAL_REPO_NAME}" == "beta" || "${CANONICAL_REPO_NAME}" == "master" ]]; then
-  CHECKOUT_PARENT_ROOT="$(cd -- "${CANONICAL_REPO_ROOT}/.." && pwd)"
-else
-  CHECKOUT_PARENT_ROOT="${CANONICAL_REPO_ROOT}"
-fi
-
-resolve_deploy_root() {
-  local branch="$1"
-  echo "${CHECKOUT_PARENT_ROOT}/${branch}"
-}
+SNORKELOLOGY_ROOT="${HOME}/snorkelology"
 
 sync_local_deploy_files() {
   local source_root="$1"
@@ -151,7 +139,7 @@ fi
 require_cmd npm
 require_cmd pm2
 
-DEPLOY_ROOT="$(resolve_deploy_root "${TARGET_BRANCH}")"
+DEPLOY_ROOT="${SNORKELOLOGY_ROOT}/${TARGET_BRANCH}"
 
 NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
 if [[ ! -s "${NVM_SCRIPT}" ]]; then
@@ -162,13 +150,11 @@ fi
 . "${NVM_SCRIPT}"
 nvm use
 
-cd "${CANONICAL_REPO_ROOT}"
-
 # Reuse the git-only sync workflow to avoid duplicating branch/reset logic.
-bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}" --repo-root "${DEPLOY_ROOT}"
+bash "${SCRIPT_DIR}/pull.sh" "${TARGET_BRANCH}"
 log "deploying from isolated checkout at ${DEPLOY_ROOT}"
 
-sync_local_deploy_files "${CANONICAL_REPO_ROOT}" "${DEPLOY_ROOT}"
+sync_local_deploy_files "${SCRIPT_DIR}/.." "${DEPLOY_ROOT}"
 
 cd "${DEPLOY_ROOT}"
 
