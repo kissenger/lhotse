@@ -3,7 +3,7 @@ import FeatureModel from '../schema/feature';
 import { OrganisationModel } from '../schema/organisations';
 import CountyDescriptionModel from '../schema/county-description';
 import CountryDescriptionModel from '../schema/country-description';
-import { verifyToken } from './server-auth';
+import { requireAdmin, verifyToken } from './server-auth';
 import { buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountyMatchSlugs, getCountySlugFromLocation, normaliseCountrySegment, normaliseCountySegment, normaliseCountySlug, normaliseSiteSegment, slugifyMapSegment } from './app/shared/map-paths';
 import { firstNonEmpty, hasCoordinatePair, hasNonEmptyStringArray, isNonEmptyString } from './app/shared/utils/value-guards';
 import 'dotenv/config';
@@ -325,7 +325,7 @@ map.get('/api/sites/get-county-description/:countySlug', withInternalError(async
 
 /* Admin CRUD endpoints */
 
-map.get('/api/sites/get-all-sites-admin/', verifyToken, async (_req, res) => {
+map.get('/api/sites/get-all-sites-admin/', verifyToken, requireAdmin, async (_req, res) => {
   try {
     const sites = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
     res.status(200).json(sites);
@@ -334,7 +334,7 @@ map.get('/api/sites/get-all-sites-admin/', verifyToken, async (_req, res) => {
   }
 });
 
-map.post('/api/sites/upsert-site/', verifyToken, async (req, res) => {
+map.post('/api/sites/upsert-site/', verifyToken, requireAdmin, async (req, res) => {
   try {
     if (req.body._id && req.body._id !== '') {
       await FeatureModel.findByIdAndUpdate(req.body._id, req.body);
@@ -359,7 +359,7 @@ map.post('/api/sites/upsert-site/', verifyToken, async (req, res) => {
   }
 });
 
-map.get('/api/sites/delete-site/:_id', verifyToken, async (req, res) => {
+map.delete('/api/sites/delete-site/:_id', verifyToken, requireAdmin, async (req, res) => {
   try {
     await FeatureModel.findByIdAndDelete(req.params._id);
     const result = await FeatureModel.find({}).sort({ 'properties.name': 'ascending' });
@@ -369,7 +369,7 @@ map.get('/api/sites/delete-site/:_id', verifyToken, async (req, res) => {
   }
 });
 
-map.get('/api/sites/get-counties-admin/', verifyToken, async (_req, res) => {
+map.get('/api/sites/get-counties-admin/', verifyToken, requireAdmin, async (_req, res) => {
   try {
     const sites = await FeatureModel.find(
       { showOnMap: 'Production', 'properties.featureType': 'Snorkelling Site' },
@@ -434,7 +434,7 @@ map.get('/api/sites/get-counties-admin/', verifyToken, async (_req, res) => {
   }
 });
 
-map.post('/api/sites/upsert-county-description/', verifyToken, async (req, res) => {
+map.post('/api/sites/upsert-county-description/', verifyToken, requireAdmin, async (req, res) => {
   try {
     const countyName = String(req.body?.countyName ?? '').trim();
     const description = String(req.body?.description ?? '');
@@ -464,7 +464,7 @@ map.post('/api/sites/upsert-county-description/', verifyToken, async (req, res) 
   }
 });
 
-map.delete('/api/sites/delete-county-description/:_id', verifyToken, async (req, res) => {
+map.delete('/api/sites/delete-county-description/:_id', verifyToken, requireAdmin, async (req, res) => {
   try {
     await CountyDescriptionModel.findByIdAndDelete(req.params._id);
     res.status(204).send();
@@ -497,7 +497,7 @@ map.get('/api/sites/get-country-description/:countrySlug', withInternalError(asy
   });
 }));
 
-map.get('/api/sites/get-countries-admin/', verifyToken, async (_req, res) => {
+map.get('/api/sites/get-countries-admin/', verifyToken, requireAdmin, async (_req, res) => {
   try {
     const docs = await CountryDescriptionModel.find(
       {},
@@ -544,7 +544,7 @@ map.get('/api/sites/get-countries-admin/', verifyToken, async (_req, res) => {
   }
 });
 
-map.post('/api/sites/upsert-country-description/', verifyToken, async (req, res) => {
+map.post('/api/sites/upsert-country-description/', verifyToken, requireAdmin, async (req, res) => {
   try {
     const countryName = String(req.body?.countryName ?? '').trim();
     const description = String(req.body?.description ?? '');
@@ -571,7 +571,7 @@ map.post('/api/sites/upsert-country-description/', verifyToken, async (req, res)
   }
 });
 
-map.delete('/api/sites/delete-country-description/:_id', verifyToken, async (req, res) => {
+map.delete('/api/sites/delete-country-description/:_id', verifyToken, requireAdmin, async (req, res) => {
   try {
     await CountryDescriptionModel.findByIdAndDelete(req.params._id);
     res.status(204).send();

@@ -5,7 +5,9 @@ import nodemailer from 'nodemailer';
 import { ShopError } from './server';
 import { getConfirmationEmailBody } from './server-shop-conf-email';
 import { getPostedEmailBody } from './server-shop-posted-email';
-import { verifyToken } from './server-auth'
+import { requireAdmin, verifyToken } from './server-auth'
+import { shippingOptions as shippingOptionsConfig } from './environments/environment._shippingOptions';
+import { shopItems as shopItemsConfig } from './environments/environment._shopItems';
 import 'dotenv/config';
 
 const checkoutRateLimit = rateLimit({
@@ -19,6 +21,8 @@ const checkoutRateLimit = rateLimit({
 const shop = express();
 const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
+const STOCK_ITEMS = shopItemsConfig.SHOP_ITEMS;
+const SHIPPING_OPTIONS = shippingOptionsConfig.SHIPPING_OPTIONS;
 const EMAIL_CONFIG = {
   service: 'gmail', 
   host: "stmp.gmail.com",
@@ -27,6 +31,181 @@ const EMAIL_CONFIG = {
     user: 'hello@snorkelology.co.uk',
     pass: process.env['GMAIL_APP_PASSWD'] // app password for gordon@snorkelology.co.uk account through google workspace
   },
+}
+
+function roundToCurrency(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function toPositiveQuantity(value: unknown): number {
+  const quantity = Number(value);
+  if (!Number.isFinite(quantity)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(quantity));
+}
+
+function escapeRegex(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function computeShippingContext(items: Array<{ id: string; quantity: number }>, selectedShippingLabel?: string) {
+  const itemLookup = new Map(STOCK_ITEMS.map((item) => [item.id, item]));
+  const trustedItems = items
+    .map((entry) => ({ item: itemLookup.get(entry.id), quantity: entry.quantity }))
+    .filter((entry): entry is { item: (typeof STOCK_ITEMS)[number]; quantity: number } => !!entry.item && entry.quantity > 0)
+    .map(({ item, quantity }) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      unit_amount: {
+        currency_code: 'GBP',
+        value: roundToCurrency(Number(item.unit_amount.value)),
+      },
+      quantity,
+      weightInGrams: item.weightInGrams,
+      thickness: item.dimensions.thickness,
+    }));
+
+  if (!trustedItems.length) {
+    throw new ShopError('No valid items in order');
+  }
+
+  const totalWeight = trustedItems.reduce((sum, item) => sum + item.weightInGrams * item.quantity, 0);
+  const totalThickness = trustedItems.reduce((sum, item) => sum + item.thickness * item.quantity, 0);
+
+  const parcel = SHIPPING_OPTIONS.find((option) =>
+    (option.maxWeight - option.packaging.weight > totalWeight) &&
+    (option.maxDimensions.thickness > totalThickness)
+  ) ?? SHIPPING_OPTIONS[SHIPPING_OPTIONS.length - 1];
+
+  if (!parcel || !parcel.services?.length) {
+    throw new ShopError('No shipping services are available for this basket');
+  }
+
+  const selectedService = parcel.services.find((service) => service.label === selectedShippingLabel) ?? parcel.services[0];
+  const shippingCost = roundToCurrency(Number(selectedService.cost));
+  const itemsCost = roundToCurrency(
+    trustedItems.reduce((sum, item) => sum + item.unit_amount.value * item.quantity, 0)
+  );
+
+  return {
+    trustedItems,
+    selectedService,
+    itemsCost,
+    shippingCost,
+    paypalShippingOptions: parcel.services.map((service, index) => ({
+      id: service.label,
+      label: service.label,
+      selected: selectedService.label ? service.label === selectedService.label : index === 0,
+      type: 'SHIPPING',
+      amount: {
+        currency_code: 'GBP',
+        value: roundToCurrency(Number(service.cost)),
+      },
+    })),
+  };
+}
+
+function buildTrustedCreatePayload(order: any) {
+  const rawItems = Array.isArray(order?.orderSummary?.items) ? order.orderSummary.items : [];
+  const requestedItems = rawItems.map((item: any) => ({
+    id: String(item?.id ?? ''),
+    quantity: toPositiveQuantity(item?.quantity),
+  }));
+  const selectedShippingLabel = typeof order?.orderSummary?.shippingOption === 'string'
+    ? order.orderSummary.shippingOption
+    : undefined;
+  const discountPercentRaw = Number(order?.orderSummary?.discountInfo?.discountPercent ?? 0);
+  const discountPercent = Number.isFinite(discountPercentRaw)
+    ? Math.max(0, Math.min(100, discountPercentRaw))
+    : 0;
+
+  const { trustedItems, selectedService, itemsCost, shippingCost, paypalShippingOptions } = computeShippingContext(requestedItems, selectedShippingLabel);
+  const discountValue = Math.trunc(Math.round(-itemsCost * 100) * discountPercent / 100) / 100;
+  const totalCost = roundToCurrency(itemsCost + shippingCost + discountValue);
+
+  return {
+    orderSummaryPatch: {
+      items: trustedItems.map(({ weightInGrams: _weightInGrams, thickness: _thickness, ...item }) => item),
+      shippingOption: selectedService.label,
+      costBreakdown: {
+        items: itemsCost,
+        shipping: shippingCost,
+        discount: discountValue,
+        total: totalCost,
+      },
+      discountInfo: {
+        discountCode: order?.orderSummary?.discountInfo?.discountCode ?? '',
+        discountPercent,
+        discountValue,
+      },
+    },
+    paypalIntent: {
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'GBP',
+          value: totalCost,
+          breakdown: {
+            item_total: { currency_code: 'GBP', value: itemsCost },
+            shipping: { currency_code: 'GBP', value: shippingCost },
+            discount: { currency_code: 'GBP', value: discountValue },
+          },
+        },
+        items: trustedItems.map(({ weightInGrams: _weightInGrams, thickness: _thickness, ...item }) => item),
+        shipping: {
+          options: paypalShippingOptions,
+        },
+      }],
+    },
+  };
+}
+
+function buildTrustedPatchPurchaseUnit(patch: any) {
+  const rawItems = Array.isArray(patch?.items) ? patch.items : [];
+  const selectedShippingLabel = Array.isArray(patch?.shipping?.options)
+    ? patch.shipping.options.find((option: any) => option?.selected)?.label
+    : undefined;
+  const requestedItems = rawItems.map((item: any) => ({
+    id: String(item?.id ?? ''),
+    quantity: toPositiveQuantity(item?.quantity),
+  }));
+  const { trustedItems, selectedService, itemsCost, shippingCost, paypalShippingOptions } = computeShippingContext(requestedItems, selectedShippingLabel);
+  const totalCost = roundToCurrency(itemsCost + shippingCost);
+
+  return {
+    trustedPurchaseUnit: {
+      amount: {
+        currency_code: 'GBP',
+        value: totalCost,
+        breakdown: {
+          item_total: { currency_code: 'GBP', value: itemsCost },
+          shipping: { currency_code: 'GBP', value: shippingCost },
+          discount: { currency_code: 'GBP', value: 0 },
+        },
+      },
+      items: trustedItems.map(({ weightInGrams: _weightInGrams, thickness: _thickness, ...item }) => item),
+      shipping: {
+        options: paypalShippingOptions,
+      },
+    },
+    orderSummaryPatch: {
+      items: trustedItems.map(({ weightInGrams: _weightInGrams, thickness: _thickness, ...item }) => item),
+      shippingOption: selectedService.label,
+      costBreakdown: {
+        items: itemsCost,
+        shipping: shippingCost,
+        discount: 0,
+        total: totalCost,
+      },
+      discountInfo: {
+        discountCode: '',
+        discountPercent: 0,
+        discountValue: 0,
+      },
+    },
+  };
 }
 
 function extractErrorMessage(error: any, fallback: string): string {
@@ -78,12 +257,13 @@ shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _
 
   try {
     const token = await getAccessToken();
+    const { paypalIntent, orderSummaryPatch } = buildTrustedCreatePayload(req.body?.order);
     const orderNumber = req.body.orderNumber ?? newOrderNumber();
 
     const result = await fetch(PAYPAL_ENDPOINT + '/v2/checkout/orders', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
-      body: JSON.stringify(req.body.order.paypal.intent)
+      body: JSON.stringify(paypalIntent)
     });
 
     const json = await result.json();
@@ -91,8 +271,13 @@ shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _
       throw json;
     } else {
       const resp = await logShopEvent( orderNumber, 
-        { paypal: { id: json.id, intent: req.body.order.paypal.intent, endPoint: PAYPAL_ENDPOINT}, 
-          orderSummary: {...req.body.order.orderSummary, timeStamps: { orderCreated: Date.now() }} 
+        { paypal: { id: json.id, intent: paypalIntent, endPoint: PAYPAL_ENDPOINT}, 
+          orderSummary: {
+            ...(req.body?.order?.orderSummary ?? {}),
+            ...orderSummaryPatch,
+            endPoint: PAYPAL_ENDPOINT,
+            timeStamps: { orderCreated: Date.now() }
+          }
         });
       res.send({  
         orderNumber: resp.orderNumber, 
@@ -126,19 +311,24 @@ shop.post('/api/shop/patch-paypal-order', checkoutRateLimit, async (req, res) =>
     }
 
     const token = await getAccessToken();
+    const { trustedPurchaseUnit, orderSummaryPatch } = buildTrustedPatchPurchaseUnit(req.body?.patch);
     const result = await fetch(PAYPAL_ENDPOINT + `/v2/checkout/orders/${req.body.paypalOrderId}`, { 
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token.access_token}`},
       body: JSON.stringify([{ 
         "op": "replace", 
         "path": req.body.path, 
-        "value": req.body.patch
+        "value": trustedPurchaseUnit
       }])
     })
 
     await logShopEvent(req.body.orderNumber, {
         "$set": {
-          "paypal.intent.purchase_units": [req.body.patch], 
+          "paypal.intent.purchase_units": [trustedPurchaseUnit],
+          "orderSummary.items": orderSummaryPatch.items,
+          "orderSummary.shippingOption": orderSummaryPatch.shippingOption,
+          "orderSummary.costBreakdown": orderSummaryPatch.costBreakdown,
+          "orderSummary.discountInfo": orderSummaryPatch.discountInfo,
           "orderSummary.timeStamps.orderPatched": Date.now()
         }          
       })
@@ -210,15 +400,16 @@ shop.post('/api/shop/capture-paypal-payment', checkoutRateLimit, async (req, res
 /*****************************************************************
  * ROUTE: Get all orders from database
  ****************************************************************/
-shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken, async (req, res) => {
+shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken, requireAdmin, async (req, res) => {
 
   let filterText: any;
   if (req.params.text!=='null') {
+    const escapedText = escapeRegex(req.params.text);
     filterText = {$or: [
-        {'orderSummary.user.name': {$regex: req.params.text, $options: 'i'}},
-        {'orderSummary.endPoint':  {$regex: req.params.text, $options: 'i'}},
-        {'orderNumber':            {$regex: req.params.text, $options: 'i'}},
-        {'orderSummary.user.address.postal_code':  {$regex: req.params.text, $options: 'i'}}
+        {'orderSummary.user.name': {$regex: escapedText, $options: 'i'}},
+        {'orderSummary.endPoint':  {$regex: escapedText, $options: 'i'}},
+        {'orderNumber':            {$regex: escapedText, $options: 'i'}},
+        {'orderSummary.user.address.postal_code':  {$regex: escapedText, $options: 'i'}}
       ]}
   }
 
@@ -303,12 +494,12 @@ shop.get('/api/shop/get-orders/:online/:manual/:test/:status/:text', verifyToken
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
-shop.get('/api/shop/get-order-by-order-number/:orderNumber', verifyToken, async (req, res) => {
+shop.get('/api/shop/get-order-by-order-number/:orderNumber', verifyToken, requireAdmin, async (req, res) => {
   let orderSummary = await getOrderSummary(req.params.orderNumber);
   res.status(201).json(orderSummary);
 });
 
-shop.post('/api/shop/add-note', verifyToken, async (req, res) => {
+shop.post('/api/shop/add-note', verifyToken, requireAdmin, async (req, res) => {
   await addNote(req.body.orderNumber,req.body.note);
   res.status(201).json({respose: 'success'});
 });
@@ -326,7 +517,7 @@ async function addNote(orderNumber: string, newNote: string) {
 /*****************************************************************
  * ROUTE: Send email to confirm posted
  ****************************************************************/
-shop.post('/api/shop/send-posted-email', verifyToken, async (req, res) => {
+shop.post('/api/shop/send-posted-email', verifyToken, requireAdmin, async (req, res) => {
   let orderSummary = await getOrderSummary(req.body.orderNumber);
   let emailBody = getPostedEmailBody(orderSummary);
   sendEmail(orderSummary.user.email_address, emailBody, 'Your snorkelology order is on its way...');
@@ -356,7 +547,7 @@ async function applyOrderStatusMutation(orderNumber: string, status: string, mod
 /*****************************************************************
  * ROUTE: Get specific order by orderNumber
  ****************************************************************/
-shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
+shop.post('/api/shop/set-order-status', verifyToken, requireAdmin, async (req, res) => {
   const status = req.body.set;
   if (!VALID_ORDER_STATUSES.has(status)) {
     sendInvalidOrderStatus(res);
@@ -366,7 +557,7 @@ shop.post('/api/shop/set-order-status', verifyToken, async (req, res) => {
   res.status(201).json({respose: 'success'});
 })
 
-shop.post('/api/shop/unset-order-status', verifyToken, async (req, res) => {
+shop.post('/api/shop/unset-order-status', verifyToken, requireAdmin, async (req, res) => {
   const status = req.body.unset;
   if (!VALID_ORDER_STATUSES.has(status)) {
     sendInvalidOrderStatus(res);
@@ -379,7 +570,7 @@ shop.post('/api/shop/unset-order-status', verifyToken, async (req, res) => {
 /*****************************************************************
  * ROUTE: Create manual order
  ****************************************************************/
-shop.post('/api/shop/upsert-manual-order', verifyToken, async (req, res) => {
+shop.post('/api/shop/upsert-manual-order', verifyToken, requireAdmin, async (req, res) => {
 
   let order = req.body.order;
 
@@ -408,7 +599,7 @@ shop.post('/api/shop/upsert-manual-order', verifyToken, async (req, res) => {
   
 });
 
-shop.post('/api/shop/deactivate-order', verifyToken, async (req, res) => {
+shop.post('/api/shop/deactivate-order', verifyToken, requireAdmin, async (req, res) => {
   await logShopEvent(req.body.orderNumber, {
     '$set': {
       isActive: false

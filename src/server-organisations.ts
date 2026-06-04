@@ -1,6 +1,6 @@
 import express from 'express';
 import { OrganisationModel } from '../schema/organisations';
-import { verifyToken } from './server-auth';
+import { requireAdmin, verifyToken } from './server-auth';
 import 'dotenv/config';
 
 const organisations = express();
@@ -45,11 +45,11 @@ function withError(message: string, handler: AsyncRoute) {
   GET /api/organisations/settings
   POST /api/organisations/settings
 */
-organisations.get('/api/organisations/settings', verifyToken, withError('Failed to read settings', async (_req, res) => {
+organisations.get('/api/organisations/settings', verifyToken, requireAdmin, withError('Failed to read settings', async (_req, res) => {
   res.json(await readOrgSettings());
 }));
 
-organisations.post('/api/organisations/settings', verifyToken, withError('Failed to save settings', async (req, res) => {
+organisations.post('/api/organisations/settings', verifyToken, requireAdmin, withError('Failed to save settings', async (req, res) => {
   const t = Number(req.body?.scoringThreshold);
   if (isNaN(t) || t < 0 || t > 100) { res.status(400).json({ error: 'scoringThreshold must be 0–100' }); return; }
   await (OrganisationModel as any).findOneAndUpdate(
@@ -65,7 +65,7 @@ organisations.post('/api/organisations/settings', verifyToken, withError('Failed
   List documents — lightweight projection for the record selector
   GET /api/organisations/:collection?search=&skip=&limit=
 */
-organisations.get('/api/organisations/:collection', verifyToken, withError('Failed to list documents', async (req, res) => {
+organisations.get('/api/organisations/:collection', verifyToken, requireAdmin, withError('Failed to list documents', async (req, res) => {
   const collection = req.params.collection;
   if (!VALID_COLLECTIONS.has(collection)) { res.status(400).json({ error: 'Unknown collection' }); return; }
   const search = typeof req.query['search'] === 'string' ? req.query['search'].trim() : '';
@@ -138,7 +138,7 @@ organisations.get('/api/organisations/:collection', verifyToken, withError('Fail
   Get a single document — full record
   GET /api/organisations/:collection/:id
 */
-organisations.get('/api/organisations/:collection/:id', verifyToken, withError('Failed to fetch document', async (req, res) => {
+organisations.get('/api/organisations/:collection/:id', verifyToken, requireAdmin, withError('Failed to fetch document', async (req, res) => {
   if (!VALID_COLLECTIONS.has(req.params.collection)) { res.status(400).json({ error: 'Unknown collection' }); return; }
   const doc = await OrganisationModel.findById(req.params.id).lean();
   if (!doc) { sendNotFound(res); return; }
@@ -149,7 +149,7 @@ organisations.get('/api/organisations/:collection/:id', verifyToken, withError('
   Update a document
   POST /api/organisations/:collection/:id
 */
-organisations.post('/api/organisations/:collection/:id', verifyToken, withError('Failed to update document', async (req, res) => {
+organisations.post('/api/organisations/:collection/:id', verifyToken, requireAdmin, withError('Failed to update document', async (req, res) => {
   if (!VALID_COLLECTIONS.has(req.params.collection)) { res.status(400).json({ error: 'Unknown collection' }); return; }
   const { _id, __v, createdAt, updatedAt, ...updates } = req.body;
   const doc = await OrganisationModel.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).lean();
@@ -161,7 +161,7 @@ organisations.post('/api/organisations/:collection/:id', verifyToken, withError(
   Delete a document
   DELETE /api/organisations/:collection/:id
 */
-organisations.delete('/api/organisations/:collection/:id', verifyToken, withError('Failed to delete document', async (req, res) => {
+organisations.delete('/api/organisations/:collection/:id', verifyToken, requireAdmin, withError('Failed to delete document', async (req, res) => {
   if (!VALID_COLLECTIONS.has(req.params.collection)) { res.status(400).json({ error: 'Unknown collection' }); return; }
   const doc = await OrganisationModel.findByIdAndDelete(req.params.id);
   if (!doc) { sendNotFound(res); return; }

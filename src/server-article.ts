@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import ArticleModel from '../schema/article';
 import ArticleLikeModel from '../schema/article-like';
 import { ArticleError } from './server';
-import { verifyToken } from './server-auth'
+import { requireAdmin, verifyToken } from './server-auth'
 import 'dotenv/config';
 
 const article = express();
@@ -60,7 +60,7 @@ const likeRateLimit = rateLimit({
   Get all data for all posts
   Returns: Array<ArticlePost>
 */
-article.get('/api/article/get-all-posts/', verifyToken, async (_req, res) => {
+article.get('/api/article/get-all-posts/', verifyToken, requireAdmin, async (_req, res) => {
   try {
     const result = await ArticleModel
       .find({})
@@ -172,7 +172,7 @@ article.get('/api/article/get-last-and-next-slugs/:slug', async (req, res) => {
   }
 });
 
-article.post('/api/article/upsert-post/', verifyToken, withRawServerError(async (req, res) => {
+article.post('/api/article/upsert-post/', verifyToken, requireAdmin, withRawServerError(async (req, res) => {
   if (req.body._id !=='') {
     const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
     delete req.body.preserveUpdatedAt;
@@ -250,7 +250,7 @@ async function getSlugs(onlyPublishedPosts: boolean = true) {
   Get post specified by _id, and if successful return result of find all
   Returns: Array<ArticlePost>
 */
-article.post('/api/article/backfill-published-at/', verifyToken, withRawServerError(async (_req, res) => {
+article.post('/api/article/backfill-published-at/', verifyToken, requireAdmin, withRawServerError(async (_req, res) => {
   // Set publishedAt = createdAt for all published posts that don't yet have publishedAt
   const result = await ArticleModel.updateMany(
     { publishedAt: null },
@@ -259,7 +259,7 @@ article.post('/api/article/backfill-published-at/', verifyToken, withRawServerEr
   res.status(200).json({ updated: result.modifiedCount });
 }));
 
-article.get('/api/article/delete-post/:_id', verifyToken, withRawServerError(async (req, res) => {
+article.delete('/api/article/delete-post/:_id', verifyToken, requireAdmin, withRawServerError(async (req, res) => {
   await ArticleModel.findOneAndUpdate(
     { _id: req.params._id },
     { isDeleted: true, deletedAt: new Date(), publishedAt: null }

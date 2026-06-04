@@ -188,9 +188,9 @@ describe('SanitizerPipe', () => {
     pipe = TestBed.inject(SanitizerPipe);
   });
 
-  it('returns a SafeHtml value (not plain string)', () => {
+  it('returns a sanitized plain string', () => {
     const result: any = pipe.transform('<b>bold</b>');
-    // Angular's SafeHtml wraps values in an object — it is never a plain string
-    expect(typeof result).not.toBe('string');
+    expect(typeof result).toBe('string');
+    expect(result).toContain('<b>bold</b>');
   });
 });

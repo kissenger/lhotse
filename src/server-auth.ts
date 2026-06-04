@@ -6,6 +6,13 @@ import jsonwebtoken from 'jsonwebtoken';
 import { AuthError } from './server';
 import 'dotenv/config';
 
+type AuthPayload = {
+  user?: string;
+  role?: string;
+  iat?: number;
+  exp?: number;
+};
+
 const auth = express();
 const AUTH_KEY = process.env['AUTH_KEY'];
 if (!AUTH_KEY) {
@@ -82,7 +89,7 @@ auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
 
 });
 
-auth.post('/api/auth/register', verifyToken, registerRateLimit, async (req, res) => {
+auth.post('/api/auth/register', verifyToken, requireAdmin, registerRateLimit, async (req, res) => {
 // take incoming user data in the form {email, password}, hash password,
 // save to db, get json token and return to front end
 
@@ -135,10 +142,12 @@ function verifyToken(req: any, res: any, next: any) {
       throw new AuthError('Unauthorised request: missing token');
     }
 
-    const payload = jsonwebtoken.verify(token, <string>AUTH_KEY);
-    if ( !payload ) {
+    const payload = jsonwebtoken.verify(token, <string>AUTH_KEY) as AuthPayload | string;
+    if (!payload || typeof payload === 'string') {
       throw new AuthError('Unauthorised request: invalid token');
     }
+
+    req.auth = payload;
     
     next();
 
@@ -149,4 +158,13 @@ function verifyToken(req: any, res: any, next: any) {
 
 }
 
-export {auth, verifyToken};
+function requireAdmin(req: any, res: any, next: any) {
+  const role = String(req.auth?.role ?? '').trim().toLowerCase();
+  if (role === 'admin') {
+    next();
+    return;
+  }
+  res.status(403).send(new AuthError('Forbidden: admin access required'));
+}
+
+export {auth, verifyToken, requireAdmin};

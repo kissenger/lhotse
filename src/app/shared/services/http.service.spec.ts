@@ -65,7 +65,7 @@ describe('HttpService', () => {
     const p = service.deletePost('id');
     const expectedUrl = `/api/article/delete-post/id`;
     const req = httpMock.expectOne(expectedUrl);
-    expect(req.request.method).toBe('GET');
+    expect(req.request.method).toBe('DELETE');
     req.flush(mock);
     const res = await p;
     expect(res).toEqual(mock);

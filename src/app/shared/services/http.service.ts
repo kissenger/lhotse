@@ -30,7 +30,7 @@ export class HttpService {
   }
 
   async deleteSite(siteId: string) {
-    const request = this._http.get<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`);
+    const request = this._http.delete<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`);
     return await lastValueFrom(request);
   }
 
@@ -118,7 +118,7 @@ export class HttpService {
   }
   
   async deletePost(postId: string) {
-    const request =  this._http.get<Array<ArticlePost>>(`/api/article/delete-post/${postId}`);
+    const request =  this._http.delete<Array<ArticlePost>>(`/api/article/delete-post/${postId}`);
     return await lastValueFrom(request);
   }
 

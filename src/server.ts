@@ -8,7 +8,7 @@ import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResp
 import mongoose from 'mongoose';
 import FeatureModel from '../schema/feature';
 import { shop } from './server-shop';
-import { auth, verifyToken } from './server-auth';
+import { auth, requireAdmin, verifyToken } from './server-auth';
 import { article, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-article';
 import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
@@ -116,23 +116,23 @@ app.use((_req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-  // Start with report-only to safely observe violations before enforcing CSP.
-  res.setHeader(
-    'Content-Security-Policy-Report-Only',
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "frame-ancestors 'self'",
-      "script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
-      "script-src-attr 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data: https://api.mapbox.com",
-      "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://cloudflareinsights.com",
-      "worker-src 'self' blob:",
-      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.paypal.com https://www.sandbox.paypal.com"
-    ].join('; ')
-  );
+  const cspPolicy = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'self'",
+    "script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
+    "script-src-attr 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https://api.mapbox.com",
+    "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://cloudflareinsights.com",
+    "worker-src 'self' blob:",
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.paypal.com https://www.sandbox.paypal.com"
+  ].join('; ');
+  res.setHeader('Content-Security-Policy', cspPolicy);
+  if (ENVIRONMENT !== 'PRODUCTION') {
+    res.setHeader('Content-Security-Policy-Report-Only', cspPolicy);
+  }
 
   if (ENVIRONMENT === 'PRODUCTION') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -144,7 +144,7 @@ app.get('/api/ping/', (_req, res) => {
   res.status(201).json({hello: 'world'}); 
 })
 
-app.get('/api/db-backup/', verifyToken, (_req, res) => { 
+app.get('/api/db-backup/', verifyToken, requireAdmin, (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
 
