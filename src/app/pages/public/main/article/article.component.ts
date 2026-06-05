@@ -37,7 +37,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
   public readonly defaultSections: Array<{ title: string; slug: string; description: string }> = [
     { title: 'Snorkelling Sites', slug: 'snorkelling-sites', description: 'Guides to coastlines, bays and standout entry points around Britain.' },
     { title: 'News', slug: 'news', description: 'Latest snorkelology updates, launches and notable developments.' },
-    { title: 'Reviews', slug: 'product-reviews', description: 'Field-tested thoughts on snorkelling gear, books, cameras and practical kit.' },
+    { title: 'Reviews', slug: 'reviews', description: 'Field-tested thoughts on snorkelling gear, books, cameras and practical kit.' },
     { title: 'Science and Nature', slug: 'science-and-nature', description: 'Marine life, habitat insights and underwater ecology explained.' },
     { title: 'British Snorkelling', slug: 'british-snorkelling', description: 'Broader stories, skills and experiences from UK snorkelling life.' }
   ];
@@ -134,11 +134,11 @@ export class ArticleComponent implements OnInit, OnDestroy {
   }
 
   private _groupPosts(posts: ArticlePost[]) {
-    const defaultByTitle = new Map(this.defaultSections.map((section) => [section.title, section]));
+    const defaultByTitle = new Map(this.defaultSections.map((section) => [section.title.toLowerCase(), section]));
     const grouped = new Map<string, { title: string; slug: string; description: string; posts: ArticlePost[] }>();
 
     this.defaultSections.forEach((section) => {
-      grouped.set(section.title, { ...section, posts: [] });
+      grouped.set(section.title.toLowerCase(), { ...section, posts: [] });
     });
 
     posts.forEach((post) => {
@@ -147,21 +147,24 @@ export class ArticleComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (!grouped.has(sectionTitle)) {
-        grouped.set(sectionTitle, {
-          title: sectionTitle,
-          slug: normalizeToSlug(sectionTitle),
+      const sectionKey = sectionTitle.toLowerCase();
+      const defaults = defaultByTitle.get(sectionKey);
+
+      if (!grouped.has(sectionKey)) {
+        grouped.set(sectionKey, {
+          title: defaults?.title || sectionTitle,
+          slug: defaults?.slug || normalizeToSlug(sectionTitle),
           description: 'Articles in this section.',
           posts: []
         });
       }
 
-      grouped.get(sectionTitle)?.posts.push(post);
+      grouped.get(sectionKey)?.posts.push(post);
     });
 
     return Array.from(grouped.values()).sort((a, b) => {
-      const indexA = this.defaultSections.findIndex((section) => section.title === a.title);
-      const indexB = this.defaultSections.findIndex((section) => section.title === b.title);
+      const indexA = this.defaultSections.findIndex((section) => section.title.toLowerCase() === a.title.toLowerCase());
+      const indexB = this.defaultSections.findIndex((section) => section.title.toLowerCase() === b.title.toLowerCase());
       const rankA = indexA >= 0 ? indexA : Number.MAX_SAFE_INTEGER;
       const rankB = indexB >= 0 ? indexB : Number.MAX_SAFE_INTEGER;
 
@@ -175,11 +178,12 @@ export class ArticleComponent implements OnInit, OnDestroy {
 
       return a.title.localeCompare(b.title);
     }).map((section) => {
-      if (defaultByTitle.has(section.title)) {
-        const defaults = defaultByTitle.get(section.title)!;
+      const defaults = defaultByTitle.get(section.title.toLowerCase());
+      if (defaults) {
         return {
           ...section,
           title: defaults.title,
+          slug: defaults.slug,
           description: defaults.description
         };
       }
@@ -195,7 +199,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
     this.sectionPostCounts = new Map(grouped.map((section) => [section.slug, section.posts.length]));
 
     if (this.isSectionFilteredRoute) {
-      this.groupedPosts = grouped.filter((section) => section.slug === this.selectedSectionSlug);
+      this.groupedPosts = grouped.filter((section) => this._canonicalSectionSlug(section.slug) === this.selectedSectionSlug);
       return;
     }
 
@@ -203,7 +207,15 @@ export class ArticleComponent implements OnInit, OnDestroy {
   }
 
   private _syncSectionFromRoute() {
-    this.selectedSectionSlug = normalizeToSlug(this._route.snapshot.paramMap.get('sectionSlug') || '');
+    this.selectedSectionSlug = this._canonicalSectionSlug(normalizeToSlug(this._route.snapshot.paramMap.get('sectionSlug') || ''));
+  }
+
+  private _canonicalSectionSlug(value: string): string {
+    const slug = normalizeToSlug(value);
+    if (slug === 'product-reviews') {
+      return 'reviews';
+    }
+    return slug;
   }
 
   private _sortByRecency(posts: ArticlePost[]): ArticlePost[] {

@@ -33,6 +33,8 @@
     "test:lighthouse:prod": "node ./tests/test-lighthouse.js --url=https://snorkelology.co.uk/",
     "backfill:article-links": "node ./tools/backfill-article-links.mjs",
     "backfill:article-links:apply": "node ./tools/backfill-article-links.mjs --apply",
+    "migrate:blog-section": "node ./tools/migrate-blog-section-to-article-section.mjs",
+    "migrate:blog-section:apply": "node ./tools/migrate-blog-section-to-article-section.mjs --apply",
     "test:all": "node ./tests/test-all.js",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"

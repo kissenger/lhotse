@@ -34,8 +34,8 @@
     <p class="subtitle media-row-description">{{data.subtitle}}</p>
 
     @if (data.type === 'review' && data.review.ratingScale) {
-      <div class="review-chip" aria-label="Rating {{data.review.ratingValue}} out of {{data.review.ratingScale}}">
-        <span>★ {{ data.review.ratingValue | number : '1.1-1' }}/{{data.review.ratingScale}}</span>
+      <div class="review-chip" aria-label="Rating {{data.review.ratingValue | number : '1.0-0'}} out of {{data.review.ratingScale | number : '1.0-0'}}">
+        <span>★ {{ data.review.ratingValue | number : '1.0-0' }}/{{data.review.ratingScale | number : '1.0-0'}}</span>
       </div>
     }
 

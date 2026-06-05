@@ -271,7 +271,7 @@ article.delete('/api/article/delete-post/:_id', verifyToken, requireAdmin, withR
 async function getPublishedPostsForSeo() {
   const posts = await ArticleModel.find(
     { publishedAt: { $ne: null } },
-    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1 }
+    { title: 1, subtitle: 1, intro: 1, imgFname: 1, createdAt: 1, updatedAt: 1, publishedAt: 1, articleSection: 1 }
   ).sort({ "createdAt": "descending" }).lean();
   return posts;
 }

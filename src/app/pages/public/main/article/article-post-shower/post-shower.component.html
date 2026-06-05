@@ -79,8 +79,8 @@
             <h2>{{post.review.productName || post.title}}</h2>
           </header>
 
-          <div class="review-rating-row" aria-label="Rating {{post.review.ratingValue}} out of {{post.review.ratingScale}}">
-            <span class="review-score">{{post.review.ratingValue | number : '1.1-1'}} / {{post.review.ratingScale}}</span>
+          <div class="review-rating-row" aria-label="Rating {{post.review.ratingValue | number : '1.0-0'}} out of {{post.review.ratingScale | number : '1.0-0'}}">
+            <span class="review-score">{{post.review.ratingValue | number : '1.0-0'}} / {{post.review.ratingScale | number : '1.0-0'}}</span>
             <span class="review-stars" aria-hidden="true">
               @for (_ of reviewStarsFilledArray; track $index) {
                 <span class="star star--filled">★</span>
