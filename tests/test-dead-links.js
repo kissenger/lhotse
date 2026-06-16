@@ -29,6 +29,21 @@ const NO_CHECK_DOMAINS = new Set([
   'www.youtube.com', 'youtube.com', 'youtu.be',
 ]);
 
+function addSource(sourceMap, key, source) {
+  if (!source || !key) return;
+  if (!sourceMap.has(key)) {
+    sourceMap.set(key, new Set());
+  }
+  sourceMap.get(key).add(source);
+}
+
+function formatSources(sourceMap, key, max = 4) {
+  const entries = [...(sourceMap.get(key) ?? [])];
+  if (!entries.length) return 'unknown';
+  if (entries.length <= max) return entries.join(' | ');
+  return `${entries.slice(0, max).join(' | ')} | +${entries.length - max} more`;
+}
+
 function isLive(status) {
   return (status >= 200 && status < 400) || status === 403 || status === 405 || status === 429;
 }
@@ -91,7 +106,7 @@ function canonicalizeInternalPath(path) {
   return `${pathname}${querySuffix}`;
 }
 
-function classifyHref(href, internalPaths, externalUrls) {
+function classifyHref(href, internalPaths, externalUrls, internalSources, externalSources, sourceTag) {
   let normalized = href.split('#')[0];
   if (!normalized) return;
 
@@ -102,10 +117,13 @@ function classifyHref(href, internalPaths, externalUrls) {
         const internalPath = canonicalizeInternalPath((`${u.pathname}${u.search}`.replace(/\/$/, '') || '/'));
         if (!internalPath.startsWith('/cdn-cgi/')) {
           internalPaths.add(internalPath);
+          addSource(internalSources, internalPath, sourceTag);
         }
       } else {
         u.hash = '';
-        externalUrls.add(u.toString());
+        const url = u.toString();
+        externalUrls.add(url);
+        addSource(externalSources, url, sourceTag);
       }
     } catch {
       // skip malformed URL
@@ -114,13 +132,15 @@ function classifyHref(href, internalPaths, externalUrls) {
   }
 
   if (normalized.startsWith('/') && !normalized.startsWith('//') && !normalized.startsWith('/cdn-cgi/')) {
-    internalPaths.add(canonicalizeInternalPath(normalized));
+    const internalPath = canonicalizeInternalPath(normalized);
+    internalPaths.add(internalPath);
+    addSource(internalSources, internalPath, sourceTag);
   }
 }
 
 // ── Collectors ────────────────────────────────────────────────────────────────
 
-async function crawlSeedPages() {
+async function crawlSeedPages(internalSources, externalSources) {
   const internalPaths = new Set();
   const externalUrls = new Set();
 
@@ -135,14 +155,14 @@ async function crawlSeedPages() {
     }
 
     for (const href of extractAnchorHrefs(html)) {
-      classifyHref(href, internalPaths, externalUrls);
+      classifyHref(href, internalPaths, externalUrls, internalSources, externalSources, `seed:${seed}`);
     }
   }
 
   return { internalPaths, externalUrls };
 }
 
-async function collectSitemapPaths() {
+async function collectSitemapPaths(internalSources) {
   const internalPaths = new Set();
 
   try {
@@ -160,6 +180,7 @@ async function collectSitemapPaths() {
         const path = canonicalizeInternalPath((`${url.pathname}${url.search}`.replace(/\/$/, '') || '/'));
         if (!path.startsWith('/cdn-cgi/')) {
           internalPaths.add(path);
+          addSource(internalSources, path, 'sitemap.xml');
         }
       } catch {
         // skip malformed sitemap URL entries
@@ -172,7 +193,7 @@ async function collectSitemapPaths() {
   return internalPaths;
 }
 
-async function collectTemplateAnchorLinks() {
+async function collectTemplateAnchorLinks(internalSources, externalSources) {
   const internalPaths = new Set();
   const externalUrls = new Set();
   const htmlFiles = glob('src/app/**/*.html', { withFileTypes: false });
@@ -181,7 +202,7 @@ async function collectTemplateAnchorLinks() {
     try {
       const html = await readFile(filePath, 'utf8');
       for (const href of extractAnchorHrefs(html)) {
-        classifyHref(href, internalPaths, externalUrls);
+        classifyHref(href, internalPaths, externalUrls, internalSources, externalSources, `template:${filePath}`);
       }
     } catch {
       // ignore unreadable template files
@@ -191,7 +212,7 @@ async function collectTemplateAnchorLinks() {
   return { internalPaths, externalUrls };
 }
 
-async function collectArticleLinks() {
+async function collectArticleLinks(internalSources, externalSources) {
   const internalPaths = new Set();
   const externalUrls = new Set();
   try {
@@ -200,21 +221,31 @@ async function collectArticleLinks() {
     const posts = await res.json();
 
     for (const post of posts) {
-      if (post.slug) internalPaths.add(`/articles/${post.slug}`);
-      if (post.articleSection) internalPaths.add(`/articles/section/${post.articleSection}`);
+      const slug = post.slug || 'unknown-slug';
+      if (post.slug) {
+        const p = `/articles/${post.slug}`;
+        internalPaths.add(p);
+        addSource(internalSources, p, `article:${slug}:slug`);
+      }
+      if (post.articleSection) {
+        const p = `/articles/section/${post.articleSection}`;
+        internalPaths.add(p);
+        addSource(internalSources, p, `article:${slug}:section`);
+      }
 
       for (const section of post.sections ?? []) {
+        const sectionTag = section.title || 'section';
         for (const cta of section.ctaLinks ?? []) {
-          classifyHref(cta.url ?? '', internalPaths, externalUrls);
+          classifyHref(cta.url ?? '', internalPaths, externalUrls, internalSources, externalSources, `article:${slug}:${sectionTag}:cta`);
         }
-        classifyHref(section.videoUrl ?? '', internalPaths, externalUrls);
+        classifyHref(section.videoUrl ?? '', internalPaths, externalUrls, internalSources, externalSources, `article:${slug}:${sectionTag}:video`);
         for (const [, u] of (section.content ?? '').matchAll(/href="([^"]+)"/gi)) {
-          classifyHref(u, internalPaths, externalUrls);
+          classifyHref(u, internalPaths, externalUrls, internalSources, externalSources, `article:${slug}:${sectionTag}:content`);
         }
       }
       for (const field of [post.intro, post.conclusion]) {
         for (const [, u] of (field ?? '').matchAll(/href="([^"]+)"/gi)) {
-          classifyHref(u, internalPaths, externalUrls);
+          classifyHref(u, internalPaths, externalUrls, internalSources, externalSources, `article:${slug}:text`);
         }
       }
     }
@@ -224,7 +255,7 @@ async function collectArticleLinks() {
   return { internalPaths, externalUrls };
 }
 
-async function collectSiteLinks() {
+async function collectSiteLinks(internalSources, externalSources) {
   const internalPaths = new Set();
   const externalUrls = new Set();
   try {
@@ -234,9 +265,10 @@ async function collectSiteLinks() {
 
     for (const feature of data.features ?? []) {
       const p = feature.properties ?? {};
-      classifyHref(p.imageUrl ?? '', internalPaths, externalUrls);
+      const siteName = p.name || 'unknown-site';
+      classifyHref(p.imageUrl ?? '', internalPaths, externalUrls, internalSources, externalSources, `site:${siteName}:image`);
       for (const item of p.moreInfo ?? []) {
-        classifyHref(item.url ?? '', internalPaths, externalUrls);
+        classifyHref(item.url ?? '', internalPaths, externalUrls, internalSources, externalSources, `site:${siteName}:moreInfo`);
       }
     }
   } catch {
@@ -245,7 +277,7 @@ async function collectSiteLinks() {
   return { internalPaths, externalUrls };
 }
 
-async function crawlInternalPagesForLinks(seedPaths) {
+async function crawlInternalPagesForLinks(seedPaths, internalSources, externalSources) {
   const internalPaths = new Set();
   const externalUrls = new Set();
   const visited = new Set();
@@ -269,7 +301,7 @@ async function crawlInternalPagesForLinks(seedPaths) {
       const html = await res.text();
       for (const href of extractAnchorHrefs(html)) {
         const before = internalPaths.size;
-        classifyHref(href, internalPaths, externalUrls);
+        classifyHref(href, internalPaths, externalUrls, internalSources, externalSources, `page:${path}`);
         if (internalPaths.size > before) {
           const normalized = href.split('#')[0];
           try {
@@ -306,33 +338,39 @@ async function main() {
 
   const internalPaths = new Set(SEED_PATHS);
   const externalUrls = new Set();
+  const internalSources = new Map();
+  const externalSources = new Map();
+
+  for (const seed of SEED_PATHS) {
+    addSource(internalSources, seed, 'seed:list');
+  }
 
   console.log('Crawling seed pages ...');
-  const seedLinks = await crawlSeedPages();
+  const seedLinks = await crawlSeedPages(internalSources, externalSources);
   for (const path of seedLinks.internalPaths) internalPaths.add(path);
   for (const url of seedLinks.externalUrls) externalUrls.add(url);
 
   console.log('Reading sitemap routes ...');
-  const sitemapPaths = await collectSitemapPaths();
+  const sitemapPaths = await collectSitemapPaths(internalSources);
   for (const path of sitemapPaths) internalPaths.add(path);
 
   console.log('Scanning template links ...');
-  const templateLinks = await collectTemplateAnchorLinks();
+  const templateLinks = await collectTemplateAnchorLinks(internalSources, externalSources);
   for (const path of templateLinks.internalPaths) internalPaths.add(path);
   for (const url of templateLinks.externalUrls) externalUrls.add(url);
 
   console.log('Recursively crawling internal pages ...');
-  const recursiveLinks = await crawlInternalPagesForLinks(internalPaths);
+  const recursiveLinks = await crawlInternalPagesForLinks(internalPaths, internalSources, externalSources);
   for (const path of recursiveLinks.internalPaths) internalPaths.add(path);
   for (const url of recursiveLinks.externalUrls) externalUrls.add(url);
 
   console.log('Fetching article post links ...');
-  const articleLinks = await collectArticleLinks();
+  const articleLinks = await collectArticleLinks(internalSources, externalSources);
   for (const path of articleLinks.internalPaths) internalPaths.add(path);
   for (const url of articleLinks.externalUrls) externalUrls.add(url);
 
   console.log('Fetching map site links ...');
-  const siteLinks = await collectSiteLinks();
+  const siteLinks = await collectSiteLinks(internalSources, externalSources);
   for (const path of siteLinks.internalPaths) internalPaths.add(path);
   for (const url of siteLinks.externalUrls) externalUrls.add(url);
 
@@ -349,17 +387,18 @@ async function main() {
     }
 
     const status = probe.status;
+    const source = formatSources(internalSources, path);
     if (typeof status === 'number' && status >= 300 && status < 400) {
-      intBroken.push({ path, status, reason: `redirects to ${probe.location ?? 'unknown location'}` });
-      console.log(`  [FAIL] ${status} — ${path} (redirect)`);
+      intBroken.push({ path, status, reason: `redirects to ${probe.location ?? 'unknown location'}`, source });
+      console.log(`  [FAIL] ${status} — ${path} (redirect) ← ${source}`);
     } else if (status === 404 || status === 'error') {
-      intBroken.push({ path, status, reason: 'not found or request failed' });
-      console.log(`  [FAIL] ${status} — ${path}`);
+      intBroken.push({ path, status, reason: 'not found or request failed', source });
+      console.log(`  [FAIL] ${status} — ${path} ← ${source}`);
     } else if (typeof status === 'number' && status >= 200 && status < 300) {
       console.log(`  [OK ] ${status} — ${path}`);
     } else {
-      intBroken.push({ path, status, reason: 'non-success internal response' });
-      console.log(`  [FAIL] ${status} — ${path}`);
+      intBroken.push({ path, status, reason: 'non-success internal response', source });
+      console.log(`  [FAIL] ${status} — ${path} ← ${source}`);
     }
   }
 
@@ -377,12 +416,13 @@ async function main() {
       probe = await probeUrl(url, 'GET', 'follow');
     }
     const status = probe.status;
+    const source = formatSources(externalSources, url);
 
     if (isLive(status)) {
       console.log(`  [OK ] ${status} — ${url}`);
     } else {
-      extBroken.push({ url, status });
-      console.log(`  [FAIL] ${status} — ${url}`);
+      extBroken.push({ url, status, source });
+      console.log(`  [FAIL] ${status} — ${url} ← ${source}`);
     }
   }
 
@@ -396,13 +436,17 @@ async function main() {
 
   if (intBroken.length > 0) {
     console.error('Broken internal links:');
-    for (const { path, status, reason } of intBroken) {
+    for (const { path, status, reason, source } of intBroken) {
       console.error(`  [${status}] ${path} (${reason})`);
+      console.error(`      source: ${source}`);
     }
   }
   if (extBroken.length > 0) {
     console.error('Broken external links:');
-    for (const { url, status } of extBroken) console.error(`  [${status}] ${url}`);
+    for (const { url, status, source } of extBroken) {
+      console.error(`  [${status}] ${url}`);
+      console.error(`      source: ${source}`);
+    }
   }
 
   console.error(`\n${intBroken.length} broken internal + ${extBroken.length} broken external link(s).`);

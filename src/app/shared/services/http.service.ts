@@ -20,22 +20,22 @@ export class HttpService {
   }
 
   async getAllSitesAdmin() {
-    const request = this._http.get<Array<MapFeature>>(`/api/sites/get-all-sites-admin/`);
+    const request = this._http.get<Array<MapFeature>>(`/api/sites/get-all-sites-admin/`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async upsertSite(site: MapFeature) {
-    const request = this._http.post<Array<MapFeature>>(`/api/sites/upsert-site/`, site);
+    const request = this._http.post<Array<MapFeature>>(`/api/sites/upsert-site/`, site, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async deleteSite(siteId: string) {
-    const request = this._http.delete<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`);
+    const request = this._http.delete<Array<MapFeature>>(`/api/sites/delete-site/${siteId}`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async getCountiesAdmin() {
-    const request = this._http.get<Array<CountyDescriptionAdminItem>>('/api/sites/get-counties-admin/');
+    const request = this._http.get<Array<CountyDescriptionAdminItem>>('/api/sites/get-counties-admin/', { withCredentials: true });
     return await lastValueFrom(request);
   }
 
@@ -45,17 +45,17 @@ export class HttpService {
   }
 
   async upsertCountyDescription(payload: CountyDescriptionUpsertPayload) {
-    const request = this._http.post<CountyDescriptionAdminItem>('/api/sites/upsert-county-description/', payload);
+    const request = this._http.post<CountyDescriptionAdminItem>('/api/sites/upsert-county-description/', payload, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async deleteCountyDescription(id: string) {
-    const request = this._http.delete<void>(`/api/sites/delete-county-description/${id}`);
+    const request = this._http.delete<void>(`/api/sites/delete-county-description/${id}`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async getCountriesAdmin() {
-    const request = this._http.get<Array<CountryDescriptionAdminItem>>('/api/sites/get-countries-admin/');
+    const request = this._http.get<Array<CountryDescriptionAdminItem>>('/api/sites/get-countries-admin/', { withCredentials: true });
     return await lastValueFrom(request);
   }
 
@@ -65,12 +65,12 @@ export class HttpService {
   }
 
   async upsertCountryDescription(payload: CountryDescriptionUpsertPayload) {
-    const request = this._http.post<CountryDescriptionAdminItem>('/api/sites/upsert-country-description/', payload);
+    const request = this._http.post<CountryDescriptionAdminItem>('/api/sites/upsert-country-description/', payload, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
   async deleteCountryDescription(id: string) {
-    const request = this._http.delete<void>(`/api/sites/delete-country-description/${id}`);
+    const request = this._http.delete<void>(`/api/sites/delete-country-description/${id}`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
@@ -80,7 +80,7 @@ export class HttpService {
   private _publishedPostsCache: Array<ArticlePost> | null = null;
 
   async getAllPosts() {
-    const request =  this._http.get<Array<ArticlePost>>(`/api/article/get-all-posts/`);
+    const request =  this._http.get<Array<ArticlePost>>(`/api/article/get-all-posts/`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 
@@ -113,12 +113,12 @@ export class HttpService {
 
   async upsertPost(post: ArticlePost, options?: { preserveUpdatedAt?: boolean }) {
     const payload = options?.preserveUpdatedAt ? { ...post, preserveUpdatedAt: true } : post;
-    const request = this._http.post<Array<ArticlePost>>(`/api/article/upsert-post/`, payload);
+    const request = this._http.post<Array<ArticlePost>>(`/api/article/upsert-post/`, payload, { withCredentials: true });
     return await lastValueFrom(request);
   }
   
   async deletePost(postId: string) {
-    const request =  this._http.delete<Array<ArticlePost>>(`/api/article/delete-post/${postId}`);
+    const request =  this._http.delete<Array<ArticlePost>>(`/api/article/delete-post/${postId}`, { withCredentials: true });
     return await lastValueFrom(request);
   }
 

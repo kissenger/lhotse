@@ -1694,7 +1694,10 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
   const reviewSchemas = isProductReview
     ? (() => {
         const ratingScale = Math.max(1, Number(reviewModel.ratingScale || 5));
-        const ratingValue = Math.min(ratingScale, Math.max(0, Number(reviewModel.ratingValue || 0)));
+        const cats = reviewModel.ratingCategories;
+        const ratingValue = cats?.length
+          ? Math.round(cats.reduce((s: number, c: any) => s + c.value, 0) / cats.length * 10) / 10
+          : Math.min(ratingScale, Math.max(0, Number(reviewModel.ratingValue || 0)));
         const productName = (reviewModel.productName || post.title || '').trim();
         const itemReviewedType = isBookReview ? 'Book' : 'Product';
         const productSchema: Record<string, unknown> = {

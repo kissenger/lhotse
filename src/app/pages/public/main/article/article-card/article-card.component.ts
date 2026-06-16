@@ -48,5 +48,37 @@ export class ArticleCardComponent implements OnChanges {
       this._useLocalImageFallback = true;
     }
   }
+
+  get reviewComputedRating(): number {
+    const cats = this.data.review?.ratingCategories;
+    if (cats?.length) {
+      const avg = cats.reduce((s, c) => s + c.value, 0) / cats.length;
+      return Math.round(avg * 10) / 10;
+    }
+    return this.data.review?.ratingValue || 0;
+  }
+
+  get ratingDisplayFormat(): string {
+    return (this.data.review?.ratingCategories?.length ?? 0) > 0 ? '1.0-1' : '1.0-0';
+  }
+
+  get reviewStarScale(): number {
+    const scale = Number(this.data.review?.ratingScale || 5);
+    if (!Number.isFinite(scale) || scale <= 0) {
+      return 5;
+    }
+    return Math.max(1, Math.round(scale));
+  }
+
+  get reviewStarsFillPercent(): number {
+    const scale = this.reviewStarScale;
+    const value = Number(this.reviewComputedRating || 0);
+    const clamped = Math.max(0, Math.min(scale, value));
+    return (clamped / scale) * 100;
+  }
+
+  get reviewStarsScaleArray(): number[] {
+    return Array.from({ length: this.reviewStarScale }, (_, i) => i);
+  }
 }
 

@@ -18,6 +18,8 @@ const articleSchema = new mongoose.Schema({
     videoUrl: {type: String},
     videoOrientation: {type: String},
     imgCredit: {type: String},
+    affiliateLabel: {type: String},
+    affiliateUrl: {type: String},
     sectionType: {type: String},
     ctaLinks: {type: [{
       label: {type: String},
@@ -37,6 +39,11 @@ const articleSchema = new mongoose.Schema({
     summary: { type: String },
     ratingValue: { type: Number, min: 0, max: 5 },
     ratingScale: { type: Number, default: 5, min: 1, max: 10 },
+    ratingCategories: { type: [{
+      name: { type: String, required: true },
+      value: { type: Number, min: 0, max: 5, required: true },
+      summary: { type: String }
+    }], default: undefined },
     pros: { type: [String], default: undefined },
     cons: { type: [String], default: undefined },
     affiliateDisclosure: { type: String },

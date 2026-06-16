@@ -10,6 +10,9 @@ import 'dotenv/config';
 
 const AI_SCORE_THRESHOLD_DEFAULT = 70;
 const TRUTHY_FLAG_VALUES: Array<string | number | boolean> = [true, 'true', 1, '1', 'yes', 'on'];
+const COUNTY_COUNTRY_FALLBACK: Record<string, string> = {
+  'brighton-and-hove': 'england',
+};
 
 const map = express();
 
@@ -46,6 +49,106 @@ async function buildOrgFilter(): Promise<Record<string, unknown>> {
       },
     ],
   };
+}
+
+function canonicalizeMapHrefForDescription(href: string, defaultCountry: string | null): string {
+  if (!href) return href;
+
+  const trimmed = href.trim();
+  const absoluteMatch = trimmed.match(/^https?:\/\/snorkelology\.co\.uk(\/map\/[^\s?#"']*(?:\?[^\s#"']*)?)/i);
+  const relativeHref = absoluteMatch ? absoluteMatch[1] : trimmed;
+
+  if (!relativeHref.startsWith('/map/')) {
+    return href;
+  }
+
+  const [pathname, query = ''] = relativeHref.split('?');
+  const querySuffix = query ? `?${query}` : '';
+  const segments = pathname.split('/').filter(Boolean);
+
+  if (segments[0] !== 'map' || segments.length <= 1) {
+    return href;
+  }
+
+  let canonicalPath = relativeHref;
+
+  if (segments.length === 2) {
+    const country = normaliseCountrySegment(segments[1]);
+    if (country) {
+      canonicalPath = buildMapPath({ country });
+    } else {
+      const county = normaliseCountySegment(segments[1]);
+      if (county && defaultCountry) {
+        canonicalPath = buildMapPath({ country: defaultCountry, county });
+      }
+    }
+  } else if (segments.length === 3) {
+    const country = normaliseCountrySegment(segments[1]);
+    const county = normaliseCountySegment(segments[2]);
+    if (country && county) {
+      canonicalPath = buildMapPath({ country, county });
+    } else {
+      const inferredCounty = normaliseCountySegment(segments[1]);
+      const siteSlug = normaliseSiteSegment(segments[2]);
+      if (inferredCounty && siteSlug && defaultCountry) {
+        canonicalPath = buildMapPath({ country: defaultCountry, county: inferredCounty, siteSlug });
+      }
+    }
+  } else {
+    const country = normaliseCountrySegment(segments[1]);
+    const county = normaliseCountySegment(segments[2]);
+    const siteSlug = normaliseSiteSegment(segments[3]);
+    if (country && county && siteSlug) {
+      canonicalPath = buildMapPath({ country, county, siteSlug });
+    }
+  }
+
+  if (canonicalPath === relativeHref) {
+    return href;
+  }
+
+  if (absoluteMatch) {
+    return `https://snorkelology.co.uk${canonicalPath}${querySuffix}`;
+  }
+
+  return `${canonicalPath}${querySuffix}`;
+}
+
+function canonicalizeDescriptionLinks(description: string, defaultCountry: string | null): string {
+  if (!description) return '';
+
+  let normalized = description.replace(/\[link:([^,\]]+),([^\]]+)\]/gi, (_m, text: string, link: string) => {
+    const canonicalLink = canonicalizeMapHrefForDescription(link, defaultCountry);
+    return `[link:${text},${canonicalLink}]`;
+  });
+
+  normalized = normalized.replace(/href=(['"])([^'"]+)\1/gi, (_m, quote: string, href: string) => {
+    const canonicalHref = canonicalizeMapHrefForDescription(href, defaultCountry);
+    return `href=${quote}${canonicalHref}${quote}`;
+  });
+
+  return normalized;
+}
+
+async function inferCountrySlugForCounty(countySlug: string): Promise<string | null> {
+  if (COUNTY_COUNTRY_FALLBACK[countySlug]) {
+    return COUNTY_COUNTRY_FALLBACK[countySlug];
+  }
+
+  const sites = await FeatureModel.find(
+    { showOnMap: 'Production', 'properties.featureType': 'Snorkelling Site' },
+    { 'properties.location': 1 }
+  ).lean();
+
+  for (const site of sites as any[]) {
+    const location = site.properties?.location ?? {};
+    const siteCountySlug = getCountySlugFromLocation(location);
+    if (siteCountySlug === countySlug) {
+      return getCountrySlugFromRegion(location.region);
+    }
+  }
+
+  return null;
 }
 
 function orgToGeoJsonFeature(org: any, id: number) {
@@ -318,7 +421,10 @@ map.get('/api/sites/get-county-description/:countySlug', withInternalError(async
   const canonicalDoc = {
     countyName: (doc as any).countyName,
     countySlug: countySlug,
-    description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+    description: canonicalizeDescriptionLinks(
+      typeof (doc as any).description === 'string' ? (doc as any).description : '',
+      await inferCountrySlugForCounty(countySlug)
+    ),
   };
   res.status(200).json(canonicalDoc);
 }));
@@ -451,10 +557,12 @@ map.post('/api/sites/upsert-county-description/', verifyToken, requireAdmin, asy
 
     // Normalize to canonical form (e.g., "orkney-islands" -> "orkney")
     countySlug = normaliseCountySlug(countySlug) ?? countySlug;
+    const countrySlug = await inferCountrySlugForCounty(countySlug);
+    const normalizedDescription = canonicalizeDescriptionLinks(description, countrySlug);
 
     const saved = await CountyDescriptionModel.findOneAndUpdate(
       { countySlug },
-      { $set: { countyName, countySlug, description } },
+      { $set: { countyName, countySlug, description: normalizedDescription } },
       { upsert: true, new: true }
     ).lean();
 
@@ -493,7 +601,10 @@ map.get('/api/sites/get-country-description/:countrySlug', withInternalError(asy
   res.status(200).json({
     countryName: (doc as any).countryName,
     countrySlug: (doc as any).countrySlug,
-    description: typeof (doc as any).description === 'string' ? (doc as any).description : '',
+    description: canonicalizeDescriptionLinks(
+      typeof (doc as any).description === 'string' ? (doc as any).description : '',
+      countrySlug
+    ),
   });
 }));
 
@@ -561,7 +672,7 @@ map.post('/api/sites/upsert-country-description/', verifyToken, requireAdmin, as
 
     const saved = await CountryDescriptionModel.findOneAndUpdate(
       { countrySlug },
-      { $set: { countryName, countrySlug, description } },
+      { $set: { countryName, countrySlug, description: canonicalizeDescriptionLinks(description, countrySlug) } },
       { upsert: true, new: true }
     ).lean();
 

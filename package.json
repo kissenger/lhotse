@@ -35,6 +35,8 @@
     "backfill:article-links:apply": "node ./tools/backfill-article-links.mjs --apply",
     "migrate:blog-section": "node ./tools/migrate-blog-section-to-article-section.mjs",
     "migrate:blog-section:apply": "node ./tools/migrate-blog-section-to-article-section.mjs --apply",
+    "migrate:map-description-links": "node ./tools/migrate-map-description-links.mjs",
+    "migrate:map-description-links:apply": "node ./tools/migrate-map-description-links.mjs --apply",
     "test:all": "node ./tests/test-all.js",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage"

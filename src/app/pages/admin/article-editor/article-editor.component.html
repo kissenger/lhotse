@@ -120,9 +120,15 @@
                             </div>
                         }
 
-                        <div class="field-row align-start">
+                        <div class="field-row align-start review-summary-row">
                             <label for="reviewSummary">Review summary:</label>
-                            <textarea id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="One-paragraph verdict for readers and search snippets"></textarea>
+                            <div class="review-summary-panel">
+                                <div class="review-summary-head">
+                                    <span class="review-summary-title">Reader verdict</span>
+                                    <span class="review-summary-badge">Used in snippets</span>
+                                </div>
+                                <textarea class="review-summary-textarea" id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="Write a concise, opinionated summary that tells readers why this is worth it (or not)."></textarea>
+                            </div>
                         </div>
 
                         <div class="field-row">
@@ -148,10 +154,46 @@
 
                         <div class="field-row">
                             <label for="reviewRatingValue">Rating:</label>
-                            <div class="review-rating-row">
-                                <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
-                                <span>/</span>
-                                <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
+                            @if (reviewHasCategories) {
+                                <span class="review-computed-rating">{{computedRatingValue | number : '1.0-1'}} / 5 <em>(computed from categories)</em></span>
+                            } @else {
+                                <div class="review-rating-row">
+                                    <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
+                                    <span>/</span>
+                                    <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
+                                </div>
+                            }
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label>Rating categories:</label>
+                            <div class="review-categories-editor">
+                                <div class="section-add-row">
+                                    <select id="reviewCategoryDropdown" name="reviewCategoryDropdown" [(ngModel)]="newReviewCategoryDropdown">
+                                        <option value="">Select existing…</option>
+                                        @for (cat of reviewCategoryOptions; track cat) {
+                                            <option [value]="cat">{{cat}}</option>
+                                        }
+                                    </select>
+                                    <input type="text" id="newReviewCategoryName" name="newReviewCategoryName" placeholder="Or type new category"
+                                        [(ngModel)]="newReviewCategoryName">
+                                    <button type="button" class="btn-add-inline" (click)="addReviewCategory()">+ Add</button>
+                                </div>
+                                @for (cat of selectedPost.review.ratingCategories || []; track $index; let ci = $index) {
+                                    <div class="review-category-card">
+                                        <div class="review-category-header">
+                                            <span class="review-category-label">{{cat.name}}</span>
+                                            <div class="review-category-score-row">
+                                                <input type="number" [name]="'reviewCatValue_'+ci" min="0" max="5" step="1"
+                                                    [(ngModel)]="cat.value" (ngModelChange)="isDirty = true">
+                                                <span>/ 5</span>
+                                            </div>
+                                            <button type="button" class="icon-btn" (click)="removeReviewCategory(ci)" title="Remove category">✕</button>
+                                        </div>
+                                        <textarea [name]="'reviewCatSummary_'+ci" placeholder="Short summary paragraph for this category"
+                                            [(ngModel)]="cat.summary" (ngModelChange)="isDirty = true"></textarea>
+                                    </div>
+                                }
                             </div>
                         </div>
 
@@ -321,6 +363,21 @@
                                 <label for="credit{{si}}">Image credit:</label>
                                 <input type="text" id="credit{{si}}" name="credit{{si}}" [(ngModel)]="section.imgCredit">
                             </div>
+
+                            @if (selectedPost.type === 'article') {
+                                <div class="field-row">
+                                    <label for="affiliateLabel{{si}}">Affiliate link label:</label>
+                                    <input type="text" id="affiliateLabel{{si}}" name="affiliateLabel{{si}}" [(ngModel)]="section.affiliateLabel" placeholder="Optional e.g. Check latest price">
+                                </div>
+
+                                <div class="field-row">
+                                    <label for="affiliateUrl{{si}}">Affiliate link URL:</label>
+                                    <div class="input-stack">
+                                        <input type="text" id="affiliateUrl{{si}}" name="affiliateUrl{{si}}" [(ngModel)]="section.affiliateUrl" placeholder="Optional full URL">
+                                        <small class="field-help">Shown below this section image when both label and URL are set.</small>
+                                    </div>
+                                </div>
+                            }
 
                             <div class="field-row">
                                 <label for="videoUrl{{si}}">Video URL:</label>

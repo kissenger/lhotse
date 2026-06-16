@@ -42,14 +42,23 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+append_colored_log() {
+  local color="$1"
+  local message="$2"
+  echo -e "${color}${message}${NC}" >> "${LOG_FILE}"
+}
+
 printError() {
-  local msg="$(date -Iseconds) FAILURE  ${1}"
-  echo -e "${RED}${msg}${NC}" | tee -a "${LOG_FILE}" >&2
+  local msg="$(date -Iseconds) [FAIL] ${1}"
+  echo -e "${RED}${msg}${NC}" >&2
+  append_colored_log "${RED}" "${msg}"
   ERROR_LINES+="${msg}\n"
 }
 
 printSuccess() {
-  echo -e "$(date -Iseconds) ${1}" >> "${LOG_FILE}"
+  local msg="$(date -Iseconds) [PASS] ${1}"
+  echo -e "${GREEN}${msg}${NC}"
+  append_colored_log "${GREEN}" "${msg}"
 }
 
 sendEmail() {
@@ -67,21 +76,23 @@ run_check() {
   local script="${SCRIPT_DIR}/${name}"
 
   if [[ ! -f "${script}" ]]; then
-    echo -e "${RED}$(date -Iseconds) [FAIL] ${name} (script not found)${NC}" | tee -a "${LOG_FILE}" >&2
+    local missing_msg="$(date -Iseconds) [FAIL] ${name} (script not found)"
+    echo -e "${RED}${missing_msg}${NC}" >&2
+    append_colored_log "${RED}" "${missing_msg}"
     ERROR_LINES+="$(date -Iseconds) [FAIL] ${name} (script not found)\n"
     return 1
   fi
 
-  # Keep maintenance quiet on success; show child output only if the step fails.
-  local output=""
-  if output="$(MAINTENANCE_SILENT=1 bash "${script}" 2>&1)"; then
-    echo -e "$(date -Iseconds) [PASS] ${name}" >> "${LOG_FILE}"
+  # Let each child script print verbose output to terminal; keep log summary-only.
+  if MAINTENANCE_SILENT=0 bash "${script}"; then
+    local pass_msg="$(date -Iseconds) [PASS] ${name}"
+    echo -e "${GREEN}${pass_msg}${NC}"
+    append_colored_log "${GREEN}" "${pass_msg}"
   else
-    if [[ -n "${output}" ]]; then
-      echo "${output}" | sed 's/^/    /' | tee -a "${LOG_FILE}" >&2
-    fi
-    echo -e "${RED}$(date -Iseconds) [FAIL] ${name}${NC}" | tee -a "${LOG_FILE}" >&2
-    ERROR_LINES+="$(date -Iseconds) [FAIL] ${name}\n"
+    local fail_msg="$(date -Iseconds) [FAIL] ${name}"
+    echo -e "${RED}${fail_msg}${NC}" >&2
+    append_colored_log "${RED}" "${fail_msg}"
+    ERROR_LINES+="${fail_msg}\n"
     return 1
   fi
 }
@@ -97,7 +108,9 @@ run_check "run-mongo-backup.sh"        || HAS_FAILURE=1
 run_check "run-certbot-renew.sh"       || HAS_FAILURE=1
 
 if [[ "${HAS_FAILURE}" -ne 0 ]]; then
-  echo -e "${RED}$(date -Iseconds) [FAIL] scheduled maintenance ran with failures${NC}" | tee -a "${LOG_FILE}" >&2
+  summary_msg="$(date -Iseconds) [FAIL] scheduled maintenance ran with failures"
+  echo -e "${RED}${summary_msg}${NC}" >&2
+  append_colored_log "${RED}" "${summary_msg}"
   sendEmail
 fi
 

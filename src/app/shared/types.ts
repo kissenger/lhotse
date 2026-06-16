@@ -310,6 +310,8 @@ interface ArticleSection {
   videoUrl: string;
   videoOrientation?: 'landscape' | 'portrait';
   imgCredit: string;
+  affiliateLabel?: string;
+  affiliateUrl?: string;
   sectionType?: 'cta';
   ctaLinks?: Array<{ label: string; url: string }>;
 }
@@ -317,6 +319,12 @@ interface ArticleSection {
 interface ArticleReviewAffiliateLink {
   label: string;
   url: string;
+}
+
+export interface ArticleReviewCategory {
+  name: string;
+  value: number;
+  summary?: string;
 }
 
 interface ArticleReview {
@@ -332,6 +340,7 @@ interface ArticleReview {
   summary: string;
   ratingValue: number;
   ratingScale: number;
+  ratingCategories?: ArticleReviewCategory[];
   pros: string[];
   cons: string[];
   affiliateDisclosure?: string;
@@ -361,7 +370,9 @@ export class ArticlePost {
     imgAlt: '', 
     videoUrl: '',
     videoOrientation: 'landscape',
-    imgCredit: ''
+    imgCredit: '',
+    affiliateLabel: '',
+    affiliateUrl: ''
   }];
   conclusion: string = '';
   createdAt: string = '';
