@@ -40,6 +40,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   isAdminHost: boolean = false;
   reviewSummaryHtml: string = '';
   affiliateDisclosureHtml: string = '';
+  private readonly _portraitSectionImages = new Set<string>();
   private readonly _isBrowser: boolean;
   private _routeSubs: Subscription | undefined;
 
@@ -110,6 +111,33 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   sectionImageSrc(path: string): string {
     return this._resolveImagePath(path || '');
+  }
+
+  private _sectionImageKey(path: string): string {
+    return (path || '').trim().replace(/^\/+/, '').replace(/^assets\//, '');
+  }
+
+  isPortraitSectionImage(path: string): boolean {
+    const key = this._sectionImageKey(path);
+    return key ? this._portraitSectionImages.has(key) : false;
+  }
+
+  onSectionImageLoaded(event: Event, path: string): void {
+    const key = this._sectionImageKey(path);
+    if (!key) {
+      return;
+    }
+
+    const img = event.target as HTMLImageElement | null;
+    if (!img || img.naturalWidth <= 0 || img.naturalHeight <= 0) {
+      return;
+    }
+
+    if (img.naturalHeight > img.naturalWidth) {
+      this._portraitSectionImages.add(key);
+    } else {
+      this._portraitSectionImages.delete(key);
+    }
   }
 
   get reviewImageSrc(): string {

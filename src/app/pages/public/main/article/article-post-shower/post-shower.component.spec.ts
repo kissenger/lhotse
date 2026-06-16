@@ -152,6 +152,17 @@ describe('PostShowerComponent', () => {
     expect(comp.heroImageSrc).toContain('/assets/photos/articles/test-image.webp');
   });
 
+  it('marks portrait section images for contain fit', () => {
+    const { comp } = buildComp();
+    const img = document.createElement('img');
+    Object.defineProperty(img, 'naturalWidth', { value: 900, configurable: true });
+    Object.defineProperty(img, 'naturalHeight', { value: 1400, configurable: true });
+
+    comp.onSectionImageLoaded({ target: img } as unknown as Event, 'photos/articles/portrait-test.webp');
+
+    expect(comp.isPortraitSectionImage('photos/articles/portrait-test.webp')).toBeTrue();
+  });
+
   // --- onRetry ---
 
   it('onRetry resets state back to loading then to success', async () => {

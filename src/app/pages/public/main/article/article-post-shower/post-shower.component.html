@@ -209,13 +209,14 @@
               <h2>{{section.title}}</h2>
               <div [innerHTML]="section.content | sanitizer"></div>
               @if (!!section.imgFname) {
-                <div class="article-image-container section-image-container">
+                <div class="article-image-container section-image-container" [class.section-image-container--portrait]="isPortraitSectionImage(section.imgFname)">
                   @if (usePlainSrcImages) {
                     <img
                       [src]="sectionImageSrc(section.imgFname)"
                       [alt]="section.imgAlt"
                       loading="lazy"
                       decoding="async"
+                      (load)="onSectionImageLoaded($event, section.imgFname)"
                     />
                   } @else {
                     <img
@@ -226,6 +227,7 @@
                       loading="lazy"
                       decoding="async"
                       fetchpriority="low"
+                      (load)="onSectionImageLoaded($event, section.imgFname)"
                     />
                   }
                 </div>
