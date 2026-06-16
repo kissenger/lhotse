@@ -145,6 +145,13 @@ describe('PostShowerComponent', () => {
     expect(comp.contentVisible).toBe(true);
   });
 
+  it('resolves production article image paths through assets', () => {
+    const { comp } = buildComp();
+    comp.post.imgFname = 'photos/articles/test-image.webp';
+
+    expect(comp.heroImageSrc).toContain('/assets/photos/articles/test-image.webp');
+  });
+
   // --- onRetry ---
 
   it('onRetry resets state back to loading then to success', async () => {

@@ -11,6 +11,8 @@ import { LoaderComponent } from '@shared/components/loader/loader.component';
 import { stage } from '@shared/globals';
 import { DomSanitizer } from '@angular/platform-browser';
 import { buildYouTubeEmbedUrl } from '@shared/utils/youtube-url';
+import { appImageUrl } from '@shared/utils/image-url';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-post-shower',
@@ -99,11 +101,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       return `/assets/${withoutAssetsPrefix}`;
     }
 
-    if (!this.isPreview) {
-      return rawPath;
-    }
-
-    return `/${normalized}`;
+    return appImageUrl(rawPath, { stage: environment.STAGE });
   }
 
   get heroImageSrc(): string {
