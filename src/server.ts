@@ -103,7 +103,6 @@ app.use((req, res, next) => {
       res.redirect(302, '/dashboard');
       return;
     }
-    req.headers['host'] = 'snorkelology.co.uk';
   }
   next();
 });
