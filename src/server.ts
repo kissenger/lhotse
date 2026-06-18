@@ -14,13 +14,14 @@ import { article, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from '
 import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
 import { injectSeoPayloadIntoHtml, type SeoMetaTag, type SeoPayload } from './server-seo-injection';
+import { environment } from './environments/environment';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
 import { buildYouTubeEmbedUrl, extractYouTubeVideoId } from './app/shared/utils/youtube-url';
 import { MAP_COUNTRY_DISPLAY_NAMES, buildMapPath, getCountrySlugFromRegion, getCountyDisplayName, getCountySlugFromLocation, getCountyMatchSlugs, normaliseCountrySegment, normaliseCountySegment, normaliseSiteSegment, toTitleCase } from './app/shared/map-paths';
 import 'dotenv/config';
 
-const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
+const ENVIRONMENT = environment.STAGE === 'prod' ? 'PRODUCTION' : 'DEVELOPMENT';
 const SKIP_SEO_DB_LOOKUPS = process.env['SKIP_SEO_DB_LOOKUPS'] === 'true';
 const app = express();
 app.use(compression());

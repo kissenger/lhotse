@@ -8,6 +8,7 @@ import { getPostedEmailBody } from './server-shop-posted-email';
 import { requireAdmin, verifyToken } from './server-auth'
 import { shippingOptions as shippingOptionsConfig } from './environments/environment._shippingOptions';
 import { shopItems as shopItemsConfig } from './environments/environment._shopItems';
+import { environment } from './environments/environment';
 import 'dotenv/config';
 
 const checkoutRateLimit = rateLimit({
@@ -19,7 +20,7 @@ const checkoutRateLimit = rateLimit({
 });
 
 const shop = express();
-const ENVIRONMENT = import.meta.url.match('prod') ? "PRODUCTION" : "DEVELOPMENT";
+const ENVIRONMENT = environment.STAGE === 'prod' ? 'PRODUCTION' : 'DEVELOPMENT';
 const PAYPAL_ENDPOINT = ENVIRONMENT === 'PRODUCTION' ? 'https://api-m.paypal.com': 'https://api.sandbox.paypal.com'
 const STOCK_ITEMS = shopItemsConfig.SHOP_ITEMS;
 const SHIPPING_OPTIONS = shippingOptionsConfig.SHIPPING_OPTIONS;

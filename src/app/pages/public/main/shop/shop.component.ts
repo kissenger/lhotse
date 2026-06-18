@@ -84,6 +84,7 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
         paypal = await loadScript({
           clientId: environment.PAYPAL_CLIENT_ID,
           currency: 'GBP',
+          environment: environment.STAGE === 'prod' ? 'production' : 'sandbox',
           dataCspNonce: this._cspNonce || undefined
         });
     } catch (error:any) {
