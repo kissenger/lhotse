@@ -28,6 +28,7 @@ export const routes: Routes = [
   { path: 'map/:country', loadComponent: loadMapPage },
   { path: 'map/:country/:county', loadComponent: loadMapPage },
   { path: 'map/:country/:county/:siteName', loadComponent: loadMapPage },
+  { path: 'admin', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', loadComponent: () =>
     import('@pages/admin/admin.component').then((m) => m.AdminComponent), canActivate: [AuthGuard], data: { noPreload: true }},
   { path: 'orders', loadComponent: () =>
