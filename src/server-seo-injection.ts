@@ -16,7 +16,7 @@ export interface SeoPayload {
   metaTags?: SeoMetaTag[];
 }
 
-export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, siteUrl: string) {
+export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, siteUrl: string, cspNonce?: string) {
   const ogUrl = `${siteUrl}${payload.canonicalPath.startsWith('/') ? payload.canonicalPath : `/${payload.canonicalPath}`}`;
   const sanitizedTitle = escapeHtmlAttr(payload.title);
   const sanitizedDescription = escapeHtmlAttr(payload.description);
@@ -45,7 +45,7 @@ export function injectSeoPayloadIntoHtml(html: string, payload: SeoPayload, site
     result = upsertMetaTag(result, meta.key, meta.keyValue, escapeHtmlAttr(meta.content));
   }
 
-  return injectJsonLdIntoHead(result, payload.schemas);
+  return injectJsonLdIntoHead(result, payload.schemas, cspNonce);
 }
 
 export function escapeHtmlAttr(value: string) {
@@ -90,13 +90,14 @@ export function upsertCanonicalTag(html: string, href: string) {
   return insertIntoHeadOrPrefix(html, replacement);
 }
 
-export function injectJsonLdIntoHead(html: string, schemas: object[]) {
+export function injectJsonLdIntoHead(html: string, schemas: object[], cspNonce?: string) {
   if (!schemas.length) {
     return html;
   }
 
+  const nonceAttribute = cspNonce ? ` nonce="${escapeHtmlAttr(cspNonce)}"` : '';
   const scripts = schemas
-    .map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
+    .map(schema => `<script type="application/ld+json"${nonceAttribute}>${JSON.stringify(schema)}</script>`)
     .join('');
 
   // Inject before </body> so JSON-LD is parsed after the page renders, reducing TBT.

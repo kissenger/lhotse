@@ -1,6 +1,7 @@
 import express from 'express';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -109,6 +110,8 @@ app.use((req, res, next) => {
 });
 
 app.use((_req, res, next) => {
+  const cspNonce = randomBytes(16).toString('base64');
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -120,7 +123,7 @@ app.use((_req, res, next) => {
     "default-src 'self'",
     "base-uri 'self'",
     "frame-ancestors 'self'",
-    "script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com",
+    `script-src 'self' 'nonce-${cspNonce}' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com`,
     "script-src-attr 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: blob: https:",
@@ -133,6 +136,8 @@ app.use((_req, res, next) => {
   if (ENVIRONMENT !== 'PRODUCTION') {
     res.setHeader('Content-Security-Policy-Report-Only', cspPolicy);
   }
+
+  res.locals['cspNonce'] = cspNonce;
 
   if (ENVIRONMENT === 'PRODUCTION') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -376,7 +381,7 @@ app.use(async (req, res, next) => {
       const html = await response.text();
       const forceNotFoundStatus = shouldForceNotFoundStatusFromHtml(html);
 
-      const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html, req.hostname);
+      const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html, req.hostname, res.locals['cspNonce']);
 
       const headers = new Headers(response.headers);
       const cacheControl = getPublicHtmlCacheControl(req);
@@ -663,7 +668,7 @@ function applyLocalSeoImageUrls(payload: SeoPayload): SeoPayload {
   };
 }
 
-async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string, hostname?: string) {
+async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string, hostname?: string, cspNonce?: string) {
   const payload = await getSeoPayload(pathname, query);
   if (!payload) {
     return stripCanonicalTag(html);
@@ -671,7 +676,7 @@ async function injectSeoIntoHtml(pathname: string, query: Record<string, string>
 
   const resolvedPayload = isLocalHost(hostname) ? applyLocalSeoImageUrls(payload) : payload;
 
-  return injectSeoPayloadIntoHtml(html, resolvedPayload, SITE_URL);
+  return injectSeoPayloadIntoHtml(html, resolvedPayload, SITE_URL, cspNonce);
 }
 
 async function getSeoPayload(pathname: string, _query: Record<string, string> = {}): Promise<SeoPayload | null> {
