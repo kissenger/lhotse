@@ -123,7 +123,7 @@ app.use((_req, res, next) => {
     "default-src 'self'",
     "base-uri 'self'",
     "frame-ancestors 'self'",
-    `script-src 'self' 'nonce-${cspNonce}' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com`,
+    `script-src 'self' 'nonce-${cspNonce}' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-ICzSh2fqG0SYHzXcol4npA+pjBArzVpEJoARJfwTY2M=' 'sha256-xiaD0XEAtT7Da8WrcQjkQbhOx0ZR6pjMSRZNsqZuFdA=' https://api.mapbox.com https://www.paypal.com https://www.sandbox.paypal.com https://static.cloudflareinsights.com`,
     "script-src-attr 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: blob: https:",
