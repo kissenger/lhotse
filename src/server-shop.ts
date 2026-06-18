@@ -33,6 +33,50 @@ const EMAIL_CONFIG = {
     pass: process.env['GMAIL_APP_PASSWD'] // app password for gordon@snorkelology.co.uk account through google workspace
   },
 }
+const PAYPAL_ALERT_RECIPIENT = process.env['PAYPAL_ALERT_EMAIL_TO'] || 'orders@snorkelology.co.uk';
+
+function toErrorText(error: unknown): string {
+  try {
+    if (typeof error === 'string') {
+      return error;
+    }
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+    return JSON.stringify(error, null, 2);
+  } catch {
+    return String(error);
+  }
+}
+
+function truncateText(value: string, maxLength: number): string {
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function notifyPayPalApiError(context: {
+  route: string;
+  orderNumber?: string | null;
+  endpoint?: string;
+  status?: number;
+  method?: string;
+  error: unknown;
+}): void {
+  const envLabel = ENVIRONMENT === 'PRODUCTION' ? 'prod' : 'non-prod';
+  const subject = `[${envLabel}] PayPal API error: ${context.route}`;
+  const html = `
+    <h2>PayPal API error alert</h2>
+    <p><strong>Environment:</strong> ${envLabel}</p>
+    <p><strong>Route:</strong> ${context.route}</p>
+    <p><strong>Order Number:</strong> ${context.orderNumber ?? 'n/a'}</p>
+    <p><strong>Method:</strong> ${context.method ?? 'n/a'}</p>
+    <p><strong>Endpoint:</strong> ${context.endpoint ?? PAYPAL_ENDPOINT}</p>
+    <p><strong>Status:</strong> ${context.status ?? 'n/a'}</p>
+    <h3>Error</h3>
+    <pre>${truncateText(toErrorText(context.error), 12000)}</pre>
+  `;
+
+  sendEmail(PAYPAL_ALERT_RECIPIENT, html, subject);
+}
 
 function roundToCurrency(value: number): number {
   return Math.round(value * 100) / 100;
@@ -269,7 +313,7 @@ shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _
 
     const json = await result.json();
     if (!result.ok || Array.isArray(json.details)) {
-      throw json;
+      throw { ...json, __paypalStatus: result.status };
     } else {
       const resp = await logShopEvent( orderNumber, 
         { paypal: { id: json.id, intent: paypalIntent, endPoint: PAYPAL_ENDPOINT}, 
@@ -288,6 +332,14 @@ shop.post('/api/shop/create-paypal-order', checkoutRateLimit, async (req, res, _
 
   } catch (err: any) {
     await logShopError(req.body.orderNumber, err);
+    notifyPayPalApiError({
+      route: '/api/shop/create-paypal-order',
+      orderNumber: req.body?.orderNumber ?? null,
+      method: 'POST',
+      endpoint: `${PAYPAL_ENDPOINT}/v2/checkout/orders`,
+      status: err?.__paypalStatus,
+      error: err,
+    });
     const message = extractErrorMessage(err, 'Unknown PayPal order creation error');
     res.status(500).send({error: 'ShopError', message: `Error creating PayPal order: ${message}`});
   }
@@ -323,6 +375,21 @@ shop.post('/api/shop/patch-paypal-order', checkoutRateLimit, async (req, res) =>
       }])
     })
 
+    if (!result.ok) {
+      let details: any = null;
+      try {
+        details = await result.json();
+      } catch {
+        details = { message: await result.text() };
+      }
+      throw {
+        name: 'ShopError',
+        message: `PayPal patch failed (${result.status})`,
+        details,
+        __paypalStatus: result.status,
+      };
+    }
+
     await logShopEvent(req.body.orderNumber, {
         "$set": {
           "paypal.intent.purchase_units": [trustedPurchaseUnit],
@@ -334,10 +401,18 @@ shop.post('/api/shop/patch-paypal-order', checkoutRateLimit, async (req, res) =>
         }          
       })
 
-    res.send(result);
+    res.send({ ok: true });
 
   } catch (err: any) {
-    logShopError(req.body.orderNumber, err);
+    await logShopError(req.body.orderNumber, err);
+    notifyPayPalApiError({
+      route: '/api/shop/patch-paypal-order',
+      orderNumber: req.body?.orderNumber ?? null,
+      method: 'PATCH',
+      endpoint: `${PAYPAL_ENDPOINT}/v2/checkout/orders/${req.body?.paypalOrderId ?? 'unknown'}`,
+      status: err?.__paypalStatus,
+      error: err,
+    });
     res.status(500).send({error: `ShopError: ${err.name}`, message: `Error patching PayPal order: ${err.message}`});
   }
 
@@ -359,7 +434,7 @@ shop.post('/api/shop/capture-paypal-payment', checkoutRateLimit, async (req, res
       
     const json = await result.json();
     if (!result.ok || Array.isArray(json.details)) {
-      throw json;
+      throw { ...json, __paypalStatus: result.status };
     } else {
       // Validate shipping country before treating the capture as successful
       const shippingCountry = json.purchase_units?.[0]?.shipping?.address?.country_code;
@@ -392,6 +467,14 @@ shop.post('/api/shop/capture-paypal-payment', checkoutRateLimit, async (req, res
 
   } catch (err: any) {
     await logShopError(req.body.orderNumber, err);
+    notifyPayPalApiError({
+      route: '/api/shop/capture-paypal-payment',
+      orderNumber: req.body?.orderNumber ?? null,
+      method: 'POST',
+      endpoint: `${PAYPAL_ENDPOINT}/v2/checkout/orders/${req.body?.paypalOrderId ?? 'unknown'}/capture/`,
+      status: err?.__paypalStatus,
+      error: err,
+    });
     const message = extractErrorMessage(err, 'Unknown PayPal capture error');
     res.status(500).send({error: 'ShopError', message: `Error finalising PayPal order: ${message}`});
   }
@@ -722,10 +805,23 @@ async function getAccessToken() {
     })
     json = await apiResponse.json();
   } catch (error) {
+    notifyPayPalApiError({
+      route: 'getAccessToken',
+      method: 'POST',
+      endpoint: `${PAYPAL_ENDPOINT}/v1/oauth2/token`,
+      error,
+    });
     throw new ShopError('PayPal oauth API: No response recieved');
   }
 
   if (json.error) {
+    notifyPayPalApiError({
+      route: 'getAccessToken',
+      method: 'POST',
+      endpoint: `${PAYPAL_ENDPOINT}/v1/oauth2/token`,
+      status: apiResponse.status,
+      error: json,
+    });
     throw new ShopError(`PayPal oauth API: Authorisation failed (${json.error}: ${json.error_description})`);
   }
   
