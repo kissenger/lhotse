@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit, Inject } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit, Inject, CSP_NONCE } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -34,6 +34,7 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
     private _http: HttpService,
     private _cdr: ChangeDetectorRef,
     @Inject(ScrollOffsetService) private _scrollOffset: ScrollOffsetService,
+    @Inject(CSP_NONCE) private _cspNonce: string | null,
     public shop: ShopService,
     public toaster: ToastService
   ) {}
@@ -82,7 +83,8 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
         paypal = await loadScript({
           clientId: environment.PAYPAL_CLIENT_ID,
-          currency: 'GBP'
+          currency: 'GBP',
+          dataCspNonce: this._cspNonce || undefined
         });
     } catch (error:any) {
       this.toaster.show('Could not load the PayPal payment form. Please refresh the page and try again.', 'error');
