@@ -99,7 +99,8 @@ app.use((req, res, next) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     res.setHeader('X-Accel-Expires', '0');
-    if (req.path === '/') {
+    const adminPath = normalizePath(req.path);
+    if (adminPath === '/' || adminPath === '/admin') {
       res.redirect(302, '/dashboard');
       return;
     }
