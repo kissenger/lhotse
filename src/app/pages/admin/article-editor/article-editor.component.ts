@@ -60,8 +60,10 @@ export class ArticleEditorComponent implements OnInit {
         imageAlt: '',
         imageCredit: '',
         summary: '',
-        ratingValue: 4,
-        ratingScale: 5,
+        testingMethod: '',
+        performanceNotes: '',
+        standoutFeatures: [],
+        bestFor: [],
         pros: [],
         cons: [],
         affiliateDisclosure: '',
@@ -73,8 +75,10 @@ export class ArticleEditorComponent implements OnInit {
       };
     }
     this.selectedPost.review.reviewKind = this.selectedPost.review.reviewKind || 'product';
-    this.selectedPost.review.ratingScale = this.selectedPost.review.ratingScale || 5;
-    this.selectedPost.review.ratingValue = Math.min(this.selectedPost.review.ratingScale, Math.max(0, this.selectedPost.review.ratingValue || 0));
+    this.selectedPost.review.testingMethod = this.selectedPost.review.testingMethod || '';
+    this.selectedPost.review.performanceNotes = this.selectedPost.review.performanceNotes || '';
+    this.selectedPost.review.standoutFeatures = this.selectedPost.review.standoutFeatures || [];
+    this.selectedPost.review.bestFor = this.selectedPost.review.bestFor || [];
     this.selectedPost.review.pros = this.selectedPost.review.pros || [];
     this.selectedPost.review.cons = this.selectedPost.review.cons || [];
     this.selectedPost.review.affiliateLinks = this.selectedPost.review.affiliateLinks || [];
@@ -278,11 +282,12 @@ export class ArticleEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
-  addReviewListItem(type: 'pros' | 'cons', value: string, input: HTMLInputElement) {
+  addReviewListItem(type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', value: string, input: HTMLInputElement) {
     const trimmed = value.trim();
     if (!trimmed) return;
     this.ensureReviewModel();
-    const list = this.selectedPost.review[type];
+    const list = this.selectedPost.review[type] || [];
+    this.selectedPost.review[type] = list;
     if (!list.includes(trimmed)) {
       list.push(trimmed);
       this.isDirty = true;
@@ -290,15 +295,15 @@ export class ArticleEditorComponent implements OnInit {
     input.value = '';
   }
 
-  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons', input: HTMLInputElement) {
+  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', input: HTMLInputElement) {
     if (event.key !== 'Enter') return;
     event.preventDefault();
     this.addReviewListItem(type, input.value, input);
   }
 
-  removeReviewListItem(type: 'pros' | 'cons', index: number) {
+  removeReviewListItem(type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', index: number) {
     this.ensureReviewModel();
-    this.selectedPost.review[type] = this.selectedPost.review[type].filter((_, i) => i !== index);
+    this.selectedPost.review[type] = (this.selectedPost.review[type] || []).filter((_, i) => i !== index);
     this.isDirty = true;
   }
 
@@ -406,8 +411,10 @@ export class ArticleEditorComponent implements OnInit {
           imageAlt: '',
           imageCredit: '',
           summary: '',
-          ratingValue: 4,
-          ratingScale: 5,
+          testingMethod: '',
+          performanceNotes: '',
+          standoutFeatures: [],
+          bestFor: [],
           pros: [],
           cons: [],
           affiliateDisclosure: '',

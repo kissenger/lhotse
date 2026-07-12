@@ -33,9 +33,9 @@
 
     <p class="subtitle media-row-description">{{data.subtitle}}</p>
 
-    @if (data.type === 'review' && data.review.ratingScale) {
-      <div class="review-chip" aria-label="Rating {{data.review.ratingValue | number : '1.0-0'}} out of {{data.review.ratingScale | number : '1.0-0'}}">
-        <span>★ {{ data.review.ratingValue | number : '1.0-0' }}/{{data.review.ratingScale | number : '1.0-0'}}</span>
+    @if (data.type === 'review') {
+      <div class="review-chip" [attr.aria-label]="data.review.reviewKind === 'book' ? 'Book long-form review' : 'Product long-form review'">
+        <span>{{ data.review.reviewKind === 'book' ? 'Book review' : 'Long-form product review' }}</span>
       </div>
     }
 

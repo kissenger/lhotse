@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ArticlePost } from '@shared/types';
 import { RouterLink } from '@angular/router';
 import { appImageUrl } from '@shared/utils/image-url';
@@ -7,7 +7,7 @@ import { environment } from '@environments/environment';
 
 @Component({
   standalone: true,
-  imports: [RouterLink, DatePipe, DecimalPipe],
+  imports: [RouterLink, DatePipe],
   selector: 'app-article-card',
   templateUrl: './article-card.component.html',
   styleUrls: ['./article-card.component.css'],

@@ -39,6 +39,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   isPreview: boolean = false;
   isAdminHost: boolean = false;
   reviewSummaryHtml: string = '';
+  reviewTestingMethodHtml: string = '';
+  reviewPerformanceNotesHtml: string = '';
   affiliateDisclosureHtml: string = '';
   private readonly _portraitSectionImages = new Set<string>();
   private readonly _isBrowser: boolean;
@@ -174,24 +176,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     return this.post.review?.reviewKind === 'book';
   }
 
-  get reviewStarsFilled(): number {
-    const scale = this.post.review?.ratingScale || 5;
-    const value = this.post.review?.ratingValue || 0;
-    if (scale <= 0) return 0;
-    return Math.max(0, Math.min(scale, Math.round(value)));
-  }
-
-  get reviewStarsEmpty(): number {
-    const scale = this.post.review?.ratingScale || 5;
-    return Math.max(0, scale - this.reviewStarsFilled);
-  }
-
-  get reviewStarsFilledArray(): number[] {
-    return Array.from({ length: this.reviewStarsFilled }, (_, i) => i);
-  }
-
-  get reviewStarsEmptyArray(): number[] {
-    return Array.from({ length: this.reviewStarsEmpty }, (_, i) => i);
+  get isProductReview(): boolean {
+    return !this.isBookReview;
   }
 
   get showContents(): boolean {
@@ -210,13 +196,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     const model = {
       ...defaults,
       ...(review || {}),
+      standoutFeatures: Array.isArray(review?.standoutFeatures) ? review.standoutFeatures.filter((x: any) => !!x) : [],
+      bestFor: Array.isArray(review?.bestFor) ? review.bestFor.filter((x: any) => !!x) : [],
       pros: Array.isArray(review?.pros) ? review.pros.filter((x: any) => !!x) : [],
       cons: Array.isArray(review?.cons) ? review.cons.filter((x: any) => !!x) : [],
       affiliateLinks: Array.isArray(review?.affiliateLinks) ? review.affiliateLinks.filter((x: any) => !!x?.label && !!x?.url) : []
     };
-
-    model.ratingScale = Math.max(1, Number(model.ratingScale || 5));
-    model.ratingValue = Math.min(model.ratingScale, Math.max(0, Number(model.ratingValue || 0)));
     return model;
   }
 
@@ -253,6 +238,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.post = result.article;
           this.post.review = this._normaliseReviewModel(result.article.review);
           this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
+          this.reviewTestingMethodHtml = this._htmler.transform(this.post.review.testingMethod || '');
+          this.reviewPerformanceNotesHtml = this._htmler.transform(this.post.review.performanceNotes || '');
           this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');
           this.post.intro = this._htmler.transform(result.article.intro ?? '');
           this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');
@@ -310,6 +297,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       this.post = result.article;
       this.post.review = this._normaliseReviewModel(result.article.review);
       this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
+      this.reviewTestingMethodHtml = this._htmler.transform(this.post.review.testingMethod || '');
+      this.reviewPerformanceNotesHtml = this._htmler.transform(this.post.review.performanceNotes || '');
       this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');
       this.post.intro = this._htmler.transform(result.article.intro ?? '');
       this.post.conclusion = this._htmler.transform(result.article.conclusion ?? '');

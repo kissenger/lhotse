@@ -79,18 +79,6 @@
             <h2>{{post.review.productName || post.title}}</h2>
           </header>
 
-          <div class="review-rating-row" aria-label="Rating {{post.review.ratingValue | number : '1.0-0'}} out of {{post.review.ratingScale | number : '1.0-0'}}">
-            <span class="review-score">{{post.review.ratingValue | number : '1.0-0'}} / {{post.review.ratingScale | number : '1.0-0'}}</span>
-            <span class="review-stars" aria-hidden="true">
-              @for (_ of reviewStarsFilledArray; track $index) {
-                <span class="star star--filled">★</span>
-              }
-              @for (_ of reviewStarsEmptyArray; track $index) {
-                <span class="star">☆</span>
-              }
-            </span>
-          </div>
-
           @if (post.review.author || post.review.publisher || post.review.isbn || post.review.brand) {
             <p class="review-meta-inline" aria-label="Review details">
               @if (post.review.author) {
@@ -110,6 +98,44 @@
 
           @if (reviewSummaryHtml) {
             <div class="review-summary-copy" [innerHTML]="reviewSummaryHtml | sanitizer"></div>
+          }
+
+          <div class="review-analysis-grid">
+            @if (reviewTestingMethodHtml) {
+              <section class="review-analysis-box">
+                <h3>Testing approach</h3>
+                <div [innerHTML]="reviewTestingMethodHtml | sanitizer"></div>
+              </section>
+            }
+
+            @if (reviewPerformanceNotesHtml) {
+              <section class="review-analysis-box">
+                <h3>Performance in testing</h3>
+                <div [innerHTML]="reviewPerformanceNotesHtml | sanitizer"></div>
+              </section>
+            }
+          </div>
+
+          @if ((post.review.standoutFeatures?.length || 0) > 0) {
+            <section class="review-highlight-box">
+              <h3>Standout features</h3>
+              <ul>
+                @for (feature of post.review.standoutFeatures; track feature) {
+                  <li>{{feature}}</li>
+                }
+              </ul>
+            </section>
+          }
+
+          @if (isProductReview && (post.review.bestFor?.length || 0) > 0) {
+            <section class="review-highlight-box">
+              <h3>Best for</h3>
+              <ul>
+                @for (targetReader of post.review.bestFor; track targetReader) {
+                  <li>{{targetReader}}</li>
+                }
+              </ul>
+            </section>
           }
 
           <div class="review-pros-cons-grid">

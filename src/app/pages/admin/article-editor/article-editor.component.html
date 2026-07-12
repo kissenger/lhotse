@@ -125,6 +125,16 @@
                             <textarea id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="One-paragraph verdict for readers and search snippets"></textarea>
                         </div>
 
+                        <div class="field-row align-start">
+                            <label for="reviewTestingMethod">Testing method:</label>
+                            <textarea id="reviewTestingMethod" name="reviewTestingMethod" [(ngModel)]="selectedPost.review.testingMethod" placeholder="How this was tested (conditions, duration, use case)"></textarea>
+                        </div>
+
+                        <div class="field-row align-start">
+                            <label for="reviewPerformanceNotes">Performance in testing:</label>
+                            <textarea id="reviewPerformanceNotes" name="reviewPerformanceNotes" [(ngModel)]="selectedPost.review.performanceNotes" placeholder="What happened in testing and key observed results"></textarea>
+                        </div>
+
                         <div class="field-row">
                             <label for="reviewImageFname">Review image:</label>
                             <div class="image-field">
@@ -146,15 +156,6 @@
                             <input type="text" id="reviewImageCredit" name="reviewImageCredit" [(ngModel)]="selectedPost.review.imageCredit">
                         </div>
 
-                        <div class="field-row">
-                            <label for="reviewRatingValue">Rating:</label>
-                            <div class="review-rating-row">
-                                <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
-                                <span>/</span>
-                                <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
-                            </div>
-                        </div>
-
                         <div class="field-row align-start">
                             <label>Pros:</label>
                             <div class="keywords-editor">
@@ -165,10 +166,45 @@
                                 </div>
                                 <div class="keyword-inputs">
                                     <input #proInput type="text" class="kw-input" placeholder="Type a pro and press Enter"
-                                        (keydown)="onReviewListKeydown($event, 'pros', proInput)">
+                                        (keydown)="onReviewListKeydown($event, 'pros', proInput)"
+                                        (blur)="addReviewListItem('pros', proInput.value, proInput)">
                                 </div>
                             </div>
                         </div>
+
+                        <div class="field-row align-start">
+                            <label>Standout features:</label>
+                            <div class="keywords-editor">
+                                <div class="chip-list">
+                                    @for (feature of selectedPost.review.standoutFeatures; track $index) {
+                                        <span class="chip pill pill--interactive">{{feature}}<button type="button" class="chip-remove" (click)="removeReviewListItem('standoutFeatures', $index)" aria-label="Remove">×</button></span>
+                                    }
+                                </div>
+                                <div class="keyword-inputs">
+                                    <input #standoutFeatureInput type="text" class="kw-input" placeholder="Type a standout feature and press Enter"
+                                        (keydown)="onReviewListKeydown($event, 'standoutFeatures', standoutFeatureInput)"
+                                        (blur)="addReviewListItem('standoutFeatures', standoutFeatureInput.value, standoutFeatureInput)">
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (reviewLabel === 'Product') {
+                            <div class="field-row align-start">
+                                <label>Best for:</label>
+                                <div class="keywords-editor">
+                                    <div class="chip-list">
+                                        @for (targetReader of selectedPost.review.bestFor; track $index) {
+                                            <span class="chip pill pill--interactive">{{targetReader}}<button type="button" class="chip-remove" (click)="removeReviewListItem('bestFor', $index)" aria-label="Remove">×</button></span>
+                                        }
+                                    </div>
+                                    <div class="keyword-inputs">
+                                        <input #bestForInput type="text" class="kw-input" placeholder="Type who this product suits and press Enter"
+                                            (keydown)="onReviewListKeydown($event, 'bestFor', bestForInput)"
+                                            (blur)="addReviewListItem('bestFor', bestForInput.value, bestForInput)">
+                                    </div>
+                                </div>
+                            </div>
+                        }
 
                         <div class="field-row align-start">
                             <label>Cons:</label>
@@ -180,7 +216,8 @@
                                 </div>
                                 <div class="keyword-inputs">
                                     <input #conInput type="text" class="kw-input" placeholder="Type a con and press Enter"
-                                        (keydown)="onReviewListKeydown($event, 'cons', conInput)">
+                                        (keydown)="onReviewListKeydown($event, 'cons', conInput)"
+                                        (blur)="addReviewListItem('cons', conInput.value, conInput)">
                                 </div>
                             </div>
                         </div>

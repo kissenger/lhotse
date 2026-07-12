@@ -62,16 +62,6 @@
     padding: 0 0.35rem;
 }
 
-.review-rating-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.review-rating-row input {
-    width: 90px;
-}
-
 .slug-value {
     font-family: monospace;
     color: #555;

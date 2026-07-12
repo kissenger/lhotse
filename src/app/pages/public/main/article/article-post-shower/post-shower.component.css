@@ -235,33 +235,35 @@ h1 {
   margin: 0.1rem 0;
 }
 
-.review-rating-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.65rem;
-}
-
-.review-score {
-  font-weight: 700;
-  color: var(--sn-colour, #1D3D59);
-}
-
-.review-stars {
-  letter-spacing: 0.06em;
-  font-size: 1.05rem;
-}
-
-.star {
-  color: #9aa9b7;
-}
-
-.star--filled {
-  color: #d58c00;
-}
-
 .review-summary-copy {
   margin-top: 0.75rem;
+}
+
+.review-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.8rem;
+}
+
+.review-analysis-box,
+.review-highlight-box {
+  border: 1px solid var(--border-tint-16, rgba(29, 61, 89, 0.16));
+  border-radius: 8px;
+  background: var(--surface-base, #fff);
+  padding: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.review-analysis-box h3,
+.review-highlight-box h3 {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+}
+
+.review-highlight-box ul {
+  margin: 0;
+  padding-left: 1.1rem;
 }
 
 .review-pros-cons-grid {

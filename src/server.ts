@@ -1699,8 +1699,6 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
 
   const reviewSchemas = isProductReview
     ? (() => {
-        const ratingScale = Math.max(1, Number(reviewModel.ratingScale || 5));
-        const ratingValue = Math.min(ratingScale, Math.max(0, Number(reviewModel.ratingValue || 0)));
         const productName = (reviewModel.productName || post.title || '').trim();
         const itemReviewedType = isBookReview ? 'Book' : 'Product';
         const productSchema: Record<string, unknown> = {
@@ -1714,15 +1712,14 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
           isbn: isBookReview && reviewModel.isbn ? reviewModel.isbn : undefined,
           sku: reviewModel.sku || undefined,
           description: (reviewModel.summary || description || '').replace(/<[^>]*>/g, '').slice(0, 300).trim(),
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue,
-            bestRating: ratingScale,
-            worstRating: 0,
-            ratingCount: 1,
-            reviewCount: 1,
-          },
         };
+
+        if (!isBookReview && Array.isArray(reviewModel.bestFor) && reviewModel.bestFor.length > 0) {
+          productSchema['audience'] = reviewModel.bestFor.map((segment: string) => ({
+            '@type': 'PeopleAudience',
+            audienceType: segment,
+          }));
+        }
 
         if (reviewModel.priceValue || reviewModel.availability) {
           productSchema['offers'] = {
@@ -1751,12 +1748,6 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
             publisher: isBookReview && reviewModel.publisher ? { '@type': 'Organization', name: reviewModel.publisher } : undefined,
             isbn: isBookReview && reviewModel.isbn ? reviewModel.isbn : undefined,
             image: imageUrl,
-          },
-          reviewRating: {
-            '@type': 'Rating',
-            ratingValue,
-            bestRating: ratingScale,
-            worstRating: 0,
           },
         };
 

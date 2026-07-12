@@ -49,6 +49,52 @@ function previewAuthGuard(req: express.Request, res: express.Response, next: exp
   verifyToken(req as any, res as any, next as any);
 }
 
+function toCleanStringArray(input: unknown): string[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+  return input
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter((item) => item.length > 0);
+}
+
+function normalizeReviewPayload(rawReview: any): any {
+  const review = rawReview || {};
+  const reviewKind = review.reviewKind === 'book' ? 'book' : 'product';
+
+  return {
+    reviewKind,
+    productName: (review.productName || '').toString().trim(),
+    brand: (review.brand || '').toString().trim(),
+    author: (review.author || '').toString().trim(),
+    publisher: (review.publisher || '').toString().trim(),
+    isbn: (review.isbn || '').toString().trim(),
+    imageFname: (review.imageFname || '').toString().trim(),
+    imageAlt: (review.imageAlt || '').toString().trim(),
+    imageCredit: (review.imageCredit || '').toString().trim(),
+    summary: (review.summary || '').toString().trim(),
+    testingMethod: (review.testingMethod || '').toString().trim(),
+    performanceNotes: (review.performanceNotes || '').toString().trim(),
+    standoutFeatures: toCleanStringArray(review.standoutFeatures),
+    bestFor: reviewKind === 'product' ? toCleanStringArray(review.bestFor) : [],
+    pros: toCleanStringArray(review.pros),
+    cons: toCleanStringArray(review.cons),
+    affiliateDisclosure: (review.affiliateDisclosure || '').toString().trim(),
+    affiliateLinks: Array.isArray(review.affiliateLinks)
+      ? review.affiliateLinks
+          .map((link: any) => ({
+            label: (link?.label || '').toString().trim(),
+            url: (link?.url || '').toString().trim(),
+          }))
+          .filter((link: any) => link.label && link.url)
+      : [],
+    priceCurrency: (review.priceCurrency || 'GBP').toString().trim(),
+    priceValue: typeof review.priceValue === 'number' && Number.isFinite(review.priceValue) ? review.priceValue : null,
+    availability: (review.availability || '').toString().trim(),
+    sku: (review.sku || '').toString().trim(),
+  };
+}
+
 const likeRateLimit = rateLimit({
   windowMs: 60 * 1000,
   limit: 30,
@@ -173,6 +219,10 @@ article.get('/api/article/get-last-and-next-slugs/:slug', async (req, res) => {
 });
 
 article.post('/api/article/upsert-post/', verifyToken, requireAdmin, withRawServerError(async (req, res) => {
+  if (req.body?.type === 'review' || req.body?.review) {
+    req.body.review = normalizeReviewPayload(req.body.review);
+  }
+
   if (req.body._id !=='') {
     const preserveUpdatedAt = req.body.preserveUpdatedAt === true;
     delete req.body.preserveUpdatedAt;
