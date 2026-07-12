@@ -18,6 +18,8 @@ const articleSchema = new mongoose.Schema({
     videoUrl: {type: String},
     videoOrientation: {type: String},
     imgCredit: {type: String},
+    affiliateLabel: {type: String},
+    affiliateUrl: {type: String},
     sectionType: {type: String},
     ctaLinks: {type: [{
       label: {type: String},

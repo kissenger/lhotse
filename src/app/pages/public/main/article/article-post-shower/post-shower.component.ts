@@ -8,6 +8,7 @@ import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 import { LoaderComponent } from '@shared/components/loader/loader.component';
+import { AffiliateBoxComponent } from '../../../../../shared/affiliate-box/affiliate-box.component';
 import { stage } from '@shared/globals';
 import { DomSanitizer } from '@angular/platform-browser';
 import { buildYouTubeEmbedUrl } from '@shared/utils/youtube-url';
@@ -17,10 +18,10 @@ import { environment } from '@environments/environment';
 @Component({
   selector: 'app-post-shower',
   standalone: true,
-  providers: [HtmlerPipe, SanitizerPipe],
+  providers: [HtmlerPipe, SanitizerPipe, KebaberPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
-  imports: [KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage, LoaderComponent]
+  imports: [KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage, LoaderComponent, AffiliateBoxComponent]
 })
 
 export class PostShowerComponent implements OnDestroy, OnInit {
@@ -42,14 +43,19 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   reviewTestingMethodHtml: string = '';
   reviewPerformanceNotesHtml: string = '';
   affiliateDisclosureHtml: string = '';
+  showFloatingBackToContents: boolean = false;
   private readonly _portraitSectionImages = new Set<string>();
   private readonly _isBrowser: boolean;
   private _routeSubs: Subscription | undefined;
+  private _contentsObserver?: IntersectionObserver;
+  private _contentsObserverRetryTimer?: number;
+  private _hasSeenContentsInViewport: boolean = false;
 
   constructor(
     private _http: HttpService,
     private _route: ActivatedRoute,
     private _htmler: HtmlerPipe,
+    private _kebaber: KebaberPipe,
     private _router: Router,
     private sanitizer: DomSanitizer,
     private _cdr: ChangeDetectorRef,
@@ -178,6 +184,14 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   get isProductReview(): boolean {
     return !this.isBookReview;
+  sectionAffiliateUrl(section: any): string | null {
+    const url = (section?.affiliateUrl || '').trim();
+    return url || null;
+  }
+
+  sectionAffiliateLabel(section: any): string {
+    const label = (section?.affiliateLabel || '').trim();
+    return label || 'View offer';
   }
 
   get showContents(): boolean {
@@ -249,6 +263,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             imgFname: s.imgFname ?? '',
             imgAlt: s.imgAlt ?? '',
             imgCredit: s.imgCredit ?? '',
+            affiliateLabel: s.affiliateLabel ?? '',
+            affiliateUrl: s.affiliateUrl ?? '',
             videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(buildYouTubeEmbedUrl(s.videoUrl)) : '',
             videoOrientation: s.videoOrientation ?? 'landscape',
             sectionType: s.sectionType,
@@ -269,6 +285,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
             updatedDate.getFullYear() !== publishedDate.getFullYear() ||
             updatedDate.getMonth() !== publishedDate.getMonth()
           );
+          this._setupContentsObserver();
           this._cdr.detectChanges();
         },
         error: () => {
@@ -308,6 +325,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
         imgFname: s.imgFname ?? '',
         imgAlt: s.imgAlt ?? '',
         imgCredit: s.imgCredit ?? '',
+        affiliateLabel: s.affiliateLabel ?? '',
+        affiliateUrl: s.affiliateUrl ?? '',
         videoUrl: !!s.videoUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(buildYouTubeEmbedUrl(s.videoUrl)) : '',
         videoOrientation: s.videoOrientation ?? 'landscape',
         sectionType: s.sectionType,
@@ -320,6 +339,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       this.isReadyToLoad = true;
       this.contentVisible = false;
       this.loadingState = 'success';
+      this._setupContentsObserver();
       this._cdr.detectChanges();
     }).catch(() => {
       this.loadingState = 'failed';
@@ -338,7 +358,63 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy() {
+    this._teardownContentsObserver();
     this._routeSubs?.unsubscribe();
+  }
+
+  private _setupContentsObserver() {
+    if (!this._isBrowser) {
+      return;
+    }
+
+    this._teardownContentsObserver();
+
+    if (!this.showContents) {
+      this._hasSeenContentsInViewport = false;
+      this.showFloatingBackToContents = false;
+      return;
+    }
+
+    this._hasSeenContentsInViewport = false;
+
+    // Wait for deferred template flush so the contents anchor is present in the DOM.
+    requestAnimationFrame(() => {
+      const contentsEl = document.getElementById('contents');
+      if (!contentsEl) {
+        this._contentsObserverRetryTimer = window.setTimeout(() => {
+          this._setupContentsObserver();
+        }, 180);
+        return;
+      }
+
+      this._contentsObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            this._hasSeenContentsInViewport = true;
+            this.showFloatingBackToContents = false;
+          } else {
+            const isBelowContents = entry.boundingClientRect.top < 0;
+            this.showFloatingBackToContents = this._hasSeenContentsInViewport && isBelowContents;
+          }
+          this._cdr.detectChanges();
+        },
+        {
+          root: null,
+          threshold: 0,
+        }
+      );
+
+      this._contentsObserver.observe(contentsEl);
+    });
+  }
+
+  private _teardownContentsObserver() {
+    this._contentsObserver?.disconnect();
+    this._contentsObserver = undefined;
+    if (this._contentsObserverRetryTimer !== undefined) {
+      clearTimeout(this._contentsObserverRetryTimer);
+      this._contentsObserverRetryTimer = undefined;
+    }
   }
 
   async onLike() {

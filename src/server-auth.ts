@@ -36,12 +36,19 @@ const registerRateLimit = rateLimit({
 });
 
 const COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+const IS_SECURE = process.env['NODE_ENV'] === 'production';
+const ADMIN_USERNAMES = new Set(
+  String(process.env['ADMIN_USERNAMES'] ?? '')
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean)
+);
 
 /** Options for the HttpOnly JWT cookie */
 const tokenCookieOpts = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'strict' as const,
+  secure: IS_SECURE,
+  sameSite: (IS_SECURE ? 'strict' : 'lax') as 'strict' | 'lax',
   maxAge: COOKIE_MAX_AGE_MS,
   path: '/',
 };
@@ -49,8 +56,8 @@ const tokenCookieOpts = {
 /** Options for the non-HttpOnly presence cookie (JS-readable, used to check logged-in state) */
 const sessionCookieOpts = {
   httpOnly: false,
-  secure: true,
-  sameSite: 'strict' as const,
+  secure: IS_SECURE,
+  sameSite: (IS_SECURE ? 'strict' : 'lax') as 'strict' | 'lax',
   maxAge: COOKIE_MAX_AGE_MS,
   path: '/',
 };
@@ -123,7 +130,11 @@ auth.post('/api/auth/register', verifyToken, requireAdmin, registerRateLimit, as
 
 
 auth.post('/api/auth/logout', (_req, res) => {
-  const clearOpts = { path: '/', secure: true, sameSite: 'strict' as const };
+  const clearOpts = {
+    path: '/',
+    secure: IS_SECURE,
+    sameSite: (IS_SECURE ? 'strict' : 'lax') as 'strict' | 'lax'
+  };
   res.clearCookie('__sn_token', clearOpts);
   res.clearCookie('__sn_session', clearOpts);
   res.status(200).send({ success: true });
@@ -159,8 +170,12 @@ function verifyToken(req: any, res: any, next: any) {
 }
 
 function requireAdmin(req: any, res: any, next: any) {
+  const username = String(req.auth?.user ?? 'unknown');
+  const usernameKey = username.trim().toLowerCase();
   const role = String(req.auth?.role ?? '').trim().toLowerCase();
-  if (role === 'admin') {
+  const isAdminByRole = role === 'admin';
+  const isAdminByAllowlist = ADMIN_USERNAMES.has(usernameKey);
+  if (isAdminByRole || isAdminByAllowlist) {
     next();
     return;
   }

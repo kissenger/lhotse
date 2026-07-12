@@ -910,11 +910,72 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     return MAP_COUNTRY_DISPLAY_NAMES[country] ?? this._formatSlugForDisplay(country);
   }
 
+  private _rewriteDescriptionLinks(html: string): string {
+    if (!html) return '';
+    const { country } = this._resolveParams();
+    return html.replace(/href=(['"])(\/map\/[^'"#?]+(?:\?[^'"]*)?)\1/gi, (_match, quote: string, href: string) => {
+      const canonicalHref = this._canonicalizeMapHref(href, country);
+      return `href=${quote}${canonicalHref}${quote}`;
+    });
+  }
+
+  private _canonicalizeMapHref(href: string, routeCountry: string | null): string {
+    const [pathname, query = ''] = href.split('?');
+    const querySuffix = query ? `?${query}` : '';
+    const segments = pathname.split('/').filter(Boolean);
+
+    if (segments[0] !== 'map' || segments.length <= 1) {
+      return href;
+    }
+
+    if (segments.length === 2) {
+      const country = normaliseCountrySegment(segments[1]);
+      if (country) {
+        return `${buildMapPath({ country })}${querySuffix}`;
+      }
+
+      const county = normaliseCountySegment(segments[1]);
+      if (county && routeCountry) {
+        return `${buildMapPath({ country: routeCountry, county })}${querySuffix}`;
+      }
+
+      return href;
+    }
+
+    if (segments.length === 3) {
+      const country = normaliseCountrySegment(segments[1]);
+      const county = normaliseCountySegment(segments[2]);
+      if (country && county) {
+        return `${buildMapPath({ country, county })}${querySuffix}`;
+      }
+
+      const inferredCounty = normaliseCountySegment(segments[1]);
+      const siteSlug = normaliseSiteSegment(segments[2]);
+      if (inferredCounty && siteSlug && routeCountry) {
+        return `${buildMapPath({ country: routeCountry, county: inferredCounty, siteSlug })}${querySuffix}`;
+      }
+
+      return href;
+    }
+
+    const country = normaliseCountrySegment(segments[1]);
+    const county = normaliseCountySegment(segments[2]);
+    const siteSlug = normaliseSiteSegment(segments[3]);
+
+    if (country && county && siteSlug) {
+      return `${buildMapPath({ country, county, siteSlug })}${querySuffix}`;
+    }
+
+    return href;
+  }
+
   private async _loadCountyDescription(countySlug: string): Promise<void> {
     try {
       const result = await this._http.getCountyDescription(countySlug);
       this.countyDescription = (result?.description ?? '').trim();
-      this.countyDescriptionHtml = this.countyDescription ? this._htmler.transform(this.countyDescription) : '';
+      this.countyDescriptionHtml = this.countyDescription
+        ? this._rewriteDescriptionLinks(this._htmler.transform(this.countyDescription))
+        : '';
     } catch {
       this.countyDescription = '';
       this.countyDescriptionHtml = '';
@@ -927,7 +988,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const result = await this._http.getCountryDescription(countrySlug);
       this.countryDescription = (result?.description ?? '').trim();
-      this.countryDescriptionHtml = this.countryDescription ? this._htmler.transform(this.countryDescription) : '';
+      this.countryDescriptionHtml = this.countryDescription
+        ? this._rewriteDescriptionLinks(this._htmler.transform(this.countryDescription))
+        : '';
     } catch {
       this.countryDescription = '';
       this.countryDescriptionHtml = '';
