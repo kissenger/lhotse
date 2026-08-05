@@ -81,14 +81,14 @@
             @if (order.timeStamps?.orderCreated) {
               <div class="order-line">
                 <div class="title">Order Created</div>
-                <div class="value">{{order.timeStamps?.orderCreated}}</div>
+                <div class="value">{{order.timeStamps!.orderCreated}}</div>
               </div>
             }
             @if (order.timeStamps?.orderCompleted) {
               <div class="order-line">
-                <div class="title" [ngClass]="(!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) ? 'red' : ''">Order Completed</div>
-                <div class="value" [ngClass]="(!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) ? 'red' : ''">{{order.timeStamps?.orderCompleted}}</div>
-                @if (!order.timeStamps?.readyToPost && !order.timeStamps?.orderCancelled) {
+                <div class="title" [ngClass]="(!order.timeStamps!.readyToPost && !order.timeStamps!.orderCancelled) ? 'red' : ''">Order Completed</div>
+                <div class="value" [ngClass]="(!order.timeStamps!.readyToPost && !order.timeStamps!.orderCancelled) ? 'red' : ''">{{order.timeStamps!.orderCompleted}}</div>
+                @if (!order.timeStamps!.readyToPost && !order.timeStamps!.orderCancelled) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'readyToPost')">Ready to Post</button>
                   </div>
@@ -98,9 +98,9 @@
             }
             @if (order.timeStamps?.readyToPost) {
               <div class="order-line">
-                <div class="title" [ngClass]="!order.timeStamps?.posted ? 'purple' : ''">Ready to Post</div>
-                <div class="value" [ngClass]="!order.timeStamps?.posted ? 'purple' : ''">{{order.timeStamps?.readyToPost}}</div>
-                @if (!order.timeStamps?.posted && !order.timeStamps?.orderCancelled) {
+                <div class="title" [ngClass]="!order.timeStamps!.posted ? 'purple' : ''">Ready to Post</div>
+                <div class="value" [ngClass]="!order.timeStamps!.posted ? 'purple' : ''">{{order.timeStamps!.readyToPost}}</div>
+                @if (!order.timeStamps!.posted && !order.timeStamps!.orderCancelled) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'posted')">Posted</button>
                     <button (click)="onUnsetStatus(order.orderNumber, 'readyToPost')">Undo Step</button>
@@ -111,10 +111,10 @@
             @if (order.timeStamps?.posted) {
               <div class="order-line">
                 <div class="title">Posted</div>
-                <div class="value">{{order.timeStamps?.posted}}</div>
-                @if (!order.timeStamps?.postedEmailSent && !order.timeStamps?.returned && !order.timeStamps?.orderCancelled) {
+                <div class="value">{{order.timeStamps!.posted}}</div>
+                @if (!order.timeStamps!.postedEmailSent && !order.timeStamps!.returned && !order.timeStamps!.orderCancelled) {
                   <div class="action">
-                    @if (order.endPoint === 'manual' && !order.timeStamps?.invoiced) {
+                    @if (order.endPoint === 'manual' && !order.timeStamps!.invoiced) {
                       <button (click)="onSetStatus(order.orderNumber, 'invoiced')">Invoiced</button>
                     }
                     <button (click)="onSendEmail(order.orderNumber)">Send Email</button>
@@ -127,8 +127,8 @@
             @if (order.timeStamps?.postedEmailSent) {
               <div class="order-line">
                 <div class="title">Posted Email</div>
-                <div class="value">{{order.timeStamps?.postedEmailSent}}</div>
-                @if (!order.timeStamps?.returned) {
+                <div class="value">{{order.timeStamps!.postedEmailSent}}</div>
+                @if (!order.timeStamps!.returned) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'returned')">Returned</button>
                   </div>
@@ -137,9 +137,9 @@
             }  
             @if (order.timeStamps?.orderCancelled) {
               <div class="order-line">
-                <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'green' : ''">Order Cancelled</div>
-                <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'green' : ''">{{order.timeStamps?.orderCancelled}}</div>
-                @if (!order.timeStamps?.refunded) {
+                <div class="title" [ngClass]="!order.timeStamps!.refunded ? 'green' : ''">Order Cancelled</div>
+                <div class="value" [ngClass]="!order.timeStamps!.refunded ? 'green' : ''">{{order.timeStamps!.orderCancelled}}</div>
+                @if (!order.timeStamps!.refunded) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
                     <button (click)="onUnsetStatus(order.orderNumber, 'orderCancelled')">Undo Step</button>
@@ -149,9 +149,9 @@
             }                   
             @if (order.timeStamps?.returned) {
               <div class="order-line">
-                <div class="title" [ngClass]="!order.timeStamps?.refunded ? 'blue' : ''">Returned</div>
-                <div class="value" [ngClass]="!order.timeStamps?.refunded ? 'blue' : ''">{{order.timeStamps?.returned}}</div>
-                @if (!order.timeStamps?.refunded) {
+                <div class="title" [ngClass]="!order.timeStamps!.refunded ? 'blue' : ''">Returned</div>
+                <div class="value" [ngClass]="!order.timeStamps!.refunded ? 'blue' : ''">{{order.timeStamps!.returned}}</div>
+                @if (!order.timeStamps!.refunded) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'refunded')">Refunded</button>
                     <button (click)="onUnsetStatus(order.orderNumber, 'returned')">Undo Step</button>
@@ -162,7 +162,7 @@
             @if (order.timeStamps?.refunded) {
               <div class="order-line">
                 <div class="title">Refunded</div>
-                <div class="value">{{order.timeStamps?.refunded}}</div>
+                <div class="value">{{order.timeStamps!.refunded}}</div>
                 <div class="action">
                   <button (click)="onUnsetStatus(order.orderNumber, 'refunded')">Undo Step</button>
                 </div>
@@ -172,9 +172,9 @@
             @if (order.timeStamps?.invoiced) {
               <div class="order-line">
                 <div class="title">Invoiced</div>
-                <div class="value">{{order.timeStamps?.invoiced}}</div>
+                <div class="value">{{order.timeStamps!.invoiced}}</div>
                 <div class="action">
-                @if (!order.timeStamps?.invoicePaid) {
+                @if (!order.timeStamps!.invoicePaid) {
                   <div class="action">
                     <button (click)="onSetStatus(order.orderNumber, 'invoicePaid')">Invoice Paid</button>
                     <button (click)="onUnsetStatus(order.orderNumber, 'invoiced')">Undo Step</button>
@@ -187,9 +187,9 @@
             @if (order.timeStamps?.invoicePaid) {
               <div class="order-line">
                 <div class="title">Invoice Paid</div>
-                <div class="value">{{order.timeStamps?.invoicePaid}}</div>
+                <div class="value">{{order.timeStamps!.invoicePaid}}</div>
                 <div class="action">
-                @if (!order.timeStamps?.refunded) {
+                @if (!order.timeStamps!.refunded) {
                   <div class="action">
                     <button (click)="onUnsetStatus(order.orderNumber, 'invoicePaid')">Undo Step</button>
                   </div>
@@ -235,7 +235,7 @@
             <div class="title">Discount</div>
             <div class="value"> {{ -order.costBreakdown.discount | currency: 'GBP' : 'symbol' : '1.2-2' : 'en' }} 
               @if (order.discountInfo?.discountPercent) {
-                ({{order.discountInfo?.discountPercent||0}}%)
+                ({{order.discountInfo!.discountPercent||0}}%)
               }
             </div>
           </div>     

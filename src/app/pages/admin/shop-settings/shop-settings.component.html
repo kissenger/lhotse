@@ -1,0 +1,40 @@
+<main class="shop-settings-page">
+  <div class="static-div">
+    <div class="toolbar-row">
+      <a routerLink="/dashboard" class="toolbar-link">← Dashboard</a>
+      <h1>Shop Settings</h1>
+    </div>
+    <div class="toolbar-row toolbar-actions">
+      <button type="button" class="formButton" (click)="loadShopSettings()" [disabled]="shopSettingsLoading || shopSettingsSaving">Refresh</button>
+      <button type="button" class="formButton btn-save" (click)="saveShopSettings()" [disabled]="shopSettingsSaving">Save notice</button>
+      <button type="button" class="formButton" (click)="clearShopSettings()" [disabled]="shopSettingsSaving">Clear notice</button>
+    </div>
+  </div>
+
+  <div class="scrolling-div shop-settings-content">
+    <section class="settings-card">
+      <h2>Checkout Warning</h2>
+      <p class="settings-help">This notice appears above PayPal checkout on the public shop page. Customers must confirm with “I understand” before the PayPal buttons are shown.</p>
+
+      <p class="shop-settings-status">
+        @if (shopSettingsLoading) {
+          Loading current notice...
+        } @else if (outOfOfficeActive) {
+          Active until {{outOfOfficeEffectiveEndDate | date:'longDate':'UTC'}}
+        } @else {
+          Inactive
+        }
+      </p>
+
+      <div class="field-group">
+        <label for="outOfOfficeMessage">Message</label>
+        <textarea id="outOfOfficeMessage" name="outOfOfficeMessage" rows="6" [(ngModel)]="outOfOfficeMessage" placeholder="Example: We are away on fieldwork this week. Orders can still be placed, but dispatch will be delayed until our return."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="outOfOfficeEndDate">End date</label>
+        <input id="outOfOfficeEndDate" name="outOfOfficeEndDate" type="date" [(ngModel)]="outOfOfficeEndDate">
+      </div>
+    </section>
+  </div>
+</main>

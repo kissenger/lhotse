@@ -330,6 +330,37 @@
   margin-top: 1.5rem;
 }
 
+.checkout-warning {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #d1a131;
+  border-radius: 8px;
+  background: #fff7e2;
+  color: #5c4300;
+}
+
+.checkout-warning > h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.checkout-warning > p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.checkout-warning-meta {
+  margin-top: 0.5rem !important;
+  font-size: 0.9rem;
+}
+
+.checkout-warning-button {
+  margin-top: 0.8rem;
+  width: auto;
+  padding-inline: 1rem;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

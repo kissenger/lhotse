@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, ArticlePost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary } from '@shared/types';
+import { AuthUser, ArticlePost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary, ShopOutOfOfficeAdminSettings, ShopOutOfOfficePublicSettings } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -193,6 +193,23 @@ export class HttpService {
 
   async deactivateOrder(orderNumber: string) {
     const request = this._http.post<any>(`/api/shop/deactivate-order/`, {orderNumber});
+    return await lastValueFrom(request);
+  }
+
+  async getPublicShopSettings(): Promise<ShopOutOfOfficePublicSettings> {
+    const request = this._http.get<ShopOutOfOfficePublicSettings>(`/api/shop/settings/public`, {
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' }
+    });
+    return await lastValueFrom(request);
+  }
+
+  async getAdminShopSettings(): Promise<ShopOutOfOfficeAdminSettings> {
+    const request = this._http.get<ShopOutOfOfficeAdminSettings>(`/api/shop/settings`, { withCredentials: true });
+    return await lastValueFrom(request);
+  }
+
+  async saveAdminShopSettings(settings: { rawMessage: string; rawEndDate: string | null }): Promise<ShopOutOfOfficeAdminSettings> {
+    const request = this._http.post<ShopOutOfOfficeAdminSettings>(`/api/shop/settings`, settings, { withCredentials: true });
     return await lastValueFrom(request);
   }
 

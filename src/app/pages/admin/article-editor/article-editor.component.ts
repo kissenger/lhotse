@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ArticlePost, ArticleReviewCategory } from '@shared/types';
 import { FormsModule } from "@angular/forms";
-import { DecimalPipe, NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { ToastService } from '@shared/services/toast.service';
 import { errorMessage } from '@shared/utils/error-message';
@@ -12,7 +11,7 @@ import { appImageUrl } from '@shared/utils/image-url';
 @Component({
   selector: 'app-article-editor',
   standalone: true,
-  imports: [NgClass, FormsModule, DecimalPipe],  
+  imports: [FormsModule],  
   providers: [KebaberPipe], 
   templateUrl: './article-editor.component.html',
   styleUrl: './article-editor.component.css'

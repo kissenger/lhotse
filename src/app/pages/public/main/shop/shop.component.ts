@@ -11,6 +11,7 @@ import { ToastService } from '@shared/services/toast.service';
 import { discountCodes } from '@shared/globals';
 import { stage } from '@shared/globals';
 import { ScrollOffsetService } from '@shared/services/scroll-offset.service';
+import { ShopOutOfOfficePublicSettings } from '@shared/types';
 
 
 @Component({
@@ -27,8 +28,12 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
   public dirtyDiscountCode = false;
   public stage = stage;
   public showBasketPopover = false;
+  public shopSettingsError = '';
+  public checkoutNotice: ShopOutOfOfficePublicSettings = { active: false, message: '', endDate: null };
+  public checkoutNoticeReady = false;
   private _summaryObserver?: IntersectionObserver;
   private _paypalInitialized = false;
+  private _acknowledgedNotice = '';
 
   constructor(
     private _http: HttpService,
@@ -39,8 +44,9 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
     public toaster: ToastService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.shop.initializeDefaultBasket();
+    await this.refreshShopSettings();
   }
   
   ngAfterViewInit() {
@@ -74,6 +80,69 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _getOrderSummaryElement(): HTMLElement | null {
     return document.getElementById('order-summary');
+  }
+
+  get checkoutWarningActive(): boolean {
+    return this.checkoutNotice.active && this._acknowledgedNotice !== this._getNoticeFingerprint(this.checkoutNotice);
+  }
+
+  get checkoutBlocked(): boolean {
+    return !this.checkoutNoticeReady || !!this.shopSettingsError || this.checkoutWarningActive;
+  }
+
+  private _canInitializePayPal(): boolean {
+    return typeof window !== 'undefined'
+      && this.shop.orderStatus === 'draft'
+      && this.shop.basket.itemQty > 0
+      && !this.checkoutBlocked;
+  }
+
+  private _maybeInitPayPal(): void {
+    if (!this._canInitializePayPal() || this._paypalInitialized) {
+      return;
+    }
+
+    this._paypalInitialized = true;
+    this._cdr.detectChanges();
+    void this._initPayPal();
+  }
+
+  private _getNoticeFingerprint(settings: ShopOutOfOfficePublicSettings): string {
+    return `${settings.message}::${settings.endDate ?? ''}`;
+  }
+
+  private _applyShopSettings(settings: ShopOutOfOfficePublicSettings): void {
+    this.checkoutNotice = settings.active ? settings : { active: false, message: '', endDate: null };
+    if (!settings.active) {
+      this._acknowledgedNotice = '';
+    }
+  }
+
+  async refreshShopSettings(): Promise<void> {
+    this.shopSettingsError = '';
+
+    try {
+      const settings = await this._http.getPublicShopSettings();
+      this._applyShopSettings(settings);
+      this.checkoutNoticeReady = true;
+      this._maybeInitPayPal();
+    } catch {
+      this.checkoutNoticeReady = false;
+      this.shopSettingsError = 'We could not confirm the current checkout notice. Please try again.';
+    }
+
+    this._cdr.detectChanges();
+  }
+
+  async acknowledgeOutOfOffice(): Promise<void> {
+    await this.refreshShopSettings();
+    if (this.shopSettingsError || !this.checkoutNotice.active) {
+      return;
+    }
+
+    this._acknowledgedNotice = this._getNoticeFingerprint(this.checkoutNotice);
+    this._maybeInitPayPal();
+    this._cdr.detectChanges();
   }
   
   private async _initPayPal() {
@@ -206,10 +275,8 @@ export class ShopComponent implements OnInit, AfterViewInit, OnDestroy {
       // Basket emptied — reset so PayPal re-inits next time an item is added
       this._paypalInitialized = false;
     } else if (!this._paypalInitialized) {
-      // Lazy-init PayPal the first time an item is added (container now in DOM)
-      this._paypalInitialized = true;
-      this._cdr.detectChanges();
-      this._initPayPal();
+      // Lazy-init PayPal the first time an item is added once checkout is available.
+      this._maybeInitPayPal();
     }
     // Re-evaluate popover visibility after qty change
     const summaryEl = this._getOrderSummaryElement();

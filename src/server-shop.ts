@@ -1,6 +1,7 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import ShopModel from '@schema/shop';
+import ShopSettingsModel from '@schema/shop-settings';
 import nodemailer from 'nodemailer';
 import { ShopError } from './server';
 import { getConfirmationEmailBody } from './server-shop-conf-email';
@@ -34,6 +35,82 @@ const EMAIL_CONFIG = {
   },
 }
 const PAYPAL_ALERT_RECIPIENT = process.env['PAYPAL_ALERT_EMAIL_TO'] || 'orders@snorkelology.co.uk';
+const SHOP_SETTINGS_FILTER = { __type: 'shop-settings' };
+
+interface EffectiveShopSettings {
+  rawMessage: string;
+  rawEndDate: string | null;
+  active: boolean;
+  message: string;
+  endDate: string | null;
+}
+
+function applyNoStore(res: express.Response): void {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+}
+
+function toDateOnly(value: Date | string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const date = new Date(trimmed);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+  }
+
+  return Number.isNaN(value.getTime()) ? null : value.toISOString().slice(0, 10);
+}
+
+function normalizeOutOfOfficeMessage(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function currentUkDate(): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+  return year && month && day ? `${year}-${month}-${day}` : new Date().toISOString().slice(0, 10);
+}
+
+function isCurrentOrFutureDate(value: string | null): value is string {
+  if (!value) {
+    return false;
+  }
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && value >= currentUkDate();
+}
+
+async function readEffectiveShopSettings(): Promise<EffectiveShopSettings> {
+  const doc = await (ShopSettingsModel as any).findOne(SHOP_SETTINGS_FILTER).lean();
+  const rawMessage = typeof doc?.outOfOfficeMessage === 'string' ? doc.outOfOfficeMessage : '';
+  const rawEndDate = toDateOnly(doc?.outOfOfficeEndDate);
+  const message = rawMessage.trim();
+  const endDate = rawEndDate;
+  const active = !!message && isCurrentOrFutureDate(endDate);
+
+  return {
+    rawMessage,
+    rawEndDate,
+    active,
+    message: active ? message : '',
+    endDate: active ? endDate : null,
+  };
+}
 
 function toErrorText(error: unknown): string {
   try {
@@ -294,6 +371,52 @@ function extractErrorMessage(error: any, fallback: string): string {
 function appendTimestampedNote(existingNotes: string, note: string): string {
   return `${existingNotes ? `${existingNotes}\n` : ''}${(new Date()).toISOString()}: ${note}`;
 }
+
+shop.get('/api/shop/settings/public', async (_req, res) => {
+  applyNoStore(res);
+  const { active, message, endDate } = await readEffectiveShopSettings();
+  res.json({ active, message, endDate });
+});
+
+shop.get('/api/shop/settings', verifyToken, requireAdmin, async (_req, res) => {
+  applyNoStore(res);
+  res.json(await readEffectiveShopSettings());
+});
+
+shop.post('/api/shop/settings', verifyToken, requireAdmin, async (req, res) => {
+  applyNoStore(res);
+
+  const rawMessage = typeof req.body?.rawMessage === 'string' ? req.body.rawMessage : '';
+  const trimmedMessage = normalizeOutOfOfficeMessage(rawMessage);
+  const rawEndDate = toDateOnly(typeof req.body?.rawEndDate === 'string' ? req.body.rawEndDate : null);
+
+  if (!trimmedMessage && rawEndDate) {
+    res.status(400).json({ error: 'ShopError', message: 'An out of office message is required when an end date is set.' });
+    return;
+  }
+
+  if (trimmedMessage && !rawEndDate) {
+    res.status(400).json({ error: 'ShopError', message: 'An end date is required when an out of office message is set.' });
+    return;
+  }
+
+  if (trimmedMessage && !isCurrentOrFutureDate(rawEndDate)) {
+    res.status(400).json({ error: 'ShopError', message: 'The out of office end date must be in the future.' });
+    return;
+  }
+
+  await (ShopSettingsModel as any).findOneAndUpdate(
+    SHOP_SETTINGS_FILTER,
+    {
+      __type: 'shop-settings',
+      outOfOfficeMessage: trimmedMessage,
+      outOfOfficeEndDate: rawEndDate,
+    },
+    { upsert: true }
+  );
+
+  res.json(await readEffectiveShopSettings());
+});
 
 /*****************************************************************
  * ROUTE: Create paypal order

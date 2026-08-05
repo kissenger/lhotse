@@ -1,0 +1,64 @@
+@import '../admin-common.css';
+
+.shop-settings-page {
+  min-height: 100vh;
+}
+
+.toolbar-link {
+  color: var(--sn-colour);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.toolbar-link:hover {
+  text-decoration: underline;
+}
+
+.shop-settings-content {
+  padding-top: calc(var(--header-height) + var(--admin-navbar-height) + 5.5rem);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.settings-card {
+  background: #fff;
+  border: 1px solid var(--border-colour);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.settings-card h2 {
+  margin-top: 0;
+}
+
+.settings-help {
+  color: #555;
+  line-height: 1.5;
+}
+
+.shop-settings-status {
+  font-weight: 600;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.field-group textarea,
+.field-group input[type='date'] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 9rem;
+}

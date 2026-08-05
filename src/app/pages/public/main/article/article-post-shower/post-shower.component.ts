@@ -184,6 +184,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   get isProductReview(): boolean {
     return !this.isBookReview;
+  }
+
   sectionAffiliateUrl(section: any): string | null {
     const url = (section?.affiliateUrl || '').trim();
     return url || null;

@@ -300,6 +300,17 @@ export interface OrgSettings {
   scoringThreshold: number;
 }
 
+export interface ShopOutOfOfficePublicSettings {
+  active: boolean;
+  message: string;
+  endDate: string | null;
+}
+
+export interface ShopOutOfOfficeAdminSettings extends ShopOutOfOfficePublicSettings {
+  rawMessage: string;
+  rawEndDate: string | null;
+}
+
 // ---------------------------------------------------------------------------
 
 interface ArticleSection {
