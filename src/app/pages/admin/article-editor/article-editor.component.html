@@ -150,24 +150,6 @@
                             </div>
                         </div>
 
-                        @if (reviewLabel === 'Product') {
-                            <div class="field-row align-start">
-                                <label>Best for:</label>
-                                <div class="keywords-editor">
-                                    <div class="chip-list">
-                                        @for (targetReader of selectedPost.review.bestFor; track $index) {
-                                            <span class="chip pill pill--interactive">{{targetReader}}<button type="button" class="chip-remove" (click)="removeReviewListItem('bestFor', $index)" aria-label="Remove">×</button></span>
-                                        }
-                                    </div>
-                                    <div class="keyword-inputs">
-                                        <input #bestForInput type="text" class="kw-input" placeholder="Type who this product suits and press Enter"
-                                            (keydown)="onReviewListKeydown($event, 'bestFor', bestForInput)"
-                                            (blur)="addReviewListItem('bestFor', bestForInput.value, bestForInput)">
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
                         <div class="field-row align-start">
                             <label>Cons:</label>
                             <div class="keywords-editor">

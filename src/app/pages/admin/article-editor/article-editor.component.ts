@@ -61,7 +61,6 @@ export class ArticleEditorComponent implements OnInit {
         imageCredit: '',
         testingMethod: '',
         performanceNotes: '',
-        bestFor: [],
         pros: [],
         cons: [],
         affiliateDisclosure: '',
@@ -75,7 +74,6 @@ export class ArticleEditorComponent implements OnInit {
     this.selectedPost.review.reviewKind = this.selectedPost.review.reviewKind || 'product';
     this.selectedPost.review.testingMethod = this.selectedPost.review.testingMethod || '';
     this.selectedPost.review.performanceNotes = this.selectedPost.review.performanceNotes || '';
-    this.selectedPost.review.bestFor = this.selectedPost.review.bestFor || [];
     this.selectedPost.review.pros = this.selectedPost.review.pros || [];
     this.selectedPost.review.cons = this.selectedPost.review.cons || [];
     this.selectedPost.review.affiliateLinks = this.selectedPost.review.affiliateLinks || [];
@@ -284,7 +282,7 @@ export class ArticleEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
-  addReviewListItem(type: 'pros' | 'cons' | 'bestFor', value: string, input: HTMLInputElement) {
+  addReviewListItem(type: 'pros' | 'cons', value: string, input: HTMLInputElement) {
     const trimmed = value.trim();
     if (!trimmed) return;
     this.ensureReviewModel();
@@ -297,13 +295,13 @@ export class ArticleEditorComponent implements OnInit {
     input.value = '';
   }
 
-  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons' | 'bestFor', input: HTMLInputElement) {
+  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons', input: HTMLInputElement) {
     if (event.key !== 'Enter') return;
     event.preventDefault();
     this.addReviewListItem(type, input.value, input);
   }
 
-  removeReviewListItem(type: 'pros' | 'cons' | 'bestFor', index: number) {
+  removeReviewListItem(type: 'pros' | 'cons', index: number) {
     this.ensureReviewModel();
     this.selectedPost.review[type] = (this.selectedPost.review[type] || []).filter((_, i) => i !== index);
     this.isDirty = true;
@@ -431,7 +429,6 @@ export class ArticleEditorComponent implements OnInit {
           imageCredit: '',
           testingMethod: '',
           performanceNotes: '',
-          bestFor: [],
           pros: [],
           cons: [],
           affiliateDisclosure: '',

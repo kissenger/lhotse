@@ -122,17 +122,6 @@
 
           </div>
 
-          @if (isProductReview && (post.review.bestFor?.length || 0) > 0) {
-            <section class="review-best-for-box review-pros-box" aria-label="Best for">
-              <h3>Best for</h3>
-              <ul>
-                @for (targetReader of post.review.bestFor; track targetReader) {
-                  <li>{{targetReader}}</li>
-                }
-              </ul>
-            </section>
-          }
-
           <div class="review-pros-cons-grid">
             @if (post.review.pros.length > 0) {
               <section class="review-pros-box">
