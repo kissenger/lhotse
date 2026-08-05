@@ -13,6 +13,7 @@ const articleSchema = new mongoose.Schema({
   sections: {type: [{
     title: {type: String},
     content: {type: String},
+    sectionLevel: {type: String},
     imgFname: {type: String},
     imgAlt: {type: String},
     videoUrl: {type: String},

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ArticlePost, ArticleReviewCategory } from '@shared/types';
 import { FormsModule } from "@angular/forms";
-import { DecimalPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
 import { ToastService } from '@shared/services/toast.service';
 import { errorMessage } from '@shared/utils/error-message';
@@ -12,7 +12,7 @@ import { appImageUrl } from '@shared/utils/image-url';
 @Component({
   selector: 'app-article-editor',
   standalone: true,
-  imports: [NgClass, FormsModule, DecimalPipe],  
+  imports: [NgClass, FormsModule],  
   providers: [KebaberPipe], 
   templateUrl: './article-editor.component.html',
   styleUrl: './article-editor.component.css'
@@ -195,6 +195,11 @@ export class ArticleEditorComponent implements OnInit {
   makeSlug() {
     this.selectedPost.slug = this._kebaber.transform(this.selectedPost.title);
     return this.selectedPost.slug;
+  }
+
+  onTitleChange(value: string) {
+    this.selectedPost.title = value;
+    this.makeSlug();
   }
 
   thumbnailUrl(fname: string): string {
@@ -390,8 +395,24 @@ export class ArticleEditorComponent implements OnInit {
     });
   }
 
+  private _normaliseSectionLevelsBeforeSave() {
+    this.selectedPost.sections = (this.selectedPost.sections || []).map((section: any) => {
+      if (section.sectionType === 'cta') {
+        return {
+          ...section,
+          sectionLevel: undefined,
+        };
+      }
+
+      return {
+        ...section,
+        sectionLevel: section.sectionLevel === 'subsection' ? 'subsection' : 'section',
+      };
+    });
+  }
+
   addQA() {
-    this.selectedPost.sections.push({title: "", content: "", imgFname: "", imgAlt: "", videoUrl: "", imgCredit: "", affiliateLabel: "", affiliateUrl: ""});
+    this.selectedPost.sections.push({title: "", content: "", sectionLevel: 'section', imgFname: "", imgAlt: "", videoUrl: "", imgCredit: "", affiliateLabel: "", affiliateUrl: ""});
     this.isDirty = true;
   }
 
@@ -441,6 +462,7 @@ export class ArticleEditorComponent implements OnInit {
       const preserveUpdatedAt = this._shouldPreserveUpdatedAt();
       this.ensureReviewModel();
       this._normaliseSectionVideosBeforeSave();
+      this._normaliseSectionLevelsBeforeSave();
       if (this.selectedPost.type !== 'review') {
         this.selectedPost.review = {
           reviewKind: 'product',
@@ -547,6 +569,12 @@ export class ArticleEditorComponent implements OnInit {
   private _ensureArticleSection(post: ArticlePost) {
     const explicit = this._cleanArticleSection(post.articleSection);
     post.articleSection = explicit;
+    post.sections = (post.sections || []).map((section: any) => ({
+      ...section,
+      sectionLevel: section.sectionType === 'cta'
+        ? undefined
+        : (section.sectionLevel === 'subsection' ? 'subsection' : 'section'),
+    }));
   }
 
   private _captureSelectedPostSnapshot() {

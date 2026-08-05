@@ -305,6 +305,7 @@ export interface OrgSettings {
 interface ArticleSection {
   title: string;
   content: string;
+  sectionLevel?: 'section' | 'subsection';
   imgFname: string;
   imgAlt: string;
   videoUrl: string;
@@ -370,6 +371,7 @@ export class ArticlePost {
   sections: Array<ArticleSection> = [{
     title: '', 
     content: '', 
+    sectionLevel: 'section',
     imgFname: '', 
     imgAlt: '', 
     videoUrl: '',

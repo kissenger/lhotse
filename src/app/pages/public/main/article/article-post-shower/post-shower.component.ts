@@ -184,6 +184,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
   get isProductReview(): boolean {
     return !this.isBookReview;
+  }
+
   sectionAffiliateUrl(section: any): string | null {
     const url = (section?.affiliateUrl || '').trim();
     return url || null;
@@ -260,6 +262,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.post.sections = (result.article.sections ?? []).map((s: any) => ({
             title: s.title ?? '',
             content: this._htmler.transform(s.content ?? ''),
+            sectionLevel: s.sectionType === 'cta'
+              ? undefined
+              : (s.sectionLevel === 'subsection' ? 'subsection' : 'section'),
             imgFname: s.imgFname ?? '',
             imgAlt: s.imgAlt ?? '',
             imgCredit: s.imgCredit ?? '',
@@ -322,6 +327,9 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       this.post.sections = (result.article.sections ?? []).map((s: any) => ({
         title: s.title ?? '',
         content: this._htmler.transform(s.content ?? ''),
+        sectionLevel: s.sectionType === 'cta'
+          ? undefined
+          : (s.sectionLevel === 'subsection' ? 'subsection' : 'section'),
         imgFname: s.imgFname ?? '',
         imgAlt: s.imgAlt ?? '',
         imgCredit: s.imgCredit ?? '',
