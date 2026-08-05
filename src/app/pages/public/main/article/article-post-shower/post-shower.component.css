@@ -416,6 +416,21 @@ h1 {
   margin-top: 1rem;
 }
 
+.review-best-for-box ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.review-best-for-box li {
+  display: list-item;
+  margin-bottom: 0.35rem;
+}
+
+.review-best-for-box li:last-child {
+  margin-bottom: 0;
+}
+
 .review-pros-box,
 .review-cons-box {
   border: 1px solid rgba(29, 61, 89, 0.14);

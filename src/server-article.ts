@@ -177,9 +177,9 @@ article.get('/api/article/get-post-by-slug/:slug', async (req, res) => {
 /*
   Get post from provided slug (preview version)
   - Includes unpublished posts
-  - Requires auth unless request is local (localhost)
+  - Intentionally public for shareable draft previews; indexing is blocked at page level.
 */
-article.get('/api/article/get-post-preview-by-slug/:slug', previewAuthGuard, async (req, res) => {
+article.get('/api/article/get-post-preview-by-slug/:slug', async (req, res) => {
   try {
     const slug = req.params['slug'];
     const article = await ArticleModel.findOne({ slug }).lean();

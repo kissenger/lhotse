@@ -13,7 +13,7 @@ import { auth, requireAdmin, verifyToken } from './server-auth';
 import { article, getPublishedPostBySlugForSeo, getPublishedPostsForSeo } from './server-article';
 import { getPlacesForSeo, getPlacesForSeoWithRouteMeta, map } from './server-map';
 import { organisations } from './server-organisations';
-import { injectSeoPayloadIntoHtml, type SeoMetaTag, type SeoPayload } from './server-seo-injection';
+import { injectSeoPayloadIntoHtml, upsertMetaTag, type SeoMetaTag, type SeoPayload } from './server-seo-injection';
 import { environment } from './environments/environment';
 import { shopItems } from './environments/environment._shopItems';
 import { faqItems } from './app/shared/faq-data';
@@ -51,6 +51,14 @@ function getQuerySuffix(query: Record<string, unknown>): string {
   }
   const queryString = passthrough.toString();
   return queryString ? `?${queryString}` : '';
+}
+
+function isArticlePreviewRequest(pathname: string, query: Record<string, unknown>): boolean {
+  const normalizedPath = normalizePath(pathname);
+  if (!normalizedPath.startsWith('/articles/')) {
+    return false;
+  }
+  return Object.prototype.hasOwnProperty.call(query, 'preview');
 }
 
 function sendNotFound(res: express.Response): void {
@@ -381,13 +389,21 @@ app.use(async (req, res, next) => {
     if (req.method === 'GET' && contentType.includes('text/html')) {
       const html = await response.text();
       const forceNotFoundStatus = shouldForceNotFoundStatusFromHtml(html);
+      const isPreviewArticle = isArticlePreviewRequest(req.path, req.query as Record<string, unknown>);
 
       const withSeo = await injectSeoIntoHtml(req.path, req.query as Record<string, string>, html, req.hostname, res.locals['cspNonce']);
 
       const headers = new Headers(response.headers);
-      const cacheControl = getPublicHtmlCacheControl(req);
-      if (cacheControl) {
-        headers.set('cache-control', cacheControl);
+      if (isPreviewArticle) {
+        headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        headers.set('cache-control', 'private, no-store, no-cache, max-age=0, must-revalidate');
+        headers.set('pragma', 'no-cache');
+        headers.set('expires', '0');
+      } else {
+        const cacheControl = getPublicHtmlCacheControl(req);
+        if (cacheControl) {
+          headers.set('cache-control', cacheControl);
+        }
       }
       headers.set('content-length', Buffer.byteLength(withSeo, 'utf8').toString());
 
@@ -670,6 +686,11 @@ function applyLocalSeoImageUrls(payload: SeoPayload): SeoPayload {
 }
 
 async function injectSeoIntoHtml(pathname: string, query: Record<string, string>, html: string, hostname?: string, cspNonce?: string) {
+  if (isArticlePreviewRequest(pathname, query)) {
+    const withoutCanonical = stripCanonicalTag(html);
+    return upsertMetaTag(withoutCanonical, 'name', 'robots', 'noindex, nofollow, noarchive');
+  }
+
   const payload = await getSeoPayload(pathname, query);
   if (!payload) {
     return stripCanonicalTag(html);
