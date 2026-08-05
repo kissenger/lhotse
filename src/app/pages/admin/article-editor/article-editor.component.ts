@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
-import { ArticlePost, ArticleReviewCategory } from '@shared/types';
+import { ArticlePost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
 import { NgClass } from '@angular/common';
 import { KebaberPipe } from '@shared/pipes/kebaber.pipe';
@@ -26,9 +26,6 @@ export class ArticleEditorComponent implements OnInit {
   public uniqueKeywords: Array<string> = [];
   public articleSectionOptions: string[] = [];
   public newArticleSectionLabel: string = '';
-  public reviewCategoryOptions: string[] = [];
-  public newReviewCategoryName: string = '';
-  public newReviewCategoryDropdown: string = '';
   public selectedPost: ArticlePost = new ArticlePost;
   public askForConfirmation: boolean = false;
   public posts: Array<ArticlePost> = [this.selectedPost];
@@ -62,10 +59,8 @@ export class ArticleEditorComponent implements OnInit {
         imageFname: '',
         imageAlt: '',
         imageCredit: '',
-        summary: '',
         testingMethod: '',
         performanceNotes: '',
-        standoutFeatures: [],
         bestFor: [],
         pros: [],
         cons: [],
@@ -80,7 +75,6 @@ export class ArticleEditorComponent implements OnInit {
     this.selectedPost.review.reviewKind = this.selectedPost.review.reviewKind || 'product';
     this.selectedPost.review.testingMethod = this.selectedPost.review.testingMethod || '';
     this.selectedPost.review.performanceNotes = this.selectedPost.review.performanceNotes || '';
-    this.selectedPost.review.standoutFeatures = this.selectedPost.review.standoutFeatures || [];
     this.selectedPost.review.bestFor = this.selectedPost.review.bestFor || [];
     this.selectedPost.review.pros = this.selectedPost.review.pros || [];
     this.selectedPost.review.cons = this.selectedPost.review.cons || [];
@@ -95,17 +89,6 @@ export class ArticleEditorComponent implements OnInit {
 
   get reviewLabel(): 'Product' | 'Book' {
     return this.selectedPost.review?.reviewKind === 'book' ? 'Book' : 'Product';
-  }
-
-  get reviewHasCategories(): boolean {
-    return (this.selectedPost.review?.ratingCategories?.length ?? 0) > 0;
-  }
-
-  get computedRatingValue(): number {
-    const cats = this.selectedPost.review?.ratingCategories;
-    if (!cats?.length) return this.selectedPost.review?.ratingValue ?? 0;
-    const avg = cats.reduce((s, c) => s + c.value, 0) / cats.length;
-    return Math.round(avg * 10) / 10;
   }
 
   get isArticleSectionMissing(): boolean {
@@ -301,7 +284,7 @@ export class ArticleEditorComponent implements OnInit {
     this.isDirty = true;
   }
 
-  addReviewListItem(type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', value: string, input: HTMLInputElement) {
+  addReviewListItem(type: 'pros' | 'cons' | 'bestFor', value: string, input: HTMLInputElement) {
     const trimmed = value.trim();
     if (!trimmed) return;
     this.ensureReviewModel();
@@ -314,43 +297,15 @@ export class ArticleEditorComponent implements OnInit {
     input.value = '';
   }
 
-  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', input: HTMLInputElement) {
+  onReviewListKeydown(event: KeyboardEvent, type: 'pros' | 'cons' | 'bestFor', input: HTMLInputElement) {
     if (event.key !== 'Enter') return;
     event.preventDefault();
     this.addReviewListItem(type, input.value, input);
   }
 
-  removeReviewListItem(type: 'pros' | 'cons' | 'standoutFeatures' | 'bestFor', index: number) {
+  removeReviewListItem(type: 'pros' | 'cons' | 'bestFor', index: number) {
     this.ensureReviewModel();
     this.selectedPost.review[type] = (this.selectedPost.review[type] || []).filter((_, i) => i !== index);
-    this.isDirty = true;
-  }
-
-  addReviewCategory() {
-    const name = (this.newReviewCategoryDropdown || this.newReviewCategoryName).trim();
-    if (!name) return;
-    this.ensureReviewModel();
-    this.selectedPost.review.ratingCategories = this.selectedPost.review.ratingCategories || [];
-    if (!this.selectedPost.review.ratingCategories.some(c => c.name === name)) {
-      this.selectedPost.review.ratingCategories.push({ name, value: 4 });
-      // Auto-create a matching article section if one doesn't exist
-      const exists = this.selectedPost.sections.some(s => s.title === name);
-      if (!exists) {
-        this.selectedPost.sections.push({ title: name, content: '', imgFname: '', imgAlt: '', videoUrl: '', videoOrientation: 'landscape', imgCredit: '', affiliateLabel: '', affiliateUrl: '' });
-      }
-      if (!this.reviewCategoryOptions.includes(name)) {
-        this.reviewCategoryOptions.push(name);
-        this.reviewCategoryOptions.sort((a, b) => a.localeCompare(b));
-      }
-      this.isDirty = true;
-    }
-    this.newReviewCategoryName = '';
-    this.newReviewCategoryDropdown = '';
-  }
-
-  removeReviewCategory(index: number) {
-    this.ensureReviewModel();
-    this.selectedPost.review.ratingCategories = (this.selectedPost.review.ratingCategories || []).filter((_, i) => i !== index);
     this.isDirty = true;
   }
 
@@ -474,10 +429,8 @@ export class ArticleEditorComponent implements OnInit {
           imageFname: '',
           imageAlt: '',
           imageCredit: '',
-          summary: '',
           testingMethod: '',
           performanceNotes: '',
-          standoutFeatures: [],
           bestFor: [],
           pros: [],
           cons: [],
@@ -539,7 +492,6 @@ export class ArticleEditorComponent implements OnInit {
     this.posts.push(...newData);
     this.getUniqueKeywords();
     this._refreshArticleSectionOptions();
-    this._refreshReviewCategoryOptions();
     this._cdr.detectChanges();
   }
 
@@ -554,16 +506,6 @@ export class ArticleEditorComponent implements OnInit {
     });
 
     this.articleSectionOptions = Array.from(sections).sort((a, b) => a.localeCompare(b));
-  }
-
-  private _refreshReviewCategoryOptions() {
-    const names = new Set<string>();
-    this.posts.forEach((post) => {
-      (post.review?.ratingCategories || []).forEach(c => {
-        if (c.name) names.add(c.name);
-      });
-    });
-    this.reviewCategoryOptions = Array.from(names).sort((a, b) => a.localeCompare(b));
   }
 
   private _ensureArticleSection(post: ArticlePost) {

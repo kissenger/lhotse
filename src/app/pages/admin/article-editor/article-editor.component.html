@@ -108,17 +108,6 @@
                             </div>
                         }
 
-                        <div class="field-row align-start review-summary-row">
-                            <label for="reviewSummary">Review summary:</label>
-                            <div class="review-summary-panel">
-                                <div class="review-summary-head">
-                                    <span class="review-summary-title">Reader verdict</span>
-                                    <span class="review-summary-badge">Used in snippets</span>
-                                </div>
-                                <textarea class="review-summary-textarea" id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="Write a concise, opinionated summary that tells readers why this is worth it (or not)."></textarea>
-                            </div>
-                        </div>
-
                         <div class="field-row align-start">
                             <label for="reviewTestingMethod">Testing method:</label>
                             <textarea id="reviewTestingMethod" name="reviewTestingMethod" [(ngModel)]="selectedPost.review.testingMethod" placeholder="How this was tested (conditions, duration, use case)"></textarea>
@@ -145,15 +134,6 @@
                             <input type="text" id="reviewImageCredit" name="reviewImageCredit" [(ngModel)]="selectedPost.review.imageCredit">
                         </div>
 
-                        <div class="field-row">
-                            <label for="reviewRatingValue">Rating:</label>
-                            <div class="review-rating-row">
-                                <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
-                                <span>/</span>
-                                <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
-                            </div>
-                        </div>
-
                         <div class="field-row align-start">
                             <label>Pros:</label>
                             <div class="keywords-editor">
@@ -166,22 +146,6 @@
                                     <input #proInput type="text" class="kw-input" placeholder="Type a pro and press Enter"
                                         (keydown)="onReviewListKeydown($event, 'pros', proInput)"
                                         (blur)="addReviewListItem('pros', proInput.value, proInput)">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="field-row align-start">
-                            <label>Standout features:</label>
-                            <div class="keywords-editor">
-                                <div class="chip-list">
-                                    @for (feature of selectedPost.review.standoutFeatures; track $index) {
-                                        <span class="chip pill pill--interactive">{{feature}}<button type="button" class="chip-remove" (click)="removeReviewListItem('standoutFeatures', $index)" aria-label="Remove">×</button></span>
-                                    }
-                                </div>
-                                <div class="keyword-inputs">
-                                    <input #standoutFeatureInput type="text" class="kw-input" placeholder="Type a standout feature and press Enter"
-                                        (keydown)="onReviewListKeydown($event, 'standoutFeatures', standoutFeatureInput)"
-                                        (blur)="addReviewListItem('standoutFeatures', standoutFeatureInput.value, standoutFeatureInput)">
                                 </div>
                             </div>
                         </div>

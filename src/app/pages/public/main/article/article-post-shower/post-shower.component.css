@@ -197,9 +197,9 @@ h1 {
 
 .review-summary-top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.8rem;
   margin-bottom: 0.55rem;
 }
 
@@ -210,9 +210,9 @@ h1 {
 .review-inline-media {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 50%;
-  flex: 0 0 50%;
+  align-items: flex-start;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 .review-inline-image--thumb {
@@ -240,12 +240,12 @@ h1 {
 .review-inline-media .image-credit {
   width: 100%;
   margin: 0.32rem 0 0;
-  text-align: center;
+  text-align: left;
 }
 
 .review-summary-header {
   flex: 1 1 auto;
-  align-self: flex-start;
+  align-self: stretch;
 }
 
 .review-summary-header h2 {
@@ -381,8 +381,8 @@ h1 {
 .review-analysis-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.85rem;
-  margin-top: 0.8rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .review-analysis-box,
@@ -391,7 +391,7 @@ h1 {
   border-radius: 8px;
   background: var(--surface-base, #fff);
   padding: 0.7rem;
-  margin-top: 0.8rem;
+  margin-top: 0;
 }
 
 .review-analysis-box h3,
@@ -408,14 +408,18 @@ h1 {
 .review-pros-cons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.95rem;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.review-best-for-box {
   margin-top: 1rem;
 }
 
 .review-pros-box,
 .review-cons-box {
   border: 1px solid rgba(29, 61, 89, 0.14);
-  border-radius: 0;
+  border-radius: 8px;
   background: var(--surface-base, #fff);
   box-shadow: 0 6px 14px -12px rgba(26, 57, 84, 0.48);
   padding: 0.75rem 0.78rem;
@@ -527,8 +531,8 @@ h1 {
   }
 
   .review-summary-top {
-    flex-direction: row;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.7rem;
   }
 

@@ -39,7 +39,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   hasLiked: boolean = false;
   isPreview: boolean = false;
   isAdminHost: boolean = false;
-  reviewSummaryHtml: string = '';
   reviewTestingMethodHtml: string = '';
   reviewPerformanceNotesHtml: string = '';
   affiliateDisclosureHtml: string = '';
@@ -212,7 +211,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
     const model = {
       ...defaults,
       ...(review || {}),
-      standoutFeatures: Array.isArray(review?.standoutFeatures) ? review.standoutFeatures.filter((x: any) => !!x) : [],
       bestFor: Array.isArray(review?.bestFor) ? review.bestFor.filter((x: any) => !!x) : [],
       pros: Array.isArray(review?.pros) ? review.pros.filter((x: any) => !!x) : [],
       cons: Array.isArray(review?.cons) ? review.cons.filter((x: any) => !!x) : [],
@@ -253,7 +251,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
 
           this.post = result.article;
           this.post.review = this._normaliseReviewModel(result.article.review);
-          this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
           this.reviewTestingMethodHtml = this._htmler.transform(this.post.review.testingMethod || '');
           this.reviewPerformanceNotesHtml = this._htmler.transform(this.post.review.performanceNotes || '');
           this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');
@@ -318,7 +315,6 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       }
       this.post = result.article;
       this.post.review = this._normaliseReviewModel(result.article.review);
-      this.reviewSummaryHtml = this._htmler.transform(this.post.review.summary || '');
       this.reviewTestingMethodHtml = this._htmler.transform(this.post.review.testingMethod || '');
       this.reviewPerformanceNotesHtml = this._htmler.transform(this.post.review.performanceNotes || '');
       this.affiliateDisclosureHtml = this._htmler.transform(this.post.review.affiliateDisclosure || '');

@@ -67,28 +67,6 @@
     color: #555;
 }
 
-.publish-btn {
-    padding: 0.35em 1em;
-    border-radius: 4px;
-    border: 1px solid #aaa;
-    background: #f5f5f5;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.publish-btn.published {
-    border-color: #c0392b;
-    color: #c0392b;
-    background: #fff5f5;
-}
-
-.publish-btn:not(.published) {
-    border-color: #27ae60;
-    color: #27ae60;
-    background: #f5fff8;
-}
-
 /* === Input overrides === */
 textarea {
     height: 100px;

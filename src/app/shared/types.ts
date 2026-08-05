@@ -338,10 +338,8 @@ interface ArticleReview {
   imageFname?: string;
   imageAlt?: string;
   imageCredit?: string;
-  summary: string;
   testingMethod?: string;
   performanceNotes?: string;
-  standoutFeatures?: string[];
   bestFor?: string[];
   ratingValue?: number;
   ratingScale?: number;
@@ -395,10 +393,8 @@ export class ArticlePost {
     imageFname: '',
     imageAlt: '',
     imageCredit: '',
-    summary: '',
     testingMethod: '',
     performanceNotes: '',
-    standoutFeatures: [],
     bestFor: [],
     pros: [],
     cons: [],
