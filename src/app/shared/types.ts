@@ -316,6 +316,7 @@ export interface ShopOutOfOfficeAdminSettings extends ShopOutOfOfficePublicSetti
 interface ArticleSection {
   title: string;
   content: string;
+  sectionLevel?: 'section' | 'subsection';
   imgFname: string;
   imgAlt: string;
   videoUrl: string;
@@ -348,10 +349,8 @@ interface ArticleReview {
   imageFname?: string;
   imageAlt?: string;
   imageCredit?: string;
-  summary: string;
   testingMethod?: string;
   performanceNotes?: string;
-  standoutFeatures?: string[];
   bestFor?: string[];
   ratingValue?: number;
   ratingScale?: number;
@@ -381,6 +380,7 @@ export class ArticlePost {
   sections: Array<ArticleSection> = [{
     title: '', 
     content: '', 
+    sectionLevel: 'section',
     imgFname: '', 
     imgAlt: '', 
     videoUrl: '',
@@ -404,10 +404,8 @@ export class ArticlePost {
     imageFname: '',
     imageAlt: '',
     imageCredit: '',
-    summary: '',
     testingMethod: '',
     performanceNotes: '',
-    standoutFeatures: [],
     bestFor: [],
     pros: [],
     cons: [],

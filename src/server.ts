@@ -1602,10 +1602,10 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
     return null;
   }
 
-  // Fix 1: fall back to stripped intro if subtitle is blank
+  // Prefer intro first for metadata, then subtitle.
   const isReviewType = post.type === 'review';
   const reviewModel = (post as any).review || {};
-  const rawDescription = post.subtitle || reviewModel.summary || post.intro || '';
+  const rawDescription = post.intro || post.subtitle || '';
   const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
 
   const hasGeneratedOgImage = await generatedOgImageExists(slug);
@@ -1711,7 +1711,7 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
           publisher: isBookReview && reviewModel.publisher ? { '@type': 'Organization', name: reviewModel.publisher } : undefined,
           isbn: isBookReview && reviewModel.isbn ? reviewModel.isbn : undefined,
           sku: reviewModel.sku || undefined,
-          description: (reviewModel.summary || description || '').replace(/<[^>]*>/g, '').slice(0, 300).trim(),
+          description,
         };
 
         if (!isBookReview && Array.isArray(reviewModel.bestFor) && reviewModel.bestFor.length > 0) {
@@ -1737,7 +1737,7 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
           url: articleUrl,
           datePublished: publishedIso,
           dateModified: modifiedIso,
-          reviewBody: (reviewModel.summary || description || '').replace(/<[^>]*>/g, '').trim(),
+          reviewBody: description,
           author: { '@type': 'Person', name: authorName },
           publisher: { '@type': 'Organization', name: 'Snorkelology' },
           itemReviewed: {

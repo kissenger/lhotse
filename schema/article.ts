@@ -13,6 +13,7 @@ const articleSchema = new mongoose.Schema({
   sections: {type: [{
     title: {type: String},
     content: {type: String},
+    sectionLevel: {type: String},
     imgFname: {type: String},
     imgAlt: {type: String},
     videoUrl: {type: String},
@@ -36,10 +37,8 @@ const articleSchema = new mongoose.Schema({
     imageFname: { type: String },
     imageAlt: { type: String },
     imageCredit: { type: String },
-    summary: { type: String },
     testingMethod: { type: String },
     performanceNotes: { type: String },
-    standoutFeatures: { type: [String], default: undefined },
     bestFor: { type: [String], default: undefined },
     pros: { type: [String], default: undefined },
     cons: { type: [String], default: undefined },

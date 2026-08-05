@@ -3,6 +3,42 @@
         <div class="static-div">
             <div class="toolbar-row">
                 <form class="post-select-form">
+                    <label for="select">Post:</label>
+                    <select [ngModel]="selectedPost.slug" (ngModelChange)="onFormSelect($event)" name="select" id="select">
+                        @for(post of posts; track post) {
+                            <option value="{{post.slug}}">
+                                {{post.title}}@if(post.slug) { — {{post.publishedAt ? '✓ Published' : 'Draft'}}}
+                            </option>
+                        }
+                    </select>
+                    @if (selectedPost.slug) {
+                        <a class="preview-btn" href="{{baseURL}}{{selectedPost.slug}}?preview=1" target="_blank" rel="noopener noreferrer">Preview ↗</a>
+                    }
+                </form>
+                <div class="toolbar-actions">
+                    @if (isDirty) { <span class="unsaved-badge">Unsaved changes</span> }
+                    <button type="button" class="formButton btn-help" (click)="showMarkdownHelp = true">Formatting help</button>
+                    <button type="button" class="formButton btn-new" (click)="onNewPost()">New post</button>
+                    <button type="button" class="formButton btn-save" (click)="onSave()">Save</button>
+                    <button type="button" class="formButton btn-delete" (click)="onYesDelete(false)">Delete</button>
+                    <span [ngClass]="askForConfirmation ? 'showButton' : ''" class="sureButton">
+                        Are you sure?
+                        <button type="button" class="formButton" (click)="onYesDelete(true)">Yes</button>
+                        <button type="button" class="formButton" (click)="onNoDelete()">No</button>
+                    </span>
+                    <span [ngClass]="askForDiscardChanges ? 'showButton' : ''" class="sureButton">
+                        Discard unsaved changes?
+                        <button type="button" class="formButton" (click)="onConfirmDiscard()">Yes</button>
+                        <button type="button" class="formButton" (click)="onCancelDiscard()">No</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="scrolling-div">
+
+            <form #articleForm="ngForm" (input)="isDirty = true" (change)="isDirty = true">
+
                 <div class="field-row">
                     <label for="type">Type:</label>
                     <select [(ngModel)]="selectedPost.type" (ngModelChange)="onTypeChange()" name="type" id="type">
@@ -72,25 +108,9 @@
                             </div>
                         }
 
-                        <div class="field-row align-start review-summary-row">
-                            <label for="reviewSummary">Review summary:</label>
-                            <div class="review-summary-panel">
-                                <div class="review-summary-head">
-                                    <span class="review-summary-title">Reader verdict</span>
-                                    <span class="review-summary-badge">Used in snippets</span>
-                                </div>
-                                <textarea class="review-summary-textarea" id="reviewSummary" name="reviewSummary" [(ngModel)]="selectedPost.review.summary" placeholder="Write a concise, opinionated summary that tells readers why this is worth it (or not)."></textarea>
-                            </div>
-                        </div>
-
                         <div class="field-row align-start">
                             <label for="reviewTestingMethod">Testing method:</label>
                             <textarea id="reviewTestingMethod" name="reviewTestingMethod" [(ngModel)]="selectedPost.review.testingMethod" placeholder="How this was tested (conditions, duration, use case)"></textarea>
-                        </div>
-
-                        <div class="field-row align-start">
-                            <label for="reviewPerformanceNotes">Performance in testing:</label>
-                            <textarea id="reviewPerformanceNotes" name="reviewPerformanceNotes" [(ngModel)]="selectedPost.review.performanceNotes" placeholder="What happened in testing and key observed results"></textarea>
                         </div>
 
                         <div class="field-row">
@@ -114,15 +134,6 @@
                             <input type="text" id="reviewImageCredit" name="reviewImageCredit" [(ngModel)]="selectedPost.review.imageCredit">
                         </div>
 
-                        <div class="field-row">
-                            <label for="reviewRatingValue">Rating:</label>
-                            <div class="review-rating-row">
-                                <input type="number" id="reviewRatingValue" name="reviewRatingValue" min="0" max="5" step="0.1" [(ngModel)]="selectedPost.review.ratingValue">
-                                <span>/</span>
-                                <input type="number" id="reviewRatingScale" name="reviewRatingScale" min="1" max="10" step="1" [(ngModel)]="selectedPost.review.ratingScale">
-                            </div>
-                        </div>
-
                         <div class="field-row align-start">
                             <label>Pros:</label>
                             <div class="keywords-editor">
@@ -135,22 +146,6 @@
                                     <input #proInput type="text" class="kw-input" placeholder="Type a pro and press Enter"
                                         (keydown)="onReviewListKeydown($event, 'pros', proInput)"
                                         (blur)="addReviewListItem('pros', proInput.value, proInput)">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="field-row align-start">
-                            <label>Standout features:</label>
-                            <div class="keywords-editor">
-                                <div class="chip-list">
-                                    @for (feature of selectedPost.review.standoutFeatures; track $index) {
-                                        <span class="chip pill pill--interactive">{{feature}}<button type="button" class="chip-remove" (click)="removeReviewListItem('standoutFeatures', $index)" aria-label="Remove">×</button></span>
-                                    }
-                                </div>
-                                <div class="keyword-inputs">
-                                    <input #standoutFeatureInput type="text" class="kw-input" placeholder="Type a standout feature and press Enter"
-                                        (keydown)="onReviewListKeydown($event, 'standoutFeatures', standoutFeatureInput)"
-                                        (blur)="addReviewListItem('standoutFeatures', standoutFeatureInput.value, standoutFeatureInput)">
                                 </div>
                             </div>
                         </div>
@@ -213,9 +208,14 @@
                 }
 
                 <div class="field-row">
+                    <label>Slug:</label>
+                    <span class="slug-value">{{selectedPost.slug}}</span>
+                </div>
+
+                <div class="field-row">
                     <label for="title">Title:</label>
                     <div class="input-with-meta">
-                        <input type="text" id="title" name="title" spellcheck="true" [class.alert]="wordCountOver(selectedPost.title, 7)" [(ngModel)]="selectedPost.title">
+                        <input type="text" id="title" name="title" spellcheck="true" [class.alert]="wordCountOver(selectedPost.title, 7)" [(ngModel)]="selectedPost.title" (ngModelChange)="onTitleChange($event)">
                         <span class="word-count" [class.over]="wordCountOver(selectedPost.title, 7)">{{wordCountText(selectedPost.title, 7)}}</span>
                     </div>
                 </div>
@@ -298,6 +298,14 @@
                             <div class="field-row">
                                 <label for="question{{si}}">Title:</label>
                                 <input type="text" id="question{{si}}" name="question{{si}}" spellcheck="true" [(ngModel)]="section.title">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="sectionLevel{{si}}">Section level:</label>
+                                <select id="sectionLevel{{si}}" [name]="'sectionLevel'+si" [(ngModel)]="section.sectionLevel">
+                                    <option value="section">Section</option>
+                                    <option value="subsection">Subsection</option>
+                                </select>
                             </div>
 
                             <div class="field-row align-start">
@@ -411,7 +419,6 @@
                 }
 
             </form>
-        </div>
         </div>
 
         @if (showMarkdownHelp) {

@@ -1,11 +1,10 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-affiliate-box',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   template: `
     <div class="affiliate-box" role="region" aria-label="Affiliate link">
       <div class="affiliate-box__label">AFFILIATE LINK</div>
@@ -13,7 +12,6 @@ import { RouterLink } from '@angular/router';
       @if (statement) {
         <p class="affiliate-box__statement">
           {{ statement }}
-          <a class="anchor-pill cta-link-btn affiliate-box__learn-more" routerLink="/affiliate-disclosure">Learn more</a>
         </p>
       }
     </div>
@@ -55,12 +53,6 @@ import { RouterLink } from '@angular/router';
       color: var(--text-muted, rgba(0,0,0,0.6));
       font-size: 0.95rem;
       line-height: 1.5;
-    }
-
-    .affiliate-box__learn-more {
-      margin-left: 0.55rem;
-      vertical-align: middle;
-      white-space: nowrap;
     }
   `]
 })

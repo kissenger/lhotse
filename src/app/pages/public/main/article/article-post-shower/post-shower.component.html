@@ -96,6 +96,7 @@
                   }
                 </p>
               }
+
             </header>
 
             @if (reviewImageSrc) {
@@ -112,10 +113,6 @@
             }
           </div>
 
-          @if (reviewSummaryHtml) {
-            <div class="review-summary-copy" [innerHTML]="reviewSummaryHtml | sanitizer"></div>
-          }
-
           <div class="review-analysis-grid">
             @if (reviewTestingMethodHtml) {
               <section class="review-analysis-box">
@@ -124,27 +121,10 @@
               </section>
             }
 
-            @if (reviewPerformanceNotesHtml) {
-              <section class="review-analysis-box">
-                <h3>Performance in testing</h3>
-                <div [innerHTML]="reviewPerformanceNotesHtml | sanitizer"></div>
-              </section>
-            }
           </div>
 
-          @if ((post.review.standoutFeatures?.length || 0) > 0) {
-            <section class="review-highlight-box">
-              <h3>Standout features</h3>
-              <ul>
-                @for (feature of post.review.standoutFeatures; track feature) {
-                  <li>{{feature}}</li>
-                }
-              </ul>
-            </section>
-          }
-
           @if (isProductReview && (post.review.bestFor?.length || 0) > 0) {
-            <section class="review-highlight-box">
+            <section class="review-best-for-box review-pros-box" aria-label="Best for">
               <h3>Best for</h3>
               <ul>
                 @for (targetReader of post.review.bestFor; track targetReader) {
@@ -186,9 +166,6 @@
             @for (link of post.review.affiliateLinks; track link.url) {
               <app-affiliate-box [link]="link.url" [linkText]="link.label"></app-affiliate-box>
             }
-            <p class="affiliate-learnmore affiliate-links-learnmore">
-              <a routerLink="/affiliate-disclosure">Learn more about affiliate links</a>
-            </p>
           }
         </section>
       }
@@ -201,7 +178,7 @@
               <ul class="contents-list">
                 @for(section of post.sections; track section) {
                   @if (section.sectionType !== 'cta') {
-                    <li>
+                    <li [class.contents-item--subsection]="section.sectionLevel === 'subsection'">
                       <a [routerLink]="'.'" [fragment]="section.title | kebaber">{{section.title}}</a>
                     </li>
                   }
@@ -236,8 +213,12 @@
             } @else {
               <section class="article-content-section">
                 <a class="anchor" id="{{section.title | kebaber}}"></a>
-                <h2>{{section.title}}</h2>
-                <div [innerHTML]="section.content | sanitizer"></div>
+                @if (section.sectionLevel === 'subsection') {
+                  <h3 class="section-heading section-heading--subsection">{{section.title}}</h3>
+                } @else {
+                  <h2 class="section-heading">{{section.title}}</h2>
+                }
+                <div class="section-content" [innerHTML]="section.content | sanitizer"></div>
                 @if (!!section.imgFname) {
                   @if (sectionAffiliateUrl(section); as affiliateUrl) {
                     <div class="section-affiliate-row">
