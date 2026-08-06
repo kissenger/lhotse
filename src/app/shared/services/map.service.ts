@@ -14,6 +14,9 @@ export class MapService {
   private _startingBounds: mapboxgl.LngLatBoundsLike = [[-8.1597, 49.7212],[1.8482, 59.3700]];
   public selectedFeature: any = null;
   private _sites: any;
+  private _userLocationCoords: [number, number] | null = null;
+  private _isLocating = false;
+  private _locateButton: HTMLButtonElement | null = null;
   // Emits whenever the selected feature changes (including clear)
   public readonly selectionChanged = new Subject<void>();
   // Emits whenever the map viewport changes (pan/zoom/rotate)
@@ -82,6 +85,57 @@ export class MapService {
     return index;
   }
 
+  private _buildUserLocationGeoJson(coords: [number, number] | null = this._userLocationCoords): GeoJSON.FeatureCollection {
+    if (!coords) {
+      return { type: 'FeatureCollection', features: [] };
+    }
+    return {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: coords },
+        properties: {},
+      }],
+    };
+  }
+
+  private _updateUserLocationSource() {
+    const source = this._map?.getSource('userLocationSource') as mapboxgl.GeoJSONSource | undefined;
+    source?.setData(this._buildUserLocationGeoJson());
+  }
+
+  private _setLocateButtonState(isLocating: boolean) {
+    this._isLocating = isLocating;
+    if (!this._locateButton) return;
+    this._locateButton.disabled = isLocating;
+    this._locateButton.textContent = isLocating ? '…' : '◎';
+    this._locateButton.title = isLocating ? 'Finding your location…' : 'Zoom to your location';
+  }
+
+  private _zoomToUserLocation() {
+    if (this._isLocating || !this._map) return;
+    if (typeof window === 'undefined' || !('geolocation' in window.navigator)) return;
+
+    this._setLocateButtonState(true);
+    window.navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        const { latitude, longitude } = position.coords;
+        this._userLocationCoords = [longitude, latitude];
+        this._updateUserLocationSource();
+        this._map?.flyTo({ center: [longitude, latitude], zoom: Math.max(this._map.getZoom(), 12), essential: true });
+        this._setLocateButtonState(false);
+      },
+      () => {
+        this._setLocateButtonState(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  }
+
   async create(sites: any) {
     const mapboxgl = await loadMapboxFromCdn();
     mapboxgl.accessToken = mapboxToken;
@@ -99,6 +153,26 @@ export class MapService {
 
       // Add Mapbox zoom controls (NavigationControl)
       this._map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+      const locateCtrl: mapboxgl.IControl = {
+        onAdd: () => {
+          const div = document.createElement('div');
+          div.className = 'mapboxgl-ctrl mapboxgl-ctrl-group location-ctrl';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'location-btn';
+          btn.title = 'Zoom to your location';
+          btn.textContent = '◎';
+          btn.addEventListener('click', () => this._zoomToUserLocation());
+          div.appendChild(btn);
+          this._locateButton = btn;
+          return div;
+        },
+        onRemove: () => {
+          this._locateButton = null;
+        },
+      };
+      this._map.addControl(locateCtrl, 'top-right');
 
       const fullscreenContainer = this._map.getContainer().parentElement ?? undefined;
 
@@ -153,6 +227,13 @@ export class MapService {
             siteCount: ['+', ['case', ['==', ['get', 'featureType'], 'Snorkelling Site'], 1, 0]],
           },
         });
+
+        if (!this._map?.getSource('userLocationSource')) {
+          this._map?.addSource('userLocationSource', {
+            type: 'geojson',
+            data: this._buildUserLocationGeoJson(),
+          });
+        }
 
         // cluster bubble layer
         this._map?.addLayer({
@@ -235,6 +316,36 @@ export class MapService {
             'circle-pitch-alignment': 'map',
           },
         });
+
+        if (!this._map?.getLayer('userLocationRingLayer')) {
+          this._map?.addLayer({
+            id: 'userLocationRingLayer',
+            type: 'circle',
+            source: 'userLocationSource',
+            paint: {
+              'circle-radius': 12,
+              'circle-color': '#1f8df3',
+              'circle-opacity': 0.25,
+              'circle-stroke-width': 0,
+            },
+          });
+        }
+
+        if (!this._map?.getLayer('userLocationDotLayer')) {
+          this._map?.addLayer({
+            id: 'userLocationDotLayer',
+            type: 'circle',
+            source: 'userLocationSource',
+            paint: {
+              'circle-radius': 5,
+              'circle-color': '#1f8df3',
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 2,
+            },
+          });
+        }
+
+        this._updateUserLocationSource();
 
         // label layer — site/org name shown at zoom >= 8
         this._map?.addLayer({

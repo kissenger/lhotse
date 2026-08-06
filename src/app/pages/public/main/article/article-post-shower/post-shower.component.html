@@ -114,15 +114,13 @@
 
           <div class="review-analysis-grid">
             @if (reviewTestingMethodHtml) {
-              <section class="review-analysis-box">
+              <section class="review-analysis-box review-analysis-box--full">
                 <h3>Testing approach</h3>
                 <div [innerHTML]="reviewTestingMethodHtml | sanitizer"></div>
               </section>
             }
 
-          </div>
-
-          <div class="review-pros-cons-grid">
+            <div class="review-pros-cons-grid review-pros-cons-grid--full">
             @if (post.review.pros.length > 0) {
               <section class="review-pros-box">
                 <h3>Pros</h3>
@@ -144,6 +142,16 @@
                 </ul>
               </section>
             }
+
+            </div>
+
+            @if (isProductReview && reviewPerformanceNotesHtml) {
+              <section class="review-analysis-box review-analysis-box--full" aria-label="Review summary">
+                <h3>Review summary</h3>
+                <div [innerHTML]="reviewPerformanceNotesHtml | sanitizer"></div>
+              </section>
+            }
+
           </div>
 
           @if (affiliateDisclosureHtml) {

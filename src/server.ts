@@ -1623,10 +1623,11 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
     return null;
   }
 
-  // Prefer intro first for metadata, then subtitle.
+  // For review posts, prefer the authored review summary snippet first.
   const isReviewType = post.type === 'review';
   const reviewModel = (post as any).review || {};
-  const rawDescription = post.intro || post.subtitle || '';
+  const reviewSnippet = typeof reviewModel.performanceNotes === 'string' ? reviewModel.performanceNotes : '';
+  const rawDescription = (isReviewType ? (reviewSnippet || post.intro || post.subtitle) : (post.intro || post.subtitle)) || '';
   const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
 
   const hasGeneratedOgImage = await generatedOgImageExists(slug);

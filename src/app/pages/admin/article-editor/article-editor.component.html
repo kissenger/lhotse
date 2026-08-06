@@ -109,6 +109,11 @@
                         }
 
                         <div class="field-row align-start">
+                            <label for="reviewPerformanceNotes">Review summary:</label>
+                            <textarea id="reviewPerformanceNotes" name="reviewPerformanceNotes" [(ngModel)]="selectedPost.review.performanceNotes" placeholder="Short summary used in review box and SEO snippet"></textarea>
+                        </div>
+
+                        <div class="field-row align-start">
                             <label for="reviewTestingMethod">Testing method:</label>
                             <textarea id="reviewTestingMethod" name="reviewTestingMethod" [(ngModel)]="selectedPost.review.testingMethod" placeholder="How this was tested (conditions, duration, use case)"></textarea>
                         </div>

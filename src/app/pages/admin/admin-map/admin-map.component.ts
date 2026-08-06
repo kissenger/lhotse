@@ -44,6 +44,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
   public selectedSite: MapFeature | null = null;
   public visibleCount = 0;
   public isLocating = false;
+  public userLocationCoords: [number, number] | null = null;
 
   readonly categories: FilterCategory[] = [
     { status: 'visited-production', label: 'Visited & on map',       color: '#2d9e2d', enabled: true },
@@ -99,6 +100,11 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
         data: this._buildGeoJson(),
       });
 
+      this._map!.addSource('user-location', {
+        type: 'geojson',
+        data: this._buildUserLocationGeoJson(),
+      });
+
       this._map!.addLayer({
         id: 'admin-sites-circles',
         type: 'circle',
@@ -114,6 +120,30 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
             'unvisited-priority', '#cc2222',
             /* default */         '#888888',
           ],
+        },
+      });
+
+      this._map!.addLayer({
+        id: 'user-location-ring',
+        type: 'circle',
+        source: 'user-location',
+        paint: {
+          'circle-radius': 12,
+          'circle-color': '#1f8df3',
+          'circle-opacity': 0.25,
+          'circle-stroke-width': 0,
+        },
+      });
+
+      this._map!.addLayer({
+        id: 'user-location-dot',
+        type: 'circle',
+        source: 'user-location',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#1f8df3',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
         },
       });
 
@@ -164,6 +194,28 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
     source?.setData(this._buildGeoJson());
   }
 
+  private _buildUserLocationGeoJson(coords: [number, number] | null = this.userLocationCoords): GeoJSON.FeatureCollection {
+    if (!coords) {
+      return { type: 'FeatureCollection', features: [] };
+    }
+    return {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: coords,
+        },
+        properties: {},
+      }],
+    };
+  }
+
+  private _updateUserLocationSource() {
+    const source = this._map?.getSource('user-location') as mapboxgl.GeoJSONSource | undefined;
+    source?.setData(this._buildUserLocationGeoJson());
+  }
+
   toggleFilter(cat: FilterCategory) {
     cat.enabled = !cat.enabled;
     this._updateSource();
@@ -202,6 +254,8 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
     this._window.navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
         const { latitude, longitude } = position.coords;
+        this.userLocationCoords = [longitude, latitude];
+        this._updateUserLocationSource();
         this._map?.flyTo({ center: [longitude, latitude], zoom: Math.max(this._map.getZoom(), 12), essential: true });
         this.isLocating = false;
         this._cdr.detectChanges();

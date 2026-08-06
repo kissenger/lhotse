@@ -567,6 +567,11 @@ h3 {
   display: block;
 }
 
+:host ::ng-deep .mapboxgl-ctrl-top-right .location-ctrl .location-btn {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 /* Filter control (injected into Mapbox ctrl bar) */
 :host ::ng-deep .expand-ctrl {
   position: relative;
