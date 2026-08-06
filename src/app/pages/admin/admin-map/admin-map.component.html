@@ -14,6 +14,13 @@
     <div class="zoom-controls">
       <button class="zoom-btn" (click)="zoomIn()" title="Zoom in">+</button>
       <button class="zoom-btn" (click)="zoomOut()" title="Zoom out">−</button>
+      <button class="zoom-btn location-btn" [disabled]="isLocating" (click)="zoomToUserLocation()" [title]="isLocating ? 'Finding your location…' : 'Zoom to your location'">
+        @if (isLocating) {
+          …
+        } @else {
+          ◎
+        }
+      </button>
     </div>
 
     <!-- Legend / filter -->

@@ -496,7 +496,7 @@ export class MapFeature {
     moreInfo: Array<{ title: string; icon: string; url: string; text: string; preferred: boolean }>;
     siteInfo: {
       isCarAccess: boolean;
-      parking: { name: string; location: { type: string; coordinates: [number, number] } | null; isPayAndDisplay: boolean };
+      parking: { name: string; location: { type: string; coordinates: [number, number] } | null; isPayAndDisplay: boolean; isNationalTrust: boolean };
     };
     researchNotes: {
       isVisited: boolean;
@@ -519,7 +519,7 @@ export class MapFeature {
     moreInfo: [],
     siteInfo: {
       isCarAccess: false,
-      parking: { name: '', location: null, isPayAndDisplay: false },
+      parking: { name: '', location: null, isPayAndDisplay: false, isNationalTrust: false },
     },
     researchNotes: { isVisited: false, visitPriority: false, notes: '', links: [], credits: '', rating: '' },
   };

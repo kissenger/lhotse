@@ -79,13 +79,23 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       ]);
       return { ...postResult, nextSlug: '', lastSlug: '' };
     }
-    const [postResult, slugResult] = await Promise.race([
-      Promise.all([
-        this._http.getPostBySlug(slug, false),
-        this._http.getLastAndNextSlugs(slug)
-      ]),
+
+    const postResult = await Promise.race([
+      this._http.getPostBySlug(slug, false),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
     ]);
+
+    let slugResult: { nextSlug?: string; lastSlug?: string; nextTitle?: string; lastTitle?: string } = {};
+    try {
+      slugResult = await Promise.race([
+        this._http.getLastAndNextSlugs(slug),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+      ]);
+    } catch {
+      // Keep the article page renderable if the adjacent-slugs call fails or times out.
+      slugResult = { nextSlug: '', lastSlug: '', nextTitle: '', lastTitle: '' };
+    }
+
     return { ...postResult, ...slugResult };
   }
 

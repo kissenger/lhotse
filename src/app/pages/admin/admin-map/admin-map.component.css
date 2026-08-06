@@ -109,6 +109,15 @@
   background: #f0f0f0;
 }
 
+.zoom-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.location-btn {
+  font-size: 1rem;
+}
+
 /* ── Map ── */
 .map-wrap {
   position: relative;

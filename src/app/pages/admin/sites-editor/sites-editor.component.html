@@ -224,6 +224,10 @@
             <label for="parkingPay">Pay &amp; Display:</label>
             <input type="checkbox" id="parkingPay" name="parkingPay" [(ngModel)]="selectedSite.properties.siteInfo.parking.isPayAndDisplay">
           </div>
+          <div>
+            <label for="parkingNationalTrust">National Trust:</label>
+            <input type="checkbox" id="parkingNationalTrust" name="parkingNationalTrust" [(ngModel)]="selectedSite.properties.siteInfo.parking.isNationalTrust">
+          </div>
           @if (selectedSite.properties.siteInfo.parking.location) {
             <div class="map-section map-section-compact">
               <div class="map-section-left">

@@ -20,7 +20,7 @@ export class AdminNavbarComponent {
     { label: 'Dashboard',     path: '/dashboard' },
     { label: 'Article',          path: '/articleeditor' },
     { label: 'Sites',         path: '/siteseditor' },
-    { label: 'Map',           path: '/adminmap' },
+    { label: 'Sites Map',     path: '/adminmap' },
     { label: 'Counties',      path: '/county-descriptions' },
     { label: 'Organisations', path: '/organisations' },
     { label: 'Orders',        path: '/orders' },

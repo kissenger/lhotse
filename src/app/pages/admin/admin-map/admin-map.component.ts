@@ -43,6 +43,7 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
   public loadingState: 'loading' | 'failed' | 'success' = 'loading';
   public selectedSite: MapFeature | null = null;
   public visibleCount = 0;
+  public isLocating = false;
 
   readonly categories: FilterCategory[] = [
     { status: 'visited-production', label: 'Visited & on map',       color: '#2d9e2d', enabled: true },
@@ -184,6 +185,38 @@ export class AdminMapComponent implements AfterViewInit, OnDestroy {
 
   zoomOut() {
     this._map?.zoomOut();
+  }
+
+  zoomToUserLocation() {
+    if (this.isLocating) return;
+    if (!this._map) {
+      this._toaster.show('Map is not ready yet', 'error');
+      return;
+    }
+    if (!('geolocation' in this._window.navigator)) {
+      this._toaster.show('Geolocation is not available in this browser', 'error');
+      return;
+    }
+
+    this.isLocating = true;
+    this._window.navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        const { latitude, longitude } = position.coords;
+        this._map?.flyTo({ center: [longitude, latitude], zoom: Math.max(this._map.getZoom(), 12), essential: true });
+        this.isLocating = false;
+        this._cdr.detectChanges();
+      },
+      (_error: GeolocationPositionError) => {
+        this._toaster.show('Unable to get your location. Check browser permissions.', 'error');
+        this.isLocating = false;
+        this._cdr.detectChanges();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
   }
 
   clearSelection() {

@@ -42,7 +42,8 @@ const featureSchema = new mongoose.Schema({
           type: {type: String},
           coordinates: {type: [Number]}
         },
-        isPayAndDisplay: {type: Boolean}
+        isPayAndDisplay: {type: Boolean},
+        isNationalTrust: {type: Boolean}
       },
     },
     researchNotes: {
