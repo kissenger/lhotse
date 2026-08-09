@@ -119,6 +119,34 @@ describe('MapComponent', () => {
     expect(comp.geoJson.features[0].geometry.coordinates[1]).toBe(4.56);
   });
 
+  it('renders more info links using the saved text label when title is missing', () => {
+    const { comp } = buildMap();
+    comp.geoJson = {
+      type: 'FeatureCollection',
+      features: [{
+        geometry: { coordinates: [0, 51] },
+        properties: {
+          name: 'Test Site',
+          featureType: 'Snorkelling Site',
+          categories: [],
+          description: 'A place',
+          location: { locality: 'Dorset', district: 'Dorset' },
+          moreInfo: [{ title: '', text: 'Visit site', url: 'https://example.com', icon: 'website', preferred: false }],
+        }
+      }]
+    };
+
+    const fixture = TestBed.createComponent(MapComponent);
+    fixture.componentInstance.geoJson = comp.geoJson;
+    fixture.componentInstance.selectedFeatureIndex = 0;
+    fixture.componentInstance['map'] = { selectedSymbolId: 0 } as any;
+    fixture.componentInstance.loadingState = 'success' as any;
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('.map-feature-links-list a');
+    expect(link?.textContent?.trim()).toBe('Visit site');
+  });
+
   // --- ?county ---
 
   it('county filter includes providers by default', async () => {

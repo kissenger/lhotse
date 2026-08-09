@@ -260,7 +260,7 @@
                     @for (item of feature.moreInfo; track item) {
                       <li>
                         <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
-                          href={{item.url}}>{{item.title}}</a>
+                          href={{item.url}}>{{item.title || item.text || item.url}}</a>
                       </li>
                     }
                   </ul>

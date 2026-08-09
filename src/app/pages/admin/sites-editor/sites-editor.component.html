@@ -122,6 +122,9 @@
           @for (info of selectedSite.properties.moreInfo; track $index) {
             <div class="more-info-item">
               <div class="more-info-fields">
+                <input type="text" placeholder="Title"
+                  [id]="'infoTitle' + $index" [name]="'infoTitle' + $index"
+                  [(ngModel)]="info.title">
                 <input type="text" placeholder="Text"
                   [id]="'infoText' + $index" [name]="'infoText' + $index"
                   [(ngModel)]="info.text">
