@@ -131,7 +131,7 @@ describe('MapComponent', () => {
           categories: [],
           description: 'A place',
           location: { locality: 'Dorset', district: 'Dorset' },
-          moreInfo: [{ title: '', text: 'Visit site', url: 'https://example.com', icon: 'website', preferred: false }],
+          moreInfo: [{ title: 'Visit site', text: '', url: 'https://example.com', icon: 'website', preferred: false }],
         }
       }]
     };
