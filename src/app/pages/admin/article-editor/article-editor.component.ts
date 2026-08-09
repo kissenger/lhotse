@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ArticlePost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
@@ -8,6 +8,7 @@ import { ToastService } from '@shared/services/toast.service';
 import { errorMessage } from '@shared/utils/error-message';
 import { environment } from '@environments/environment';
 import { appImageUrl } from '@shared/utils/image-url';
+import { AdminDraftStorageService } from '@shared/services/admin-draft-storage.service';
 
 @Component({
   selector: 'app-article-editor',
@@ -18,7 +19,7 @@ import { appImageUrl } from '@shared/utils/image-url';
   styleUrl: './article-editor.component.css'
 })
 
-export class ArticleEditorComponent implements OnInit {
+export class ArticleEditorComponent implements OnInit, OnDestroy {
 
   public baseURL: string = `/articles/`;
   public isDirty: boolean = false;
@@ -33,17 +34,38 @@ export class ArticleEditorComponent implements OnInit {
   public askForDiscardChanges: boolean = false;
   private _pendingNavAction: (() => void) | null = null;
   private _selectedPostSnapshot: ArticlePost | null = null;
+  private _autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
       private _http: HttpService,
       private _kebaber: KebaberPipe,
       private _cdr: ChangeDetectorRef,
       private _toaster: ToastService,
+      private _drafts: AdminDraftStorageService,
     ) {
     }
     
   async ngOnInit() {
-    this.getPosts();
+    await this.getPosts();
+    this._restoreDraft();
+    this._startAutoSave();
+  }
+
+  ngOnDestroy() {
+    this._stopAutoSave();
+    this._persistDraft();
+  }
+
+  @HostListener('window:visibilitychange')
+  onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      this._persistDraft();
+    }
+  }
+
+  @HostListener('window:pagehide')
+  onPageHide() {
+    this._persistDraft();
   }
 
   ensureReviewModel() {
@@ -446,6 +468,7 @@ export class ArticleEditorComponent implements OnInit {
       this.ensureReviewModel();
       this._captureSelectedPostSnapshot();
       this.isDirty = false;
+      this._drafts.clearDraft('article-editor');
       this._toaster.show('Post saved successfully.', 'success');
     } catch (error: any) {
       this._toaster.show(errorMessage(error, 'Could not save post'), 'error');
@@ -489,6 +512,7 @@ export class ArticleEditorComponent implements OnInit {
     this.posts.push(...newData);
     this.getUniqueKeywords();
     this._refreshArticleSectionOptions();
+    this._persistDraft();
     this._cdr.detectChanges();
   }
 
@@ -518,6 +542,57 @@ export class ArticleEditorComponent implements OnInit {
 
   private _captureSelectedPostSnapshot() {
     this._selectedPostSnapshot = this._clonePost(this.selectedPost);
+    this._persistDraft();
+  }
+
+  private _startAutoSave() {
+    this._stopAutoSave();
+    this._autoSaveTimer = setInterval(() => {
+      if (this.isDirty) {
+        this._persistDraft();
+      }
+    }, 5000);
+  }
+
+  private _stopAutoSave() {
+    if (this._autoSaveTimer) {
+      clearInterval(this._autoSaveTimer);
+      this._autoSaveTimer = null;
+    }
+  }
+
+  private _persistDraft() {
+    this._drafts.saveDraft('article-editor', {
+      selectedPost: this.selectedPost,
+      isDirty: this.isDirty,
+      posts: this.posts,
+      articleSectionOptions: this.articleSectionOptions,
+      uniqueKeywords: this.uniqueKeywords,
+      newArticleSectionLabel: this.newArticleSectionLabel,
+    });
+  }
+
+  private _restoreDraft() {
+    const draft = this._drafts.loadDraft<{
+      selectedPost: ArticlePost;
+      isDirty: boolean;
+      posts: ArticlePost[];
+      articleSectionOptions: string[];
+      uniqueKeywords: string[];
+      newArticleSectionLabel: string;
+    }>('article-editor');
+
+    if (!draft) {
+      return;
+    }
+
+    this.selectedPost = draft.selectedPost ? this._clonePost(draft.selectedPost) as ArticlePost : new ArticlePost();
+    this._ensureArticleSection(this.selectedPost);
+    this.ensureReviewModel();
+    this.isDirty = draft.isDirty;
+    this.newArticleSectionLabel = draft.newArticleSectionLabel ?? '';
+    this._captureSelectedPostSnapshot();
+    this._cdr.detectChanges();
   }
 
   private _clonePost(post: ArticlePost | null): ArticlePost | null {

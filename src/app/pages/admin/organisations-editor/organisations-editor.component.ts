@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpService } from '@shared/services/http.service';
 import { ToastService } from '@shared/services/toast.service';
 import { OrgDiscover, OrgDocument, OrgGenerate, OrgListItem } from '@shared/types';
+import { AdminDraftStorageService } from '@shared/services/admin-draft-storage.service';
 import { CanLeaveOrganisationsEditor } from './organisations-unsaved-changes.guard';
 
 @Component({
@@ -33,6 +34,7 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
   contentSource: 'generated' | 'favourite' = 'generated';
   tagInput = '';
   private _savedFavouriteSnapshot = '';
+  private _autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly CATEGORIES = [
     'Authors of Snorkelling Britain',
@@ -64,11 +66,19 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
     private _http: HttpService,
     private _toaster: ToastService,
     private _cdr: ChangeDetectorRef,
+    private _drafts: AdminDraftStorageService,
   ) {}
 
   ngOnInit() {
     this.loadSettings();
     this.loadList();
+    this._restoreDraft();
+    this._startAutoSave();
+  }
+
+  ngOnDestroy() {
+    this._stopAutoSave();
+    this._persistDraft();
   }
 
   // ---- list loading ----
@@ -188,6 +198,7 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
       this.selectedDoc = await this._http.saveOrgDoc('discover', this.selectedId, this.selectedDoc);
       this.isDirty = false;
       this._takeFavouriteSnapshot();
+      this._drafts.clearDraft('organisations-editor');
       this._toaster.show('Saved', 'success');
       await this.loadList();
     } catch {
@@ -243,9 +254,22 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent) {
+    this._persistDraft();
     if (!this.canLeavePage()) {
       event.preventDefault();
     }
+  }
+
+  @HostListener('window:visibilitychange')
+  onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      this._persistDraft();
+    }
+  }
+
+  @HostListener('window:pagehide')
+  onPageHide() {
+    this._persistDraft();
   }
 
   canLeavePage(): boolean {
@@ -272,6 +296,62 @@ export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisatio
     const vd = this.verifiedData;
     if (!vd.contacts) vd.contacts = {};
     return vd.contacts;
+  }
+
+  private _startAutoSave() {
+    this._stopAutoSave();
+    this._autoSaveTimer = setInterval(() => {
+      if (this.isDirty) {
+        this._persistDraft();
+      }
+    }, 5000);
+  }
+
+  private _stopAutoSave() {
+    if (this._autoSaveTimer) {
+      clearInterval(this._autoSaveTimer);
+      this._autoSaveTimer = null;
+    }
+  }
+
+  private _persistDraft() {
+    this._drafts.saveDraft('organisations-editor', {
+      selectedDoc: this.selectedDoc,
+      selectedId: this.selectedId,
+      isDirty: this.isDirty,
+      scoringThreshold: this.scoringThreshold,
+      scoringThresholdDirty: this.scoringThresholdDirty,
+      contentSource: this.contentSource,
+      tagInput: this.tagInput,
+      savedFavouriteSnapshot: this._savedFavouriteSnapshot,
+    });
+  }
+
+  private _restoreDraft() {
+    const draft = this._drafts.loadDraft<{
+      selectedDoc: OrgDocument | null;
+      selectedId: string;
+      isDirty: boolean;
+      scoringThreshold: number;
+      scoringThresholdDirty: boolean;
+      contentSource: 'generated' | 'favourite';
+      tagInput: string;
+      savedFavouriteSnapshot: string;
+    }>('organisations-editor');
+
+    if (!draft) {
+      return;
+    }
+
+    this.selectedDoc = draft.selectedDoc ? JSON.parse(JSON.stringify(draft.selectedDoc)) : null;
+    this.selectedId = draft.selectedId ?? '';
+    this.isDirty = draft.isDirty;
+    this.scoringThreshold = draft.scoringThreshold ?? this.scoringThreshold;
+    this.scoringThresholdDirty = draft.scoringThresholdDirty;
+    this.contentSource = draft.contentSource ?? this.contentSource;
+    this.tagInput = draft.tagInput ?? '';
+    this._savedFavouriteSnapshot = draft.savedFavouriteSnapshot ?? '';
+    this._cdr.detectChanges();
   }
 
   get isOnMap(): boolean {

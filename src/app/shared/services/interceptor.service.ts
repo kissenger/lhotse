@@ -35,7 +35,9 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401 && isPlatformBrowser(this._platformId)) {
           this._auth.deleteCookies();
-          this._router.navigate(['/login']); 
+          const currentUrl = this._router.url || '/dashboard';
+          const redirectUrl = currentUrl.startsWith('/login') ? '/dashboard' : currentUrl;
+          this._router.navigate(['/login'], { queryParams: { redirect: redirectUrl } });
         }
         return throwError(() => error);
       })

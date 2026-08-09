@@ -1,4 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, HostListener } from '@angular/core';
+import { AdminDraftStorageService } from '@shared/services/admin-draft-storage.service';
 import { HasUnsavedChanges } from './unsaved-changes.guard';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
@@ -39,6 +40,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   private _pendingNavAction: (() => void) | null = null;
 
   private _savedSnapshot: string = '';
+  private _autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   get mainMapSatellite() { return this._mainMapInst.satellite; }
   get parkingMapSatellite() { return this._parkingMapInst.satellite; }
@@ -108,6 +110,7 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     private _sanitizer: DomSanitizer,
     private _route: ActivatedRoute,
     private _toaster: ToastService,
+    private _drafts: AdminDraftStorageService,
     @Inject(DOCUMENT) _document: Document
   ) {
     this._window = _document.defaultView;
@@ -115,9 +118,22 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent) {
+    this._persistDraft();
     if (this.hasUnsavedChanges()) {
       event.preventDefault();
     }
+  }
+
+  @HostListener('window:visibilitychange')
+  onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      this._persistDraft();
+    }
+  }
+
+  @HostListener('window:pagehide')
+  onPageHide() {
+    this._persistDraft();
   }
 
   hasUnsavedChanges(): boolean {
@@ -128,8 +144,60 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this._savedSnapshot = JSON.stringify(this.selectedSite);
   }
 
+  private _startAutoSave() {
+    this._stopAutoSave();
+    this._autoSaveTimer = setInterval(() => {
+      if (this.hasUnsavedChanges()) {
+        this._persistDraft();
+      }
+    }, 5000);
+  }
+
+  private _stopAutoSave() {
+    if (this._autoSaveTimer) {
+      clearInterval(this._autoSaveTimer);
+      this._autoSaveTimer = null;
+    }
+  }
+
+  private _persistDraft() {
+    this._drafts.saveDraft('sites-editor', {
+      selectedSite: this.selectedSite,
+      sites: this.sites,
+      siteSearch: this.siteSearch,
+      newResearchComment: this.newResearchComment,
+      savedSnapshot: this._savedSnapshot,
+      snorkellingCategories: this.snorkellingCategories,
+      providerCategories: this.providerCategories,
+    });
+  }
+
+  private _restoreDraft() {
+    const draft = this._drafts.loadDraft<{
+      selectedSite: MapFeature;
+      sites: MapFeature[];
+      siteSearch: string;
+      newResearchComment: string;
+      savedSnapshot: string;
+      snorkellingCategories: string[];
+      providerCategories: string[];
+    }>('sites-editor');
+
+    if (!draft) {
+      return;
+    }
+
+    this.selectedSite = draft.selectedSite ? this.normaliseSite(draft.selectedSite) : new MapFeature();
+    this.siteSearch = draft.siteSearch ?? '';
+    this.newResearchComment = draft.newResearchComment ?? '';
+    this._savedSnapshot = draft.savedSnapshot ?? this._savedSnapshot;
+    this._cdr.detectChanges();
+  }
+
   async ngOnInit() {
     await this.getSites();
+    this._restoreDraft();
+    this._startAutoSave();
   }
 
   ngAfterViewInit() {
@@ -139,6 +207,8 @@ export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   }
 
   ngOnDestroy() {
+    this._stopAutoSave();
+    this._persistDraft();
     this._destroy$.next();
     this._destroy$.complete();
     this._mainMapInst.destroy();

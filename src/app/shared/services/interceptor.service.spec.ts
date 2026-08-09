@@ -33,14 +33,15 @@ describe('HttpErrorInterceptor', () => {
     interceptor = new HttpErrorInterceptor(mockAuth, mockRouter, 'browser' as unknown as object);
   });
 
-  it('on 401 should call deleteCookies and navigate', (done) => {
+  it('on 401 should call deleteCookies and navigate to login with redirect', (done) => {
+    mockRouter.url = '/dashboard';
     const req = new HttpRequest('GET', '/');
     const handler: any = { handle: () => throwError(() => ({ status: 401 })) };
     interceptor.intercept(req, handler).subscribe({
       next: () => {},
       error: (_err: any) => {
         expect(mockAuth.deleteCookies).toHaveBeenCalled();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { redirect: '/dashboard' } });
         done();
       }
     });
