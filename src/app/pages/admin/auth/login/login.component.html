@@ -9,9 +9,9 @@
 
     <div class="inputs">
       <label for="username">Username</label>
-      <input type="text" id="username" name="username" autocomplete="username" [(ngModel)]="user.username">
+      <input #usernameInput type="text" id="username" name="username" autocomplete="username" [(ngModel)]="user.username" (input)="onFieldInput()" (change)="onFieldInput()">
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" autocomplete="current-password" [(ngModel)]="user.password">
+      <input #passwordInput type="password" id="password" name="password" autocomplete="current-password" [(ngModel)]="user.password" (input)="onFieldInput()" (change)="onFieldInput()">
     </div>
 
     <div class="buttons">

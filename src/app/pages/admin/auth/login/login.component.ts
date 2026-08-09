@@ -1,4 +1,4 @@
-import { Component} from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { HttpService } from '../../../../shared/services/http.service';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
@@ -14,7 +14,10 @@ import { errorMessage } from '@shared/utils/error-message';
   styleUrls: ['../auth.css']
 })
 
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit {
+
+  @ViewChild('usernameInput') usernameInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('passwordInput') passwordInput?: ElementRef<HTMLInputElement>;
 
   public user: AuthUser = {
     username: '',
@@ -27,6 +30,11 @@ export class LoginComponent {
     private _route: ActivatedRoute,
     private _toaster: ToastService
   ) {}
+
+  ngAfterViewInit() {
+    this._syncFormState();
+    this._watchForAutofill();
+  }
 
   async onSubmit() {
     document.body.style.cursor = 'wait';
@@ -47,7 +55,31 @@ export class LoginComponent {
 
   }
 
+  onFieldInput() {
+    this._syncFormState();
+  }
+
   isValidForm() {
-    return !!this.user.username && !!this.user.password 
+    return !!this.user.username && !!this.user.password;
+  }
+
+  private _syncFormState() {
+    this.user.username = this.user.username?.trim() ?? '';
+    this.user.password = this.user.password?.trim() ?? '';
+  }
+
+  private _watchForAutofill() {
+    const sync = () => this._syncFormState();
+    const inputs = [this.usernameInput?.nativeElement, this.passwordInput?.nativeElement].filter(Boolean) as HTMLInputElement[];
+
+    inputs.forEach((input) => {
+      input.addEventListener('input', sync, { passive: true });
+      input.addEventListener('change', sync, { passive: true });
+      input.addEventListener('keyup', sync, { passive: true });
+    });
+
+    setTimeout(sync, 0);
+    setTimeout(sync, 100);
+    setTimeout(sync, 300);
   }
 }
