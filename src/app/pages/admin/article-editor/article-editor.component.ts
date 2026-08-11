@@ -372,7 +372,7 @@ export class ArticleEditorComponent implements OnInit, OnDestroy {
 
   private _normaliseSectionLevelsBeforeSave() {
     this.selectedPost.sections = (this.selectedPost.sections || []).map((section: any) => {
-      if (section.sectionType === 'cta') {
+      if (section.sectionType === 'cta' || section.sectionType === 'affiliate') {
         return {
           ...section,
           sectionLevel: undefined,
@@ -396,6 +396,14 @@ export class ArticleEditorComponent implements OnInit, OnDestroy {
       title: '', content: '', imgFname: '', imgAlt: '', videoUrl: '', imgCredit: '', affiliateLabel: '', affiliateUrl: '',
       sectionType: 'cta',
       ctaLinks: [{ label: '', url: '' }],
+    });
+    this.isDirty = true;
+  }
+
+  addAffiliateSection() {
+    this.selectedPost.sections.push({
+      title: '', content: '', imgFname: '', imgAlt: '', videoUrl: '', imgCredit: '', affiliateLabel: '', affiliateUrl: '',
+      sectionType: 'affiliate',
     });
     this.isDirty = true;
   }
@@ -534,7 +542,7 @@ export class ArticleEditorComponent implements OnInit, OnDestroy {
     post.articleSection = explicit;
     post.sections = (post.sections || []).map((section: any) => ({
       ...section,
-      sectionLevel: section.sectionType === 'cta'
+      sectionLevel: section.sectionType === 'cta' || section.sectionType === 'affiliate'
         ? undefined
         : (section.sectionLevel === 'subsection' ? 'subsection' : 'section'),
     }));

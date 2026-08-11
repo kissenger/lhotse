@@ -73,4 +73,59 @@ describe('ArticleEditorComponent', () => {
 
     expect(upsertSpy).toHaveBeenCalledWith(jasmine.objectContaining({ articleSection: 'Snorkelling Gear' }), { preserveUpdatedAt: true });
   });
+
+  it('renders affiliate link fields for highlight-box CTA sections', () => {
+    const fixture = TestBed.createComponent(ArticleEditorComponent);
+    const instance = fixture.componentInstance;
+
+    instance.selectedPost = new ArticlePost();
+    instance.selectedPost.articleSection = 'News';
+    instance.selectedPost.sections = [{
+      title: 'Need more info?',
+      content: 'Explore our location guide.',
+      sectionType: 'cta',
+      ctaLinks: [{ label: 'Visit the map', url: '/map' }],
+      imgFname: '',
+      imgAlt: '',
+      videoUrl: '',
+      imgCredit: '',
+      affiliateLabel: '',
+      affiliateUrl: ''
+    }];
+
+    fixture.detectChanges();
+
+    const labelField = fixture.nativeElement.querySelector('input[id="ctaAffiliateLabel0"]');
+    const urlField = fixture.nativeElement.querySelector('input[id="ctaAffiliateUrl0"]');
+
+    expect(labelField).not.toBeNull();
+    expect(urlField).not.toBeNull();
+  });
+
+  it('renders affiliate link fields for dedicated affiliate sections', () => {
+    const fixture = TestBed.createComponent(ArticleEditorComponent);
+    const instance = fixture.componentInstance;
+
+    instance.selectedPost = new ArticlePost();
+    instance.selectedPost.articleSection = 'News';
+    instance.selectedPost.sections = [{
+      title: '',
+      content: '',
+      sectionType: 'affiliate',
+      imgFname: '',
+      imgAlt: '',
+      videoUrl: '',
+      imgCredit: '',
+      affiliateLabel: 'Check latest price',
+      affiliateUrl: 'https://example.com/shop'
+    }];
+
+    fixture.detectChanges();
+
+    const labelField = fixture.nativeElement.querySelector('input[id="affiliateLabel0"]');
+    const urlField = fixture.nativeElement.querySelector('input[id="affiliateUrl0"]');
+
+    expect(labelField).not.toBeNull();
+    expect(urlField).not.toBeNull();
+  });
 });

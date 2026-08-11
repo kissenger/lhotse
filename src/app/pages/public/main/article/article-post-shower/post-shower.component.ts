@@ -206,7 +206,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   get showContents(): boolean {
-    const contentSections = (this.post.sections || []).filter((section: any) => section.sectionType !== 'cta');
+    const contentSections = (this.post.sections || []).filter((section: any) => section.sectionType !== 'cta' && section.sectionType !== 'affiliate');
     if (contentSections.length === 0) {
       return false;
     }
@@ -269,7 +269,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
           this.post.sections = (result.article.sections ?? []).map((s: any) => ({
             title: s.title ?? '',
             content: this._htmler.transform(s.content ?? ''),
-            sectionLevel: s.sectionType === 'cta'
+            sectionLevel: s.sectionType === 'cta' || s.sectionType === 'affiliate'
               ? undefined
               : (s.sectionLevel === 'subsection' ? 'subsection' : 'section'),
             imgFname: s.imgFname ?? '',
@@ -333,7 +333,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
       this.post.sections = (result.article.sections ?? []).map((s: any) => ({
         title: s.title ?? '',
         content: this._htmler.transform(s.content ?? ''),
-        sectionLevel: s.sectionType === 'cta'
+        sectionLevel: s.sectionType === 'cta' || s.sectionType === 'affiliate'
           ? undefined
           : (s.sectionLevel === 'subsection' ? 'subsection' : 'section'),
         imgFname: s.imgFname ?? '',

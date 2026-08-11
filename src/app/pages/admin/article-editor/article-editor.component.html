@@ -282,7 +282,67 @@
                             </div>
                         </div>
 
-                        @if (section.sectionType !== 'cta') {
+                        @if (section.sectionType === 'affiliate') {
+                            <div class="field-row">
+                                <label for="affiliateLabel{{si}}">Affiliate link label:</label>
+                                <input type="text" id="affiliateLabel{{si}}" name="affiliateLabel{{si}}" [(ngModel)]="section.affiliateLabel" placeholder="Optional e.g. Check latest price">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="affiliateUrl{{si}}">Affiliate link URL:</label>
+                                <div class="input-stack">
+                                    <input type="text" id="affiliateUrl{{si}}" name="affiliateUrl{{si}}" [(ngModel)]="section.affiliateUrl" placeholder="Optional full URL">
+                                    <small class="field-help">Shown as a standalone affiliate link box using the standard affiliate-link styling.</small>
+                                </div>
+                            </div>
+                        } @else if (section.sectionType === 'cta') {
+                            <div class="cta-editor-hint">Renders as a branded callout box with link buttons — use for internal cross-links.</div>
+
+                            <div class="field-row">
+                                <label for="ctaTitle{{si}}">Heading:</label>
+                                <input type="text" id="ctaTitle{{si}}" [name]="'ctaTitle'+si"
+                                    placeholder="e.g. Want more sites like this?" spellcheck="true"
+                                    [(ngModel)]="section.title">
+                            </div>
+
+                            <div class="field-row align-start">
+                                <label for="ctaBody{{si}}">Body text:</label>
+                                <textarea id="ctaBody{{si}}" [name]="'ctaBody'+si" spellcheck="true"
+                                    placeholder="Optional supporting sentence…"
+                                    [(ngModel)]="section.content"></textarea>
+                            </div>
+
+                            <div class="field-row">
+                                <label for="ctaAffiliateLabel{{si}}">Affiliate link label:</label>
+                                <input type="text" id="ctaAffiliateLabel{{si}}" [name]="'ctaAffiliateLabel_'+si"
+                                    [(ngModel)]="section.affiliateLabel" placeholder="Optional e.g. Check latest price">
+                            </div>
+
+                            <div class="field-row">
+                                <label for="ctaAffiliateUrl{{si}}">Affiliate link URL:</label>
+                                <div class="input-stack">
+                                    <input type="text" id="ctaAffiliateUrl{{si}}" [name]="'ctaAffiliateUrl_'+si"
+                                        [(ngModel)]="section.affiliateUrl" placeholder="Optional full URL">
+                                    <small class="field-help">Shown as a single affiliate CTA button for this highlight box when both fields are set.</small>
+                                </div>
+                            </div>
+
+                            <div class="field-row align-start">
+                                <label>Links:</label>
+                                <div class="cta-links-editor">
+                                    @for (link of section.ctaLinks || []; track $index; let li = $index) {
+                                        <div class="cta-link-row">
+                                            <input type="text" placeholder="Label e.g. Visit the map"
+                                                [name]="'ctaLabel_'+si+'_'+li" [(ngModel)]="link.label">
+                                            <input type="text" placeholder="URL e.g. /map or /articles/slug"
+                                                [name]="'ctaUrl_'+si+'_'+li" [(ngModel)]="link.url">
+                                            <button type="button" class="icon-btn" (click)="removeCtaLink(si, li)" title="Remove link">✕</button>
+                                        </div>
+                                    }
+                                    <button type="button" class="btn-add-cta-link" (click)="addCtaLink(si)">+ Add link</button>
+                                </div>
+                            </div>
+                        } @else {
                             <div class="field-row">
                                 <label for="question{{si}}">Title:</label>
                                 <input type="text" id="question{{si}}" name="question{{si}}" spellcheck="true" [(ngModel)]="section.title">
@@ -356,38 +416,6 @@
                                     <option value="portrait">Portrait</option>
                                 </select>
                             </div>
-                        } @else {
-                            <div class="cta-editor-hint">Renders as a branded callout box with link buttons — use for internal cross-links.</div>
-
-                            <div class="field-row">
-                                <label for="ctaTitle{{si}}">Heading:</label>
-                                <input type="text" id="ctaTitle{{si}}" [name]="'ctaTitle'+si"
-                                    placeholder="e.g. Want more sites like this?" spellcheck="true"
-                                    [(ngModel)]="section.title">
-                            </div>
-
-                            <div class="field-row align-start">
-                                <label for="ctaBody{{si}}">Body text:</label>
-                                <textarea id="ctaBody{{si}}" [name]="'ctaBody'+si" spellcheck="true"
-                                    placeholder="Optional supporting sentence…"
-                                    [(ngModel)]="section.content"></textarea>
-                            </div>
-
-                            <div class="field-row align-start">
-                                <label>Links:</label>
-                                <div class="cta-links-editor">
-                                    @for (link of section.ctaLinks || []; track $index; let li = $index) {
-                                        <div class="cta-link-row">
-                                            <input type="text" placeholder="Label e.g. Visit the map"
-                                                [name]="'ctaLabel_'+si+'_'+li" [(ngModel)]="link.label">
-                                            <input type="text" placeholder="URL e.g. /map or /articles/slug"
-                                                [name]="'ctaUrl_'+si+'_'+li" [(ngModel)]="link.url">
-                                            <button type="button" class="icon-btn" (click)="removeCtaLink(si, li)" title="Remove link">✕</button>
-                                        </div>
-                                    }
-                                    <button type="button" class="btn-add-cta-link" (click)="addCtaLink(si)">+ Add link</button>
-                                </div>
-                            </div>
                         }
                     </div>
 
@@ -395,6 +423,7 @@
                         <div class="add-section-row">
                             <button type="button" class="btn-add-section" (click)="addQA()">+ Content section</button>
                             <button type="button" class="btn-add-section btn-add-cta" (click)="addCtaSection()">✦ Highlight box</button>
+                            <button type="button" class="btn-add-section btn-add-cta" (click)="addAffiliateSection()">🔗 Affiliate box</button>
                         </div>
                     }
                 }
@@ -403,6 +432,7 @@
                     <div class="add-section-row">
                         <button type="button" class="btn-add-section" (click)="addQA()">+ Content section</button>
                         <button type="button" class="btn-add-section btn-add-cta" (click)="addCtaSection()">✦ Highlight box</button>
+                        <button type="button" class="btn-add-section btn-add-cta" (click)="addAffiliateSection()">🔗 Affiliate box</button>
                     </div>
                 }
 

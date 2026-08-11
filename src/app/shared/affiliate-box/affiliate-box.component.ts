@@ -59,5 +59,5 @@ import { CommonModule } from '@angular/common';
 export class AffiliateBoxComponent {
   @Input() link = '';
   @Input() linkText = '';
-  @Input() statement = 'We may earn a commission from qualifying purchases made through this link, at no extra cost to you.  Making a purchase in this way helps to support the site.';
+  @Input() statement = 'If you found this article helpful, please consider using this affiliate link.  We may earn a commission from qualifying purchases made through this link, at no extra cost to you.  Making a purchase in this way helps to support the site.';
 }

@@ -324,7 +324,7 @@ interface ArticleSection {
   imgCredit: string;
   affiliateLabel?: string;
   affiliateUrl?: string;
-  sectionType?: 'cta';
+  sectionType?: 'cta' | 'affiliate';
   ctaLinks?: Array<{ label: string; url: string }>;
 }
 

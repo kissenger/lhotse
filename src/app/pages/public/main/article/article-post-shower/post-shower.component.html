@@ -184,13 +184,24 @@
           }
 
           @for (section of post.sections; track section) {
-            @if (section.sectionType === 'cta') {
+            @if (section.sectionType === 'affiliate') {
+              <div class="section-affiliate-row">
+                @if (sectionAffiliateUrl(section); as affiliateUrl) {
+                  <app-affiliate-box [link]="affiliateUrl" [linkText]="sectionAffiliateLabel(section)"></app-affiliate-box>
+                }
+              </div>
+            } @else if (section.sectionType === 'cta') {
               <aside class="cta-box">
                 @if (section.title) {
                   <h2 class="cta-box-title">{{section.title}}</h2>
                 }
                 @if (section.content) {
                   <div class="cta-box-body" [innerHTML]="section.content"></div>
+                }
+                @if (sectionAffiliateUrl(section); as affiliateUrl) {
+                  <div class="cta-link-group">
+                    <app-affiliate-box [link]="affiliateUrl" [linkText]="sectionAffiliateLabel(section)"></app-affiliate-box>
+                  </div>
                 }
                 @if (section.ctaLinks && section.ctaLinks.length > 0) {
                   <div class="cta-link-group">
