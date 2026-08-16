@@ -1,0 +1,10 @@
+copernicusmarine
+numpy
+pandas
+xarray
+python-dotenv
+matplotlib
+scipy
+pyshp
+netCDF4
+h5netcdf

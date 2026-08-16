@@ -63,3 +63,15 @@ eslint.config.mjs
 .browserslistrc
 deadlinks.out
 playwright-navigation-report.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Copernicus
+# _processed/
+# _results/
+*.nc
+*.gpkg
