@@ -18,32 +18,17 @@ fail() {
   exit 1
 }
 
-# Load environment file with fallback to project-local .env
-ENV_FILE="${ENV_FILE:-${PROJECT_ROOT}/.env}"
-if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_ROOT/.env" ]; then
-  ENV_FILE="$PROJECT_ROOT/.env"
+# Load the repo-root .env explicitly. No fallback search.
+ENV_FILE="${ENV_FILE_OVERRIDE:-${PROJECT_ROOT}/.env}"
+
+if [ ! -f "$ENV_FILE" ]; then
+  fail ".env file not found at $ENV_FILE"
 fi
 
-load_env_file() {
-  local env_file="$1"
-  [[ -f "${env_file}" ]] || return 0
-  while IFS= read -r line || [[ -n "${line}" ]]; do
-    line="${line%$'\r'}"
-    [[ -z "${line//[[:space:]]/}" || "${line}" =~ ^[[:space:]]*# ]] && continue
-    if [[ "${line}" == *=* ]]; then
-      local key="${line%%=*}"
-      local value="${line#*=}"
-      value="${value#"${value%%[![:space:]]*}"}"
-      value="${value%"${value##*[![:space:]]}"}"
-      if [[ "${value}" =~ ^\".*\"$ || "${value}" =~ ^\'.*\'$ ]]; then
-        value="${value:1:${#value}-2}"
-      fi
-      export "${key}=${value}"
-    fi
-  done < "${env_file}"
-}
-
-load_env_file "$ENV_FILE"
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
 
 cd "$PROJECT_ROOT"
 
