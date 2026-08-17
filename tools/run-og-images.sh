@@ -20,6 +20,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
 REPO_ROOT="$PROJECT_ROOT"
+source "${SCRIPT_DIR}/maintenance-common.sh"
 
 # Log file
 LOG_FILE="$PROJECT_ROOT/logs/regenerate-og-images.log"
@@ -61,10 +62,7 @@ if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_ROOT/.env" ]; then
 fi
 
 if [ -f "$ENV_FILE" ]; then
-  set -a
-  # shellcheck disable=SC1090
-  . "$ENV_FILE"
-  set +a
+  maintenance_load_env_file "$ENV_FILE"
 fi
 
 # Check if MongoDB URI is set

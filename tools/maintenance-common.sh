@@ -6,6 +6,58 @@ SCRIPT_NAME=""
 MAINTENANCE_LOG_FILE=""
 MAINTENANCE_ERROR_LINES=""
 
+maintenance_load_env_file() {
+  local env_file="$1"
+  local line
+  local key
+  local value
+  local quote=""
+  local variable_name
+  local variable_token
+  local variable_value
+
+  [[ -f "${env_file}" ]] || return 0
+
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    line="${line%$'\r'}"
+    [[ -z "${line//[[:space:]]/}" || "${line}" =~ ^[[:space:]]*# ]] && continue
+    [[ "${line}" == *=* ]] || continue
+
+    key="${line%%=*}"
+    key="${key#export }"
+    key="${key//[[:space:]]/}"
+    [[ "${key}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+
+    value="${line#*=}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    if [[ "${value}" =~ ^\".*\"$ ]]; then
+      quote='"'
+      value="${value:1:${#value}-2}"
+    elif [[ "${value}" =~ ^\'.*\'$ ]]; then
+      quote="'"
+      value="${value:1:${#value}-2}"
+    else
+      quote=""
+    fi
+
+    if [[ "${quote}" != "'" ]]; then
+      while [[ "${value}" =~ \$\{([A-Za-z_][A-Za-z0-9_]*)\} ]]; do
+        variable_name="${BASH_REMATCH[1]}"
+        variable_token="${BASH_REMATCH[0]}"
+        if [[ -v "${variable_name}" ]]; then
+          variable_value="${!variable_name}"
+        else
+          variable_value=""
+        fi
+        value="${value//"${variable_token}"/"${variable_value}"}"
+      done
+    fi
+
+    export "${key}=${value}"
+  done < "${env_file}"
+}
+
 maintenance_now() {
   date -Iseconds
 }
@@ -47,12 +99,7 @@ maintenance_init() {
 
   SCRIPT_NAME="${script_name}"
 
-  if [[ -f "${env_file}" ]]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "${env_file}"
-    set +a
-  fi
+  maintenance_load_env_file "${env_file}"
 
   MAINTENANCE_LOG_FILE="${LOG_FILE:-${default_log_file}}"
   mkdir -p "$(dirname -- "${MAINTENANCE_LOG_FILE}")"

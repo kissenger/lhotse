@@ -11,6 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
 REPO_ROOT="$PROJECT_ROOT"
+source "${SCRIPT_DIR}/maintenance-common.sh"
 
 fail() {
   local message="$*"
@@ -25,10 +26,7 @@ if [ ! -f "$ENV_FILE" ]; then
   fail ".env file not found at $ENV_FILE"
 fi
 
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
+maintenance_load_env_file "$ENV_FILE"
 
 cd "$PROJECT_ROOT"
 
