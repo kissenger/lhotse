@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(SCRIPT_DIR, '../../.env') });
 
 const MAP_COUNTRY_SLUGS = new Set(['england', 'scotland', 'wales', 'britain', 'uk']);
 
@@ -32,7 +37,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Usage: node ./tools/migrate-map-description-links.mjs [--apply]\n\nCanonicalizes internal map links inside county/country description text.\n\nOptions:\n  --apply     Write changes. Without this flag, runs in dry-run mode.\n  --help,-h   Show help.\n\nEnvironment:\n  MONGO_URI   Required MongoDB connection string.`);
+  console.log(`Usage: node ./tools/migration/migrate-map-description-links.mjs [--apply]\n\nCanonicalizes internal map links inside county/country description text.\n\nOptions:\n  --apply     Write changes. Without this flag, runs in dry-run mode.\n  --help,-h   Show help.\n\nEnvironment:\n  MONGO_URI   Required MongoDB connection string.`);
 }
 
 function slugify(value) {

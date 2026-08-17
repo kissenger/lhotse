@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /** Public pages to crawl for links. */
-const SEED_PAGES = ['/home', '/map', '/privacy-policy'];
+const SEED_PAGES = ['/', '/map', '/privacy-policy'];
 
 /**
  * Domains that routinely block automated requests (403/429).

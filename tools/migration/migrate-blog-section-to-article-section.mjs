@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(SCRIPT_DIR, '../../.env') });
 
 function parseArgs(argv) {
   return {
@@ -9,7 +14,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Usage: node ./tools/migrate-blog-section-to-article-section.mjs [--apply]\n\nMigrates legacy posts with blogSection into articleSection when articleSection is empty.\n\nOptions:\n  --apply     Write changes. Without this flag, runs in dry-run mode.\n  --help,-h   Show help.\n\nEnvironment:\n  MONGO_URI   Required MongoDB connection string.`);
+  console.log(`Usage: node ./tools/migration/migrate-blog-section-to-article-section.mjs [--apply]\n\nMigrates legacy posts with blogSection into articleSection when articleSection is empty.\n\nOptions:\n  --apply     Write changes. Without this flag, runs in dry-run mode.\n  --help,-h   Show help.\n\nEnvironment:\n  MONGO_URI   Required MongoDB connection string.`);
 }
 
 async function main() {

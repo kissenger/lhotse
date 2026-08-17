@@ -4,7 +4,7 @@ This folder contains maintenance and utility scripts for the Snorkelology app.
 
 ## File Purposes
 
-- `backfill-article-links.mjs`: Backfills legacy article links in Mongo content.
+- `migration/backfill-article-links.mjs`: Backfills legacy article links in Mongo content.
 - `deploy.sh`: Server deploy workflow for beta/master branches, including build, restart, and health checks.
 - `generate-sitemap.mjs`: Generates XML sitemap for the built site.
 - `maintenance-common.sh`: Shared logging/error helpers for maintenance scripts.

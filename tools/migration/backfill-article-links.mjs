@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: resolve(SCRIPT_DIR, '../.env') });
+dotenv.config({ path: resolve(SCRIPT_DIR, '../../.env') });
 
 const DEFAULT_FROM = '/blog';
 const DEFAULT_TO = '/articles';
@@ -94,7 +94,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Usage: node ./tools/backfill-article-links.mjs [options]
+  console.log(`Usage: node ./tools/migration/backfill-article-links.mjs [options]
 
 Backfills internal links in article documents by replacing /blog with /articles.
 
