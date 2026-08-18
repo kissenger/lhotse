@@ -30,7 +30,8 @@ def _write_log_line(message: str) -> None:
     line = f"{_timestamp()} {message}"
     with APP_LOG_FILE.open("a", encoding="utf-8") as log_file:
         log_file.write(f"{line}\n")
-    print(line)
+    sys.__stdout__.write(f"{line}\n")
+    sys.__stdout__.flush()
 
 
 def _log_block(text: str) -> None:
