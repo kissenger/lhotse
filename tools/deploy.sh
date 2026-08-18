@@ -227,8 +227,8 @@ npm install
 refresh_python_environment
 
 log "Running: npm run build:${TARGET_BRANCH}"
-# Keep defaults conservative for low-memory servers and retry once on OOM kill.
-BUILD_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB:-512}"
+# Keep the default high enough for a 4 GB Raspberry Pi, with a lower retry fallback.
+BUILD_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB:-2048}"
 BUILD_MAX_WORKERS="${NG_BUILD_MAX_WORKERS:-2}"
 BUILD_DISABLE_SOURCE_MAP="${BUILD_DISABLE_SOURCE_MAP:-true}"
 
@@ -237,7 +237,7 @@ if run_angular_build "${TARGET_BRANCH}" "${BUILD_NODE_MEMORY_MB}" "${BUILD_MAX_W
 else
   BUILD_EXIT_CODE="$?"
   if [[ "${BUILD_EXIT_CODE}" -eq 137 ]]; then
-    RETRY_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB_RETRY:-384}"
+    RETRY_NODE_MEMORY_MB="${NODE_BUILD_MEMORY_MB_RETRY:-1536}"
     RETRY_MAX_WORKERS="${NG_BUILD_MAX_WORKERS_RETRY:-1}"
     log "Build exited with 137 (likely OOM kill). Retrying once with stricter memory settings."
     run_angular_build "${TARGET_BRANCH}" "${RETRY_NODE_MEMORY_MB}" "${RETRY_MAX_WORKERS}" "true"
