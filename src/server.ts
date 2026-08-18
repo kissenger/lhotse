@@ -135,6 +135,29 @@ function getSimplePageSeoPayload(
   };
 }
 
+function stripHtmlAndMarkdown(value: string): string {
+  return value
+    // Preserve link text but remove markdown link syntax and images.
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    // Remove common inline markdown formatting.
+    .replace(/`{1,3}([^`]+)`{1,3}/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
+    // Remove block-level markdown markers while keeping the text.
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s{0,3}>\s?/gm, '')
+    .replace(/^\s{0,3}[-*+]\s+/gm, '')
+    .replace(/^\s{0,3}\d+\.\s+/gm, '')
+    // Remove any remaining HTML tags.
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function scheduleSeoCacheRefresh(): void {
   if (seoCacheRefreshPromise) return;
   seoCacheRefreshPromise = refreshSeoCache().finally(() => {
@@ -1705,7 +1728,7 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
   const reviewModel = (post as any).review || {};
   const reviewSnippet = typeof reviewModel.performanceNotes === 'string' ? reviewModel.performanceNotes : '';
   const rawDescription = (isReviewType ? (reviewSnippet || post.intro || post.subtitle) : (post.intro || post.subtitle)) || '';
-  const description = rawDescription.replace(/<[^>]*>/g, '').slice(0, 300).trim();
+  const description = stripHtmlAndMarkdown(rawDescription).slice(0, 300).trim();
 
   const hasGeneratedOgImage = await generatedOgImageExists(slug);
   const imageUrl = seoImageUrl(hasGeneratedOgImage

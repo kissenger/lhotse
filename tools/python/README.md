@@ -58,3 +58,13 @@ Exit code 132 means it crashed; 1 means it just isn't installed.
 
 Don't bother downgrading or pinning versions — every pandas and numpy version crashes
 while pyarrow is installed, and all of them work once it's gone.
+
+## Scheduling the Copernicus wrapper
+
+Run the wrapper directly on a schedule; it writes timestamped lines to `~/logs/app.log` by default.
+
+Example cron entry:
+
+```bash
+15 3 * * * cd ~/snorkelology/master && python3 tools/python/copernicus/run_update_and_publish.py
+```

@@ -23,7 +23,8 @@ maintenance_load_env_file "${ENV_FILE}"
 TIMESTAMP="$(date -Iseconds)"
 LOG_FILE="${LOG_FILE:-${REPO_ROOT}/logs/mongo-backup.log}"
 DB_NAMES="${DB_NAMES:-snorkelology}"
-RETENTION_DAYS="${RETENTION_DAYS:-30}"
+DAILY_RETENTION_DAYS="${DAILY_RETENTION_DAYS:-30}"
+YEARLY_RETENTION_DAYS="${YEARLY_RETENTION_DAYS:-365}"
 MONGO_URI="${MONGO_URI:-}"
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/mongo_backups}"
 WORK_DIR="${BACKUP_ROOT}/work-${TIMESTAMP}"
@@ -50,6 +51,81 @@ echo "${TIMESTAMP} Starting mongo backup"
 printErrorAndExit() {
   echo "${TIMESTAMP} FAILURE ${1}"
   exit 1
+}
+
+retention_period_days() {
+  local file_path="$1"
+  local file_epoch current_epoch age_days
+
+  file_epoch="$(stat -c %Y "${file_path}")"
+  current_epoch="$(date +%s)"
+  age_days=$(( (current_epoch - file_epoch) / 86400 ))
+  echo "${age_days}"
+}
+
+prune_mongo_backups() {
+  local -a backup_files=()
+  local -A keep_daily=()
+  local -A keep_monthly=()
+  local -A keep_yearly=()
+  local file_path file_epoch age_days day_key month_key year_key bucket_key
+
+  while IFS= read -r -d '' file_path; do
+    backup_files+=("${file_path}")
+  done < <(find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -print0)
+
+  if [[ "${#backup_files[@]}" -eq 0 ]]; then
+    return 0
+  fi
+
+  mapfile -t backup_files < <(
+    for file_path in "${backup_files[@]}"; do
+      printf '%s\t%s\n' "$(stat -c %Y "${file_path}")" "${file_path}"
+    done | sort -rn | cut -f2-
+  )
+
+  for file_path in "${backup_files[@]}"; do
+    file_epoch="$(stat -c %Y "${file_path}")"
+    age_days=$(( ( $(date +%s) - file_epoch ) / 86400 ))
+
+    if [[ "${age_days}" -le "${DAILY_RETENTION_DAYS}" ]]; then
+      day_key="$(date -u -d "@${file_epoch}" +%F)"
+      if [[ -z "${keep_daily[${day_key}]:-}" ]]; then
+        keep_daily["${day_key}"]="${file_path}"
+      fi
+      continue
+    fi
+
+    if [[ "${age_days}" -le "${YEARLY_RETENTION_DAYS}" ]]; then
+      month_key="$(date -u -d "@${file_epoch}" +%Y-%m)"
+      if [[ -z "${keep_monthly[${month_key}]:-}" ]]; then
+        keep_monthly["${month_key}"]="${file_path}"
+      fi
+      continue
+    fi
+
+    year_key="$(date -u -d "@${file_epoch}" +%Y)"
+    if [[ -z "${keep_yearly[${year_key}]:-}" ]]; then
+      keep_yearly["${year_key}"]="${file_path}"
+    fi
+  done
+
+  declare -A keep_set=()
+  for bucket_key in "${!keep_daily[@]}"; do
+    keep_set["${keep_daily[${bucket_key}]}"]=1
+  done
+  for bucket_key in "${!keep_monthly[@]}"; do
+    keep_set["${keep_monthly[${bucket_key}]}"]=1
+  done
+  for bucket_key in "${!keep_yearly[@]}"; do
+    keep_set["${keep_yearly[${bucket_key}]}"]=1
+  done
+
+  for file_path in "${backup_files[@]}"; do
+    if [[ -z "${keep_set[${file_path}]:-}" ]]; then
+      rm -f "${file_path}"
+    fi
+  done
 }
 
 if [[ -z "${MONGO_URI}" ]]; then
@@ -83,8 +159,9 @@ fi
 tar -C "${WORK_DIR}" -czf "${ARCHIVE_PATH}" .
 rm -rf "${WORK_DIR}"
 
-# Delete old archives beyond retention period.
-find "${BACKUP_ROOT}" -maxdepth 1 -type f \( -name 'dump-*.tar.gz' -o -name 'dump-*.tar.gz.enc' \) -mtime "+${RETENTION_DAYS}" -delete
+# Delete old archives using tiered retention: daily for ${DAILY_RETENTION_DAYS} days,
+# monthly for the next period, and yearly thereafter.
+prune_mongo_backups
 
 # Finish
 echo "${TIMESTAMP} Mongo backup completed OK"

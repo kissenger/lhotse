@@ -27,6 +27,8 @@ Scripts use values from `.env` (project root), including:
 - `REBOOT_FLAG_FILE`: scheduled reboot flag file
 - `MONGO_URI`: MongoDB connection string
 - `BACKUP_PASSPHRASE`: optional backup encryption passphrase
+- `DAILY_RETENTION_DAYS`: keep one backup per day up to this age, default `30`
+- `YEARLY_RETENTION_DAYS`: keep one backup per year beyond this age, default `365`
 
 ## Manual Run Examples
 
@@ -53,3 +55,4 @@ bash tools/startup-reboot-check.sh
 - Ensure `msmtp` is installed and configured for alert emails.
 - Scripts must be executable:  
   `chmod +x tools/*.sh`
+- Mongo backup retention is tiered: one backup per day for the last 30 days, one per month for the next 11 months, and one per year after that.
