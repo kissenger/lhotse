@@ -28,7 +28,8 @@ app.use(compression());
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
-const copernicusResultsFolder = resolve(process.cwd(), 'tools/python/copernicus/_results');
+// resolved from the bundle location so the running process's cwd is irrelevant
+const copernicusResultsFolder = resolve(serverDistFolder, '../../tools/python/copernicus/_results');
 const currentTemperatureJson = resolve(copernicusResultsFolder, 'current-sea-temperature.json');
 const currentTemperaturePlot = resolve(copernicusResultsFolder, 'uk_sst_daily_linear_historical_vs_current.png');
 let mongooseConnectPromise: Promise<void> | null = null;
@@ -1918,8 +1919,8 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
 
 async function generatedOgImageExists(slug: string) {
   const candidates = [
-    resolve(process.cwd(), 'dist/prod/browser/assets/photos/articles/og', `${slug}-og.webp`),
-    resolve(process.cwd(), 'src/assets/photos/articles/og', `${slug}-og.webp`)
+    resolve(browserDistFolder, 'assets/photos/articles/og', `${slug}-og.webp`),
+    resolve(serverDistFolder, '../../src/assets/photos/articles/og', `${slug}-og.webp`)
   ];
 
   for (const filePath of candidates) {
