@@ -25,7 +25,7 @@ LINEAR_PLOT_X_AXIS_TITLE = "Month"
 LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (\u00b0C)"
 LINEAR_PLOT_TITLE = "Britain and Ireland Average Coastal Sea Temperature (1982-present)"
 REFERENCE_TEXT = (
-    "Generated using E.U. Copernicus Marine Service Information; "
+    "Generated using E.U. Copernicus Marine Service Information\n"
     "doi.org/10.48670/moi-00152, https://doi.org/10.48670/moi-00153"
 )
 
@@ -183,12 +183,123 @@ def _add_dials_panel(ax: plt.Axes) -> None:
             1,
             boxstyle="round,pad=0,rounding_size=0.035",
             transform=panel_ax.transAxes,
-            facecolor="white",
-            edgecolor="#c7cdd1",
-            linewidth=1.0,
+            facecolor="#f3f4f6",
+            edgecolor="#6b7280",
+            linewidth=1.2,
         )
     )
     panel_ax.axis("off")
+
+
+def _draw_deviation_gauge(ax: plt.Axes, deviation: float, period_label: str) -> None:
+    dial_limit = 3.0
+    deviation_ramp = LinearSegmentedColormap.from_list(
+        "deviation_ramp",
+        ["#2166ac", "#ffffff", "#b2182b"],
+    )
+    segment_edges = np.linspace(0.0, 180.0, 121)
+    for angle_start, angle_end in zip(segment_edges[:-1], segment_edges[1:]):
+        angle_midpoint = (angle_start + angle_end) / 2.0
+        ramp_position = 1.0 - (angle_midpoint / 180.0)
+        ax.add_patch(
+            Wedge(
+                (0, 0),
+                1.0,
+                angle_start,
+                angle_end,
+                width=0.18,
+                facecolor=deviation_ramp(ramp_position),
+                edgecolor="none",
+                antialiased=False,
+            )
+        )
+
+    for tick_value in np.arange(-dial_limit, dial_limit + 1.0, 1.0):
+        tick_angle = np.deg2rad(90.0 - (tick_value / dial_limit) * 90.0)
+        outer_x, outer_y = np.cos(tick_angle), np.sin(tick_angle)
+        inner_scale = 0.76 if tick_value in {-dial_limit, 0.0, dial_limit} else 0.81
+        ax.plot(
+            [inner_scale * outer_x, 0.96 * outer_x],
+            [inner_scale * outer_y, 0.96 * outer_y],
+            color="#59636b",
+            linewidth=1.1,
+            zorder=3,
+        )
+
+    pointer_value = float(np.clip(deviation, -dial_limit, dial_limit))
+    pointer_angle = np.deg2rad(90.0 - (pointer_value / dial_limit) * 90.0)
+    pointer_color = "#c94f43" if deviation >= 0 else "#24738c"
+    ax.plot(
+        [0, 0.73 * np.cos(pointer_angle)],
+        [0, 0.73 * np.sin(pointer_angle)],
+        color=pointer_color,
+        linewidth=3.0,
+        solid_capstyle="round",
+        zorder=5,
+    )
+    ax.scatter([0], [0], s=35, color="#263238", zorder=6)
+
+    ax.text(-1.02, -0.08, "-3", ha="center", va="top", fontsize=8, color="#59636b")
+    ax.text(0, 1.04, "0", ha="center", va="bottom", fontsize=8, color="#59636b")
+    ax.text(1.02, -0.08, "+3", ha="center", va="top", fontsize=8, color="#59636b")
+    ax.set_xlim(-1.2, 1.2)
+    ax.set_ylim(-0.20, 1.18)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+
+def _add_dial_card(
+    fig: plt.Figure,
+    left: float,
+    bottom: float,
+    width: float,
+    height: float,
+    title: str,
+    deviation: float,
+    period_label: str,
+    fill: str,
+    accent: str,
+) -> None:
+    card_ax = fig.add_axes([left, bottom, width, height], zorder=12)
+    card_ax.axis("off")
+    card_ax.add_patch(
+        FancyBboxPatch(
+            (0.01, 0.01),
+            0.98,
+            0.98,
+            boxstyle="round,pad=0,rounding_size=0.035",
+            transform=card_ax.transAxes,
+            facecolor="#f8f9fa",
+            edgecolor="#1f2937",
+            linewidth=1.2,
+            joinstyle="round",
+            clip_on=False,
+        )
+    )
+    pointer_color = "#c94f43" if deviation >= 0 else "#24738c"
+    dial_ax = card_ax.inset_axes([0.07, 0.26, 0.48, 0.60], zorder=13)
+    dial_ax.set_facecolor("none")
+    _draw_deviation_gauge(dial_ax, deviation, period_label)
+    card_ax.text(
+        0.73,
+        0.56,
+        f"{deviation:+.1f}\u00b0C",
+        ha="center",
+        va="center",
+        fontsize=17,
+        fontweight="bold",
+        color=pointer_color,
+    )
+    card_ax.text(
+        0.5,
+        0.12,
+        period_label,
+        ha="center",
+        va="center",
+        fontsize=7.5,
+        fontweight="bold",
+        color="#59636b",
+    )
 
 
 def _render_daily_linear_plot(
@@ -272,7 +383,7 @@ def _render_daily_linear_plot(
         color="#1565c0",
         linewidth=2.4,
         zorder=3,
-        label=f"({baseline_years[0]}-{baseline_years[-1]}) mean)",
+        label=f"({baseline_years[0]}-{baseline_years[-1]}) mean",
     )
 
     current_curve_values = current_curve.to_numpy(dtype=np.float64)
@@ -313,7 +424,11 @@ def _render_daily_linear_plot(
     y_max = float(np.nanmax(all_finite))
     pad = max(0.3, 0.06 * (y_max - y_min))
     ax.set_ylim(y_min - pad, y_max + pad)
-    _add_dials_panel(ax)
+    y_tick_start = int(np.floor(y_min - pad))
+    y_tick_end = int(np.ceil(y_max + pad))
+    ax.set_yticks(np.arange(y_tick_start, y_tick_end + 1, 1))
+    ax.set_box_aspect(2 / 3)
+    ax.set_position([0.20, 0.10, 0.60, 0.50])
 
     summary = _calculate_temperature_summary(
         last_data_date,
@@ -321,31 +436,48 @@ def _render_daily_linear_plot(
         hist_mean,
         baseline_years,
     )
-    _add_deviation_dial(
-        ax,
-        float(summary["deviationC"]),
-        anchor_date=pd.Timestamp("2001-08-15"),
-        anchor_temperature=11.0,
-        period_label="ABOVE DAILY MEAN" if summary["deviationC"] >= 0 else "BELOW DAILY MEAN",
-    )
 
     matched_baseline = last_12_months["month_day"].map(hist_mean)
     valid_annual_comparison = np.isfinite(last_12_months["sst_c"]) & np.isfinite(matched_baseline)
+    annual_deviation = float("nan")
     if np.any(valid_annual_comparison):
         annual_current_mean = float(last_12_months.loc[valid_annual_comparison, "sst_c"].mean())
         annual_baseline_mean = float(matched_baseline.loc[valid_annual_comparison].mean())
         annual_deviation = annual_current_mean - annual_baseline_mean
-        _add_deviation_dial(
-            ax,
-            annual_deviation,
-            anchor_date=pd.Timestamp("2001-08-15"),
-            anchor_temperature=8.0,
-            period_label="ABOVE ANNUAL MEAN" if annual_deviation >= 0 else "BELOW ANNUAL MEAN",
-        )
+
+    ax_bounds = ax.get_position()
+    card_gap = 0.02
+    card_width = (ax_bounds.width - card_gap) / 2.0
+    card_bottom = ax_bounds.y1 + 0.035
+    card_height = 0.13
+
+    _add_dial_card(
+        fig,
+        ax_bounds.x0,
+        card_bottom,
+        card_width,
+        card_height,
+        "Deviation today",
+        float(summary["deviationC"]),
+        "ABOVE DAILY MEAN" if summary["deviationC"] >= 0 else "BELOW DAILY MEAN",
+        "#f3f4f6",
+        "#b42318",
+    )
+    _add_dial_card(
+        fig,
+        ax_bounds.x1 - card_width,
+        card_bottom,
+        card_width,
+        card_height,
+        "Annual deviation",
+        annual_deviation,
+        "ABOVE ANNUAL MEAN" if annual_deviation >= 0 else "BELOW ANNUAL MEAN",
+        "#f3f4f6",
+        "#0f5ca8",
+    )
 
     ax.set_xlabel(LINEAR_PLOT_X_AXIS_TITLE)
     ax.set_ylabel(LINEAR_PLOT_AXIS_TITLE)
-    ax.set_title(LINEAR_PLOT_TITLE, fontsize=13, fontweight="bold", pad=18)
     ax.grid(alpha=0.22)
     ax.legend(loc="upper left", frameon=True, framealpha=0.92)
 
@@ -358,11 +490,15 @@ def _render_daily_linear_plot(
         fontsize=9,
         color="#555555",
     )
-    fig.tight_layout(rect=[0, 0.055, 1, 1])
     _add_logo_top_right(fig, ax)
     output_png.parent.mkdir(parents=True, exist_ok=True)
     temporary_output = output_png.with_name(f"{output_png.stem}.tmp{output_png.suffix}")
-    fig.savefig(temporary_output, facecolor="white")
+    fig.savefig(
+        temporary_output,
+        facecolor="white",
+        bbox_inches="tight",
+        pad_inches=0.08,
+    )
     plt.close(fig)
     temporary_output.replace(output_png)
     return summary
