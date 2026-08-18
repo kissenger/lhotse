@@ -1,6 +1,0 @@
-{
-  "last_my_day_used": "2025-11-04",
-  "last_nrt_day_used": "2026-08-17",
-  "nrt_to_my_correction_slope": 1.0080095506056976,
-  "nrt_to_my_correction_intercept_degC": -0.11608940833490947
-}
