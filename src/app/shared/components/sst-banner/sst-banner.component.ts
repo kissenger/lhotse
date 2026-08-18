@@ -1,10 +1,11 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { CurrentTemperatureSummary } from '@shared/types';
 
 const REVEAL_DELAY_MS = 1000;
+const HEIGHT_VAR = '--sst-banner-height';
 
 @Component({
   selector: 'app-sst-banner',
@@ -17,6 +18,8 @@ export class SstBannerComponent implements OnInit, OnDestroy {
   summary: CurrentTemperatureSummary | null = null;
   dismissed = false;
   visible = false;
+
+  @ViewChild('inner') private inner?: ElementRef<HTMLElement>;
 
   private revealTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -32,10 +35,18 @@ export class SstBannerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.revealTimer !== null) clearTimeout(this.revealTimer);
+    this.setReservedHeight(0);
   }
 
   dismiss(): void {
     this.dismissed = true;
+    this.setReservedHeight(0);
+  }
+
+  // The banner is fixed-positioned, so page content is offset via this variable instead.
+  private setReservedHeight(pixels: number): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.documentElement.style.setProperty(HEIGHT_VAR, `${pixels}px`);
   }
 
   get temperature(): string {
@@ -76,6 +87,7 @@ export class SstBannerComponent implements OnInit, OnDestroy {
     this.revealTimer = setTimeout(() => {
       this.revealTimer = null;
       this.visible = true;
+      this.setReservedHeight(this.inner?.nativeElement.offsetHeight ?? 0);
     }, REVEAL_DELAY_MS);
   }
 

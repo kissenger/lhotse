@@ -19,11 +19,10 @@ ASSETS_DIR = SERVER_DIR / "_assets"
 LOGO_PATH = ASSETS_DIR / "snround.png"
 
 DAILY_SERIES_FILE = PROCESSED_DIR / "uk_sst_daily_continuous_series__degc.nc"
-STITCH_DIAGNOSTICS_FILE = PROCESSED_DIR / "uk_sst_source_stitch_diagnostics.txt"
 OUTPUT_PNG = RESULTS_DIR / "uk_sst_daily_linear_historical_vs_current.png"
 OUTPUT_JSON = RESULTS_DIR / "current-sea-temperature.json"
 LINEAR_PLOT_X_AXIS_TITLE = "Month"
-LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (degC)"
+LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (\u00b0C)"
 LINEAR_PLOT_TITLE = "Britain and Ireland Average Coastal Sea Temperature (1982-present)"
 REFERENCE_TEXT = (
     "Generated using E.U. Copernicus Marine Service Information; "
@@ -128,7 +127,7 @@ def _add_deviation_dial(
     dial_ax.text(
         0,
         -0.20,
-        f"{deviation:+.1f} degC",
+        f"{deviation:+.1f}\u00b0C",
         ha="center",
         va="top",
         fontsize=14,
@@ -195,7 +194,6 @@ def _add_dials_panel(ax: plt.Axes) -> None:
 def _render_daily_linear_plot(
     daily_series: xr.DataArray,
     output_png: Path,
-    last_my_day_used: pd.Timestamp | None = None,
 ) -> dict[str, int | float | str]:
     baseline_year_count = 30
 
@@ -241,15 +239,9 @@ def _render_daily_linear_plot(
         (df["time"] >= first_rolling_date)
         & (df["time"] <= last_data_date + pd.Timedelta(days=1))
     ]
-    current_curve = (
-        last_12_months.pivot_table(index="month_day", values="sst_c", aggfunc="mean")
-        .reindex(month_day_order)
-        .sort_index()
-        .squeeze()
-    )
+    current_curve = by_day_year[current_year].reindex(month_day_order)
     last_data_x = pd.Timestamp(f"2001-{last_data_date.strftime('%m-%d')}")
     before_endpoint = x_dates <= last_data_x
-    after_endpoint = x_dates > last_data_x
 
     fig, ax = plt.subplots(figsize=(10, 8), dpi=170)
     fig.patch.set_facecolor("white")
@@ -290,39 +282,8 @@ def _render_daily_linear_plot(
         color="#c62828",
         linewidth=2.3,
         zorder=4,
-        label="Last 12 months",
+        label=f"{current_year}",
     )
-    ax.plot(
-        x_dates[after_endpoint],
-        current_curve_values[after_endpoint],
-        color="#c62828",
-        linewidth=2.3,
-        zorder=4,
-    )
-
-    if last_my_day_used is not None:
-        marker_month_day = last_my_day_used.strftime("%m-%d")
-        if marker_month_day != "02-29":
-            marker_x = pd.Timestamp(f"2001-{marker_month_day}")
-            marker_y = current_curve.get(marker_month_day, np.nan)
-            if not np.isfinite(marker_y):
-                all_days = pd.Index(
-                    pd.date_range("2001-01-01", "2001-12-31", freq="D").strftime("%m-%d"),
-                    name="month_day",
-                )
-                marker_y = current_curve.reindex(all_days).ffill().bfill().get(marker_month_day, np.nan)
-            marker_y = float(marker_y) if np.isfinite(marker_y) else np.nan
-            if np.isfinite(marker_y):
-                ax.scatter(
-                    [marker_x],
-                    [marker_y],
-                    s=54,
-                    color="#212121",
-                    edgecolors="white",
-                    linewidths=0.85,
-                    zorder=5,
-                    label="Cutover from MY to NRT datasets",
-                )
 
     month_starts = pd.date_range("2001-01-01", periods=13, freq="MS")
     month_ticks = month_starts[:-1] + (month_starts[1:] - month_starts[:-1]) / 2
@@ -365,7 +326,7 @@ def _render_daily_linear_plot(
         float(summary["deviationC"]),
         anchor_date=pd.Timestamp("2001-08-15"),
         anchor_temperature=11.0,
-        period_label="LATEST DAY",
+        period_label="ABOVE DAILY MEAN" if summary["deviationC"] >= 0 else "BELOW DAILY MEAN",
     )
 
     matched_baseline = last_12_months["month_day"].map(hist_mean)
@@ -379,7 +340,7 @@ def _render_daily_linear_plot(
             annual_deviation,
             anchor_date=pd.Timestamp("2001-08-15"),
             anchor_temperature=8.0,
-            period_label="LAST 12 MONTHS",
+            period_label="ABOVE ANNUAL MEAN" if annual_deviation >= 0 else "BELOW ANNUAL MEAN",
         )
 
     ax.set_xlabel(LINEAR_PLOT_X_AXIS_TITLE)
@@ -456,25 +417,11 @@ def _load_daily_series() -> xr.DataArray:
     return xr.open_dataarray(DAILY_SERIES_FILE).load()
 
 
-def _load_last_my_day_used() -> pd.Timestamp | None:
-    if not STITCH_DIAGNOSTICS_FILE.exists():
-        return None
-    try:
-        diagnostics = json.loads(STITCH_DIAGNOSTICS_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-
-    timestamp = pd.to_datetime(diagnostics.get("last_my_day_used"), errors="coerce")
-    return None if pd.isna(timestamp) else pd.Timestamp(timestamp)
-
-
 def main() -> None:
     daily_series = _load_daily_series()
-    last_my_day_used = _load_last_my_day_used()
     summary = _render_daily_linear_plot(
         daily_series,
         OUTPUT_PNG,
-        last_my_day_used=last_my_day_used,
     )
     _write_temperature_summary(summary, OUTPUT_JSON)
     print(f"Daily linear plot: {OUTPUT_PNG}")

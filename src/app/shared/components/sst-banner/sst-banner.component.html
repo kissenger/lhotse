@@ -4,11 +4,12 @@
     [class.sst-banner--visible]="visible"
     aria-label="Latest coastal sea-temperature update">
     <div class="sst-banner__reveal">
-      <div class="sst-banner__inner">
+      <div class="sst-banner__inner" #inner>
+        <span class="sst-banner__logo-gap" aria-hidden="true"></span>
         <p class="sst-banner__message">
-          Did you know that the coastal seas temperature are currently 
-          <strong>{{ deviation }} &deg;C {{ comparison }}</strong>
-          the long term average?
+          
+          Did you know that coastal sea temperatures are currently 
+          <b>{{ deviation }}&deg;C</b> {{ comparison }} the long term average?
           <a routerLink="/articles/live-britain-and-ireland-coastal-sea-temperaturess">Explore the latest data</a>
         </p>
         <button

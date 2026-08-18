@@ -71,7 +71,7 @@ __pycache__/
 *.egg-info/
 
 # Copernicus
-# _processed/
-# _results/
+_processed/
+_results/
 *.nc
 *.gpkg

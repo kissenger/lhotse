@@ -10,6 +10,9 @@
 .content-holder {
   /* margin-bottom: auto; */
   flex-grow: 1;
+  /* set by the sst banner, which is fixed-positioned and would otherwise overlay content */
+  padding-top: var(--sst-banner-height, 0px);
+  transition: padding-top 0.55s ease;
 }
 
 .toast-container {

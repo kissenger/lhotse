@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { access, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
@@ -28,11 +29,24 @@ app.use(compression());
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
-// resolved from the bundle location so the running process's cwd is irrelevant
-const copernicusResultsFolder = resolve(serverDistFolder, '../../tools/python/copernicus/_results');
+const repoRoot = findRepoRoot(serverDistFolder);
+const copernicusResultsFolder = resolve(repoRoot, 'tools/python/copernicus/_results');
 const currentTemperatureJson = resolve(copernicusResultsFolder, 'current-sea-temperature.json');
 const currentTemperaturePlot = resolve(copernicusResultsFolder, 'uk_sst_daily_linear_historical_vs_current.png');
 let mongooseConnectPromise: Promise<void> | null = null;
+
+// Walks up from the bundle because the output depth differs between builds
+// (dist/server for prod, dist/dev/server for dev) and cwd is not dependable under PM2.
+function findRepoRoot(startDir: string): string {
+  let dir = startDir;
+  for (let depth = 0; depth < 6; depth += 1) {
+    if (existsSync(resolve(dir, 'package.json'))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+}
 
 interface CurrentTemperatureSummary {
   schemaVersion: 1;
@@ -1920,7 +1934,7 @@ async function getArticleSeoPayload(slug: string): Promise<SeoPayload | null> {
 async function generatedOgImageExists(slug: string) {
   const candidates = [
     resolve(browserDistFolder, 'assets/photos/articles/og', `${slug}-og.webp`),
-    resolve(serverDistFolder, '../../src/assets/photos/articles/og', `${slug}-og.webp`)
+    resolve(repoRoot, 'src/assets/photos/articles/og', `${slug}-og.webp`)
   ];
 
   for (const filePath of candidates) {

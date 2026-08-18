@@ -13,13 +13,12 @@ import { environment } from          '@environments/environment';
 import { shopItems } from            '@shared/globals';
 import { IdleSchedulerService } from '@shared/services/idle-scheduler.service';
 import { appImageUrl } from          '@shared/utils/image-url';
-import { SstBannerComponent } from   '../../../../shared/components/sst-banner/sst-banner.component';
 
 @Component({
   standalone: true,
   imports: [
     SlideshowComponent, PartnersComponent, ArticleCardComponent,
-    SstBannerComponent, RouterLink, NgOptimizedImage
+    RouterLink, NgOptimizedImage
 ],
   selector: 'app-home',
   templateUrl: './home.component.html',
