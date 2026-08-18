@@ -23,6 +23,17 @@ export interface StockItem {
   weightInGrams: number;
 }
 
+export interface CurrentTemperatureSummary {
+  schemaVersion: 1;
+  observationDate: string;
+  generatedAt: string;
+  temperatureC: number;
+  baselineTemperatureC: number;
+  deviationC: number;
+  baselineStartYear: number;
+  baselineEndYear: number;
+}
+
 export type CarouselImages = Array<{
   src: string, 
   alt: string, 

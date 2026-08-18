@@ -3,7 +3,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { access } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { AngularNodeAppEngine, isMainModule, createNodeRequestHandler, writeResponseToNodeResponse } from '@angular/ssr/node';
 import mongoose from 'mongoose';
@@ -28,7 +28,34 @@ app.use(compression());
 const angularApp = new AngularNodeAppEngine();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+const copernicusResultsFolder = resolve(process.cwd(), 'tools/python/copernicus/_results');
+const currentTemperatureJson = resolve(copernicusResultsFolder, 'current-sea-temperature.json');
+const currentTemperaturePlot = resolve(copernicusResultsFolder, 'uk_sst_daily_linear_historical_vs_current.png');
 let mongooseConnectPromise: Promise<void> | null = null;
+
+interface CurrentTemperatureSummary {
+  schemaVersion: 1;
+  observationDate: string;
+  generatedAt: string;
+  temperatureC: number;
+  baselineTemperatureC: number;
+  deviationC: number;
+  baselineStartYear: number;
+  baselineEndYear: number;
+}
+
+function isCurrentTemperatureSummary(value: unknown): value is CurrentTemperatureSummary {
+  if (!value || typeof value !== 'object') return false;
+  const summary = value as Record<string, unknown>;
+  return summary['schemaVersion'] === 1
+    && typeof summary['observationDate'] === 'string'
+    && typeof summary['generatedAt'] === 'string'
+    && Number.isFinite(summary['temperatureC'])
+    && Number.isFinite(summary['baselineTemperatureC'])
+    && Number.isFinite(summary['deviationC'])
+    && Number.isInteger(summary['baselineStartYear'])
+    && Number.isInteger(summary['baselineEndYear']);
+}
 
 interface SeoCache {
   places: any[];
@@ -161,6 +188,41 @@ app.get('/api/ping/', (_req, res) => {
 app.get('/api/db-backup/', verifyToken, requireAdmin, (_req, res) => { 
   res.status(201).json({hello: 'world'}); 
 })
+
+app.get('/api/copernicus/current-temperature', async (_req, res) => {
+  try {
+    const summary = JSON.parse(await readFile(currentTemperatureJson, 'utf-8')) as unknown;
+    if (!isCurrentTemperatureSummary(summary)) {
+      res.status(503).json({ error: 'Current sea-temperature data is unavailable' });
+      return;
+    }
+    res.setHeader('Cache-Control', 'no-cache');
+    res.status(200).json(summary);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      res.status(404).json({ error: 'Current sea-temperature data was not found' });
+      return;
+    }
+    res.status(503).json({ error: 'Current sea-temperature data is unavailable' });
+  }
+});
+
+app.get('/api/copernicus/current-temperature-plot', async (_req, res, next) => {
+  try {
+    await access(currentTemperaturePlot);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.type('png');
+    res.sendFile(currentTemperaturePlot, (error) => {
+      if (error) next(error);
+    });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      res.status(404).send('Current sea-temperature plot was not found');
+      return;
+    }
+    next(error);
+  }
+});
 
 app.post('/api/refresh-seo-cache', async (req, res) => {
   const secret = process.env['CACHE_REFRESH_SECRET'];

@@ -396,7 +396,7 @@ def _save_diagnostics_atomic(diagnostics: dict[str, object]) -> None:
     temporary_file.replace(DIAGNOSTICS_FILE)
 
 
-def main() -> None:
+def main() -> bool:
     load_dotenv()
     _prepare_directories()
     _bootstrap_processed_outputs()
@@ -429,7 +429,7 @@ def main() -> None:
     nrt_new_count = int(nrt_new.sizes.get("time", 0))
     if my_new_count == 0 and nrt_new_count == 0:
         print("No new MY or NRT daily data is available.")
-        return
+        return False
 
     with xr.open_dataarray(DAILY_SERIES_FILE) as existing_file:
         existing = existing_file.load()
@@ -456,6 +456,7 @@ def main() -> None:
     print(f"  NRT days downloaded: {nrt_new_count}")
     print(f"  Series end: {pd.Timestamp(updated['time'].values[-1]).strftime('%Y-%m-%d')}")
     print(f"  Processed series: {DAILY_SERIES_FILE}")
+    return True
 
 
 if __name__ == "__main__":

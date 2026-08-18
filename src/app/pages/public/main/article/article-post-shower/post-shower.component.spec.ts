@@ -65,6 +65,12 @@ describe('PostShowerComponent', () => {
     expect(comp).toBeTruthy();
   });
 
+  it('preserves an API-backed article image URL', () => {
+    const { comp } = buildComp();
+    comp.post = makeArticle({ imgFname: '/api/copernicus/current-temperature-plot' });
+    expect(comp.heroImageSrc).toBe('/api/copernicus/current-temperature-plot');
+  });
+
   it('initial loadingState is loading', () => {
     const { comp } = buildComp();
     expect(comp.loadingState).toBe('loading');

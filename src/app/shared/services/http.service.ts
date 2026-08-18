@@ -1,7 +1,7 @@
 
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUser, ArticlePost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary, ShopOutOfOfficeAdminSettings, ShopOutOfOfficePublicSettings } from '@shared/types';
+import { AuthUser, ArticlePost, CountyDescriptionAdminItem, CountyDescriptionUpsertPayload, CountryDescriptionAdminItem, CountryDescriptionUpsertPayload, CurrentTemperatureSummary, MapFeature, OrgCollectionKey, OrgDocument, OrgListResponse, OrgSettings, OrderStatus, OrderSummary, ShopOutOfOfficeAdminSettings, ShopOutOfOfficePublicSettings } from '@shared/types';
 import { PayPalCreateOrder } from '@shared/types';
 import { lastValueFrom} from 'rxjs';
 
@@ -10,6 +10,11 @@ import { lastValueFrom} from 'rxjs';
 export class HttpService {
 
   private _http = inject(HttpClient);
+
+  async getCurrentTemperature(): Promise<CurrentTemperatureSummary> {
+    const request = this._http.get<CurrentTemperatureSummary>('/api/copernicus/current-temperature');
+    return await lastValueFrom(request);
+  }
 
   /*
   MAP 

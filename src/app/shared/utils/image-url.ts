@@ -27,7 +27,7 @@ function toAssetPath(src: string): string {
 
 function localAssetUrl(src: string): string {
   const trimmed = src.trim();
-  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('/api/') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
     return trimmed;
   }
   return toAssetPath(trimmed);
@@ -35,7 +35,7 @@ function localAssetUrl(src: string): string {
 
 function cloudflareAssetUrl(src: string, options: CloudflareImageOptions = {}): string {
   const assetPath = localAssetUrl(src);
-  if (/^(https?:)?\/\//i.test(assetPath) || assetPath.startsWith('data:') || assetPath.startsWith('blob:')) {
+  if (/^(https?:)?\/\//i.test(assetPath) || assetPath.startsWith('/api/') || assetPath.startsWith('data:') || assetPath.startsWith('blob:')) {
     return assetPath;
   }
 

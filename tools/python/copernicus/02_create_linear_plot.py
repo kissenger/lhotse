@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -20,6 +21,7 @@ LOGO_PATH = ASSETS_DIR / "snround.png"
 DAILY_SERIES_FILE = PROCESSED_DIR / "uk_sst_daily_continuous_series__degc.nc"
 STITCH_DIAGNOSTICS_FILE = PROCESSED_DIR / "uk_sst_source_stitch_diagnostics.txt"
 OUTPUT_PNG = RESULTS_DIR / "uk_sst_daily_linear_historical_vs_current.png"
+OUTPUT_JSON = RESULTS_DIR / "current-sea-temperature.json"
 LINEAR_PLOT_X_AXIS_TITLE = "Month"
 LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (degC)"
 LINEAR_PLOT_TITLE = "Britain and Ireland Average Coastal Sea Temperature (1982-present)"
@@ -194,7 +196,7 @@ def _render_daily_linear_plot(
     daily_series: xr.DataArray,
     output_png: Path,
     last_my_day_used: pd.Timestamp | None = None,
-) -> None:
+) -> dict[str, int | float | str]:
     baseline_year_count = 30
 
     time_values = pd.to_datetime(daily_series["time"].values)
@@ -352,18 +354,19 @@ def _render_daily_linear_plot(
     ax.set_ylim(y_min - pad, y_max + pad)
     _add_dials_panel(ax)
 
-    latest_month_day = last_data_date.strftime("%m-%d")
-    latest_temperature = current_curve.get(latest_month_day, np.nan)
-    baseline_temperature = hist_mean.get(latest_month_day, np.nan)
-    if np.isfinite(latest_temperature) and np.isfinite(baseline_temperature):
-        deviation = float(latest_temperature - baseline_temperature)
-        _add_deviation_dial(
-            ax,
-            deviation,
-            anchor_date=pd.Timestamp("2001-08-15"),
-            anchor_temperature=11.0,
-            period_label="LATEST DAY",
-        )
+    summary = _calculate_temperature_summary(
+        last_data_date,
+        current_curve,
+        hist_mean,
+        baseline_years,
+    )
+    _add_deviation_dial(
+        ax,
+        float(summary["deviationC"]),
+        anchor_date=pd.Timestamp("2001-08-15"),
+        anchor_temperature=11.0,
+        period_label="LATEST DAY",
+    )
 
     matched_baseline = last_12_months["month_day"].map(hist_mean)
     valid_annual_comparison = np.isfinite(last_12_months["sst_c"]) & np.isfinite(matched_baseline)
@@ -397,8 +400,52 @@ def _render_daily_linear_plot(
     fig.tight_layout(rect=[0, 0.055, 1, 1])
     _add_logo_top_right(fig, ax)
     output_png.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_png, facecolor="white")
+    temporary_output = output_png.with_name(f"{output_png.stem}.tmp{output_png.suffix}")
+    fig.savefig(temporary_output, facecolor="white")
     plt.close(fig)
+    temporary_output.replace(output_png)
+    return summary
+
+
+def _calculate_temperature_summary(
+    last_data_date: pd.Timestamp,
+    current_curve: pd.Series,
+    historical_mean: pd.Series,
+    baseline_years: list[int],
+) -> dict[str, int | float | str]:
+    latest_month_day = last_data_date.strftime("%m-%d")
+    latest_temperature = current_curve.get(latest_month_day, np.nan)
+    baseline_temperature = historical_mean.get(latest_month_day, np.nan)
+    if not np.isfinite(latest_temperature) or not np.isfinite(baseline_temperature):
+        raise ValueError(
+            f"No finite current and baseline temperatures available for {last_data_date.date()}."
+        )
+
+    latest_temperature = float(latest_temperature)
+    baseline_temperature = float(baseline_temperature)
+    return {
+        "schemaVersion": 1,
+        "observationDate": last_data_date.date().isoformat(),
+        "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "temperatureC": latest_temperature,
+        "baselineTemperatureC": baseline_temperature,
+        "deviationC": latest_temperature - baseline_temperature,
+        "baselineStartYear": baseline_years[0],
+        "baselineEndYear": baseline_years[-1],
+    }
+
+
+def _write_temperature_summary(
+    summary: dict[str, int | float | str],
+    output_json: Path,
+) -> None:
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    temporary_output = output_json.with_suffix(f"{output_json.suffix}.tmp")
+    temporary_output.write_text(
+        json.dumps(summary, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary_output.replace(output_json)
 
 
 def _load_daily_series() -> xr.DataArray:
@@ -424,8 +471,14 @@ def _load_last_my_day_used() -> pd.Timestamp | None:
 def main() -> None:
     daily_series = _load_daily_series()
     last_my_day_used = _load_last_my_day_used()
-    _render_daily_linear_plot(daily_series, OUTPUT_PNG, last_my_day_used=last_my_day_used)
+    summary = _render_daily_linear_plot(
+        daily_series,
+        OUTPUT_PNG,
+        last_my_day_used=last_my_day_used,
+    )
+    _write_temperature_summary(summary, OUTPUT_JSON)
     print(f"Daily linear plot: {OUTPUT_PNG}")
+    print(f"Current temperature summary: {OUTPUT_JSON}")
 
 
 if __name__ == "__main__":

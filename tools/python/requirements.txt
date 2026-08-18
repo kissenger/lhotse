@@ -1,3 +1,5 @@
+# pyarrow (pulled in via copernicusmarine -> arcosparse) ships ARMv8.2 binaries that
+# SIGILL on the Cortex-A72 server; run `pip uninstall -y pyarrow` after installing there.
 copernicusmarine
 numpy
 pandas
@@ -8,3 +10,4 @@ scipy
 pyshp
 netCDF4
 h5netcdf
+h5py

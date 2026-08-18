@@ -1,0 +1,104 @@
+:host {
+  /* sticks directly below the fixed header so it survives scrolling */
+  position: sticky;
+  top: var(--header-height);
+  z-index: 1100;
+  display: block;
+  /* header logo is 104px wide and overhangs the header by --header-overhang */
+  --sst-logo-clearance: 7.5rem;
+}
+
+.sst-banner {
+  /* animating grid rows lets the banner push the page down smoothly */
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  border-bottom: 1px solid transparent;
+  background: #e8f5f2;
+  color: #173f46;
+  opacity: 0;
+  transition: grid-template-rows 0.55s ease, opacity 0.55s ease, border-bottom-color 0.55s ease;
+}
+
+.sst-banner--visible {
+  grid-template-rows: 1fr;
+  border-bottom-color: #acd2cc;
+  opacity: 1;
+}
+
+.sst-banner__reveal {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sst-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, var(--container-width));
+  min-height: 58px;
+  margin-inline: auto;
+  /* left inset keeps the message clear of the header logo's overhang */
+  padding: 0.7rem 1rem 0.7rem var(--sst-logo-clearance);
+  box-sizing: border-box;
+}
+
+.sst-banner__message {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.sst-banner__message a {
+  display: inline-block;
+  margin-left: 0.35rem;
+  color: #005f73;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sst-banner__dismiss {
+  display: inline-grid;
+  flex: 0 0 40px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #315b60;
+  font: inherit;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sst-banner__dismiss:hover,
+.sst-banner__dismiss:focus-visible {
+  background: rgba(23, 63, 70, 0.08);
+  color: #173f46;
+}
+
+.sst-banner__dismiss:focus-visible {
+  outline: 2px solid #006d77;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .sst-banner__inner {
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding-block: 0.65rem;
+  }
+
+  .sst-banner__message {
+    font-size: 0.92rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sst-banner {
+    transition-duration: 0.01ms;
+  }
+}

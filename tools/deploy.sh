@@ -77,6 +77,36 @@ run_angular_build() {
     "${npm_cmd[@]}"
 }
 
+refresh_python_environment() {
+  local requirements_file="${DEPLOY_ROOT}/tools/python/requirements.txt"
+  local venv_dir="${DEPLOY_ROOT}/tools/python/.venv"
+  local python_bin="${PYTHON_BIN:-python3}"
+
+  if [[ ! -f "${requirements_file}" ]]; then
+    log "No Python requirements found at ${requirements_file}; skipping Python environment refresh"
+    return 0
+  fi
+
+  require_cmd "${python_bin}"
+
+  if [[ ! -x "${venv_dir}/bin/python" ]]; then
+    log "Creating Python virtual environment at ${venv_dir}"
+    if ! "${python_bin}" -m venv "${venv_dir}"; then
+      fail "unable to create Python virtual environment; install python3-venv on the server"
+    fi
+  fi
+
+  log "Updating Python packages from ${requirements_file}"
+  "${venv_dir}/bin/python" -m pip install --upgrade pip
+  "${venv_dir}/bin/python" -m pip install --upgrade --requirement "${requirements_file}"
+
+  # pyarrow wheels (transitive via copernicusmarine) need ARMv8.2 LSE atomics
+  if [[ "$(uname -m)" == "aarch64" ]] && ! grep -qm1 '^Features.*\batomics\b' /proc/cpuinfo 2>/dev/null; then
+    log "CPU lacks LSE atomics; removing pyarrow to avoid SIGILL"
+    "${venv_dir}/bin/python" -m pip uninstall -y pyarrow || true
+  fi
+}
+
 wait_for_pm2_online() {
   local app_name="$1"
   local max_attempts="$2"
@@ -193,6 +223,8 @@ echo -e "\033[31m[$(date -Iseconds)] Deploying: ${COMMIT_INFO}\033[0m"
 # Always use npm install for faster deployment
 log "Running: npm install"
 npm install
+
+refresh_python_environment
 
 log "Running: npm run build:${TARGET_BRANCH}"
 # Keep defaults conservative for low-memory servers and retry once on OOM kill.

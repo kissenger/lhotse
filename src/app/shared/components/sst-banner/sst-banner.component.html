@@ -1,0 +1,23 @@
+@if (summary && !dismissed) {
+  <aside
+    class="sst-banner"
+    [class.sst-banner--visible]="visible"
+    aria-label="Latest coastal sea-temperature update">
+    <div class="sst-banner__reveal">
+      <div class="sst-banner__inner">
+        <p class="sst-banner__message">
+          Did you know that the coastal seas temperature are currently 
+          <strong>{{ deviation }} &deg;C {{ comparison }}</strong>
+          the long term average?
+          <a routerLink="/articles/live-britain-and-ireland-coastal-sea-temperaturess">Explore the latest data</a>
+        </p>
+        <button
+          type="button"
+          class="sst-banner__dismiss"
+          aria-label="Dismiss sea-temperature update"
+          title="Dismiss"
+          (click)="dismiss()">&times;</button>
+      </div>
+    </div>
+  </aside>
+}

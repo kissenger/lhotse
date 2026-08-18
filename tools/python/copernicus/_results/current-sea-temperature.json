@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "observationDate": "2026-08-15",
+  "generatedAt": "2026-08-17T17:49:45.815729Z",
+  "temperatureC": 16.580120086669922,
+  "baselineTemperatureC": 15.083623663584392,
+  "deviationC": 1.4964964230855298,
+  "baselineStartYear": 1982,
+  "baselineEndYear": 2011
+}

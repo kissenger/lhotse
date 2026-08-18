@@ -102,7 +102,7 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   private _resolveImagePath(path: string): string {
     const rawPath = (path || '').trim();
     if (!rawPath) return '';
-    if (/^(https?:)?\/\//i.test(rawPath) || rawPath.startsWith('data:') || rawPath.startsWith('blob:')) {
+    if (/^(https?:)?\/\//i.test(rawPath) || rawPath.startsWith('/api/') || rawPath.startsWith('data:') || rawPath.startsWith('blob:')) {
       return rawPath;
     }
 
