@@ -16,11 +16,13 @@ from scipy.ndimage import distance_transform_edt
 SERVER_DIR = Path(__file__).resolve().parent
 RAW_DIR = SERVER_DIR / "_raw"
 PROCESSED_DIR = SERVER_DIR / "_processed"
+ASSETS_DIR = SERVER_DIR / "_assets"
 RESULTS_DIR = SERVER_DIR / "_results"
 
 DAILY_SERIES_FILE = PROCESSED_DIR / "uk_sst_daily_continuous_series__degc.nc"
 DIAGNOSTICS_FILE = PROCESSED_DIR / "uk_sst_source_stitch_diagnostics.txt"
-MASK_CACHE_FILE = PROCESSED_DIR / "coastal_masks.npz"
+MASK_CACHE_FILE = ASSETS_DIR / "coastal_masks.npz"
+LEGACY_MASK_CACHE_FILE = PROCESSED_DIR / "coastal_masks.npz"
 LOCAL_SEED_DIR = SERVER_DIR.parent / "_processed"
 
 MY_DATASET_ID = "cmems-IFREMER-ATL-SST-L4-REP-OBS_FULL_TIME_SERIE"
@@ -44,8 +46,14 @@ REQUIRED_DIAGNOSTIC_KEYS = (
 
 
 def _prepare_directories() -> None:
-    for directory in (RAW_DIR, PROCESSED_DIR, RESULTS_DIR):
+    for directory in (RAW_DIR, PROCESSED_DIR, ASSETS_DIR, RESULTS_DIR):
         directory.mkdir(parents=True, exist_ok=True)
+
+
+def _mask_cache_candidates() -> tuple[Path, ...]:
+    if MASK_CACHE_FILE.exists():
+        return (MASK_CACHE_FILE, LEGACY_MASK_CACHE_FILE)
+    return (LEGACY_MASK_CACHE_FILE, MASK_CACHE_FILE)
 
 
 def _bootstrap_processed_outputs() -> None:
@@ -162,24 +170,29 @@ def _grid_signature(data_array: xr.DataArray, distance_cells: int) -> str:
 
 
 def _load_cached_mask(signature: str) -> np.ndarray | None:
-    if not MASK_CACHE_FILE.exists():
-        return None
-    try:
-        with np.load(MASK_CACHE_FILE, allow_pickle=False) as cache:
-            key = f"mask_{signature}"
-            return cache[key].astype(bool) if key in cache else None
-    except (OSError, ValueError):
-        return None
+    key = f"mask_{signature}"
+    for cache_file in _mask_cache_candidates():
+        if not cache_file.exists():
+            continue
+        try:
+            with np.load(cache_file, allow_pickle=False) as cache:
+                if key in cache:
+                    return cache[key].astype(bool)
+        except (OSError, ValueError):
+            continue
+    return None
 
 
 def _save_cached_mask(signature: str, mask: np.ndarray) -> None:
     payload: dict[str, np.ndarray] = {}
-    if MASK_CACHE_FILE.exists():
+    for cache_file in _mask_cache_candidates():
+        if not cache_file.exists():
+            continue
         try:
-            with np.load(MASK_CACHE_FILE, allow_pickle=False) as cache:
+            with np.load(cache_file, allow_pickle=False) as cache:
                 payload.update({key: cache[key] for key in cache.files})
         except (OSError, ValueError):
-            payload = {}
+            continue
     payload[f"mask_{signature}"] = mask.astype(np.uint8)
     np.savez_compressed(MASK_CACHE_FILE, **payload)
 
