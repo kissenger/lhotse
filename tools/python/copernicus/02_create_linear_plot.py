@@ -25,7 +25,7 @@ LINEAR_PLOT_X_AXIS_TITLE = "Month"
 LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (\u00b0C)"
 LINEAR_PLOT_TITLE = "Britain and Ireland Average Coastal Sea Temperature (1982-present)"
 REFERENCE_TEXT = (
-    "Generated using E.U. Copernicus Marine Service Information\n"
+    "Generated at {generated_at} using E.U. Copernicus Marine Service Information\n"
     "doi.org/10.48670/moi-00152, https://doi.org/10.48670/moi-00153"
 )
 
@@ -127,7 +127,7 @@ def _add_deviation_dial(
     dial_ax.text(
         0,
         -0.20,
-        f"{deviation:+.1f}\u00b0C",
+        f"{deviation:+.2f}\u00b0C",
         ha="center",
         va="top",
         fontsize=14,
@@ -283,7 +283,7 @@ def _add_dial_card(
     card_ax.text(
         0.73,
         0.56,
-        f"{deviation:+.1f}\u00b0C",
+        f"{deviation:+.2f}\u00b0C",
         ha="center",
         va="center",
         fontsize=17,
@@ -484,7 +484,7 @@ def _render_daily_linear_plot(
     fig.text(
         0.5,
         0.018,
-        REFERENCE_TEXT,
+        REFERENCE_TEXT.format(generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")),
         ha="center",
         va="bottom",
         fontsize=9,

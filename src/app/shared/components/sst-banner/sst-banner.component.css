@@ -6,6 +6,7 @@
   right: 0;
   z-index: 1100;
   display: block;
+  overflow-x: clip;
 }
 
 .sst-banner {
@@ -99,15 +100,20 @@
 
   .sst-banner__inner {
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 0.25rem;
     padding: 0.4rem 0.25rem 0.4rem 0.6rem;
   }
 
   .sst-banner__message {
-    /* display: inline; */
     font-size: 0.82rem;
     line-height: 1.3;
     margin-bottom: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sst-banner__message b {
+    white-space: normal;
   }
 
   .sst-banner__message a {
@@ -116,11 +122,11 @@
   }
 
   .sst-banner__logo-gap {
-    width: 7rem;
-    display: inline-block;
+    display: none;
   }
 
   .sst-banner__dismiss {
+    margin-left: auto;
     flex-basis: 26px;
     width: 26px;
     height: 26px;
