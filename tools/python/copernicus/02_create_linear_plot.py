@@ -347,11 +347,6 @@ def _render_daily_linear_plot(
     hist_high = baseline_df.quantile(0.975, axis=1, interpolation="linear")
 
     last_data_date = df["time"].max().normalize()
-    first_rolling_date = last_data_date - pd.DateOffset(years=1) + pd.Timedelta(days=1)
-    last_12_months = df[
-        (df["time"] >= first_rolling_date)
-        & (df["time"] <= last_data_date + pd.Timedelta(days=1))
-    ]
     current_curve = by_day_year[current_year].reindex(month_day_order)
     last_data_x = pd.Timestamp(f"2001-{last_data_date.strftime('%m-%d')}")
     before_endpoint = x_dates <= last_data_x
@@ -439,13 +434,17 @@ def _render_daily_linear_plot(
         baseline_years,
     )
 
-    matched_baseline = last_12_months["month_day"].map(hist_mean)
-    valid_annual_comparison = np.isfinite(last_12_months["sst_c"]) & np.isfinite(matched_baseline)
-    annual_deviation = float("nan")
-    if np.any(valid_annual_comparison):
-        annual_current_mean = float(last_12_months.loc[valid_annual_comparison, "sst_c"].mean())
-        annual_baseline_mean = float(matched_baseline.loc[valid_annual_comparison].mean())
-        annual_deviation = annual_current_mean - annual_baseline_mean
+    current_key = last_data_date.strftime("%m-%d")
+    visible_mask = current_curve.index <= current_key
+    visible_current = current_curve.loc[visible_mask] if hasattr(current_curve, "loc") else current_curve[current_curve.index <= current_key]
+    visible_baseline = hist_mean.loc[visible_mask] if hasattr(hist_mean, "loc") else hist_mean[hist_mean.index <= current_key]
+    annual_current_mean = float(np.nanmean(pd.to_numeric(visible_current, errors="coerce"))) if not visible_current.empty else float("nan")
+    annual_baseline_mean = float(np.nanmean(pd.to_numeric(visible_baseline, errors="coerce"))) if not visible_baseline.empty else float("nan")
+    annual_deviation = (
+        annual_current_mean - annual_baseline_mean
+        if np.isfinite(annual_current_mean) and np.isfinite(annual_baseline_mean)
+        else float("nan")
+    )
 
     ax_bounds = ax.get_position()
     card_gap = 0.02
