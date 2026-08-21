@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from matplotlib.path import Path as MplPath
 from scipy.ndimage import distance_transform_edt
 
+from _log import info, pass_, warn
+
 SERVER_DIR = Path(__file__).resolve().parent
 RAW_DIR = SERVER_DIR / "_raw"
 PROCESSED_DIR = SERVER_DIR / "_processed"
@@ -27,6 +29,7 @@ LOCAL_SEED_DIR = SERVER_DIR.parent / "_processed"
 
 MY_DATASET_ID = "cmems-IFREMER-ATL-SST-L4-REP-OBS_FULL_TIME_SERIE"
 NRT_DATASET_ID = "IFREMER-ATL-SST-L4-NRT-OBS_FULL_TIME_SERIE"
+
 DOWNLOAD_VARIABLE = "analysed_sst"
 VARIABLE_CANDIDATES = ("analysed_sst", "sea_surface_temperature")
 
@@ -70,7 +73,7 @@ def _bootstrap_processed_outputs() -> None:
             _save_daily_atomic(seed_file.load())
         diagnostics = json.loads(seed_diagnostics.read_text(encoding="utf-8"))
         _save_diagnostics_atomic(_minimal_diagnostics(diagnostics))
-        print(f"Seeded server processed data from {LOCAL_SEED_DIR}")
+        pass_(f"Seeded server processed data from {LOCAL_SEED_DIR}")
         return
 
     raise FileNotFoundError(
@@ -226,7 +229,7 @@ def _coastal_mask(data_array: xr.DataArray, distance_cells: int) -> xr.DataArray
         polygons = _load_boundary_polygons(_resolve_boundaries_dir())
         mask = _build_coastal_mask(data_array, polygons, distance_cells)
         _save_cached_mask(signature, mask)
-        print(f"Cached coastal mask {signature} ({int(mask.sum())} cells)")
+        info(f"Cached coastal mask {signature} ({int(mask.sum())} cells)")
 
     expected_shape = (data_array.sizes[lat_dim], data_array.sizes[lon_dim])
     if mask.shape != expected_shape:
@@ -267,29 +270,81 @@ def _area_mean_daily(data_array: xr.DataArray, mask: xr.DataArray) -> xr.DataArr
     return daily.load()
 
 
+def _get_series_end_date(default_fallback: pd.Timestamp) -> pd.Timestamp:
+    if not DAILY_SERIES_FILE.exists():
+        return default_fallback
+    try:
+        with xr.open_dataarray(DAILY_SERIES_FILE) as series:
+            times = pd.to_datetime(series["time"].values)
+            if times.size > 0:
+                return pd.Timestamp(times.max()).normalize()
+    except Exception:
+        pass
+    return default_fallback
+
+
 def _download_source(
     label: str,
     dataset_id: str,
     start_day: pd.Timestamp,
     end_day: pd.Timestamp,
     bounds: dict[str, float],
-) -> Path:
+) -> Path | None:
     output_file = RAW_DIR / f"{label.lower()}_increment.nc"
     output_file.unlink(missing_ok=True)
-    copernicusmarine.subset(
-        dataset_id=dataset_id,
-        variables=[DOWNLOAD_VARIABLE],
-        minimum_longitude=bounds["minimum_longitude"],
-        maximum_longitude=bounds["maximum_longitude"],
-        minimum_latitude=bounds["minimum_latitude"],
-        maximum_latitude=bounds["maximum_latitude"],
-        start_datetime=start_day.strftime("%Y-%m-%dT00:00:00"),
-        end_datetime=end_day.strftime("%Y-%m-%dT23:59:59"),
-        output_filename=output_file.name,
-        output_directory=str(RAW_DIR),
-    )
+    request_start = start_day.normalize() + pd.Timedelta(days=1)
+    request_end = end_day.normalize()
+
+    if request_start > request_end:
+        return None
+
+    try:
+        copernicusmarine.subset(
+            dataset_id=dataset_id,
+            variables=[DOWNLOAD_VARIABLE],
+            minimum_longitude=bounds["minimum_longitude"],
+            maximum_longitude=bounds["maximum_longitude"],
+            minimum_latitude=bounds["minimum_latitude"],
+            maximum_latitude=bounds["maximum_latitude"],
+            start_datetime=request_start.strftime("%Y-%m-%dT00:00:00"),
+            end_datetime=request_end.strftime("%Y-%m-%dT23:59:59"),
+            output_filename=output_file.name,
+            output_directory=str(RAW_DIR),
+        )
+    except Exception as exc:
+        if label.upper() == "MY":
+            warn(
+                f"Notice: MY dataset ({dataset_id}) query from {request_start.date()} "
+                f"to {request_end.date()} returned no coverage. Skipping MY update."
+            )
+            return None
+        raise RuntimeError(
+            f"Copernicus subset failed for {label} ({dataset_id}) "
+            f"from {request_start.date()} to {request_end.date()}"
+        ) from exc
+
     if not output_file.exists():
-        raise FileNotFoundError(f"Copernicus subset did not create {output_file}")
+        return None
+
+    try:
+        with xr.open_dataset(output_file, decode_times=True) as dataset:
+            time_dim = _find_dim_name(_resolve_sst_variable(dataset), "time")
+            times = pd.to_datetime(dataset[time_dim].values)
+            if times.size == 0:
+                output_file.unlink(missing_ok=True)
+                return None
+            actual_start = pd.Timestamp(times.min()).normalize()
+            actual_end = pd.Timestamp(times.max()).normalize()
+    except Exception:
+        output_file.unlink(missing_ok=True)
+        return None
+
+    if actual_start > request_start:
+        raise RuntimeError(
+            f"Copernicus subset for {label} start date mismatch. "
+            f"Requested start {request_start.date()}, but file started at {actual_start.date()}."
+        )
+
     return output_file
 
 
@@ -303,12 +358,21 @@ def _fetch_new_daily_values(
 ) -> xr.DataArray:
     raw_file = RAW_DIR / f"{label.lower()}_increment.nc"
     try:
-        raw_file = _download_source(label, dataset_id, last_known_day, end_day, bounds)
-        with xr.open_dataset(raw_file, decode_times=True) as dataset:
+        raw_file_path = _download_source(label, dataset_id, last_known_day, end_day, bounds)
+        if raw_file_path is None or not raw_file_path.exists():
+            return xr.DataArray([], dims=("time",), coords={"time": []})
+
+        with xr.open_dataset(raw_file_path, decode_times=True) as dataset:
             data_array = _to_celsius(_resolve_sst_variable(dataset))
             mask = _coastal_mask(data_array, distance_cells)
             daily = _area_mean_daily(data_array, mask)
-        return daily.where(daily["time"] > np.datetime64(last_known_day), drop=True)
+
+        last_known_dt = pd.Timestamp(last_known_day).normalize()
+        new_daily = daily.where(
+            daily["time"].dt.floor("D") > np.datetime64(last_known_dt), drop=True
+        )
+
+        return new_daily
     finally:
         raw_file.unlink(missing_ok=True)
 
@@ -361,7 +425,19 @@ def _merge_updates(
 
     values = values.sort_index()
     full_index = pd.date_range(values.index.min(), values.index.max(), freq="D")
-    values = values.reindex(full_index).interpolate(method="time", limit_area="inside")
+    reindexed = values.reindex(full_index)
+
+    gap_series = reindexed.isna().astype(int)
+    if not gap_series.empty and gap_series.sum() > 0:
+        max_gap = gap_series.groupby((gap_series != gap_series.shift()).cumsum()).sum().max()
+        missing_dates = reindexed[reindexed.isna()].index
+        missing_str = ", ".join(d.strftime("%Y-%m-%d") for d in missing_dates[:5])
+        warn(
+            f"Detected a {max_gap}-day gap in SST time series. "
+            f"Missing dates include: {missing_str}..."
+        )
+
+    values = reindexed.interpolate(method="time", limit_area="inside")
     updated = xr.DataArray(
         values.to_numpy(dtype=np.float32),
         dims=("time",),
@@ -400,7 +476,7 @@ def _compress_daily_if_needed() -> None:
             return
         daily = daily_file.load()
     _save_daily_atomic(daily)
-    print(f"Compressed existing server NetCDF: {DAILY_SERIES_FILE}")
+    pass_(f"Compressed existing server NetCDF: {DAILY_SERIES_FILE}")
 
 
 def _save_diagnostics_atomic(diagnostics: dict[str, object]) -> None:
@@ -416,9 +492,10 @@ def main() -> bool:
 
     diagnostics = _load_diagnostics()
     last_my_day = _diagnostic_day(diagnostics, "last_my_day_used")
-    last_nrt_day = _diagnostic_day(diagnostics, "last_nrt_day_used")
     end_day = pd.Timestamp.now(tz="UTC").tz_localize(None).normalize()
     bounds = _bounds()
+
+    series_end_day = _get_series_end_date(default_fallback=last_my_day)
 
     _login()
     my_new = _fetch_new_daily_values(
@@ -429,10 +506,12 @@ def main() -> bool:
         end_day,
         bounds,
     )
+
+    nrt_start_day = max(last_my_day, series_end_day - pd.Timedelta(days=1))
     nrt_new = _fetch_new_daily_values(
         "NRT",
         NRT_DATASET_ID,
-        last_nrt_day,
+        nrt_start_day,
         NRT_COASTAL_DISTANCE_CELLS,
         end_day,
         bounds,
@@ -441,7 +520,7 @@ def main() -> bool:
     my_new_count = int(my_new.sizes.get("time", 0))
     nrt_new_count = int(nrt_new.sizes.get("time", 0))
     if my_new_count == 0 and nrt_new_count == 0:
-        print("No new MY or NRT daily data is available.")
+        pass_("No new MY or NRT daily data is available.")
         return False
 
     with xr.open_dataarray(DAILY_SERIES_FILE) as existing_file:
@@ -464,11 +543,11 @@ def main() -> bool:
         diagnostics["last_nrt_day_used"] = last_nrt_used.strftime("%Y-%m-%d")
     _save_diagnostics_atomic(_minimal_diagnostics(diagnostics))
 
-    print("Incremental daily SST update complete")
-    print(f"  MY days added: {my_new_count}")
-    print(f"  NRT days downloaded: {nrt_new_count}")
-    print(f"  Series end: {pd.Timestamp(updated['time'].values[-1]).strftime('%Y-%m-%d')}")
-    print(f"  Processed series: {DAILY_SERIES_FILE}")
+    pass_("Incremental daily SST update complete")
+    info(f"MY days added: {my_new_count}")
+    info(f"NRT days downloaded: {nrt_new_count}")
+    info(f"Series end: {pd.Timestamp(updated['time'].values[-1]).strftime('%Y-%m-%d')}")
+    info(f"Processed series: {DAILY_SERIES_FILE}")
     return True
 
 

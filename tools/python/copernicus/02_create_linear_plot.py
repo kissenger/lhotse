@@ -12,6 +12,8 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import FancyBboxPatch, Wedge
 
+from _log import pass_
+
 SERVER_DIR = Path(__file__).resolve().parent
 PROCESSED_DIR = SERVER_DIR / "_processed"
 RESULTS_DIR = SERVER_DIR / "_results"
@@ -25,7 +27,7 @@ LINEAR_PLOT_X_AXIS_TITLE = "Month"
 LINEAR_PLOT_AXIS_TITLE = "Sea Surface Temperature (\u00b0C)"
 LINEAR_PLOT_TITLE = "Britain and Ireland Average Coastal Sea Temperature (1982-present)"
 REFERENCE_TEXT = (
-    "Generated at {generated_at} using E.U. Copernicus Marine Service Information\n"
+    "E.U. Copernicus Marine Service Information\n"
     "doi.org/10.48670/moi-00152, https://doi.org/10.48670/moi-00153"
 )
 
@@ -354,7 +356,7 @@ def _render_daily_linear_plot(
     last_data_x = pd.Timestamp(f"2001-{last_data_date.strftime('%m-%d')}")
     before_endpoint = x_dates <= last_data_x
 
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=170)
+    fig, ax = plt.subplots(figsize=(10, 8.25), dpi=170)
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -483,8 +485,17 @@ def _render_daily_linear_plot(
 
     fig.text(
         0.5,
-        0.018,
-        REFERENCE_TEXT.format(generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")),
+        0.006,
+        "\n".join(
+            [
+                REFERENCE_TEXT,
+                (
+                    "Plot generated on "
+                    f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}; "
+                    f"last data point {last_data_date.date().isoformat()}"
+                ),
+            ]
+        ),
         ha="center",
         va="bottom",
         fontsize=9,
@@ -560,8 +571,8 @@ def main() -> None:
         OUTPUT_PNG,
     )
     _write_temperature_summary(summary, OUTPUT_JSON)
-    print(f"Daily linear plot: {OUTPUT_PNG}")
-    print(f"Current temperature summary: {OUTPUT_JSON}")
+    pass_(f"Daily linear plot: {OUTPUT_PNG}")
+    pass_(f"Current temperature summary: {OUTPUT_JSON}")
 
 
 if __name__ == "__main__":
