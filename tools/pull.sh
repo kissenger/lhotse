@@ -93,7 +93,7 @@ sync_checkout() {
   git -C "${target_root}" fetch origin "${branch}"
   git -C "${target_root}" remote set-url origin "${ORIGIN_URL}"
   git -C "${target_root}" fetch origin "${branch}"
-  git -C "${target_root}" checkout -B "${branch}" "origin/${branch}"
+  git -C "${target_root}" checkout -f -B "${branch}" "origin/${branch}"
 
   git -C "${target_root}" reset --hard "origin/${branch}"
   git -C "${target_root}" clean -fd
