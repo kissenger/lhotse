@@ -21,6 +21,7 @@ ASSETS_DIR = SERVER_DIR / "_assets"
 LOGO_PATH = ASSETS_DIR / "snround.png"
 
 DAILY_SERIES_FILE = PROCESSED_DIR / "uk_sst_daily_continuous_series__degc.nc"
+DIAGNOSTICS_FILE = PROCESSED_DIR / "uk_sst_source_stitch_diagnostics.txt"
 OUTPUT_PNG = RESULTS_DIR / "uk_sst_daily_linear_historical_vs_current.png"
 OUTPUT_JSON = RESULTS_DIR / "current-sea-temperature.json"
 LINEAR_PLOT_X_AXIS_TITLE = "Month"
@@ -547,10 +548,23 @@ def _write_temperature_summary(
     summary: dict[str, int | float | str],
     output_json: Path,
 ) -> None:
+    if not DIAGNOSTICS_FILE.exists():
+        raise FileNotFoundError(
+            f"Missing stitch diagnostics file: {DIAGNOSTICS_FILE}. Run 01_update_processed.py first."
+        )
+
+    stitch_diagnostics = json.loads(DIAGNOSTICS_FILE.read_text(encoding="utf-8"))
     output_json.parent.mkdir(parents=True, exist_ok=True)
     temporary_output = output_json.with_suffix(f"{output_json.suffix}.tmp")
     temporary_output.write_text(
-        json.dumps(summary, indent=2) + "\n",
+        json.dumps(
+            {
+                **summary,
+                "stitchDiagnostics": stitch_diagnostics,
+            },
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
     temporary_output.replace(output_json)
