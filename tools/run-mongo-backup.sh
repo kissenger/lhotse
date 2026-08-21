@@ -53,6 +53,49 @@ printErrorAndExit() {
   exit 1
 }
 
+printErrorAndExitWithDetails() {
+  local headline="$1"
+  local details="${2:-}"
+
+  echo "${TIMESTAMP} FAILURE ${headline}" >&2
+  if [[ -n "${details}" ]]; then
+    local detail_line
+    while IFS= read -r detail_line || [[ -n "${detail_line}" ]]; do
+      detail_line="${detail_line%$'\r'}"
+      [[ -z "${detail_line//[[:space:]]/}" ]] && continue
+      echo "${TIMESTAMP} FAILURE   ${detail_line}" >&2
+    done <<< "${details}"
+  fi
+  exit 1
+}
+
+run_mongodump_with_retries() {
+  local db_name="$1"
+  local attempts="${2}"
+  local delay_seconds="${3}"
+  local attempt=1
+  local output=""
+  local exit_code=0
+
+  while [[ "${attempt}" -le "${attempts}" ]]; do
+    if output="$("${MONGODUMP_BIN}" --uri="${MONGO_URI}" --db="${db_name}" --out="${WORK_DIR}" 2>&1)"; then
+      [[ -n "${output}" ]] && echo "${output}"
+      return 0
+    fi
+
+    exit_code=$?
+    if [[ "${attempt}" -lt "${attempts}" ]]; then
+      echo "${TIMESTAMP} WARN mongodump for ${db_name} failed with exit ${exit_code}; retrying in ${delay_seconds}s" >&2
+      sleep "${delay_seconds}"
+      attempt=$((attempt + 1))
+      delay_seconds=$((delay_seconds * 2))
+      continue
+    fi
+
+    printErrorAndExitWithDetails "mongodump failed for ${db_name} after ${attempts} attempts (exit ${exit_code})" "${output}"
+  done
+}
+
 retention_period_days() {
   local file_path="$1"
   local file_epoch current_epoch age_days
@@ -151,7 +194,7 @@ if [[ -n "${DB_NAMES}" ]]; then
   for db in "${DBS[@]}"; do
     db_trimmed="$(echo "${db}" | xargs)"
     [[ -z "${db_trimmed}" ]] && continue
-    "${MONGODUMP_BIN}" --uri="${MONGO_URI}" --db="${db_trimmed}" --out="${WORK_DIR}"
+    run_mongodump_with_retries "${db_trimmed}" 3 5
   done
 fi
 

@@ -92,10 +92,7 @@ async function fetchJson(path, expectedStatus) {
 })();
 NODE
 )"; then
-  if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE connectivity output:"  
-    echo "${output}" | sed 's/^/    /'  
-  fi
+  maintenance_log_failure_block "MongoDB connectivity checks failed" "${output}"
   exit 1
 fi
 

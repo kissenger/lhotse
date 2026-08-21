@@ -87,6 +87,24 @@ maintenance_log_failure() {
   MAINTENANCE_ERROR_LINES+="${msg}\n"
 }
 
+maintenance_log_failure_block() {
+  local headline="$1"
+  local details="${2:-}"
+
+  maintenance_log_failure "${headline}"
+
+  if [[ -z "${details}" ]]; then
+    return 0
+  fi
+
+  local detail_line
+  while IFS= read -r detail_line || [[ -n "${detail_line}" ]]; do
+    detail_line="${detail_line%$'\r'}"
+    [[ -z "${detail_line//[[:space:]]/}" ]] && continue
+    maintenance_log_failure "  ${detail_line}"
+  done <<< "${details}"
+}
+
 maintenance_fail() {
   maintenance_log_failure "$*"
   exit 1

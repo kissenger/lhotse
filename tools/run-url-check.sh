@@ -11,6 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
 REPO_ROOT="$PROJECT_ROOT"
+source "${SCRIPT_DIR}/migration/maintenance-common.sh"
 
 fail() {
   local message="$*"
@@ -46,8 +47,37 @@ load_env_file() {
 load_env_file "$ENV_FILE"
 
 LOG_FILE="${LOG_FILE:-$PROJECT_ROOT/logs/app.log}"
+SCRIPT_NAME="run-url-check.sh"
+MAINTENANCE_LOG_FILE="${LOG_FILE}"
 
 cd "$PROJECT_ROOT"
+
+retry_node_check() {
+  local attempts="${1}"
+  local delay_seconds="${2}"
+  local attempt=1
+  local output=""
+  local exit_code=0
+
+  while [[ "${attempt}" -le "${attempts}" ]]; do
+    if output="$(node ./tests/test-dead-links.js 2>&1)"; then
+      printf '%s\n' "${output}"
+      return 0
+    fi
+
+    exit_code=$?
+    if [[ "${attempt}" -lt "${attempts}" ]]; then
+      echo "$(date -Iseconds) WARN run-url-check.sh dead-links attempt ${attempt}/${attempts} failed; retrying in ${delay_seconds}s" >&2
+      sleep "${delay_seconds}"
+      attempt=$((attempt + 1))
+      delay_seconds=$((delay_seconds * 2))
+      continue
+    fi
+
+    maintenance_log_failure_block "Dead-links URL check failed after ${attempts} attempts (exit ${exit_code})" "${output}"
+    return "${exit_code}"
+  done
+}
 
 NVM_SCRIPT="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
 if [ -s "${NVM_SCRIPT}" ]; then
@@ -58,10 +88,7 @@ fi
 
 echo "$(date -Iseconds) Starting dead-links URL check"
 
-if ! output="$(node ./tests/test-dead-links.js 2>&1)"; then
-  echo "${output}"
-  fail "Dead-links URL check failed"
+if ! retry_node_check 3 5; then
+  exit 1
 fi
-
-echo "${output}"
 echo "$(date -Iseconds) Dead-links URL check completed OK"

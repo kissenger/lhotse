@@ -24,14 +24,18 @@ const child = spawn(command, {
 
 child.on('exit', (code, signal) => {
   if (signal) {
+    console.error(`[FAIL] run-e2e exited due to signal ${signal}`);
     process.kill(process.pid, signal);
     return;
   }
 
+  if ((code ?? 1) !== 0) {
+    console.error(`[FAIL] run-e2e failed with exit code ${code ?? 1}`);
+  }
   process.exit(code ?? 1);
 });
 
 child.on('error', (error) => {
-  console.error('[run-e2e] Failed to launch Playwright:', error.message);
+  console.error(`[FAIL] run-e2e failed to launch Playwright: ${error.message}`);
   process.exit(1);
 });

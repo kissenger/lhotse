@@ -34,10 +34,7 @@ fi
 echo "$(date -Iseconds) Starting performance budget checks"  
 
 if ! output="$(./node_modules/.bin/playwright test tests/e2e/performance.spec.js --config ./playwright.config.ts 2>&1)"; then
-  if [[ -n "${output}" ]]; then
-    echo "$(date -Iseconds) FAILURE playwright output:"  
-    echo "${output}" | sed 's/^/    /'  
-  fi
+  maintenance_log_failure_block "Performance budget checks failed" "${output}"
   exit 1
 fi
 

@@ -53,10 +53,8 @@ export OG_LOGO_TOP="${OG_LOGO_TOP:-}"
 echo "$(date -Iseconds) Starting OG image checker"
 
 if ! output="$(node ./tools/regenerate-og-images.mjs 2>&1)"; then
-  if [[ -n "${output}" ]]; then
-    echo "${output}" >&2
-  fi
-  fail "OG image checker failed"
+  maintenance_log_failure_block "OG image checker failed" "${output}"
+  exit 1
 fi
 
 if [[ -n "${output}" ]]; then

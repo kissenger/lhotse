@@ -30,6 +30,18 @@ _LEVEL_COLOURS = {
     "PASS": "\033[32m",
 }
 _RESET = "\033[0m"
+_THIRD_PARTY_WARNING_PREFIXES = (
+    "WARNING -",
+    "WARNING:",
+    "UserWarning:",
+    "FutureWarning:",
+    "DeprecationWarning:",
+    "RuntimeWarning:",
+)
+
+
+def _should_suppress_line(text: str) -> bool:
+    return any(text.startswith(prefix) for prefix in _THIRD_PARTY_WARNING_PREFIXES)
 
 
 def _write_log_line(level: str, message: str) -> None:
@@ -44,6 +56,8 @@ def _write_log_line(level: str, message: str) -> None:
 
 def _write_captured_line(text: str) -> None:
     clean_text = strip_ansi(text).rstrip()
+    if _should_suppress_line(clean_text):
+        return
     match = _LOG_LINE_RE.match(clean_text)
     if match:
         _write_log_line(match.group("level"), match.group("message"))
