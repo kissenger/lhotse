@@ -22,7 +22,7 @@ ASSETS_DIR = SERVER_DIR / "_assets"
 RESULTS_DIR = SERVER_DIR / "_results"
 
 DAILY_SERIES_FILE = PROCESSED_DIR / "uk_sst_daily_continuous_series__degc.nc"
-DIAGNOSTICS_FILE = PROCESSED_DIR / "uk_sst_source_stitch_diagnostics.txt"
+SUMMARY_FILE = RESULTS_DIR / "current-sea-temperature.json"
 MASK_CACHE_FILE = ASSETS_DIR / "coastal_masks.npz"
 LEGACY_MASK_CACHE_FILE = PROCESSED_DIR / "coastal_masks.npz"
 LOCAL_SEED_DIR = SERVER_DIR.parent / "_processed"
@@ -60,25 +60,24 @@ def _mask_cache_candidates() -> tuple[Path, ...]:
 
 
 def _bootstrap_processed_outputs() -> None:
-    if DAILY_SERIES_FILE.exists() and DIAGNOSTICS_FILE.exists():
+    if DAILY_SERIES_FILE.exists() and SUMMARY_FILE.exists():
         _compress_daily_if_needed()
         diagnostics = _minimal_diagnostics(_load_diagnostics())
         _save_diagnostics_atomic(diagnostics)
         return
 
     seed_daily = LOCAL_SEED_DIR / DAILY_SERIES_FILE.name
-    seed_diagnostics = LOCAL_SEED_DIR / DIAGNOSTICS_FILE.name
-    if seed_daily.exists() and seed_diagnostics.exists():
+    if seed_daily.exists() and SUMMARY_FILE.exists():
         with xr.open_dataarray(seed_daily) as seed_file:
             _save_daily_atomic(seed_file.load())
-        diagnostics = json.loads(seed_diagnostics.read_text(encoding="utf-8"))
+        diagnostics = _load_diagnostics()
         _save_diagnostics_atomic(_minimal_diagnostics(diagnostics))
         pass_(f"Seeded server processed data from {LOCAL_SEED_DIR}")
         return
 
     raise FileNotFoundError(
-        "Server processing requires an initial compact daily series and diagnostics file. "
-        f"Place {DAILY_SERIES_FILE.name} and {DIAGNOSTICS_FILE.name} in {PROCESSED_DIR}."
+        "Server processing requires an initial compact daily series and combined summary JSON. "
+        f"Place {DAILY_SERIES_FILE.name} in {PROCESSED_DIR} and {SUMMARY_FILE.name} in {RESULTS_DIR}."
     )
 
 
@@ -379,9 +378,14 @@ def _fetch_new_daily_values(
 
 def _load_diagnostics() -> dict[str, object]:
     try:
-        return json.loads(DIAGNOSTICS_FILE.read_text(encoding="utf-8"))
+        payload = json.loads(SUMMARY_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Could not read diagnostics from {DIAGNOSTICS_FILE}") from exc
+        raise ValueError(f"Could not read diagnostics from {SUMMARY_FILE}") from exc
+
+    stitch_diagnostics = payload.get("stitchDiagnostics")
+    if not isinstance(stitch_diagnostics, dict):
+        raise ValueError(f"Summary file {SUMMARY_FILE} does not contain stitchDiagnostics")
+    return stitch_diagnostics
 
 
 def _minimal_diagnostics(diagnostics: dict[str, object]) -> dict[str, object]:
@@ -480,9 +484,18 @@ def _compress_daily_if_needed() -> None:
 
 
 def _save_diagnostics_atomic(diagnostics: dict[str, object]) -> None:
-    temporary_file = DIAGNOSTICS_FILE.with_suffix(".tmp")
-    temporary_file.write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
-    temporary_file.replace(DIAGNOSTICS_FILE)
+    if SUMMARY_FILE.exists():
+        try:
+            payload = json.loads(SUMMARY_FILE.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"Could not read summary JSON from {SUMMARY_FILE}") from exc
+    else:
+        payload = {}
+
+    payload["stitchDiagnostics"] = diagnostics
+    temporary_file = SUMMARY_FILE.with_suffix(f"{SUMMARY_FILE.suffix}.tmp")
+    temporary_file.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    temporary_file.replace(SUMMARY_FILE)
 
 
 def main() -> bool:
