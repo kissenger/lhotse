@@ -20,7 +20,6 @@ header {
   color: var(--text-colour-header);
   background-color: var(--sn-colour);
   border-bottom: 2px white solid;
-  padding-inline: calc( (100vw - var(--container-width) ) / 2 );
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
