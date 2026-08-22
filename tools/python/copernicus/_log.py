@@ -17,7 +17,7 @@ def _timestamp() -> str:
 
 
 def format_line(level: str, message: str) -> str:
-    return f"{_timestamp()} - [{level}] {message}"
+    return f"{_timestamp()} [{level}] {message}"
 
 
 def strip_ansi(text: str) -> str:

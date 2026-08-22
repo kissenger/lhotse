@@ -22,7 +22,7 @@ OUTPUT_IMAGE = SCRIPT_DIR / "_results" / "uk_sst_daily_linear_historical_vs_curr
 OUTPUT_JSON = SCRIPT_DIR / "_results" / "current-sea-temperature.json"
 RESULTS_DIR = SCRIPT_DIR / "_results"
 APP_LOG_FILE = Path(os.path.expanduser(os.getenv("APP_LOG_FILE", "~/logs/app.log")))
-_LOG_LINE_RE = re.compile(r"^(?P<timestamp>.+?) - \[(?P<level>INFO|WARN|FAIL|PASS)\] (?P<message>.*)$")
+_LOG_LINE_RE = re.compile(r"^(?P<timestamp>.+?) \[(?P<level>INFO|WARN|FAIL|PASS)\] (?P<message>.*)$")
 _LEVEL_COLOURS = {
     "INFO": "\033[37m",
     "WARN": "\033[38;5;208m",
@@ -47,9 +47,10 @@ def _should_suppress_line(text: str) -> bool:
 def _write_log_line(level: str, message: str) -> None:
     APP_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     line = format_line(level, message)
-    with APP_LOG_FILE.open("a", encoding="utf-8") as log_file:
-        log_file.write(f"{line}\n")
     colour = _LEVEL_COLOURS.get(level, "")
+    coloured_line = f"{colour}{line}{_RESET}" if colour else line
+    with APP_LOG_FILE.open("a", encoding="utf-8") as log_file:
+        log_file.write(f"{coloured_line}\n")
     sys.__stdout__.write(f"{colour}{line}{_RESET}\n" if colour else f"{line}\n")
     sys.__stdout__.flush()
 
