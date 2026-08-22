@@ -87,10 +87,8 @@ h1 {
 
 .article-hero-overlay .article-header {
   color: #fff;
-  max-width: 72ch;
-  padding-inline: clamp(1rem, 4vw, 1.5rem);
+  max-width: none;
   box-sizing: border-box;
-  margin-inline: auto;
 }
 
 .article-hero-overlay h1 {
@@ -626,10 +624,8 @@ h1 {
 }
 
 .article-body {
-  max-width: var(--container-width);
-  padding-inline: clamp(1rem, 4vw, 1.5rem);
+  width: 100%;
   box-sizing: border-box;
-  margin-inline: auto;
 }
 
 .article-content-section {
