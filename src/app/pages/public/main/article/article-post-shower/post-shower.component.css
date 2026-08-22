@@ -30,9 +30,13 @@
   display: block;
 }
 
-.article-hero-image-container > img {
+.article-image-container > img {
+  display: block;
   width: 100%;
   height: 100%;
+}
+
+.article-hero-image-container > img {
   object-fit: cover;
   object-position: center;
 }
