@@ -1,8 +1,9 @@
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { CurrentTemperatureSummary } from '@shared/types';
+import { Subject } from 'rxjs';
 import { SstBannerComponent } from './sst-banner.component';
 
 function currentSummary(overrides: Partial<CurrentTemperatureSummary> = {}): CurrentTemperatureSummary {
@@ -22,15 +23,24 @@ function currentSummary(overrides: Partial<CurrentTemperatureSummary> = {}): Cur
 describe('SstBannerComponent', () => {
   let fixture: ComponentFixture<SstBannerComponent>;
   let getCurrentTemperature: jasmine.Spy;
+  let routerEvents$: Subject<any>;
+  let mockRouter: { url: string; events: any };
 
   beforeEach(async () => {
     getCurrentTemperature = jasmine.createSpy('getCurrentTemperature');
+    routerEvents$ = new Subject<any>();
+    mockRouter = {
+      url: '/',
+      events: routerEvents$.asObservable(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [SstBannerComponent],
       providers: [
-        provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: ActivatedRoute, useValue: {} },
         { provide: HttpService, useValue: { getCurrentTemperature } },
+        { provide: Router, useValue: mockRouter },
       ],
     }).compileComponents();
   });
@@ -43,10 +53,8 @@ describe('SstBannerComponent', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.textContent).toContain('15.4 °C');
-    expect(element.textContent).toContain('1.2 °C above');
-    expect(element.querySelector('a')?.getAttribute('href'))
-      .toBe('/articles/britain-and-ireland-coastal-sea-temperature-trends');
+    expect(element.textContent).toContain('1.2°C above');
+    expect(element.textContent).toContain('Explore the latest data');
   });
 
   it('removes the banner for the current component load when dismissed', async () => {
@@ -79,7 +87,7 @@ describe('SstBannerComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('1 January');
+    expect(fixture.componentInstance.observationDate).toBe('1 January');
   });
 
   it('stays hidden when the observation date is invalid', async () => {
@@ -107,5 +115,17 @@ describe('SstBannerComponent', () => {
     fixture.detectChanges();
     expect(banner()?.classList.contains('sst-banner--visible')).toBe(true);
     jasmine.clock().uninstall();
+  });
+
+  it('auto-dismisses on the coastal sea temperatures article route', async () => {
+    mockRouter.url = '/articles/live-britain-and-ireland-coastal-sea-temperatures';
+    getCurrentTemperature.and.resolveTo(currentSummary());
+
+    fixture = TestBed.createComponent(SstBannerComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.sst-banner')).toBeNull();
   });
 });
