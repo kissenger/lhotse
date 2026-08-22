@@ -20,6 +20,7 @@ header {
   color: var(--text-colour-header);
   background-color: var(--sn-colour);
   border-bottom: 2px white solid;
+  padding-inline: calc((100vw - var(--container-width)) / 2);
   overflow-x: clip;
   box-sizing: border-box;
   display: flex;
@@ -32,10 +33,6 @@ header {
   flex-direction: row;
   flex: 1;
   height: 100%;
-  width: min(100%, var(--container-width));
-  margin-inline: auto;
-  padding-inline: 0.75rem;
-  box-sizing: border-box;
 }
 
 
@@ -156,10 +153,6 @@ header {
 
 /*  Narrow screen adjustments  */
 @media (max-width: 767px) {
-
-  .header-main {
-    padding-inline: 0.5rem;
-  }
 
   .menu-row {
     flex-direction: row-reverse;
