@@ -5,10 +5,12 @@ import os
 import re
 import subprocess
 import sys
+import traceback
 from contextlib import redirect_stderr, redirect_stdout
 from collections.abc import Callable
 from io import TextIOBase
 from pathlib import Path
+from types import ModuleType
 
 from dotenv import load_dotenv
 
@@ -38,6 +40,7 @@ _THIRD_PARTY_WARNING_PREFIXES = (
     "DeprecationWarning:",
     "RuntimeWarning:",
 )
+_LOG_BUFFER: list[str] = []
 
 
 def _should_suppress_line(text: str) -> bool:
@@ -45,14 +48,36 @@ def _should_suppress_line(text: str) -> bool:
 
 
 def _write_log_line(level: str, message: str) -> None:
-    APP_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     line = format_line(level, message)
     colour = _LEVEL_COLOURS.get(level, "")
     coloured_line = f"{colour}{line}{_RESET}" if colour else line
-    with APP_LOG_FILE.open("a", encoding="utf-8") as log_file:
-        log_file.write(f"{coloured_line}\n")
     sys.__stdout__.write(f"{colour}{line}{_RESET}\n" if colour else f"{line}\n")
     sys.__stdout__.flush()
+    _LOG_BUFFER.append(coloured_line)
+
+
+def _write_log_file(lines: list[str]) -> None:
+    APP_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    APP_LOG_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_success_log(my_new_count: int, nrt_new_count: int) -> None:
+    _write_log_file([
+        format_line(
+            "PASS",
+            f"Daily SST update complete with {my_new_count} new MY and {nrt_new_count} new NRT data points.",
+        )
+    ])
+
+
+def _write_failure_log(trace: str) -> None:
+    lines = list(_LOG_BUFFER)
+    trace = trace.rstrip()
+    if trace:
+        lines.extend(trace.splitlines())
+    if not lines:
+        lines = [format_line("FAIL", "Unknown failure")]
+    _write_log_file(lines)
 
 
 def _write_captured_line(text: str) -> None:
@@ -111,7 +136,7 @@ def _run_logged_subprocess(command: list[str]) -> None:
         raise subprocess.CalledProcessError(exit_code, command)
 
 
-def _load_update_main() -> Callable[[], bool]:
+def _load_update_main() -> tuple[ModuleType, Callable[[], bool]]:
     spec = importlib.util.spec_from_file_location("copernicus_update_processed", UPDATE_SCRIPT)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load updater: {UPDATE_SCRIPT}")
@@ -121,43 +146,53 @@ def _load_update_main() -> Callable[[], bool]:
     update_main = getattr(module, "main", None)
     if not callable(update_main):
         raise RuntimeError(f"Updater does not define a callable main(): {UPDATE_SCRIPT}")
-    return update_main
+    return module, update_main
 
 
 def main() -> None:
+    _LOG_BUFFER.clear()
     load_dotenv(APP_ROOT / ".env")
     _write_log_line("INFO", f"Starting Copernicus update wrapper using {APP_LOG_FILE}")
 
-    update_main = _load_update_main()
-    tee_logger = _TeeLogger()
-    with redirect_stdout(tee_logger), redirect_stderr(tee_logger):
-        has_new_data = update_main()
-        tee_logger.flush()
-    if not isinstance(has_new_data, bool):
-        raise RuntimeError("Updater main() must return whether new data was identified.")
+    module, update_main = _load_update_main()
+    try:
+        tee_logger = _TeeLogger()
+        with redirect_stdout(tee_logger), redirect_stderr(tee_logger):
+            has_new_data = update_main()
+            tee_logger.flush()
+        if not isinstance(has_new_data, bool):
+            raise RuntimeError("Updater main() must return whether new data was identified.")
 
-    image_missing = not OUTPUT_IMAGE.exists()
-    if not has_new_data and not image_missing:
-        _write_log_line("PASS", "No new data identified; output generation skipped.")
-        return
+        my_new_count = int(getattr(module, "LAST_MY_NEW_COUNT", 0))
+        nrt_new_count = int(getattr(module, "LAST_NRT_NEW_COUNT", 0))
 
-    if image_missing and not has_new_data:
-        _write_log_line("WARN", "Output image is missing; regenerating outputs anyway.")
+        image_missing = not OUTPUT_IMAGE.exists()
+        if not has_new_data and not image_missing:
+            _write_log_line("PASS", "No new data identified; output generation skipped.")
+        else:
+            if image_missing and not has_new_data:
+                _write_log_line("WARN", "Output image is missing; regenerating outputs anyway.")
 
-    _write_log_line("INFO", f"Running plot generation: {PLOT_SCRIPT.name}")
-    _run_logged_subprocess([sys.executable, str(PLOT_SCRIPT)])
+            _write_log_line("INFO", f"Running plot generation: {PLOT_SCRIPT.name}")
+            _run_logged_subprocess([sys.executable, str(PLOT_SCRIPT)])
 
-    if not OUTPUT_IMAGE.is_file():
-        raise FileNotFoundError(f"Plot script did not create expected image: {OUTPUT_IMAGE}")
-    if not OUTPUT_JSON.is_file():
-        raise FileNotFoundError(f"Plot script did not create expected summary: {OUTPUT_JSON}")
+            if not OUTPUT_IMAGE.is_file():
+                raise FileNotFoundError(f"Plot script did not create expected image: {OUTPUT_IMAGE}")
+            if not OUTPUT_JSON.is_file():
+                raise FileNotFoundError(f"Plot script did not create expected summary: {OUTPUT_JSON}")
 
-    _write_log_line("PASS", f"Generated API outputs: {OUTPUT_IMAGE}, {OUTPUT_JSON}")
+            _write_log_line("PASS", f"Generated API outputs: {OUTPUT_IMAGE}, {OUTPUT_JSON}")
+
+        _write_log_line(
+            "PASS",
+            f"Daily SST update complete with {my_new_count} new MY and {nrt_new_count} new NRT data points.",
+        )
+        _write_success_log(my_new_count, nrt_new_count)
+    except Exception as exc:
+        _write_log_line("FAIL", str(exc))
+        _write_failure_log(traceback.format_exc())
+        raise
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as exc:
-        _write_log_line("FAIL", str(exc))
-        raise
+    main()

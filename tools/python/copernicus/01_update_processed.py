@@ -26,6 +26,8 @@ SUMMARY_FILE = RESULTS_DIR / "current-sea-temperature.json"
 MASK_CACHE_FILE = ASSETS_DIR / "coastal_masks.npz"
 LEGACY_MASK_CACHE_FILE = PROCESSED_DIR / "coastal_masks.npz"
 LOCAL_SEED_DIR = SERVER_DIR.parent / "_processed"
+LAST_MY_NEW_COUNT = 0
+LAST_NRT_NEW_COUNT = 0
 
 MY_DATASET_ID = "cmems-IFREMER-ATL-SST-L4-REP-OBS_FULL_TIME_SERIE"
 NRT_DATASET_ID = "IFREMER-ATL-SST-L4-NRT-OBS_FULL_TIME_SERIE"
@@ -499,6 +501,8 @@ def _save_diagnostics_atomic(diagnostics: dict[str, object]) -> None:
 
 
 def main() -> bool:
+    global LAST_MY_NEW_COUNT, LAST_NRT_NEW_COUNT
+
     load_dotenv()
     _prepare_directories()
     _bootstrap_processed_outputs()
@@ -532,6 +536,8 @@ def main() -> bool:
 
     my_new_count = int(my_new.sizes.get("time", 0))
     nrt_new_count = int(nrt_new.sizes.get("time", 0))
+    LAST_MY_NEW_COUNT = my_new_count
+    LAST_NRT_NEW_COUNT = nrt_new_count
     if my_new_count == 0 and nrt_new_count == 0:
         pass_("No new MY or NRT daily data is available.")
         return False
