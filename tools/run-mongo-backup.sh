@@ -44,6 +44,9 @@ if [[ -s "${NVM_SCRIPT}" ]]; then
 fi
 
 MONGODUMP_BIN="${MONGODUMP_BIN:-$(command -v mongodump || true)}"
+if [[ -z "${MONGODUMP_BIN}" && -x /usr/local/bin/mongodump ]]; then
+  MONGODUMP_BIN="/usr/local/bin/mongodump"
+fi
 
 # print working status
 echo "${TIMESTAMP} Starting mongo backup"
