@@ -26,11 +26,11 @@ header {
 }
 
 .header-main {
+  position: relative;
   display: flex;
   flex-direction: row;
   flex: 1;
   height: 100%;
-  align-items: center;
 }
 
 .admin-breadcrumb {
@@ -135,9 +135,13 @@ header {
 /* end of animations */
 
 .menubar {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  align-items: center;
+  justify-content: center;
   height: 100%;
 }
 
@@ -145,6 +149,9 @@ header {
   display: flex;
   flex-direction: row;
   flex: 1;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 .hamburger {
@@ -172,7 +179,7 @@ header {
 }
 
 .menu {
-  flex-grow: 1;
+  flex-grow: 0;
   margin: 0px;
   padding: 0px;
   display: flex;
@@ -195,12 +202,22 @@ header {
 /*  Narrow screen adjustments  */
 @media (max-width: 767px) {
 
+  .menubar {
+    position: static;
+    inset: auto;
+    justify-content: flex-end;
+    align-items: stretch;
+  }
+
   .menu-row {
     flex-direction: row-reverse;
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .hamburger {
     display: flex;    
+    margin-left: auto;
   }
 
   .socials {
@@ -213,6 +230,7 @@ header {
     max-height: 0px;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
     position: absolute;
     top: 73px;
     left: 0px;
