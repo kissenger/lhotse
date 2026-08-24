@@ -45,25 +45,11 @@ append_colored_log() {
 }
 
 printError() {
-  local timestamp="$(date -Iseconds)"
-  local msg="${timestamp} [FAIL] ${1}"
-  local details="${2:-}"
+  local msg="$(date -Iseconds) [FAIL] ${1}"
 
   echo -e "${RED}${msg}${NC}" >&2
   append_colored_log "${RED}" "${msg}"
   ERROR_LINES+="${msg}\n"
-
-  if [[ -n "${details}" ]]; then
-    local detail_line
-    while IFS= read -r detail_line || [[ -n "${detail_line}" ]]; do
-      detail_line="${detail_line%$'\r'}"
-      [[ -z "${detail_line//[[:space:]]/}" ]] && continue
-      local detail_msg="${timestamp} [FAIL]   ${detail_line}"
-      echo -e "${RED}${detail_msg}${NC}" >&2
-      append_colored_log "${RED}" "${detail_msg}"
-      ERROR_LINES+="${detail_msg}\n"
-    done <<< "${details}"
-  fi
 }
 
 printSuccess() {
@@ -95,22 +81,17 @@ run_check() {
   fi
 
   # Let each child script print verbose output to terminal; keep log summary-only.
-  local output_file
-  output_file="$(mktemp)"
-  if MAINTENANCE_SILENT=0 bash "${script}" 2>&1 | tee "${output_file}"; then
+  if MAINTENANCE_SILENT=0 bash "${script}"; then
     local pass_msg="$(date -Iseconds) [PASS] ${name}"
     echo -e "${GREEN}${pass_msg}${NC}"
     append_colored_log "${GREEN}" "${pass_msg}"
   else
-    local exit_code="${PIPESTATUS[0]}"
-    local child_output
-    child_output="$(cat "${output_file}")"
-    printError "${name} (exit ${exit_code})" "${child_output}"
-    rm -f "${output_file}"
+    local fail_msg="$(date -Iseconds) [FAIL] ${name}"
+    echo -e "${RED}${fail_msg}${NC}" >&2
+    append_colored_log "${RED}" "${fail_msg}"
+    ERROR_LINES+="${fail_msg}\n"
     return 1
   fi
-
-  rm -f "${output_file}"
 }
 
 run_check "run-mongo-connectivity.sh"  || HAS_FAILURE=1

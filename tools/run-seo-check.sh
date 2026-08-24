@@ -34,7 +34,10 @@ fi
 echo "$(date -Iseconds) Starting SEO checks"  
 
 if ! output="$(node ./tests/test-seo.js 2>&1)"; then
-  maintenance_log_failure_block "SEO checks failed" "${output}"
+  if [[ -n "${output}" ]]; then
+    echo "$(date -Iseconds) FAILURE node output:"  
+    echo "${output}" | sed 's/^/    /'  
+  fi
   exit 1
 fi
 

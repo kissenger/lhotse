@@ -17,8 +17,8 @@ cd "${REPO_ROOT}"
 # Let's Encrypt certificate status and dry-run renewal
 ERROR_MSG=$(sudo certbot renew --cert-name snorkelology.co.uk --dry-run 2>&1)
 if [ $? -ne 0 ]; then
-  maintenance_log_failure_block "Certbot dry-run failed" "${ERROR_MSG}"
-    exit 1
+  echo "Certbot dry-run failed with error: ${ERROR_MSG}" >&2
+  exit 1
 else
     echo "[OK] Certbot dry-run"
 fi

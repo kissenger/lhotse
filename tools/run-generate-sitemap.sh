@@ -41,7 +41,10 @@ echo "$(date -Iseconds) Starting sitemap generation"
 mkdir -p "${SITEMAP_OUTPUT_DIR}"
 
 if ! output="$(SITEMAP_PATH="${SITEMAP_OUTPUT_DIR}/sitemap.xml" node ./tools/generate-sitemap.mjs 2>&1)"; then
-  maintenance_log_failure_block "Sitemap generation failed" "${output}"
+  if [[ -n "${output}" ]]; then
+    echo "$(date -Iseconds) FAILURE node output:"  
+    echo "${output}" | sed 's/^/    /'  
+  fi
   exit 1
 fi
 

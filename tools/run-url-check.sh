@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
 REPO_ROOT="$PROJECT_ROOT"
-source "${SCRIPT_DIR}/migration/maintenance-common.sh"
+source "${SCRIPT_DIR}/maintenance-common.sh"
 
 fail() {
   local message="$*"
@@ -74,7 +74,11 @@ retry_node_check() {
       continue
     fi
 
-    maintenance_log_failure_block "Dead-links URL check failed after ${attempts} attempts (exit ${exit_code})" "${output}"
+    if [[ -n "${output}" ]]; then
+      echo "$(date -Iseconds) FAILURE node output:"
+      echo "${output}" | sed 's/^/    /'
+    fi
+    fail "Dead-links URL check failed after ${attempts} attempts"
     return "${exit_code}"
   done
 }

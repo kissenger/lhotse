@@ -56,22 +56,6 @@ printErrorAndExit() {
   exit 1
 }
 
-printErrorAndExitWithDetails() {
-  local headline="$1"
-  local details="${2:-}"
-
-  echo "${TIMESTAMP} FAILURE ${headline}" >&2
-  if [[ -n "${details}" ]]; then
-    local detail_line
-    while IFS= read -r detail_line || [[ -n "${detail_line}" ]]; do
-      detail_line="${detail_line%$'\r'}"
-      [[ -z "${detail_line//[[:space:]]/}" ]] && continue
-      echo "${TIMESTAMP} FAILURE   ${detail_line}" >&2
-    done <<< "${details}"
-  fi
-  exit 1
-}
-
 run_mongodump_with_retries() {
   local db_name="$1"
   local attempts="${2}"
@@ -95,7 +79,7 @@ run_mongodump_with_retries() {
       continue
     fi
 
-    printErrorAndExitWithDetails "mongodump failed for ${db_name} after ${attempts} attempts (exit ${exit_code})" "${output}"
+    printErrorAndExit "mongodump failed for ${db_name} after ${attempts} attempts (exit ${exit_code})"
   done
 }
 
