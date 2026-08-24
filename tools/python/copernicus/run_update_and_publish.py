@@ -65,7 +65,7 @@ def _write_success_log(my_new_count: int, nrt_new_count: int) -> None:
     _write_log_file([
         format_line(
             "PASS",
-            f"Daily SST update complete with {my_new_count} new MY and {nrt_new_count} new NRT data points.",
+            f"Daily SST update complete with {my_new_count} MY days added and {nrt_new_count} NRT days added to the record.",
         )
     ])
 
