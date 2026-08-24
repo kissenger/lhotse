@@ -132,11 +132,8 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   sectionImageSrc(path: string): string {
     return this._resolveImagePath(path || '');
   }
-  private _footerObserver?: IntersectionObserver;
 
   private _sectionImageKey(path: string): string {
-  private _isBelowContents: boolean = false;
-  private _isFooterInViewport: boolean = false;
     return (path || '').trim().replace(/^\/+/, '').replace(/^assets\//, '');
   }
 
@@ -198,108 +195,42 @@ export class PostShowerComponent implements OnDestroy, OnInit {
   }
 
   get isProductReview(): boolean {
-    sectionImageSrc(path: string): string {
-      return this._resolveImagePath(path || '');
+    return !this.isBookReview;
+  }
+
+  sectionAffiliateUrl(section: any): string | null {
+    const url = (section?.affiliateUrl || '').trim();
+    return url || null;
+  }
+
+  sectionAffiliateLabel(section: any): string {
+    const label = (section?.affiliateLabel || '').trim();
+    return label || 'View offer';
+  }
+
+  get showContents(): boolean {
+    const contentSections = (this.post.sections || []).filter((section: any) => section.sectionType !== 'cta' && section.sectionType !== 'affiliate');
+    if (contentSections.length === 0) {
+      return false;
     }
-
-    private _sectionImageKey(path: string): string {
-      return (path || '').trim().replace(/^\/+/, '').replace(/^assets\//, '');
+    if (contentSections.length === 1 && !(contentSections[0]?.title || '').trim()) {
+      return false;
     }
+    return true;
+  }
 
-    isPortraitSectionImage(path: string): boolean {
-      const key = this._sectionImageKey(path);
-      return key ? this._portraitSectionImages.has(key) : false;
-    }
-
-    onSectionImageLoaded(event: Event, path: string): void {
-      const key = this._sectionImageKey(path);
-      if (!key) {
-        return;
-      }
-
-      const img = event.target as HTMLImageElement | null;
-      if (!img || img.naturalWidth <= 0 || img.naturalHeight <= 0) {
-        return;
-      }
-
-      if (img.naturalHeight > img.naturalWidth) {
-        this._portraitSectionImages.add(key);
-      } else {
-        this._portraitSectionImages.delete(key);
-      }
-    }
-
-    get reviewImageSrc(): string {
-      return this._resolveImagePath(this.post.review?.imageFname || '');
-    }
-
-    get reviewImageAltText(): string {
-      const review = this.post.review as any;
-      return (review?.imageAlt || review?.imgAlt || review?.productName || this.post.title || '').trim();
-    }
-
-    get reviewImageCreditText(): string {
-      const review = this.post.review as any;
-      return (review?.imageCredit || review?.imgCredit || '').trim();
-    }
-
-    get usePlainSrcImages(): boolean {
-      if (!this._isBrowser) {
-        return false;
-      }
-      const host = window.location.hostname.toLowerCase();
-      return host === 'localhost' || host === '127.0.0.1' || host === '::1';
-    }
-
-    get isReviewPost(): boolean {
-      return this.post.type === 'review';
-    }
-
-    get reviewLabel(): 'Book' | 'Product' {
-      return this.post.review?.reviewKind === 'book' ? 'Book' : 'Product';
-    }
-
-    get isBookReview(): boolean {
-      return this.post.review?.reviewKind === 'book';
-    }
-
-    get isProductReview(): boolean {
-      return !this.isBookReview;
-    }
-
-    sectionAffiliateUrl(section: any): string | null {
-      const url = (section?.affiliateUrl || '').trim();
-      return url || null;
-    }
-
-    sectionAffiliateLabel(section: any): string {
-      const label = (section?.affiliateLabel || '').trim();
-      return label || 'View offer';
-    }
-
-    get showContents(): boolean {
-      const contentSections = (this.post.sections || []).filter((section: any) => section.sectionType !== 'cta' && section.sectionType !== 'affiliate');
-      if (contentSections.length === 0) {
-        return false;
-      }
-      if (contentSections.length === 1 && !(contentSections[0]?.title || '').trim()) {
-        return false;
-      }
-      return true;
-    }
-
-    private _normaliseReviewModel(review: any) {
-      const defaults = new ArticlePost().review;
-      const model = {
-        ...defaults,
-        ...(review || {}),
-        bestFor: Array.isArray(review?.bestFor) ? review.bestFor.filter((x: any) => !!x) : [],
-        pros: Array.isArray(review?.pros) ? review.pros.filter((x: any) => !!x) : [],
-        cons: Array.isArray(review?.cons) ? review.cons.filter((x: any) => !!x) : [],
-        affiliateLinks: Array.isArray(review?.affiliateLinks) ? review.affiliateLinks.filter((x: any) => !!x?.label && !!x?.url) : []
-      };
-      return model;
-    }
+  private _normaliseReviewModel(review: any) {
+    const defaults = new ArticlePost().review;
+    const model = {
+      ...defaults,
+      ...(review || {}),
+      bestFor: Array.isArray(review?.bestFor) ? review.bestFor.filter((x: any) => !!x) : [],
+      pros: Array.isArray(review?.pros) ? review.pros.filter((x: any) => !!x) : [],
+      cons: Array.isArray(review?.cons) ? review.cons.filter((x: any) => !!x) : [],
+      affiliateLinks: Array.isArray(review?.affiliateLinks) ? review.affiliateLinks.filter((x: any) => !!x?.label && !!x?.url) : []
+    };
+    return model;
+  }
 
     ngOnInit() {
       // Do not block SSR on API calls for article body content; render quickly and hydrate on client.
