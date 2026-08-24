@@ -62,12 +62,11 @@ def _write_log_file(lines: list[str]) -> None:
 
 
 def _write_success_log(my_new_count: int, nrt_new_count: int) -> None:
-    _write_log_file([
-        format_line(
-            "PASS",
-            f"Daily SST update complete with {my_new_count} MY days added and {nrt_new_count} NRT days added to the record.",
-        )
-    ])
+    line = format_line(
+        "PASS",
+        f"Daily SST update complete with {my_new_count} MY days added and {nrt_new_count} NRT days added to the record.",
+    )
+    _write_log_file([f"{_LEVEL_COLOURS['PASS']}{line}{_RESET}"])
 
 
 def _write_failure_log(trace: str) -> None:
