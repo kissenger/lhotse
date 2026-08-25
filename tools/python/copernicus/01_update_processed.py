@@ -412,22 +412,29 @@ def _merge_updates(
     last_my_day: pd.Timestamp,
     slope: float,
     intercept: float,
-) -> tuple[xr.DataArray, pd.Timestamp, pd.Timestamp | None]:
+) -> tuple[xr.DataArray, pd.Timestamp, pd.Timestamp | None, int, int]:
     values = existing.to_series().astype(np.float64)
     updated_last_my = last_my_day
+    my_added_count = 0
+    nrt_added_count = 0
 
     if my_new.sizes.get("time", 0):
         my_values = my_new.to_series().dropna()
-        values = pd.concat([values.drop(my_values.index, errors="ignore"), my_values])
-        updated_last_my = max(updated_last_my, pd.Timestamp(my_values.index.max()).normalize())
+        my_new_values = my_values[~my_values.index.isin(values.index)]
+        if not my_new_values.empty:
+            values = pd.concat([values.drop(my_new_values.index, errors="ignore"), my_new_values])
+            updated_last_my = max(updated_last_my, pd.Timestamp(my_new_values.index.max()).normalize())
+            my_added_count = int(my_new_values.size)
 
     last_nrt_used: pd.Timestamp | None = None
     if nrt_new.sizes.get("time", 0):
         corrected = (nrt_new.to_series().dropna() * slope) + intercept
         corrected = corrected[corrected.index > updated_last_my]
-        if not corrected.empty:
-            values = pd.concat([values.drop(corrected.index, errors="ignore"), corrected])
-            last_nrt_used = pd.Timestamp(corrected.index.max()).normalize()
+        nrt_new_values = corrected[~corrected.index.isin(values.index)]
+        if not nrt_new_values.empty:
+            values = pd.concat([values.drop(nrt_new_values.index, errors="ignore"), nrt_new_values])
+            last_nrt_used = pd.Timestamp(nrt_new_values.index.max()).normalize()
+            nrt_added_count = int(nrt_new_values.size)
 
     values = values.sort_index()
     full_index = pd.date_range(values.index.min(), values.index.max(), freq="D")
@@ -451,7 +458,7 @@ def _merge_updates(
         name="uk_sst_daily_mean_continuous_degC",
         attrs={"units": "degC"},
     )
-    return updated, updated_last_my, last_nrt_used
+    return updated, updated_last_my, last_nrt_used, my_added_count, nrt_added_count
 
 
 def _save_daily_atomic(daily: xr.DataArray) -> None:
@@ -534,11 +541,9 @@ def main() -> bool:
         bounds,
     )
 
-    my_new_count = int(my_new.sizes.get("time", 0))
-    nrt_new_count = int(nrt_new.sizes.get("time", 0))
-    LAST_MY_NEW_COUNT = my_new_count
-    LAST_NRT_NEW_COUNT = nrt_new_count
-    if my_new_count == 0 and nrt_new_count == 0:
+    my_fetched_count = int(my_new.sizes.get("time", 0))
+    nrt_fetched_count = int(nrt_new.sizes.get("time", 0))
+    if my_fetched_count == 0 and nrt_fetched_count == 0:
         pass_("No new MY or NRT daily data is available.")
         return False
 
@@ -547,7 +552,7 @@ def main() -> bool:
 
     slope = float(diagnostics.get("nrt_to_my_correction_slope", 1.0))
     intercept = float(diagnostics.get("nrt_to_my_correction_intercept_degC", 0.0))
-    updated, updated_last_my, last_nrt_used = _merge_updates(
+    updated, updated_last_my, last_nrt_used, my_new_count, nrt_new_count = _merge_updates(
         existing,
         my_new,
         nrt_new,
@@ -555,6 +560,8 @@ def main() -> bool:
         slope,
         intercept,
     )
+    LAST_MY_NEW_COUNT = my_new_count
+    LAST_NRT_NEW_COUNT = nrt_new_count
     _save_daily_atomic(updated)
 
     diagnostics["last_my_day_used"] = updated_last_my.strftime("%Y-%m-%d")
@@ -564,7 +571,7 @@ def main() -> bool:
 
     pass_("Incremental daily SST update complete")
     info(f"MY days added: {my_new_count}")
-    info(f"NRT days downloaded: {nrt_new_count}")
+    info(f"NRT days added: {nrt_new_count}")
     info(f"Series end: {pd.Timestamp(updated['time'].values[-1]).strftime('%Y-%m-%d')}")
     info(f"Processed series: {DAILY_SERIES_FILE}")
     return True
