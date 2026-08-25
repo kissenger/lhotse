@@ -13,6 +13,7 @@ This folder contains maintenance and utility scripts for the Snorkelology app.
 - `restore-mongo.sh`: Safely restores MongoDB backups to a target database.
 - `run-config-backup.sh`: Backs up configuration files.
 - `run-generate-sitemap.sh`: Runs sitemap generation using generate-sitemap.mjs.
+- `run-copernicus.sh`: Runs the Copernicus SST pipeline wrapper.
 - `run-hourly-url-check.sh`: Checks site availability hourly and logs results.
 - `run-mongo-backup.sh`: Creates MongoDB backup archives with retention cleanup, optional encryption, and mirror sync.
 - `run-paypal-test.sh`: Runs PayPal sandbox UI test.

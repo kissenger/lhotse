@@ -58,7 +58,8 @@ def _write_log_line(level: str, message: str) -> None:
 
 def _write_log_file(lines: list[str]) -> None:
     APP_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    APP_LOG_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    with APP_LOG_FILE.open("a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")
 
 
 def _write_success_log(my_new_count: int, nrt_new_count: int) -> None:

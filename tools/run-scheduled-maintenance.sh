@@ -101,6 +101,7 @@ run_check "run-seo-check.sh"           || HAS_FAILURE=1
 run_check "run-og-checker.sh"          || HAS_FAILURE=1
 # run_check "run-performance.sh"         || HAS_FAILURE=1
 run_check "run-generate-sitemap.sh"    || HAS_FAILURE=1
+run_check "run-copernicus.sh"         || HAS_FAILURE=1
 run_check "run-mongo-backup.sh"        || HAS_FAILURE=1
 run_check "run-certbot-renew.sh"       || HAS_FAILURE=1
 
