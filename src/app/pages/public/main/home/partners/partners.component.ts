@@ -108,11 +108,4 @@ export class PartnersComponent {
       description: 'Founded by the lovely Dr Lauren Smith, Saltwater Life is passionate about the study, conservation, and protection of sharks, skates, and rays.'
     },
   ]
-
-  constructor() {
-    this.partners = this.partners
-      .map(value => ({ value, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ value }) => value);
-  }
 }
