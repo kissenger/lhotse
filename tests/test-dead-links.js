@@ -17,7 +17,8 @@ const BASE_URL = resolveBaseUrl({ cliArg: process.argv[2], envKeys: ['TEST_APP_B
 const BASE_HOSTNAME = new URL(BASE_URL).hostname;
 
 const SEED_PATHS = ['/', '/map', '/privacy-policy'];
-const UA = 'Mozilla/5.0 (compatible; LinkChecker/1.0)';
+// Avoid the substring "LinkChecker" — it's blocked by the production nginx bad-bot rule.
+const UA = 'Mozilla/5.0 (compatible; SnorkelologySiteAudit/1.0)';
 const TIMEOUT_MS = 15_000;
 
 /**

@@ -201,7 +201,8 @@ test.describe.serial('dead links', () => {
         continue;
       }
 
-      const headers = { 'User-Agent': 'Mozilla/5.0 (compatible; LinkChecker/1.0)' };
+      // Avoid the substring "LinkChecker" — it's blocked by the production nginx bad-bot rule.
+      const headers = { 'User-Agent': 'Mozilla/5.0 (compatible; SnorkelologySiteAudit/1.0)' };
       const opts = { timeout: 15_000, headers, failOnStatusCode: false };
 
       let response = await request.head(rawUrl, opts).catch(() => null);
