@@ -34,8 +34,8 @@
     <p class="subtitle media-row-description">{{data.subtitle}}</p>
 
     @if (data.type === 'review') {
-      <div class="review-chip" [attr.aria-label]="data.review.reviewKind === 'book' ? 'Book long-form review' : 'Product long-form review'">
-        <span>{{ data.review.reviewKind === 'book' ? 'Book review' : 'Long-form product review' }}</span>
+      <div class="review-chip" [attr.aria-label]="data.review.reviewKind === 'book' ? 'Book review' : 'Product review'">
+        <span>{{ data.review.reviewKind === 'book' ? 'Book review' : 'Product review' }}</span>
       </div>
     }
 
