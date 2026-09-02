@@ -637,35 +637,32 @@ test.describe('/ai-transparency', () => {
 // ---------------------------------------------------------------------------
 // /privacy-policy
 // ---------------------------------------------------------------------------
-
-test.describe('/privacy-policy', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/privacy-policy', { waitUntil: 'domcontentloaded' });
-  });
-
-  test('title is correct', async ({ page }) => {
-    await expect(page).toHaveTitle('Privacy Policy | Snorkelology');
-  });
-
-  test('canonical points to /privacy-policy', async ({ page }) => {
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      'href', 'https://snorkelology.co.uk/privacy-policy'
-    );
-  });
-
-  test('robots is noindex', async ({ page }) => {
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
-  });
-
-  test('no JSON-LD schemas injected', async ({ page }) => {
-    const schemas = await getSchemas(page);
-    const nonEmpty = schemas.filter((s) => Object.keys(s).length > 0 && s['@type']);
-    expect(nonEmpty.length, 'privacy-policy should have no JSON-LD schemas').toBe(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// 404 page
+// COMMENTED OUT
+// test.describe('/privacy-policy', () => {
+//   test.beforeEach(async ({ page }) => {
+//     await page.goto('/privacy-policy', { waitUntil: 'domcontentloaded' });
+//   });
+//
+//   test('title is correct', async ({ page }) => {
+//     await expect(page).toHaveTitle('Privacy Policy | Snorkelology');
+//   });
+//
+//   test('canonical points to /privacy-policy', async ({ page }) => {
+//     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+//       'href', 'https://snorkelology.co.uk/privacy-policy'
+//     );
+//   });
+//
+//   test('robots is noindex', async ({ page }) => {
+//     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+//   });
+//
+//   test('no JSON-LD schemas injected', async ({ page }) => {
+//     const schemas = await getSchemas(page);
+//     const nonEmpty = schemas.filter((s) => Object.keys(s).length > 0 && s['@type']);
+//     expect(nonEmpty.length, 'privacy-policy should have no JSON-LD schemas').toBe(0);
+//   });
+// });
 // ---------------------------------------------------------------------------
 
 test.describe('404 page', () => {

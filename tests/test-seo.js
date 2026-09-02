@@ -13,9 +13,9 @@ const STATIC_FILES = [
   { name: 'beta', file: path.join(ROOT, 'src', 'config', 'beta', 'index.html'), expectNoindex: true },
 ];
 
-const CORE_RUNTIME_ROUTES = ['/', '/home', '/articles', '/map', '/privacy-policy', '/affiliate-disclosure', '/ai-transparency'];
-const LIGHTWEIGHT_POLICY_PAGES = new Set(['/privacy-policy', '/affiliate-disclosure', '/ai-transparency']);
-const DESCRIPTION_OPTIONAL_PAGES = new Set(['/privacy-policy']);
+const CORE_RUNTIME_ROUTES = ['/', '/home', '/articles', '/map', /* '/privacy-policy', */ '/affiliate-disclosure', '/ai-transparency'];
+const LIGHTWEIGHT_POLICY_PAGES = new Set([/* '/privacy-policy', */ '/affiliate-disclosure', '/ai-transparency']);
+const DESCRIPTION_OPTIONAL_PAGES = new Set([/* '/privacy-policy' */]);
 const ARTICLE_API_CANDIDATES = [
   '/api/article/get-sitemap-entries/',
   '/api/article/get-published-posts/',

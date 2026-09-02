@@ -16,7 +16,7 @@ import { resolveBaseUrl } from './shared/resolve-base-url.js';
 const BASE_URL = resolveBaseUrl({ cliArg: process.argv[2], envKeys: ['TEST_APP_BASE_URL'] });
 const BASE_HOSTNAME = new URL(BASE_URL).hostname;
 
-const SEED_PATHS = ['/', '/map', '/privacy-policy'];
+const SEED_PATHS = ['/', '/map']; // '/privacy-policy' commented out
 // Avoid the substring "LinkChecker" — it's blocked by the production nginx bad-bot rule.
 const UA = 'Mozilla/5.0 (compatible; SnorkelologySiteAudit/1.0)';
 const TIMEOUT_MS = 15_000;

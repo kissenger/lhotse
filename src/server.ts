@@ -686,7 +686,7 @@ function getPublicHtmlCacheControl(req: express.Request): string | null {
     path === '/home' ||
     path === '/articles' ||
     path.startsWith('/articles/') ||
-    path === '/privacy-policy' ||
+    // path === '/privacy-policy' ||
     path === '/affiliate-disclosure' ||
     path === '/ai-transparency' ||
     path === '/article' ||
@@ -892,9 +892,9 @@ async function getSeoPayload(pathname: string, _query: Record<string, string> = 
     return getArticleSeoPayload(slug);
   }
 
-  if (normalizedPath === '/privacy-policy') {
-    return getSimplePageSeoPayload('Privacy Policy | Snorkelology', '', '/privacy-policy');
-  }
+  // if (normalizedPath === '/privacy-policy') {
+  //   return getSimplePageSeoPayload('Privacy Policy | Snorkelology', '', '/privacy-policy');
+  // }
 
   if (normalizedPath === '/affiliate-disclosure') {
     return getSimplePageSeoPayload(

@@ -9,10 +9,10 @@ export const serverRoutes: ServerRoute[] = [
     path: 'home',
     renderMode: RenderMode.Server
   },
-  {
-    path: 'privacy-policy',
-    renderMode: RenderMode.Server
-  },
+  // {
+  //   path: 'privacy-policy',
+  //   renderMode: RenderMode.Server
+  // },
   {
     path: 'affiliate-disclosure',
     renderMode: RenderMode.Server

@@ -101,7 +101,8 @@ describe('HeaderComponent', () => {
   });
 
   it('sets activeMenuItem to undefined on unknown route', () => {
-    const { component } = buildHeader('/privacy-policy');
+    // const { component } = buildHeader('/privacy-policy');
+    const { component } = buildHeader('/unknown-route');
     expect(component.activeMenuItem).toBeUndefined();
   });
 
@@ -143,7 +144,7 @@ describe('HeaderComponent', () => {
 
   it('clears activeMenuItem when router navigates to non-home route', () => {
     const { component, routerEvents$ } = buildHeader('/');
-    routerEvents$.next(new NavigationEnd(5, '/privacy-policy', '/privacy-policy'));
+    routerEvents$.next(new NavigationEnd(5, '/unknown-route', '/unknown-route')); // was /privacy-policy
     expect(component.activeMenuItem).toBeUndefined();
   });
 
