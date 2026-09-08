@@ -260,6 +260,12 @@ export class PostShowerComponent implements OnDestroy, OnInit {
               return;
             }
 
+            // Preview links become redundant once the article is published; send visitors to the canonical URL.
+            if (this.isPreview && result.article.publishedAt) {
+              this._router.navigate(['/articles', result.article.slug], { replaceUrl: true });
+              return;
+            }
+
             this.post = result.article;
             this.post.review = this._normaliseReviewModel(result.article.review);
             this.reviewTestingMethodHtml = this._htmler.transform(this.post.review.testingMethod || '');
