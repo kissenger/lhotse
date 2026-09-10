@@ -259,8 +259,8 @@
                   <ul class="map-feature-links-list">
                     @for (item of feature.moreInfo; track item) {
                       <li>
-                        <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
-                          href={{item.url}}>{{ item.title || item.text || 'Visit site' }}</a>
+                              <a [class.suppress-external-link]="item.url.indexOf('snorkelology.co.uk')>=0"
+                                [href]="item.url" target="_blank" rel="noopener noreferrer">{{ item.title || item.text || 'Visit site' }}</a>
                       </li>
                     }
                   </ul>
