@@ -44,6 +44,20 @@ const ADMIN_USERNAMES = new Set(
     .filter(Boolean)
 );
 
+// beta is behind Basic Auth and needs its own admin access; confirm with the owner if it should stay.
+const ADMIN_HOSTS = new Set([
+  'admin.snorkelology.co.uk',
+  'beta.snorkelology.co.uk',
+  'localhost',
+  '127.0.0.1',
+]);
+
+function applyNoStore(res: express.Response): void {
+  res.setHeader('Cache-Control', 'private, no-store, no-cache, max-age=0, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+}
+
 /** Options for the HttpOnly JWT cookie */
 const tokenCookieOpts = {
   httpOnly: true,
@@ -68,6 +82,8 @@ const sessionCookieOpts = {
 
 auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
 
+  applyNoStore(res);
+
   try {
 
     const {username, password} = req.body.user;
@@ -84,7 +100,7 @@ auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
     const token = jsonwebtoken.sign(
       { user: user.username, role: user.role },
       <string>AUTH_KEY,
-      { expiresIn: '24h' }
+      { algorithm: 'HS256', expiresIn: '24h' }
     );
     res.cookie('__sn_token', token, tokenCookieOpts);
     res.cookie('__sn_session', '1', sessionCookieOpts);
@@ -99,6 +115,8 @@ auth.post('/api/auth/login', loginRateLimit, async (req, res) => {
 auth.post('/api/auth/register', verifyToken, requireAdmin, registerRateLimit, async (req, res) => {
 // take incoming user data in the form {email, password}, hash password,
 // save to db, get json token and return to front end
+
+  applyNoStore(res);
 
   const saltRounds = 10;
   const user = req.body.user;
@@ -118,7 +136,7 @@ auth.post('/api/auth/register', verifyToken, requireAdmin, registerRateLimit, as
     const token = jsonwebtoken.sign(
       { user: newUser.username, role: newUser.role },
       <string>AUTH_KEY,
-      { expiresIn: '24h' }
+      { algorithm: 'HS256', expiresIn: '24h' }
     );
     res.status(200).send({token});    
 
@@ -153,13 +171,16 @@ function verifyToken(req: any, res: any, next: any) {
       throw new AuthError('Unauthorised request: missing token');
     }
 
-    const payload = jsonwebtoken.verify(token, <string>AUTH_KEY) as AuthPayload | string;
+    const payload = jsonwebtoken.verify(token, <string>AUTH_KEY, { algorithms: ['HS256'] }) as AuthPayload | string;
     if (!payload || typeof payload === 'string') {
       throw new AuthError('Unauthorised request: invalid token');
     }
 
     req.auth = payload;
-    
+
+    // Authenticated responses must never be cached by nginx, Cloudflare or browsers.
+    applyNoStore(res);
+
     next();
 
   } catch (error: any) {
@@ -176,6 +197,12 @@ function requireAdmin(req: any, res: any, next: any) {
   const isAdminByRole = role === 'admin';
   const isAdminByAllowlist = ADMIN_USERNAMES.has(usernameKey);
   if (isAdminByRole || isAdminByAllowlist) {
+    // In production, admin APIs are only served on the admin host (plus loopback for on-box scripts).
+    const host = String(req.hostname ?? '').toLowerCase();
+    if (IS_SECURE && !ADMIN_HOSTS.has(host)) {
+      res.status(404).send({ message: 'Not found' });
+      return;
+    }
     next();
     return;
   }

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, HostListener } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { AdminDraftStorageService } from '@shared/services/admin-draft-storage.service';
 import { HasUnsavedChanges } from './unsaved-changes.guard';
 import { HttpService } from '@shared/services/http.service';
@@ -21,6 +21,7 @@ import { errorMessage } from '@shared/utils/error-message';
   standalone: true,
   imports: [NgClass, FormsModule],
   templateUrl: './sites-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sites-editor.component.css'
 })
 export class SitesEditorComponent implements OnInit, AfterViewInit, OnDestroy, HasUnsavedChanges {

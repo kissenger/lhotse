@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { ArticlePost } from '@shared/types';
@@ -15,6 +15,7 @@ import { ScrollOffsetService } from '@shared/services/scroll-offset.service';
   imports: [ ArticleCardComponent, CommonModule, LoaderComponent, RouterLink ],
   selector: 'app-article',
   templateUrl: './article.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./article.component.css'],
 })
 

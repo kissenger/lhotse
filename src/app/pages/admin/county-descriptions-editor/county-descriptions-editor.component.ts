@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
@@ -10,6 +10,7 @@ import { CountyDescriptionAdminItem, CountryDescriptionAdminItem } from '@shared
   standalone: true,
   imports: [FormsModule, NgClass],
   templateUrl: './county-descriptions-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './county-descriptions-editor.component.css'
 })
 export class CountyDescriptionsEditorComponent implements OnInit {

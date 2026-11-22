@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, Inject } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { DOCUMENT, DatePipe } from '@angular/common';
 import { HttpService } from '@shared/services/http.service';
 import { MapFeature } from '@shared/types';
@@ -32,6 +32,7 @@ function getSiteStatus(site: MapFeature): SiteStatus {
   standalone: true,
   imports: [DatePipe],
   templateUrl: './admin-map.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-map.component.css',
 })
 export class AdminMapComponent implements AfterViewInit, OnDestroy {

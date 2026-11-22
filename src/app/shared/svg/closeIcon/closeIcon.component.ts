@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ThemedSvgBase } from '../themed-svg.base';
 
 @Component({
   standalone: true,
   selector: 'app-svg-close-icon',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './closeIcon.component.html'
 })
 

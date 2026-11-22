@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@shared/services/auth.service';
 import { HttpService } from '@shared/services/http.service';
@@ -8,6 +8,7 @@ import { HttpService } from '@shared/services/http.service';
   imports: [RouterLink],
   selector: 'app-admin',
   templateUrl: './admin.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin.component.css'
 })
 

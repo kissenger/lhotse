@@ -167,10 +167,10 @@
             </div>
           }
 
-          @if (asGenerate?.rank?.rank_score !== undefined || criterionScoreEntries.length) {
+          @if ($safeNavigationMigration(asGenerate?.rank?.rank_score) !== undefined || criterionScoreEntries.length) {
             <div class="section-heading full-row">Ranking &amp; Criterion Scores</div>
             <div class="scores-section full-row">
-              @if (asGenerate?.rank?.rank_score !== undefined) {
+              @if ($safeNavigationMigration(asGenerate?.rank?.rank_score) !== undefined) {
                 <div class="rank-score-row">
                   Overall rank score: <strong>{{ asGenerate!.rank!.rank_score }}</strong>
                   @if (asGenerate?.rank?.reviewer_notes) {

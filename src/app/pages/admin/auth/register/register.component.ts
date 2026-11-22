@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
@@ -12,6 +12,7 @@ import { errorMessage } from '@shared/utils/error-message';
   imports: [FormsModule, CommonModule],
   selector: 'app-register',
   templateUrl: './register.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['../auth.css']
 })
 

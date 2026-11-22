@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { buildYouTubeEmbedUrl } from '@shared/utils/youtube-url';
   imports: [NgOptimizedImage, RouterLink],
   selector: 'app-book',
   templateUrl: './book.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./book.component.css']
 })
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, output, OutputEmitterRef } from '@angular/core';
+import { Component, Input, output, OutputEmitterRef, ChangeDetectionStrategy } from '@angular/core';
 import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
 
 @Component({
@@ -7,6 +7,7 @@ import { SanitizerPipe } from '@shared/pipes/sanitizer.pipe';
   standalone: true,
   imports: [CommonModule, SanitizerPipe],
   templateUrl: './toast.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./toast.component.css']
 })
 

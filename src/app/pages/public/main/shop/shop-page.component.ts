@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ShopComponent } from '@pages/public/main/shop/shop.component';
 import { PageShellComponent } from '@shared/components/page-shell/page-shell.component';
 
 @Component({
   standalone: true,
   imports: [ShopComponent, PageShellComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-page-shell heading="Snorkelology Shop">
       <app-shop></app-shop>

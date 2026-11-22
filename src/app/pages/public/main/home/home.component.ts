@@ -1,6 +1,6 @@
 import { RouterLink } from '@angular/router';
 import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, PLATFORM_ID, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ScreenService } from        '@shared/services/screen.service';
 import { HttpService } from          '@shared/services/http.service';
@@ -22,6 +22,7 @@ import { appImageUrl } from          '@shared/utils/image-url';
 ],
   selector: 'app-home',
   templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./home.component.css']
 })
 

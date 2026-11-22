@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, combineLatest, switchMap, tap } from 'rxjs';
@@ -21,6 +21,7 @@ import { environment } from '@environments/environment';
   providers: [HtmlerPipe, SanitizerPipe, KebaberPipe],
   templateUrl: './post-shower.component.html',
   styleUrl: './post-shower.component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [KebaberPipe, SanitizerPipe, CommonModule, RouterLink, NgOptimizedImage, LoaderComponent, AffiliateBoxComponent]
 })
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FaqItem, faqFragment, faqItems } from '@shared/faq-data';
 import { HtmlerPipe } from '@shared/pipes/htmler.pipe';
 
@@ -9,6 +9,7 @@ type FaqSection = FaqItem['section'];
   selector: 'app-faq',
   templateUrl: './faq.component.html',
   styleUrls: ['../home/home.component.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [HtmlerPipe]
 })
 export class FAQComponent {

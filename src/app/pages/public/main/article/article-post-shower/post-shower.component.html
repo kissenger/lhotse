@@ -104,7 +104,7 @@
                   @if (usePlainSrcImages) {
                     <img [src]="reviewImageSrc" [alt]="reviewImageAltText" loading="lazy" decoding="async" />
                   } @else {
-                    <img [ngSrc]="reviewImageSrc" [alt]="reviewImageAltText" width="1200" height="1200" loading="lazy" decoding="async" />
+                    <img [ngSrc]="reviewImageSrc" [alt]="reviewImageAltText" width="1200" height="1200" sizes="(max-width: 820px) 100vw, 760px" loading="lazy" decoding="async" />
                   }
                 </figure>
                 <p class="image-credit">{{reviewImageAltText}}{{reviewImageAltText ? ' · ' : ''}}© {{reviewImageCreditText || 'Emma and Gordon Taylor'}}</p>

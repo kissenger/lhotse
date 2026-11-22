@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
 import { CurrentTemperatureSummary } from '@shared/types';
@@ -14,6 +14,7 @@ const AUTO_DISMISS_PATH = '/articles/live-britain-and-ireland-coastal-sea-temper
   standalone: true,
   imports: [RouterLink],
   templateUrl: './sst-banner.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sst-banner.component.css',
 })
 export class SstBannerComponent implements OnInit, OnDestroy {

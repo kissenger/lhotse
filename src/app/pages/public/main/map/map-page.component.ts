@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MapComponent } from '@pages/public/main/map/map.component';
 import { PageShellComponent } from '@shared/components/page-shell/page-shell.component';
 
 @Component({
   standalone: true,
   imports: [MapComponent, PageShellComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-page-shell heading="Snorkelling Map of Britain">
       <app-map></app-map>

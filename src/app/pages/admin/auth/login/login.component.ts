@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { HttpService } from '../../../../shared/services/http.service';
 import { FormsModule } from "@angular/forms";
 import { AuthUser } from '../../../../shared/types';
@@ -11,6 +11,7 @@ import { errorMessage } from '@shared/utils/error-message';
   imports: [FormsModule],
   selector: 'app-login',
   templateUrl: './login.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['../auth.css']
 })
 

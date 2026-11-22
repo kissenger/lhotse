@@ -2,7 +2,7 @@ import { ApplicationConfig, Injectable, provideZoneChangeDetection } from '@angu
 import { provideRouter, withInMemoryScrolling, withRouterConfig, withPreloading, PreloadingStrategy, Route } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
 import { IMAGE_LOADER, ImageLoaderConfig } from '@angular/common';
 import { environment } from '@environments/environment';
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({scrollPositionRestoration: 'disabled', anchorScrolling: 'disabled'}),
       withPreloading(SelectivePreloadingStrategy)
     ), 
-    provideClientHydration(),
+    provideClientHydration(withNoIncrementalHydration()),
     provideHttpClient(
       withFetch(),
       withInterceptorsFromDi()
@@ -44,7 +44,7 @@ export const appConfig: ApplicationConfig = {
           width: config.width,
           format: 'webp',
           fit: 'contain',
-          quality: 40,
+          quality: 70,
         });
       }
     },

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ArticlePost } from '@shared/types';
 import { RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { environment } from '@environments/environment';
   imports: [RouterLink, DatePipe],
   selector: 'app-article-card',
   templateUrl: './article-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./article-card.component.css'],
 })
 

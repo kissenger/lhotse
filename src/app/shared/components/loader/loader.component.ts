@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   selector: 'app-loader',
   templateUrl: './loader.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./loader.component.css']
 })
 export class LoaderComponent{

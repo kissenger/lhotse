@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ThemedSvgBase } from '../themed-svg.base';
 
 @Component({
   standalone: true,
   selector: 'app-svg-phone',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './phone.component.html'
 })
 

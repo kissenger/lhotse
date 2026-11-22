@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -13,6 +13,7 @@ import { Component, Input } from '@angular/core';
       </section>
     </main>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .route-shell {
       margin-top: calc(var(--header-height) + var(--header-overhang));

@@ -1,7 +1,7 @@
 import express from 'express';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { access, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -25,8 +25,14 @@ import 'dotenv/config';
 const ENVIRONMENT = environment.STAGE === 'prod' ? 'PRODUCTION' : 'DEVELOPMENT';
 const SKIP_SEO_DB_LOOKUPS = process.env['SKIP_SEO_DB_LOOKUPS'] === 'true';
 const app = express();
+// nginx on the same host sets X-Forwarded-For with the real visitor IP
+// (nginx restores it from Cloudflare's CF-Connecting-IP). Trust only loopback.
+app.set('trust proxy', 'loopback');
 app.use(compression());
-const angularApp = new AngularNodeAppEngine();
+const angularApp = new AngularNodeAppEngine({
+  // TODO: This is a security-sensitive option. Remove if not needed. For more information, see https://angular.dev/best-practices/security#configuring-trusted-proxy-headers
+  trustProxyHeaders: ['x-forwarded-host', 'x-forwarded-proto'],
+});
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 const repoRoot = findRepoRoot(serverDistFolder);
@@ -271,7 +277,9 @@ app.post('/api/refresh-seo-cache', async (req, res) => {
   }
   const authHeader = req.headers['authorization'] || '';
   const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (!provided || provided !== secret) {
+  const providedBuf = Buffer.from(provided);
+  const secretBuf = Buffer.from(secret);
+  if (!provided || providedBuf.length !== secretBuf.length || !timingSafeEqual(providedBuf, secretBuf)) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
@@ -536,7 +544,10 @@ export const reqHandler = createNodeRequestHandler(app);
 async function startServer(): Promise<void> {
   const port = Number(process.env['PORT']) || 4000;
 
-  app.listen(port, () => {
+  // Bind to loopback only (nginx is the public entry point). Set HOST=0.0.0.0 for LAN dev access.
+  const host = process.env['HOST'] || '127.0.0.1';
+
+  app.listen(port, host, () => {
     // Warm dependencies in the background so startup does not block requests.
     void ensureMongooseConnected()
       .then(() => refreshSeoCache())

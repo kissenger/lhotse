@@ -57,7 +57,7 @@ describe('ArticleComponent', () => {
     expect(grouped.map((g: any) => g.slug)).toEqual([
       'snorkelling-sites',
       'news',
-      'product-reviews',
+      'reviews',
       'science-and-nature',
       'british-snorkelling'
     ]);

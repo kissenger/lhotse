@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpService } from '@shared/services/http.service';
 import { ArticlePost } from '@shared/types';
 import { FormsModule } from "@angular/forms";
@@ -16,6 +16,7 @@ import { AdminDraftStorageService } from '@shared/services/admin-draft-storage.s
   imports: [NgClass, FormsModule],  
   providers: [KebaberPipe], 
   templateUrl: './article-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './article-editor.component.css'
 })
 

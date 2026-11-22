@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
 import { CarouselImages } from '@shared/types';
 
@@ -7,6 +7,7 @@ import { CarouselImages } from '@shared/types';
   imports: [ CarouselComponent],
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./slideshow.component.css']
 })
 

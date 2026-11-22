@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FAQComponent } from '@pages/public/main/faq/faq.component';
 import { PageShellComponent } from '@shared/components/page-shell/page-shell.component';
 
 @Component({
   standalone: true,
   imports: [FAQComponent, PageShellComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-page-shell heading="British Snorkelling FAQs">
       <app-faq></app-faq>

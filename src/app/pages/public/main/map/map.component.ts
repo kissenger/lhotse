@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy, Inject, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass, DOCUMENT, Location, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpService } from '@shared/services/http.service';
@@ -41,6 +41,7 @@ import { hasCoordinatePair, isNonEmptyString } from '@shared/utils/value-guards'
     SanitizerPipe ],
   selector: 'app-map',
   templateUrl: './map.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./map.component.css'],
 })
 

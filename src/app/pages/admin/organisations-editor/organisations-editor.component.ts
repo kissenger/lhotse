@@ -1,4 +1,4 @@
-﻿import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpService } from '@shared/services/http.service';
@@ -12,6 +12,7 @@ import { CanLeaveOrganisationsEditor } from './organisations-unsaved-changes.gua
   standalone: true,
   imports: [NgClass, FormsModule],
   templateUrl: './organisations-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './organisations-editor.component.css',
 })
 export class OrganisationsEditorComponent implements OnInit, CanLeaveOrganisationsEditor {

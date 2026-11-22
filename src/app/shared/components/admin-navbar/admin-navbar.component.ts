@@ -1,4 +1,4 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -10,6 +10,7 @@ import { HttpService } from '@shared/services/http.service';
   imports: [RouterLink, RouterLinkActive],
   selector: 'app-admin-navbar',
   templateUrl: './admin-navbar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-navbar.component.css',
 })
 export class AdminNavbarComponent {

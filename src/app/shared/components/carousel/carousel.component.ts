@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Inject, Input, PLATFORM_ID, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, Input, PLATFORM_ID, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import { SvgArrowComponent } from '../svg-arrow/svg-arrow.component';
 import { CarouselImages } from '@shared/types';
@@ -9,6 +9,7 @@ import { BehaviorSubject, interval, Observable, Subscription, switchMap, timer }
   imports: [CommonModule, NgOptimizedImage, SvgArrowComponent],
   selector: 'app-carousel',
   templateUrl: './carousel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./carousel.component.css']
 })
 export class CarouselComponent implements AfterViewInit{

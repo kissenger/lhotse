@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({  
   standalone: true,
   selector: 'app-partners',
   templateUrl: './partners.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./partners.component.css']
 })
 export class PartnersComponent {

@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit, Inject, CSP_NONCE } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectorRef, OnInit, Inject, CSP_NONCE, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe} from '@angular/common';
 import { ShopService } from '@shared/services/shop.service'
 import { FormsModule } from "@angular/forms";
@@ -19,6 +19,7 @@ import { ShopOutOfOfficePublicSettings } from '@shared/types';
   imports: [FormsModule, CurrencyPipe, CommonModule, OrderOutcomeComponent, CarouselComponent],
   selector: 'app-shop',
   templateUrl: './shop.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./shop.component.css', '../home/home.component.css']
 })
 
